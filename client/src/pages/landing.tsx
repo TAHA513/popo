@@ -19,9 +19,9 @@ export default function Landing() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 laa-gradient-bg rounded-full flex items-center justify-center">
-                <span className="text-white text-lg font-bold">L</span>
+                <span className="text-white text-lg">🐰</span>
               </div>
-              <span className="font-bold text-2xl bg-gradient-to-r from-laa-pink to-laa-purple bg-clip-text text-transparent">LaaBoBo Live</span>
+              <span className="font-bold text-2xl text-gray-900 dark:text-white">LaaBoBo Live</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ export default function Landing() {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   بث مباشر عالي الجودة
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-700 dark:text-gray-300 font-medium">
                   ابدأ البث المباشر بجودة HD مع أدوات تفاعلية متقدمة
                 </p>
               </CardContent>
@@ -130,7 +130,7 @@ export default function Landing() {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   نظام هدايا تفاعلي
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-700 dark:text-gray-300 font-medium">
                   شخصيات أصلية مع تأثيرات بصرية رائعة وأرباح حقيقية
                 </p>
               </CardContent>
@@ -144,7 +144,7 @@ export default function Landing() {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   مجتمع نشط
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-700 dark:text-gray-300 font-medium">
                   تواصل مع المبدعين والمشاهدين من جميع أنحاء العالم
                 </p>
               </CardContent>
@@ -230,7 +230,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center mb-4">
             <div className="w-8 h-8 laa-gradient-bg rounded-full flex items-center justify-center mr-3">
-              <span className="text-white font-bold">L</span>
+              <span className="text-white">🐰</span>
             </div>
             <span className="font-bold text-xl">LaaBoBo Live</span>
           </div>

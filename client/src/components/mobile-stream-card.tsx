@@ -22,6 +22,10 @@ interface MobileStreamCardProps {
 }
 
 export default function MobileStreamCard({ stream }: MobileStreamCardProps) {
+  // Safely handle undefined values
+  const safeStreamerName = stream?.streamerName || 'Unknown Streamer';
+  const safeTitle = stream?.title || 'Live Stream';
+  
   return (
     <Link href={`/stream/${stream.id}`}>
       <Card className="laa-card-mobile cursor-pointer hover:shadow-xl transition-all duration-300 touch-target">
@@ -31,7 +35,7 @@ export default function MobileStreamCard({ stream }: MobileStreamCardProps) {
             {stream.thumbnail ? (
               <img 
                 src={stream.thumbnail} 
-                alt={stream.title}
+                alt={safeTitle}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -65,14 +69,14 @@ export default function MobileStreamCard({ stream }: MobileStreamCardProps) {
             {/* Streamer Info */}
             <div className="flex items-center gap-2 mb-2">
               <Avatar className="w-8 h-8 border-2 border-laa-pink">
-                <AvatarImage src={stream.streamerAvatar} alt={stream.streamerName} />
+                <AvatarImage src={stream.streamerAvatar} alt={safeStreamerName} />
                 <AvatarFallback className="bg-laa-pink text-white text-xs">
-                  {stream.streamerName.charAt(0)}
+                  {safeStreamerName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {stream.streamerName}
+                  {safeStreamerName}
                 </p>
                 {stream.category && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -84,7 +88,7 @@ export default function MobileStreamCard({ stream }: MobileStreamCardProps) {
             
             {/* Stream Title */}
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-tight">
-              {stream.title}
+              {safeTitle}
             </h3>
           </div>
         </CardContent>

@@ -45,7 +45,7 @@ export default function Home() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">L</span>
+                  <span className="text-white text-lg">🐰</span>
                 </div>
                 <div>
                   <h1 className="text-white font-bold text-xl">LaaBoBo Live</h1>
@@ -89,7 +89,7 @@ export default function Home() {
               <CardContent className="p-3 text-center">
                 <TrendingUp className="w-6 h-6 text-laa-pink mx-auto mb-2" />
                 <p className="text-lg font-bold text-gray-900 dark:text-white">{streams.length}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">بث مباشر</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">بث مباشر</p>
               </CardContent>
             </Card>
             <Card className="laa-card-mobile">
@@ -98,7 +98,7 @@ export default function Home() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {streams.reduce((sum, s) => sum + s.viewerCount, 0)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">مشاهد</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">مشاهد</p>
               </CardContent>
             </Card>
             <Card className="laa-card-mobile">
@@ -107,7 +107,7 @@ export default function Home() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {user?.points || 0}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">نقاطك</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">نقاطك</p>
               </CardContent>
             </Card>
           </div>

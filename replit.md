@@ -7,6 +7,9 @@ LaaBoBo Live is a full-stack live streaming application with a focus on interact
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Logo preference: Original rabbit logo (🐰) must be preserved - never change to letters or other symbols.
+Text clarity: User requires high contrast and readable text - avoid light gray colors for important text.
+Original content: Preserve existing descriptions and explanations - do not alter without permission.
 
 ## System Architecture
 

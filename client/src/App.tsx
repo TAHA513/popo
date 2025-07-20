@@ -18,19 +18,24 @@ type Language = 'en' | 'ar';
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Show landing page when not authenticated or still loading
+  if (isLoading || !isAuthenticated) {
+    return (
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route component={Landing} />
+      </Switch>
+    );
+  }
+
+  // Show authenticated routes
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/stream/:id" component={StreamPage} />
-          <Route path="/admin" component={AdminPage} />
-          <Route path="/panel-9bd2f2-control" component={AdminPage} />
-          <Route path="/start-stream" component={StartStreamPage} />
-        </>
-      )}
+      <Route path="/" component={Home} />
+      <Route path="/stream/:id" component={StreamPage} />
+      <Route path="/admin" component={AdminPage} />
+      <Route path="/panel-9bd2f2-control" component={AdminPage} />
+      <Route path="/start-stream" component={StartStreamPage} />
       <Route component={NotFound} />
     </Switch>
   );
