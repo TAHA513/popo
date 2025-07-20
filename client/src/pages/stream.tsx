@@ -11,7 +11,7 @@ export default function StreamPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
 
-  const { data: stream, isLoading: streamLoading, error } = useQuery({
+  const { data: stream, isLoading: streamLoading, error } = useQuery<Stream>({
     queryKey: ['/api/streams', id],
     enabled: !!id && isAuthenticated,
   });

@@ -13,7 +13,7 @@ export default function GiftCharacters({
   onSelectGift, 
   showPurchaseButton = false 
 }: GiftCharactersProps) {
-  const { data: characters = [], isLoading } = useQuery({
+  const { data: characters = [], isLoading } = useQuery<GiftCharacter[]>({
     queryKey: ['/api/gifts/characters'],
   });
 

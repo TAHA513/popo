@@ -107,7 +107,7 @@ export function useWebSocket() {
     ws.connect();
 
     const checkConnection = () => {
-      setIsConnected(ws.ws?.readyState === WebSocket.OPEN);
+      setIsConnected(ws['ws']?.readyState === WebSocket.OPEN);
     };
 
     const interval = setInterval(checkConnection, 1000);

@@ -272,6 +272,9 @@ async function initializeGiftCharacters() {
   try {
     const existingCharacters = await storage.getGiftCharacters();
     if (existingCharacters.length === 0) {
+      const { db } = await import("./db");
+      const { giftCharacters } = await import("@shared/schema");
+      
       const characters = [
         { name: 'BoBo Love', emoji: '🐰💕', description: 'Rabbit with flying hearts', pointCost: 100, animationType: 'hearts' },
         { name: 'BoFire', emoji: '🐲🔥', description: 'Dragon with neon fire', pointCost: 500, animationType: 'fire' },
@@ -281,7 +284,7 @@ async function initializeGiftCharacters() {
       ];
       
       for (const character of characters) {
-        // Note: In real implementation, this would insert into database
+        await db.insert(giftCharacters).values(character);
         console.log('Initialize gift character:', character.name);
       }
     }

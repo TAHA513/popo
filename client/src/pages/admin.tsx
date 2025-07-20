@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Video, TrendingUp, Gift, AlertTriangle, CheckCircle } from "lucide-react";
+import { AdminStats } from "@/types";
 
 export default function AdminPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
 
-  const { data: stats, isLoading: statsLoading, error } = useQuery({
+  const { data: stats, isLoading: statsLoading, error } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
     enabled: !!user?.isAdmin,
   });

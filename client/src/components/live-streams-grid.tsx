@@ -10,7 +10,7 @@ import { Stream } from "@/types";
 export default function LiveStreamsGrid() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const { data: streams = [], isLoading } = useQuery({
+  const { data: streams = [], isLoading } = useQuery<Stream[]>({
     queryKey: ['/api/streams'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });

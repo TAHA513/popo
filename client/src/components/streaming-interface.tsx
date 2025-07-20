@@ -25,7 +25,7 @@ interface StreamingInterfaceProps {
   stream: Stream;
 }
 
-interface ExtendedChatMessage extends ChatMessage {
+interface ExtendedChatMessage extends Omit<ChatMessage, 'user'> {
   user?: {
     id: string;
     username?: string;
