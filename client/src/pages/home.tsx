@@ -4,10 +4,10 @@ import LiveStreamsGrid from "@/components/live-streams-grid";
 import GiftCharacters from "@/components/gift-characters";
 import UserProfile from "@/components/user-profile";
 import MobileNavigation from "@/components/mobile-navigation";
-import MobileStreamCard from "@/components/mobile-stream-card";
+// import MobileStreamCard from "@/components/mobile-stream-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Play, Users, TrendingUp, Plus, Search, Bell, Settings, Moon, Sun } from "lucide-react";
+import { Video, Play, Users, TrendingUp, Plus, Search, Bell, Settings, Moon, Sun, Eye } from "lucide-react";
 import { useState } from "react";
 import { usePWA } from "@/hooks/usePWA";
 import { useQuery } from "@tanstack/react-query";
@@ -59,28 +59,29 @@ export default function Home() {
               </div>
               
               {/* Language and Theme Controls */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-xs">
                 <select 
                   value={language} 
                   onChange={(e) => setLanguage(e.target.value as Language)}
-                  className="bg-white/20 text-white text-sm px-2 py-1 rounded border-none outline-none backdrop-blur-sm"
+                  className="bg-white/30 text-white text-xs px-2 py-1 rounded-lg border-none outline-none backdrop-blur-sm font-medium"
                 >
-                  <option value="ar" className="text-gray-900 bg-white">العربية</option>
-                  <option value="en" className="text-gray-900 bg-white">English</option>
+                  <option value="ar" className="text-gray-900 bg-white">عربي</option>
+                  <option value="en" className="text-gray-900 bg-white">EN</option>
                 </select>
                 
                 <button 
                   onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center touch-target"
+                  className="w-9 h-9 rounded-full bg-white/30 flex items-center justify-center touch-target backdrop-blur-sm"
+                  title={theme === 'light' ? 'وضع ليلي' : 'وضع نهاري'}
                 >
                   {theme === 'light' ? <Moon className="w-4 h-4 text-white" /> : <Sun className="w-4 h-4 text-white" />}
                 </button>
                 
-                <button className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center touch-target">
+                <button className="w-9 h-9 rounded-full bg-white/30 flex items-center justify-center touch-target backdrop-blur-sm" title="الإشعارات">
                   <Bell className="w-4 h-4 text-white" />
                 </button>
                 
-                <button className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center touch-target">
+                <button className="w-9 h-9 rounded-full bg-white/30 flex items-center justify-center touch-target backdrop-blur-sm" title="الإعدادات">
                   <Settings className="w-4 h-4 text-white" />
                 </button>
               </div>
@@ -161,7 +162,34 @@ export default function Home() {
             ) : streams.length > 0 ? (
               <div className="grid grid-cols-1 gap-4">
                 {streams.slice(0, 5).map((stream) => (
-                  <MobileStreamCard key={stream.id} stream={stream} />
+                  <Card key={stream.id} className="laa-card-mobile cursor-pointer hover:shadow-xl transition-all duration-300 touch-target">
+                    <CardContent className="p-0">
+                      <div className="relative aspect-video bg-gradient-to-br from-laa-pink via-laa-purple to-laa-blue rounded-t-2xl overflow-hidden">
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Play className="w-12 h-12 text-white opacity-70" />
+                        </div>
+                        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs animate-pulse">
+                          مباشر
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          <span>{stream.viewerCount}</span>
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                          {stream.title || 'Live Stream'}
+                        </h3>
+                        <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">
+                          بواسطة {stream.streamerName || 'Unknown'}
+                        </p>
+                        <div className="flex items-center justify-between mt-2 text-xs text-gray-600 dark:text-gray-400">
+                          <span>{stream.viewerCount} مشاهد</span>
+                          <span>{stream.totalGifts} هدية</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             ) : (
@@ -196,7 +224,7 @@ export default function Home() {
                   <Card className="w-20 laa-card-mobile">
                     <CardContent className="p-3 text-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-laa-pink to-laa-purple rounded-full mx-auto mb-2 flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">{character.charAt(0)}</span>
+                        <span className="text-white text-xs font-bold">{character[0] || 'G'}</span>
                       </div>
                       <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
                         {character}
