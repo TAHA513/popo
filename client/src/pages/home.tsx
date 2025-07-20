@@ -92,7 +92,7 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-gray-600 text-sm">Followers</p>
-                          <p className="text-2xl font-bold text-laa-dark">{user?.followers || 0}</p>
+                          <p className="text-2xl font-bold text-laa-dark">0</p>
                         </div>
                         <div className="w-10 h-10 bg-laa-blue/10 rounded-full flex items-center justify-center">
                           <Users className="w-5 h-5 text-laa-blue" />

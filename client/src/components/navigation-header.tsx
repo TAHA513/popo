@@ -118,12 +118,10 @@ export default function NavigationHeader({
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                {user?.isAdmin && (
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/admin'}>
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Admin Panel</span>
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/admin'}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>لوحة التحكم الرئيسية</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
