@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0"),
   isStreamer: boolean("is_streamer").default(false),
   isAdmin: boolean("is_admin").default(false),
+  role: varchar("role").default("user").notNull(), // 'user' | 'admin' | 'super_admin'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

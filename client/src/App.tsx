@@ -27,6 +27,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/stream/:id" component={StreamPage} />
           <Route path="/admin" component={AdminPage} />
+          <Route path="/panel-9bd2f2-control" component={AdminPage} />
           <Route path="/start-stream" component={StartStreamPage} />
         </>
       )}

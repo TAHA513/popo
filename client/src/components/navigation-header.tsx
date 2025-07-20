@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
 import { Globe, Settings, LogOut, Shield } from "lucide-react";
-import { Language } from "@/types";
+type Language = 'en' | 'ar';
 
 interface NavigationHeaderProps {
   language?: Language;
@@ -92,7 +92,7 @@ export default function NavigationHeader({
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10 border-2 border-laa-pink">
                     <AvatarImage 
-                      src={user?.profileImageUrl} 
+                      src={user?.profileImageUrl || undefined} 
                       alt={user?.firstName || user?.username || 'User'} 
                     />
                     <AvatarFallback className="bg-laa-pink text-white">
@@ -118,10 +118,12 @@ export default function NavigationHeader({
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/admin'}>
-                  <Shield className="mr-2 h-4 w-4" />
-                  <span>لوحة التحكم الرئيسية</span>
-                </DropdownMenuItem>
+                {user?.role === 'super_admin' && (
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/panel-9bd2f2-control'}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>لوحة التحكم الرئيسية</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />

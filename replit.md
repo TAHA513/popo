@@ -115,5 +115,13 @@ The application uses a comprehensive PostgreSQL schema with the following main e
 - `SESSION_SECRET`: Session encryption key
 - `REPL_ID`: Replit environment identifier
 - `ISSUER_URL`: Authentication provider URL
+- `ADMIN_SECRET_CODE`: Secret access code for super admin panel
+- `ADMIN_PROMO_CODE`: Temporary code to promote users to super_admin
+
+## Security Features
+- **Secure Admin Panel**: Located at `/panel-9bd2f2-control` (hidden from regular users)
+- **Role-based Access**: Users can have roles: 'user', 'admin', or 'super_admin'
+- **Multi-layer Security**: Requires both super_admin role AND secret access code header
+- **Temporary Promotion Route**: `/make-admin` for initial super_admin setup
 
 The application is designed for deployment on Replit's platform but can be adapted for other hosting environments with minimal configuration changes.

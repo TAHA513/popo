@@ -3,8 +3,11 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users } from "@shared/schema";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
+import { db } from "./db";
+import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -171,6 +174,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user profile:", error);
       res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  // Secure admin panel route
+  app.get('/panel-9bd2f2-control', checkSuperAdmin, (req, res) => {
+    // This serves the admin panel - redirect to frontend admin route
+    res.redirect('/admin');
+  });
+
+  // Temporary route to promote user to super_admin
+  app.post('/make-admin', async (req, res) => {
+    try {
+      const { email, code } = req.body;
+      
+      if (!email || !code) {
+        return res.status(400).json({ message: 'Email and code required' });
+      }
+      
+      if (code !== process.env.ADMIN_PROMO_CODE) {
+        return res.status(403).json({ message: 'Invalid code' });
+      }
+      
+      // Update user role to super_admin
+      const result = await db.update(users)
+        .set({ role: 'super_admin' })
+        .where(eq(users.email, email))
+        .returning();
+      
+      if (result.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json({ message: 'User promoted to super_admin', user: result[0] });
+    } catch (error) {
+      console.error('Error promoting user:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
