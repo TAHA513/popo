@@ -22,9 +22,13 @@ interface MobileStreamCardProps {
 }
 
 export default function MobileStreamCard({ stream }: MobileStreamCardProps) {
-  // Safely handle undefined values
-  const safeStreamerName = stream?.streamerName || 'Unknown Streamer';
-  const safeTitle = stream?.title || 'Live Stream';
+  // Safely handle undefined values - ensure string is valid
+  const safeStreamerName = (stream?.streamerName && typeof stream.streamerName === 'string' && stream.streamerName.length > 0) 
+    ? stream.streamerName 
+    : 'Unknown Streamer';
+  const safeTitle = (stream?.title && typeof stream.title === 'string' && stream.title.length > 0) 
+    ? stream.title 
+    : 'Live Stream';
   
   return (
     <Link href={`/stream/${stream.id}`}>

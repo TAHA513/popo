@@ -7,7 +7,7 @@ import MobileNavigation from "@/components/mobile-navigation";
 import MobileStreamCard from "@/components/mobile-stream-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Play, Users, TrendingUp, Plus, Search } from "lucide-react";
+import { Video, Play, Users, TrendingUp, Plus, Search, Bell, Settings, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { usePWA } from "@/hooks/usePWA";
 import { useQuery } from "@tanstack/react-query";
@@ -25,10 +25,15 @@ interface Stream {
   totalGifts: number;
 }
 
+type Language = 'en' | 'ar';
+type Theme = 'light' | 'dark';
+
 export default function Home() {
   const { user } = useAuth();
   const { isInstalled } = usePWA();
   const [activeTab, setActiveTab] = useState('home');
+  const [language, setLanguage] = useState<Language>('ar');
+  const [theme, setTheme] = useState<Theme>('light');
 
   // Fetch live streams
   const { data: streams = [], isLoading } = useQuery<Stream[]>({
@@ -49,16 +54,36 @@ export default function Home() {
                 </div>
                 <div>
                   <h1 className="text-white font-bold text-xl">LaaBoBo Live</h1>
-                  <p className="text-white/80 text-sm">مرحباً {user?.firstName || 'بك'}!</p>
+                  <p className="text-white/90 text-sm font-medium">مرحباً {user?.firstName || user?.email || 'بك'}!</p>
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-white hover:bg-white/20 touch-target"
-              >
-                <Search className="w-5 h-5" />
-              </Button>
+              
+              {/* Language and Theme Controls */}
+              <div className="flex items-center gap-2">
+                <select 
+                  value={language} 
+                  onChange={(e) => setLanguage(e.target.value as Language)}
+                  className="bg-white/20 text-white text-sm px-2 py-1 rounded border-none outline-none backdrop-blur-sm"
+                >
+                  <option value="ar" className="text-gray-900 bg-white">العربية</option>
+                  <option value="en" className="text-gray-900 bg-white">English</option>
+                </select>
+                
+                <button 
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center touch-target"
+                >
+                  {theme === 'light' ? <Moon className="w-4 h-4 text-white" /> : <Sun className="w-4 h-4 text-white" />}
+                </button>
+                
+                <button className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center touch-target">
+                  <Bell className="w-4 h-4 text-white" />
+                </button>
+                
+                <button className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center touch-target">
+                  <Settings className="w-4 h-4 text-white" />
+                </button>
+              </div>
             </div>
 
             {/* Quick Actions */}
@@ -89,7 +114,7 @@ export default function Home() {
               <CardContent className="p-3 text-center">
                 <TrendingUp className="w-6 h-6 text-laa-pink mx-auto mb-2" />
                 <p className="text-lg font-bold text-gray-900 dark:text-white">{streams.length}</p>
-                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">بث مباشر</p>
+                <p className="text-xs text-gray-800 dark:text-gray-200 font-semibold">بث مباشر</p>
               </CardContent>
             </Card>
             <Card className="laa-card-mobile">
@@ -98,7 +123,7 @@ export default function Home() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {streams.reduce((sum, s) => sum + s.viewerCount, 0)}
                 </p>
-                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">مشاهد</p>
+                <p className="text-xs text-gray-800 dark:text-gray-200 font-semibold">مشاهد</p>
               </CardContent>
             </Card>
             <Card className="laa-card-mobile">
@@ -107,7 +132,7 @@ export default function Home() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {user?.points || 0}
                 </p>
-                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">نقاطك</p>
+                <p className="text-xs text-gray-800 dark:text-gray-200 font-semibold">نقاطك</p>
               </CardContent>
             </Card>
           </div>
