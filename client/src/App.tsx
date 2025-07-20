@@ -10,7 +10,10 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import StreamPage from "@/pages/stream";
 import AdminPage from "@/pages/admin";
-import { Language } from "@/types";
+import StartStreamPage from "@/pages/start-stream";
+import { LanguageOption } from "@/types";
+
+type Language = 'en' | 'ar';
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -24,6 +27,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/stream/:id" component={StreamPage} />
           <Route path="/admin" component={AdminPage} />
+          <Route path="/start-stream" component={StartStreamPage} />
         </>
       )}
       <Route component={NotFound} />

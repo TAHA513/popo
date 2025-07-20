@@ -2,9 +2,11 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import StreamingInterface from "@/components/streaming-interface";
+import BeautyFilters from "@/components/beauty-filters";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { Stream } from "@/types";
 
 export default function StreamPage() {
   const { id } = useParams();

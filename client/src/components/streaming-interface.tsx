@@ -16,10 +16,12 @@ import {
   Send,
   Heart,
   Eye,
-  Gift as GiftIcon
+  Gift as GiftIcon,
+  Sparkles
 } from "lucide-react";
 import { Stream, ChatMessage, Gift, GiftCharacter } from "@/types";
 import GiftCharacters from "./gift-characters";
+import BeautyFilters from "./beauty-filters";
 
 interface StreamingInterfaceProps {
   stream: Stream;
@@ -39,6 +41,8 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
   const [chatMessages, setChatMessages] = useState<ExtendedChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(stream.viewerCount);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [isStreamer, setIsStreamer] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   
   const { 
@@ -51,10 +55,11 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
     onGiftSent
   } = useWebSocket();
 
-  // Join stream on mount
+  // Join stream on mount and check if user is streamer
   useEffect(() => {
     if (user && isConnected) {
       joinStream(stream.id, user.id);
+      setIsStreamer(user.id === stream.hostId);
     }
 
     return () => {
@@ -79,7 +84,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
         streamId: stream.id,
         userId: sender.sub,
         message: `sent a gift!`,
-        sentAt: new Date().toISOString(),
+        sentAt: new Date(),
         user: {
           id: sender.sub,
           username: sender.first_name || sender.email,
@@ -210,7 +215,33 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
               >
                 <Maximize className="w-4 h-4" />
               </Button>
+              {/* Beauty Filters Button - Only for streamers */}
+              {isStreamer && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`bg-black bg-opacity-50 text-white hover:bg-opacity-70 ${
+                    showFilters ? 'ring-2 ring-pink-500' : ''
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                </Button>
+              )}
             </div>
+
+            {/* Beauty Filters Panel */}
+            {isStreamer && showFilters && (
+              <div className="absolute bottom-16 left-4 max-w-sm">
+                <BeautyFilters
+                  isStreaming={true}
+                  onFilterChange={(filterId, intensity) => {
+                    console.log(`Filter ${filterId} applied with intensity ${intensity}%`);
+                  }}
+                  language="en"
+                />
+              </div>
+            )}
           </div>
 
           {/* Chat & Gifts Sidebar */}
@@ -270,10 +301,10 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
                           {message.user?.username || 'Anonymous'}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {new Date(message.sentAt).toLocaleTimeString([], { 
+                          {message.sentAt ? new Date(message.sentAt).toLocaleTimeString([], { 
                             hour: '2-digit', 
                             minute: '2-digit' 
-                          })}
+                          }) : ''}
                         </span>
                       </div>
                       <p className="text-sm">{message.message}</p>

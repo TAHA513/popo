@@ -38,6 +38,7 @@ export default function Home() {
                   <Button
                     size="lg"
                     className="bg-white text-laa-pink hover:bg-gray-100 text-lg px-8 py-4"
+                    onClick={() => window.location.href = '/start-stream'}
                   >
                     <Video className="w-5 h-5 mr-2" />
                     Start Streaming
