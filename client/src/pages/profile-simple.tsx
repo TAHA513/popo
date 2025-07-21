@@ -25,7 +25,6 @@ import SimpleNavigation from "@/components/simple-navigation";
 import { Link, useParams } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
-
 export default function ProfileSimplePage() {
   const { user: currentUser } = useAuth();
   const { userId } = useParams();
@@ -36,6 +35,8 @@ export default function ProfileSimplePage() {
   const [messageText, setMessageText] = useState("");
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const { toast } = useToast();
+  
+  // All hooks must be called before any conditional returns
   
   // Fetch profile user data
   const { data: profileUser, isLoading: userLoading } = useQuery({
@@ -50,9 +51,6 @@ export default function ProfileSimplePage() {
     }
   });
 
-  // Use fetched profile data
-  const user = profileUser;
-  
   // Fetch user memories
   const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
     queryKey: ['/api/memories/user', profileUserId],
@@ -89,11 +87,10 @@ export default function ProfileSimplePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/followers', profileUserId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
     }
   });
   
-  // Fetch available gifts - MUST be before any conditional returns
+  // Fetch available gifts
   const { data: gifts = [] } = useQuery({
     queryKey: ['/api/gifts/characters'],
     queryFn: async () => {
@@ -105,7 +102,7 @@ export default function ProfileSimplePage() {
     }
   });
   
-  // Fetch followers - MUST be before any conditional returns
+  // Fetch followers
   const { data: followers = [] } = useQuery({
     queryKey: ['/api/users/followers', profileUserId],
     enabled: !!profileUserId,
@@ -118,7 +115,7 @@ export default function ProfileSimplePage() {
     }
   });
   
-  // Fetch following - MUST be before any conditional returns
+  // Fetch following
   const { data: following = [] } = useQuery({
     queryKey: ['/api/users/following', profileUserId],
     enabled: !!profileUserId,
@@ -131,7 +128,85 @@ export default function ProfileSimplePage() {
     }
   });
 
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/messages/send', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recipientId: profileUserId,
+          content: messageText
+        })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send message');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم إرسال الرسالة",
+        description: "تم إرسال طلب المحادثة بنجاح",
+      });
+      setShowMessageDialog(false);
+      setMessageText("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل إرسال الرسالة",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Send gift mutation
+  const sendGiftMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedGift) throw new Error('Please select a gift');
+      const response = await fetch('/api/gifts/send', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recipientId: profileUserId,
+          giftCharacterId: selectedGift
+        })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send gift');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم إرسال الهدية",
+        description: "تم إرسال الهدية بنجاح!",
+      });
+      setShowGiftDialog(false);
+      setSelectedGift(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل إرسال الهدية",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Calculate derived values
   const isOwnProfile = currentUser?.id === profileUserId;
+  const user = profileUser;
   
   // Check if still loading user data - AFTER all hooks
   if (userLoading || !user) {
@@ -147,8 +222,6 @@ export default function ProfileSimplePage() {
       </div>
     );
   }
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -224,155 +297,179 @@ export default function ProfileSimplePage() {
                 {isOwnProfile ? (
                   <Link href="/create-memory">
                     <Button 
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full"
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      ذكرى جديدة
+                      إنشاء ذكرى
                     </Button>
                   </Link>
-                ) : currentUser ? (
-                  <div className="flex flex-col space-y-2">
-                    <Button 
-                      onClick={() => followMutation.mutate()}
-                      disabled={followMutation.isPending}
-                      className={isFollowing ? "w-full" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full"}
-                      variant={isFollowing ? "outline" : "default"}
-                    >
-                      {isFollowing ? (
-                        <>
-                          <UserMinus className="w-4 h-4 mr-2" />
-                          إلغاء المتابعة
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          متابعة
-                        </>
-                      )}
-                    </Button>
-                    <Button 
-                      variant="secondary"
-                      onClick={() => setShowMessageDialog(true)}
-                      className="w-full bg-blue-100 hover:bg-blue-200 text-blue-700"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      رسالة
-                    </Button>
-                    <Button 
-                      variant="secondary"
-                      onClick={() => setShowGiftDialog(true)}
-                      className="w-full bg-pink-100 hover:bg-pink-200 text-pink-700"
-                    >
-                      <Gift className="w-4 h-4 mr-2" />
-                      هدية
-                    </Button>
-                  </div>
-                ) : null}
+                ) : (
+                  <>
+                    {currentUser ? (
+                      <>
+                        <Button
+                          onClick={() => followMutation.mutate()}
+                          disabled={followMutation.isPending}
+                          variant={isFollowing ? "outline" : "default"}
+                          className={!isFollowing ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" : ""}
+                        >
+                          {isFollowing ? (
+                            <>
+                              <UserMinus className="w-4 h-4 mr-2" />
+                              إلغاء المتابعة
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              متابعة
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => setShowMessageDialog(true)}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          رسالة
+                        </Button>
+                        <Button
+                          onClick={() => setShowGiftDialog(true)}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Gift className="w-4 h-4 mr-2" />
+                          إرسال هدية
+                        </Button>
+                      </>
+                    ) : (
+                      <Link href="/login">
+                        <Button className="w-full">
+                          تسجيل الدخول للمتابعة
+                        </Button>
+                      </Link>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Tabs */}
-        <div className="flex space-x-2 rtl:space-x-reverse mb-6">
-          <Button
-            variant={activeTab === "memories" ? "default" : "outline"}
-            onClick={() => setActiveTab("memories")}
-            className={activeTab === "memories" ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}
-          >
-            المنشورات ({memories.length})
-          </Button>
-          <Button
-            variant={activeTab === "followers" ? "default" : "outline"}
-            onClick={() => setActiveTab("followers")}
-            className={activeTab === "followers" ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}
-          >
-            المتابعون ({followers.length})
-          </Button>
-          <Button
-            variant={activeTab === "following" ? "default" : "outline"}
-            onClick={() => setActiveTab("following")}
-            className={activeTab === "following" ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}
-          >
-            يتابع ({following.length})
-          </Button>
-        </div>
-
-        {/* Memories Section */}
-        <div style={{display: activeTab === "memories" ? "block" : "none"}}>
-          <h2 className="text-xl font-bold mb-4">منشوراتي ({memories.length})</h2>
-          
-          {memoriesLoading && (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-gray-600">جاري تحميل المنشورات...</p>
-            </div>
-          )}
-          
-          {memories.length === 0 ? (
-            <Card className="p-12 text-center">
-              <h3 className="text-xl font-semibold mb-2">لا توجد ذكريات</h3>
-              <p className="text-gray-600 mb-6">
-                لم تقم بإنشاء أي ذكريات بعد. ابدأ بمشاركة لحظاتك المميزة!
-              </p>
-              <Link href="/create-memory">
-                <Button 
-                  className="bg-gradient-to-r from-purple-600 to-pink-600"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  إنشاء ذكرى جديدة
-                </Button>
-              </Link>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {memories.map((memory: any) => (
-                <Card key={memory.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="aspect-square bg-gray-200 rounded-lg mb-3 relative">
-                      {memory.thumbnailUrl && (
-                        <img 
-                          src={memory.thumbnailUrl} 
-                          alt={memory.caption || memory.title}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      )}
-                      {!memory.thumbnailUrl && memory.mediaUrls && memory.mediaUrls[0] && (
-                        <img 
-                          src={memory.mediaUrls[0]} 
-                          alt={memory.caption || memory.title}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-700 line-clamp-2">
-                      {memory.caption || memory.title || 'منشور بدون وصف'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(memory.createdAt).toLocaleDateString('ar')}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
         
-        {/* Followers Section */}
-        <div style={{display: activeTab === "followers" ? "block" : "none"}}>
-          <h2 className="text-xl font-bold mb-4">المتابعون ({followers.length})</h2>
-          {followers.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-gray-600">لا يوجد متابعون بعد</p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {followers.map((item: any) => (
-                <Card key={item.follower.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div 
-                      onClick={() => window.location.href = `/profile/${item.follower.id}`}
-                      className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+        {/* Tabs */}
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm mb-6">
+          <CardContent className="p-0">
+            <div className="flex border-b">
+              <button
+                onClick={() => setActiveTab("memories")}
+                className={`flex-1 py-4 text-center transition-colors ${
+                  activeTab === "memories" 
+                    ? "border-b-2 border-purple-600 text-purple-600 font-semibold" 
+                    : "text-gray-600 hover:text-purple-600"
+                }`}
+              >
+                المنشورات ({memories.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("followers")}
+                className={`flex-1 py-4 text-center transition-colors ${
+                  activeTab === "followers" 
+                    ? "border-b-2 border-purple-600 text-purple-600 font-semibold" 
+                    : "text-gray-600 hover:text-purple-600"
+                }`}
+              >
+                المتابعون ({followers.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("following")}
+                className={`flex-1 py-4 text-center transition-colors ${
+                  activeTab === "following" 
+                    ? "border-b-2 border-purple-600 text-purple-600 font-semibold" 
+                    : "text-gray-600 hover:text-purple-600"
+                }`}
+              >
+                يتابع ({following.length})
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Content Sections */}
+        <div className="min-h-[400px]">
+          {/* Memories Section */}
+          <div style={{display: activeTab === "memories" ? "block" : "none"}}>
+            {memories.length === 0 && isOwnProfile ? (
+              <Card className="p-12 text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Plus className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">لم تقم بإنشاء أي ذكريات بعد</h3>
+                <p className="text-gray-600 mb-6">
+                  لم تقم بإنشاء أي ذكريات بعد. ابدأ بمشاركة لحظاتك المميزة!
+                </p>
+                <Link href="/create-memory">
+                  <Button 
+                    className="bg-gradient-to-r from-purple-600 to-pink-600"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    إنشاء ذكرى جديدة
+                  </Button>
+                </Link>
+              </Card>
+            ) : memories.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-gray-600">لا توجد منشورات بعد</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {memories.map((memory: any) => (
+                  <Card key={memory.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="aspect-square bg-gray-200 rounded-lg mb-3 relative">
+                        {memory.thumbnailUrl && (
+                          <img 
+                            src={memory.thumbnailUrl} 
+                            alt={memory.caption || memory.title}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        )}
+                        {!memory.thumbnailUrl && memory.mediaUrls && memory.mediaUrls[0] && (
+                          <img 
+                            src={memory.mediaUrls[0]} 
+                            alt={memory.caption || memory.title}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-700 line-clamp-2">
+                        {memory.caption || memory.title || 'منشور بدون وصف'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(memory.createdAt).toLocaleDateString('ar')}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Followers Section */}
+          <div style={{display: activeTab === "followers" ? "block" : "none"}}>
+            <h2 className="text-xl font-bold mb-4">المتابعون ({followers.length})</h2>
+            {followers.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-gray-600">لا يوجد متابعون بعد</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {followers.map((item: any) => (
+                  <Card key={item.follower.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div 
+                        onClick={() => window.location.href = `/profile/${item.follower.id}`}
+                        className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80"
+                      >
                         <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
                           {item.follower.profileImageUrl ? (
                             <img 
@@ -391,28 +488,29 @@ export default function ProfileSimplePage() {
                           </p>
                         </div>
                       </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        {/* Following Section */}
-        <div style={{display: activeTab === "following" ? "block" : "none"}}>
-          <h2 className="text-xl font-bold mb-4">يتابع ({following.length})</h2>
-          {following.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-gray-600">لا يتابع أحد بعد</p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {following.map((item: any) => (
-                <Card key={item.following.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div 
-                      onClick={() => window.location.href = `/profile/${item.following.id}`}
-                      className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Following Section */}
+          <div style={{display: activeTab === "following" ? "block" : "none"}}>
+            <h2 className="text-xl font-bold mb-4">يتابع ({following.length})</h2>
+            {following.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-gray-600">لا يتابع أحد بعد</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {following.map((item: any) => (
+                  <Card key={item.following.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div 
+                        onClick={() => window.location.href = `/profile/${item.following.id}`}
+                        className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80"
+                      >
                         <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
                           {item.following.profileImageUrl ? (
                             <img 
@@ -431,11 +529,12 @@ export default function ProfileSimplePage() {
                           </p>
                         </div>
                       </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
@@ -465,46 +564,10 @@ export default function ProfileSimplePage() {
               </Button>
               <Button
                 className="bg-gradient-to-r from-purple-600 to-pink-600"
-                onClick={async () => {
-                  try {
-                    const response = await fetch(`/api/messages/request`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      credentials: 'include',
-                      body: JSON.stringify({
-                        receiverId: profileUserId,
-                        message: messageText
-                      })
-                    });
-                    
-                    if (response.ok) {
-                      toast({
-                        title: "تم الإرسال",
-                        description: "تم إرسال رسالتك بنجاح"
-                      });
-                      setShowMessageDialog(false);
-                      setMessageText("");
-                    } else {
-                      const error = await response.json();
-                      toast({
-                        title: "خطأ",
-                        description: error.message || "فشل إرسال الرسالة",
-                        variant: "destructive"
-                      });
-                    }
-                  } catch (error) {
-                    toast({
-                      title: "خطأ",
-                      description: "حدث خطأ في إرسال الرسالة",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-                disabled={!messageText.trim()}
+                onClick={() => sendMessageMutation.mutate()}
+                disabled={sendMessageMutation.isPending || !messageText.trim()}
               >
-                إرسال
+                {sendMessageMutation.isPending ? 'جاري الإرسال...' : 'إرسال'}
               </Button>
             </div>
           </div>
@@ -513,78 +576,54 @@ export default function ProfileSimplePage() {
       
       {/* Gift Dialog */}
       <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>إرسال هدية إلى {user?.username || user?.firstName}</DialogTitle>
             <DialogDescription>
-              اختر هدية لإرسالها. ستُخصم النقاط من رصيدك.
+              اختر هدية لإرسالها. سيتم خصم النقاط من رصيدك.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              {gifts.map((gift: any) => (
-                <Card 
-                  key={gift.id} 
-                  className={`cursor-pointer transition-all ${selectedGift === gift.id ? 'ring-2 ring-purple-500' : ''}`}
-                  onClick={() => setSelectedGift(gift.id)}
-                >
-                  <CardContent className="p-4 text-center">
-                    <div className="text-4xl mb-2">{gift.emoji}</div>
-                    <p className="font-semibold">{gift.name}</p>
-                    <p className="text-sm text-gray-600">{gift.pointCost} نقطة</p>
-                  </CardContent>
-                </Card>
-              ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+            {gifts.map((gift: any) => (
+              <Card 
+                key={gift.id}
+                className={`cursor-pointer transition-all ${
+                  selectedGift === gift.id 
+                    ? 'ring-2 ring-purple-600 shadow-lg' 
+                    : 'hover:shadow-md'
+                }`}
+                onClick={() => setSelectedGift(gift.id)}
+              >
+                <CardContent className="p-4 text-center">
+                  <div className="text-4xl mb-2">{gift.emoji}</div>
+                  <h3 className="font-semibold text-sm">{gift.name}</h3>
+                  <p className="text-xs text-gray-600 mt-1">{gift.pointCost} نقطة</p>
+                  {gift.effect && (
+                    <Badge variant="secondary" className="mt-2 text-xs">
+                      {gift.effect}
+                    </Badge>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="flex justify-between items-center mt-6">
+            <div className="text-sm text-gray-600">
+              رصيدك الحالي: <span className="font-semibold">{currentUser?.points || 0} نقطة</span>
             </div>
-            <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-              <Button variant="outline" onClick={() => setShowGiftDialog(false)}>
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <Button variant="outline" onClick={() => {
+                setShowGiftDialog(false);
+                setSelectedGift(null);
+              }}>
                 إلغاء
               </Button>
               <Button
                 className="bg-gradient-to-r from-purple-600 to-pink-600"
-                disabled={!selectedGift}
-                onClick={async () => {
-                  if (!selectedGift) return;
-                  
-                  try {
-                    const response = await fetch('/api/gifts/send', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      credentials: 'include',
-                      body: JSON.stringify({
-                        receiverId: profileUserId,
-                        characterId: selectedGift,
-                        message: ''
-                      })
-                    });
-                    
-                    if (response.ok) {
-                      toast({
-                        title: "تم الإرسال",
-                        description: "تم إرسال الهدية بنجاح"
-                      });
-                      setShowGiftDialog(false);
-                      setSelectedGift(null);
-                    } else {
-                      const error = await response.json();
-                      toast({
-                        title: "خطأ",
-                        description: error.message || "فشل إرسال الهدية",
-                        variant: "destructive"
-                      });
-                    }
-                  } catch (error) {
-                    toast({
-                      title: "خطأ",
-                      description: "حدث خطأ في إرسال الهدية",
-                      variant: "destructive"
-                    });
-                  }
-                }}
+                onClick={() => sendGiftMutation.mutate()}
+                disabled={sendGiftMutation.isPending || !selectedGift}
               >
-                إرسال الهدية
+                {sendGiftMutation.isPending ? 'جاري الإرسال...' : 'إرسال الهدية'}
               </Button>
             </div>
           </div>
