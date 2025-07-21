@@ -49,6 +49,9 @@ export default function ProfileSimplePage() {
         credentials: 'include'
       });
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized');
+        }
         throw new Error('Failed to fetch user');
       }
       return response.json();
@@ -56,8 +59,8 @@ export default function ProfileSimplePage() {
     retry: false
   });
 
-  // Use fetched profile data or current user for own profile
-  const user = isOwnProfile ? currentUser : profileUser;
+  // Always use fetched profile data
+  const user = profileUser;
   
   // Fetch user memories
   const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
@@ -113,14 +116,18 @@ export default function ProfileSimplePage() {
     );
   }
   
-  // Check if user not found
-  if (!user && !userLoading) {
+  // Check if user not found or unauthorized
+  if ((!user && !userLoading) || userError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
         <div className="container mx-auto px-4 py-8">
           <Card className="p-8 text-center max-w-md mx-auto">
-            <p className="text-gray-600 mb-4">المستخدم غير موجود</p>
+            <p className="text-gray-600 mb-4">
+              {userError?.message === 'Unauthorized' 
+                ? 'يجب تسجيل الدخول لعرض الملف الشخصي' 
+                : 'المستخدم غير موجود'}
+            </p>
             <Link href="/">
               <Button className="bg-gradient-to-r from-purple-600 to-pink-600">
                 العودة للرئيسية

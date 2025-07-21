@@ -319,7 +319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user by ID
-  app.get('/api/users/:userId', async (req: any, res) => {
+  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const user = await storage.getUserById(userId);
@@ -388,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get user followers
-  app.get('/api/users/:userId/followers', async (req: any, res) => {
+  app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const followers = await storage.getFollowers(userId);
@@ -400,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get user following
-  app.get('/api/users/:userId/following', async (req: any, res) => {
+  app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const following = await storage.getFollowing(userId);
