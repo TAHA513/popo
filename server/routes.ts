@@ -560,6 +560,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Messages routes
+  app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      // For now, return empty array since we don't have message system implemented yet
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get('/api/messages/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.id;
+      const otherUserId = req.params.userId;
+      // For now, return empty messages
+      res.json({
+        messages: [],
+        otherUser: await storage.getUser(otherUserId)
+      });
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post('/api/messages/send', requireAuth, async (req: any, res) => {
+    try {
+      const { recipientId, content } = req.body;
+      const senderId = req.user.id;
+      
+      // For now, just return success
+      res.json({ 
+        id: Date.now(),
+        senderId,
+        recipientId,
+        content,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
   // Gift routes
   app.get('/api/gifts/characters', async (req, res) => {
     try {
