@@ -15,6 +15,7 @@ import AccountPage from "@/pages/account";
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfilePage from "@/pages/profile";
 import ExplorePage from "@/pages/explore";
+import RegisterPage from "@/pages/register";
 import GiftsPage from "@/pages/gifts";
 import { LanguageOption } from "@/types";
 
@@ -26,7 +27,10 @@ function Router() {
   return (
     <Switch>
       {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/register" component={RegisterPage} />
+        </>
       ) : (
         <>
           <Route path="/" component={Home} />

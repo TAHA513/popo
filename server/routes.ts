@@ -193,6 +193,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Custom registration endpoint
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { firstName, lastName, email, username, password, registrationType } = req.body;
+      
+      // Validation
+      if (!firstName || firstName.trim().length === 0) {
+        return res.status(400).json({ message: "اسمك مطلوب" });
+      }
+      
+      if (registrationType === 'email') {
+        if (!email || !email.includes('@')) {
+          return res.status(400).json({ message: "إيميل غير صحيح" });
+        }
+      } else if (registrationType === 'username') {
+        if (!username || username.length < 3) {
+          return res.status(400).json({ message: "اسم المستخدم قصير" });
+        }
+      }
+      
+      if (!password || password.length < 6) {
+        return res.status(400).json({ message: "كلمة المرور قصيرة" });
+      }
+
+      // For now, store registration data temporarily
+      // In production, this would integrate with your auth system
+      const userData = {
+        firstName,
+        lastName,
+        email: registrationType === 'email' ? email : null,
+        username: registrationType === 'username' ? username : null,
+        registrationType,
+        createdAt: new Date()
+      };
+
+      res.json({ 
+        success: true, 
+        message: "تم التسجيل بنجاح! ستتم إعادة توجيهك لتسجيل الدخول",
+        user: userData 
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "خطأ في التسجيل" });
+    }
+  });
+
   app.post('/api/memories/:id/interact', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
