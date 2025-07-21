@@ -25,8 +25,6 @@ type Language = 'en' | 'ar';
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
-  console.log('Router - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'user:', user);
-
   // Always show loading screen while checking auth
   if (isLoading) {
     return (

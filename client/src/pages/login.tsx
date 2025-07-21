@@ -58,9 +58,9 @@ export default function Login() {
         description: data.message,
       });
       
-      // Wait a bit for the session to be properly set
+      // Wait a bit for the session to be properly set, then go to home
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = '/';
       }, 100);
     },
     onError: (error: Error) => {

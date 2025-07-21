@@ -6,8 +6,6 @@ import { Video, Gift, Users, Settings } from "lucide-react";
 export default function HomeSimple() {
   const { user, isLoading } = useAuth();
 
-  console.log('HomeSimple - user:', user, 'isLoading:', isLoading);
-
   // Show loading while checking auth
   if (isLoading) {
     return (
@@ -19,7 +17,6 @@ export default function HomeSimple() {
 
   // If no user after loading, redirect to login
   if (!user) {
-    console.log('No user found, redirecting to login...');
     window.location.href = '/login';
     return null;
   }
