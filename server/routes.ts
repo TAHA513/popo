@@ -10,6 +10,11 @@ import { db } from "./db";
 // @ts-ignore
 import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -217,16 +222,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `);
       }
       
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+      // Serve the admin panel from React app
+      res.redirect('/#/admin');
     } catch (error) {
       console.error('Admin access error:', error);
       res.status(500).send('Internal server error');
     }
   });
 
-  app.get('/panel-9bd2f2-control', checkSuperAdmin, (req, res) => {
-    // This serves the admin panel - redirect to frontend admin route
-    res.redirect('/admin');
+  // Simplified panel access without access code requirement
+  app.get('/panel-9bd2f2-control', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.redirect('/api/login');
+    }
+    
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'super_admin') {
+        return res.status(403).send(`
+          <html dir="rtl" lang="ar">
+            <head>
+              <meta charset="UTF-8">
+              <title>Access Denied - LaaBoBo Live</title>
+              <style>
+                body { font-family: 'Cairo', Arial; text-align: center; padding: 50px; background: linear-gradient(135deg, #FF69B4, #9333EA); color: white; }
+                .card { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; margin: 20px auto; max-width: 500px; }
+                .btn { background: #FF69B4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <h2>🚫 الوصول مرفوض</h2>
+                <p>تحتاج صلاحية super_admin للوصول لهذه اللوحة</p>
+                <p><strong>المستخدم الحالي:</strong> ${user?.email || 'غير معروف'}</p>
+                <p><strong>الصلاحية:</strong> ${user?.role || 'لا توجد'}</p>
+                <br>
+                <a href="/" class="btn">← العودة للرئيسية</a>
+                <a href="/api/login" class="btn">تسجيل دخول جديد</a>
+              </div>
+            </body>
+          </html>
+        `);
+      }
+      
+      // Redirect to admin panel in React app
+      res.redirect('/#/admin');
+    } catch (error) {
+      console.error('Panel access error:', error);
+      res.status(500).send('Internal server error');
+    }
   });
 
   // Temporary route to promote user to super_admin
