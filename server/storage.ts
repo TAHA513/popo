@@ -285,6 +285,27 @@ export class DatabaseStorage implements IStorage {
         )
       );
   }
+  
+  async getUserById(userId: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+    return user;
+  }
+  
+  async isFollowing(followerId: string, followedId: string): Promise<boolean> {
+    const [result] = await db
+      .select()
+      .from(followers)
+      .where(
+        and(
+          eq(followers.followerId, followerId),
+          eq(followers.followedId, followedId)
+        )
+      );
+    return !!result;
+  }
 
   async getFollowCount(userId: string): Promise<number> {
     const [result] = await db
