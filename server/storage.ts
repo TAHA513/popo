@@ -29,6 +29,12 @@ import {
   type InsertMemoryInteraction,
   type MemoryCollection,
   type InsertMemoryCollection,
+  privateMessages,
+  messageRequests,
+  type PrivateMessage,
+  type InsertPrivateMessage,
+  type MessageRequest,
+  type InsertMessageRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, count } from "drizzle-orm";
@@ -347,6 +353,25 @@ export class DatabaseStorage implements IStorage {
       .where(eq(followers.followerId, userId))
       .orderBy(desc(followers.createdAt));
     return followingList;
+  }
+  
+  // Message Request operations
+  async createMessageRequest(data: InsertMessageRequest): Promise<MessageRequest> {
+    const [request] = await db.insert(messageRequests).values(data).returning();
+    return request;
+  }
+  
+  async getMessageRequest(senderId: string, receiverId: string): Promise<MessageRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(messageRequests)
+      .where(
+        and(
+          eq(messageRequests.senderId, senderId),
+          eq(messageRequests.receiverId, receiverId)
+        )
+      );
+    return request;
   }
 
   async getPublicMemoryFragments(): Promise<any[]> {

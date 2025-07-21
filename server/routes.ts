@@ -410,6 +410,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch following" });
     }
   });
+  
+  // Send message request
+  app.post('/api/messages/request', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user.id;
+      const { receiverId, message } = req.body;
+      
+      // Check if request already exists
+      const existingRequest = await storage.getMessageRequest(senderId, receiverId);
+      if (existingRequest) {
+        return res.status(400).json({ message: "لقد أرسلت رسالة لهذا المستخدم بالفعل" });
+      }
+      
+      // Create message request
+      await storage.createMessageRequest({
+        senderId,
+        receiverId,
+        initialMessage: message
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error sending message request:", error);
+      res.status(500).json({ message: "فشل إرسال الرسالة" });
+    }
+  });
 
   // Custom registration endpoint
   app.post('/api/auth/register', async (req, res) => {

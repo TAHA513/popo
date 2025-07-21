@@ -3,6 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   User, 
@@ -13,7 +17,9 @@ import {
   TrendingUp,
   UserPlus,
   UserMinus,
-  Users
+  Users,
+  MessageCircle,
+  Gift
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import { Link, useParams } from "wouter";
@@ -25,6 +31,11 @@ export default function ProfileSimplePage() {
   const { userId } = useParams();
   const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showGiftDialog, setShowGiftDialog] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [selectedGift, setSelectedGift] = useState<number | null>(null);
+  const { toast } = useToast();
   
   // Fetch profile user data
   const { data: profileUser, isLoading: userLoading } = useQuery({
@@ -79,6 +90,18 @@ export default function ProfileSimplePage() {
   });
   
   const isOwnProfile = currentUser?.id === profileUserId;
+  
+  // Fetch available gifts
+  const { data: gifts = [] } = useQuery({
+    queryKey: ['/api/gifts/characters'],
+    queryFn: async () => {
+      const response = await fetch('/api/gifts/characters', {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
   
   // Fetch followers
   const { data: followers = [] } = useQuery({
@@ -200,24 +223,40 @@ export default function ProfileSimplePage() {
                     </Button>
                   </Link>
                 ) : (
-                  <Button 
-                    onClick={() => followMutation.mutate()}
-                    disabled={followMutation.isPending}
-                    className={isFollowing ? "" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}
-                    variant={isFollowing ? "outline" : "default"}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserMinus className="w-4 h-4 mr-2" />
-                        إلغاء المتابعة
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        متابعة
-                      </>
-                    )}
-                  </Button>
+                  <div className="space-y-2">
+                    <Button 
+                      onClick={() => followMutation.mutate()}
+                      disabled={followMutation.isPending}
+                      className={isFollowing ? "" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}
+                      variant={isFollowing ? "outline" : "default"}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserMinus className="w-4 h-4 mr-2" />
+                          إلغاء المتابعة
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          متابعة
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setShowMessageDialog(true)}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      رسالة
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setShowGiftDialog(true)}
+                    >
+                      <Gift className="w-4 h-4 mr-2" />
+                      هدية
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -389,6 +428,158 @@ export default function ProfileSimplePage() {
           )}
         </div>
       </div>
+      
+      {/* Message Dialog */}
+      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إرسال رسالة إلى {user?.username || user?.firstName}</DialogTitle>
+            <DialogDescription>
+              يمكنك إرسال رسالة واحدة فقط. سيتمكن المستخدم من الرد عليك إذا وافق على المراسلة.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="message">رسالتك</Label>
+              <Textarea
+                id="message"
+                placeholder="اكتب رسالتك هنا..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+              <Button variant="outline" onClick={() => setShowMessageDialog(false)}>
+                إلغاء
+              </Button>
+              <Button
+                className="bg-gradient-to-r from-purple-600 to-pink-600"
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`/api/messages/request`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        receiverId: profileUserId,
+                        message: messageText
+                      })
+                    });
+                    
+                    if (response.ok) {
+                      toast({
+                        title: "تم الإرسال",
+                        description: "تم إرسال رسالتك بنجاح"
+                      });
+                      setShowMessageDialog(false);
+                      setMessageText("");
+                    } else {
+                      const error = await response.json();
+                      toast({
+                        title: "خطأ",
+                        description: error.message || "فشل إرسال الرسالة",
+                        variant: "destructive"
+                      });
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "خطأ",
+                      description: "حدث خطأ في إرسال الرسالة",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                disabled={!messageText.trim()}
+              >
+                إرسال
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Gift Dialog */}
+      <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>إرسال هدية إلى {user?.username || user?.firstName}</DialogTitle>
+            <DialogDescription>
+              اختر هدية لإرسالها. ستُخصم النقاط من رصيدك.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              {gifts.map((gift: any) => (
+                <Card 
+                  key={gift.id} 
+                  className={`cursor-pointer transition-all ${selectedGift === gift.id ? 'ring-2 ring-purple-500' : ''}`}
+                  onClick={() => setSelectedGift(gift.id)}
+                >
+                  <CardContent className="p-4 text-center">
+                    <div className="text-4xl mb-2">{gift.emoji}</div>
+                    <p className="font-semibold">{gift.name}</p>
+                    <p className="text-sm text-gray-600">{gift.pointCost} نقطة</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+              <Button variant="outline" onClick={() => setShowGiftDialog(false)}>
+                إلغاء
+              </Button>
+              <Button
+                className="bg-gradient-to-r from-purple-600 to-pink-600"
+                disabled={!selectedGift}
+                onClick={async () => {
+                  if (!selectedGift) return;
+                  
+                  try {
+                    const response = await fetch('/api/gifts/send', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        receiverId: profileUserId,
+                        characterId: selectedGift,
+                        message: ''
+                      })
+                    });
+                    
+                    if (response.ok) {
+                      toast({
+                        title: "تم الإرسال",
+                        description: "تم إرسال الهدية بنجاح"
+                      });
+                      setShowGiftDialog(false);
+                      setSelectedGift(null);
+                    } else {
+                      const error = await response.json();
+                      toast({
+                        title: "خطأ",
+                        description: error.message || "فشل إرسال الهدية",
+                        variant: "destructive"
+                      });
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "خطأ",
+                      description: "حدث خطأ في إرسال الهدية",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+              >
+                إرسال الهدية
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

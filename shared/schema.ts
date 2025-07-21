@@ -115,6 +115,27 @@ export const followers = pgTable("followers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Private Messages table
+export const privateMessages = pgTable("private_messages", {
+  id: serial("id").primaryKey(),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  receiverId: varchar("receiver_id").notNull().references(() => users.id),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Message Requests table
+export const messageRequests = pgTable("message_requests", {
+  id: serial("id").primaryKey(),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  receiverId: varchar("receiver_id").notNull().references(() => users.id),
+  initialMessage: text("initial_message").notNull(),
+  status: varchar("status").default("pending"), // 'pending', 'accepted', 'rejected'
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
 // Memory Fragments - innovative content system
 export const memoryFragments = pgTable("memory_fragments", {
   id: serial("id").primaryKey(),
@@ -219,6 +240,12 @@ export type MemoryInteraction = typeof memoryInteractions.$inferSelect;
 
 export type InsertMemoryCollection = typeof memoryCollections.$inferInsert;
 export type MemoryCollection = typeof memoryCollections.$inferSelect;
+
+export type InsertPrivateMessage = typeof privateMessages.$inferInsert;
+export type PrivateMessage = typeof privateMessages.$inferSelect;
+
+export type InsertMessageRequest = typeof messageRequests.$inferInsert;
+export type MessageRequest = typeof messageRequests.$inferSelect;
 
 export type InsertFragmentCollection = typeof fragmentCollections.$inferInsert;
 export type FragmentCollection = typeof fragmentCollections.$inferSelect;
