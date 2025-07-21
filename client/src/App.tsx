@@ -18,6 +18,7 @@ import ExplorePage from "@/pages/explore";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
 import GiftsPage from "@/pages/gifts";
+import FeedPage from "@/pages/feed";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -38,14 +39,14 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? <ExplorePage /> : <LoginPage />}
+        {isAuthenticated ? <FeedPage /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isAuthenticated ? <ExplorePage /> : <RegisterPage />}
+        {isAuthenticated ? <FeedPage /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
         <>
-          <Route path="/" component={ExplorePage} />
+          <Route path="/" component={FeedPage} />
           <Route path="/home" component={Home} />
           <Route path="/stream/:id" component={StreamPage} />
           <Route path="/admin" component={AdminPage} />
