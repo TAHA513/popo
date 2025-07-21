@@ -38,14 +38,15 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? <Home /> : <LoginPage />}
+        {isAuthenticated ? <ExplorePage /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isAuthenticated ? <Home /> : <RegisterPage />}
+        {isAuthenticated ? <ExplorePage /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
         <>
-          <Route path="/" component={Home} />
+          <Route path="/" component={ExplorePage} />
+          <Route path="/home" component={Home} />
           <Route path="/stream/:id" component={StreamPage} />
           <Route path="/admin" component={AdminPage} />
           <Route path="/panel-9bd2f2-control" component={AdminPage} />
