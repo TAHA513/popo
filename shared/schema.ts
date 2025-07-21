@@ -38,6 +38,10 @@ export const users = pgTable("users", {
   isStreamer: boolean("is_streamer").default(false),
   isAdmin: boolean("is_admin").default(false),
   role: varchar("role").default("user").notNull(), // 'user' | 'admin' | 'super_admin'
+  // Account privacy settings
+  isPrivateAccount: boolean("is_private_account").default(false),
+  allowDirectMessages: boolean("allow_direct_messages").default(true),
+  allowGiftsFromStrangers: boolean("allow_gifts_from_strangers").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -136,9 +140,13 @@ export const memoryFragments = pgTable("memory_fragments", {
   mood: varchar("mood"), // 'happy', 'nostalgic', 'creative', 'mysterious'
   tags: jsonb("tags"), // Array of tags
   
-  // Visibility and lifecycle
+  // Privacy and visibility settings
   isActive: boolean("is_active").default(true),
   isPublic: boolean("is_public").default(true),
+  visibilityLevel: varchar("visibility_level").default("public"), // 'public', 'followers', 'private'
+  allowComments: boolean("allow_comments").default(true),
+  allowSharing: boolean("allow_sharing").default(true),
+  allowGifts: boolean("allow_gifts").default(true),
   expiresAt: timestamp("expires_at"), // When memory fragment disappears
   
   // Location and context

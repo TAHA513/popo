@@ -37,6 +37,8 @@ The application follows a modern full-stack JavaScript/TypeScript architecture w
 - **State Management**: TanStack Query for server state, React hooks for local state
 - **Real-time**: Custom WebSocket hook for live streaming features
 - **Internationalization**: Support for English and Arabic with RTL layout
+- **Enhanced Memory System**: MemoryCard component with 3D-style gifts and privacy controls
+- **Privacy Features**: Comprehensive privacy settings with visibility levels and content controls
 
 ### Backend Architecture
 - **Express Server**: RESTful API with middleware for logging and error handling

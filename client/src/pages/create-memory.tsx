@@ -110,7 +110,7 @@ export default function CreateMemoryPage() {
       
       // Navigate to profile
       setTimeout(() => {
-        location.href = '/profile';
+        window.location.href = '/profile';
       }, 2000);
     },
     onError: (error: any) => {

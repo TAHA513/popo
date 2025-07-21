@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import MemoryCard from "@/components/memory-card";
+import PrivacySettings from "@/components/privacy-settings";
 import { 
   User, 
   MapPin, 
@@ -23,94 +23,202 @@ import {
   List,
   Zap,
   TrendingUp,
-  Camera
+  Camera,
+  Shield,
+  Lock
 } from "lucide-react";
 import NavigationHeader from "@/components/navigation-header";
-import { MemoryFragment } from "@shared/schema";
-import { useLocation } from "wouter";
 
 type ViewMode = 'grid' | 'list';
 type FilterType = 'all' | 'fleeting' | 'precious' | 'legendary';
 
+interface MemoryFragment {
+  id: string;
+  type: string;
+  title?: string;
+  caption?: string;
+  mediaUrls: string[];
+  thumbnailUrl?: string;
+  currentEnergy: number;
+  initialEnergy: number;
+  memoryType: 'fleeting' | 'precious' | 'legendary';
+  viewCount: number;
+  likeCount: number;
+  shareCount: number;
+  giftCount: number;
+  visibilityLevel: 'public' | 'followers' | 'private';
+  allowComments: boolean;
+  allowSharing: boolean;
+  allowGifts: boolean;
+  expiresAt: string;
+  createdAt: string;
+  author: {
+    id: string;
+    username: string;
+    profileImageUrl?: string;
+    firstName?: string;
+  };
+}
+
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
   
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [filter, setFilter] = useState<FilterType>('all');
-  const [selectedMemory, setSelectedMemory] = useState<MemoryFragment | null>(null);
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
 
-  // Fetch user's memory fragments
-  const { data: memories, isLoading: memoriesLoading } = useQuery<MemoryFragment[]>({
-    queryKey: ['/api/memories/user', user?.id],
-    enabled: !!user?.id,
+  // Mock privacy settings
+  const [privacySettings, setPrivacySettings] = useState({
+    isPrivateAccount: false,
+    visibilityLevel: 'public' as 'public' | 'followers' | 'private',
+    allowComments: true,
+    allowSharing: true,
+    allowGifts: true,
+    allowDirectMessages: true,
+    allowGiftsFromStrangers: true,
   });
 
-  // Fetch user stats
-  const { data: userStats } = useQuery({
-    queryKey: ['/api/user/stats', user?.id],
-    enabled: !!user?.id,
-  });
-
-  // Memory interaction mutation
-  const interactMutation = useMutation({
-    mutationFn: async ({ fragmentId, type }: { fragmentId: number; type: string }) => {
-      return apiRequest('POST', `/api/memories/${fragmentId}/interact`, { type });
+  // Mock memory data with enhanced privacy features
+  const mockMemories: MemoryFragment[] = [
+    {
+      id: "1",
+      type: "image",
+      title: "رحلة إلى الشاطئ",
+      caption: "يوم رائع على شاطئ البحر مع الأصدقاء 🌊",
+      mediaUrls: ["/api/placeholder/400/300"],
+      thumbnailUrl: "/api/placeholder/400/300",
+      currentEnergy: 85,
+      initialEnergy: 100,
+      memoryType: "precious",
+      viewCount: 124,
+      likeCount: 23,
+      shareCount: 5,
+      giftCount: 3,
+      visibilityLevel: "public",
+      allowComments: true,
+      allowSharing: true,
+      allowGifts: true,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      author: {
+        id: user?.id || "user1",
+        username: user?.username || "user",
+        firstName: user?.firstName || "مستخدم",
+        profileImageUrl: user?.profileImageUrl || undefined
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/user'] });
-    },
-  });
+    {
+      id: "2",
+      type: "video",
+      title: "لحظة إبداع",
+      caption: "عمل فني جديد في المرسم ✨",
+      mediaUrls: ["/api/placeholder/400/300"],
+      thumbnailUrl: "/api/placeholder/400/300",
+      currentEnergy: 92,
+      initialEnergy: 100,
+      memoryType: "legendary",
+      viewCount: 342,
+      likeCount: 67,
+      shareCount: 12,
+      giftCount: 8,
+      visibilityLevel: "followers",
+      allowComments: true,
+      allowSharing: false,
+      allowGifts: true,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+      author: {
+        id: user?.id || "user1",
+        username: user?.username || "user",
+        firstName: user?.firstName || "مستخدم",
+        profileImageUrl: user?.profileImageUrl || undefined
+      }
+    }
+  ];
 
-  const filteredMemories = memories?.filter(memory => {
-    if (filter === 'all') return true;
-    return memory.memoryType === filter;
-  }) || [];
+  const memories = mockMemories;
+  const memoriesLoading = false;
 
-  const handleLike = (fragmentId: number) => {
-    interactMutation.mutate({ fragmentId, type: 'like' });
+  const handlePrivacyUpdate = (newSettings: any) => {
+    setPrivacySettings(newSettings);
+    toast({
+      title: "تم تحديث إعدادات الخصوصية",
+      description: "تم حفظ تفضيلاتك بنجاح",
+    });
   };
 
-  const handleShare = (fragmentId: number) => {
-    interactMutation.mutate({ fragmentId, type: 'share' });
+  // Mock user stats
+  const userStats = {
+    totalMemories: memories.length,
+    totalViews: memories.reduce((sum, m) => sum + m.viewCount, 0),
+    totalLikes: memories.reduce((sum, m) => sum + m.likeCount, 0),
+    totalGifts: memories.reduce((sum, m) => sum + m.giftCount, 0),
+    followersCount: 245,
+    followingCount: 89
+  };
+
+  // Memory interaction functions
+  const handleLike = (memory: MemoryFragment) => {
+    toast({
+      title: "أعجبك هذا!",
+      description: "تم إضافة إعجابك للذكرى",
+    });
+  };
+
+  const handleComment = (memory: MemoryFragment) => {
+    if (!memory.allowComments) {
+      toast({
+        title: "التعليقات معطلة",
+        description: "صاحب الذكرى لا يسمح بالتعليقات",
+        variant: "destructive",
+      });
+      return;
+    }
+  };
+
+  const handleShare = (memory: MemoryFragment) => {
+    if (!memory.allowSharing) {
+      toast({
+        title: "المشاركة معطلة",
+        description: "صاحب الذكرى لا يسمح بالمشاركة",
+        variant: "destructive",
+      });
+      return;
+    }
     toast({
       title: "تم مشاركة الذكرى",
       description: "تم نسخ رابط الذكرى للحافظة",
     });
   };
 
-  const getEnergyColor = (energy: number) => {
-    if (energy > 70) return 'text-green-500';
-    if (energy > 40) return 'text-yellow-500';
-    return 'text-red-500';
-  };
-
-  const getMemoryTypeIcon = (type: string) => {
-    switch (type) {
-      case 'fleeting': return <Clock className="w-4 h-4" />;
-      case 'precious': return <Heart className="w-4 h-4" />;
-      case 'legendary': return <Star className="w-4 h-4" />;
-      default: return <Sparkles className="w-4 h-4" />;
+  const handleSendGift = (memory: MemoryFragment) => {
+    if (!memory.allowGifts) {
+      toast({
+        title: "الهدايا معطلة",
+        description: "صاحب الذكرى لا يسمح بالهدايا",
+        variant: "destructive",
+      });
+      return;
     }
+    window.location.href = '/gifts';
   };
 
-  const calculateTimeRemaining = (expiresAt: string | null, currentEnergy: number | null) => {
-    if (!expiresAt) return 'غير محدد';
-    
-    const now = new Date();
-    const expires = new Date(expiresAt);
-    const diffMs = expires.getTime() - now.getTime();
-    
-    if (diffMs <= 0) return 'منتهي الصلاحية';
-    
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffDays > 0) return `${diffDays} يوم`;
-    if (diffHours > 0) return `${diffHours} ساعة`;
-    return 'أقل من ساعة';
+  const handleEditMemory = (memory: MemoryFragment) => {
+    setShowPrivacySettings(true);
   };
+
+  const handleDeleteMemory = (memory: MemoryFragment) => {
+    toast({
+      title: "تم حذف الذكرى",
+      description: "تم حذف الذكرى بنجاح",
+    });
+  };
+
+  const filteredMemories = memories.filter(memory => {
+    if (filter === 'all') return true;
+    return memory.memoryType === filter;
+  });
 
   if (isLoading) {
     return (
@@ -195,269 +303,165 @@ export default function ProfilePage() {
               {/* Action Buttons */}
               <div className="flex flex-col space-y-2">
                 <Button 
-                  onClick={() => navigate('/create-memory')}
+                  onClick={() => window.location.href = '/create-memory'}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   ذكرى جديدة
                 </Button>
-                <Button variant="outline">
-                  <Settings className="w-4 h-4 mr-2" />
-                  إعدادات
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowPrivacySettings(true)}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  الخصوصية
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Memory Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm">إجمالي الذكريات</p>
-                  <p className="text-2xl font-bold">{memories?.length || 0}</p>
-                </div>
-                <Camera className="w-8 h-8 text-blue-200" />
-              </div>
-            </CardContent>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
+            <Sparkles className="w-8 h-8 mx-auto text-purple-600 mb-2" />
+            <h3 className="font-semibold text-lg">{userStats.totalMemories}</h3>
+            <p className="text-gray-600 text-sm">ذكريات</p>
           </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100 text-sm">إجمالي المشاهدات</p>
-                  <p className="text-2xl font-bold">{(userStats as any)?.totalViews || 0}</p>
-                </div>
-                <Eye className="w-8 h-8 text-green-200" />
-              </div>
-            </CardContent>
+          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
+            <Eye className="w-8 h-8 mx-auto text-blue-600 mb-2" />
+            <h3 className="font-semibold text-lg">{userStats.totalViews}</h3>
+            <p className="text-gray-600 text-sm">مشاهدة</p>
           </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-pink-500 to-pink-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-pink-100 text-sm">إجمالي الإعجابات</p>
-                  <p className="text-2xl font-bold">{(userStats as any)?.totalLikes || 0}</p>
-                </div>
-                <Heart className="w-8 h-8 text-pink-200" />
-              </div>
-            </CardContent>
+          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
+            <Heart className="w-8 h-8 mx-auto text-red-600 mb-2" />
+            <h3 className="font-semibold text-lg">{userStats.totalLikes}</h3>
+            <p className="text-gray-600 text-sm">إعجاب</p>
           </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm">هدايا مستلمة</p>
-                  <p className="text-2xl font-bold">{(userStats as any)?.totalGifts || 0}</p>
-                </div>
-                <Gift className="w-8 h-8 text-purple-200" />
-              </div>
-            </CardContent>
+          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
+            <Gift className="w-8 h-8 mx-auto text-green-600 mb-2" />
+            <h3 className="font-semibold text-lg">{userStats.totalGifts}</h3>
+            <p className="text-gray-600 text-sm">هدية</p>
           </Card>
         </div>
 
-        {/* Memory Collection */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Sparkles className="w-5 h-5 text-purple-500" />
-                <span>شظايا الذكريات</span>
-              </CardTitle>
-              
-              <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                {/* Filter Buttons */}
-                <div className="flex space-x-1 rtl:space-x-reverse">
-                  {[
-                    { key: 'all', label: 'الكل', icon: Grid },
-                    { key: 'fleeting', label: 'عابر', icon: Clock },
-                    { key: 'precious', label: 'ثمين', icon: Heart },
-                    { key: 'legendary', label: 'أسطوري', icon: Star },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <Button
-                      key={key}
-                      variant={filter === key ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFilter(key as FilterType)}
-                      className="text-xs"
-                    >
-                      <Icon className="w-3 h-3 mr-1" />
-                      {label}
-                    </Button>
-                  ))}
+        {/* Account Privacy Status */}
+        {privacySettings.isPrivateAccount && (
+          <Card className="mb-6 border-l-4 border-l-yellow-500 bg-yellow-50">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                <Lock className="w-5 h-5 text-yellow-600" />
+                <div>
+                  <h3 className="font-semibold text-yellow-800">حساب خاص</h3>
+                  <p className="text-yellow-700 text-sm">حسابك خاص، يجب على الأشخاص طلب متابعتك لرؤية ذكرياتك</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-                {/* View Mode Toggle */}
-                <div className="flex border rounded-lg overflow-hidden">
-                  <Button
-                    variant={viewMode === 'grid' ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    className="px-2"
-                  >
-                    <Grid className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className="px-2"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+        {/* Memories Filter */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">شظايا الذكريات</h2>
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="w-4 h-4" />
+              </Button>
             </div>
-          </CardHeader>
-          
-          <CardContent>
-            {memoriesLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="aspect-square bg-gray-200 rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : filteredMemories.length === 0 ? (
-              <div className="text-center py-12">
-                <Camera className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
-                  لا توجد ذكريات بعد
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  ابدأ بإنشاء شظايا ذكرياتك الأولى
-                </p>
-                <Button 
-                  onClick={() => navigate('/create-memory')}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  إنشاء ذكرى جديدة
-                </Button>
-              </div>
-            ) : (
-              <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-                {filteredMemories.map((memory) => (
-                  <Card 
-                    key={memory.id} 
-                    className={`group cursor-pointer transition-all hover:shadow-lg border-0 bg-white/90 ${
-                      viewMode === 'grid' ? 'aspect-square' : ''
-                    }`}
-                    onClick={() => setSelectedMemory(memory)}
-                  >
-                    <CardContent className="p-0">
-                      {viewMode === 'grid' ? (
-                        // Grid View
-                        <div className="relative h-full">
-                          {/* Media Preview */}
-                          <div className="aspect-square overflow-hidden rounded-t-lg">
-                            {memory.thumbnailUrl ? (
-                              <img 
-                                src={memory.thumbnailUrl} 
-                                alt={memory.title || 'Memory'}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center">
-                                <Camera className="w-12 h-12 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Overlay Info */}
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4 text-white">
-                            <div className="flex justify-between items-start">
-                              <Badge className="bg-white/20 backdrop-blur-sm">
-                                {getMemoryTypeIcon(memory.memoryType)}
-                                <span className="ml-1">{memory.memoryType}</span>
-                              </Badge>
-                              <div className={`text-sm font-medium ${getEnergyColor(memory.currentEnergy)}`}>
-                                ⚡ {memory.currentEnergy}%
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <h3 className="font-medium truncate">{memory.title}</h3>
-                              <div className="flex items-center justify-between text-sm mt-2">
-                                <div className="flex space-x-3 rtl:space-x-reverse">
-                                  <span className="flex items-center">
-                                    <Eye className="w-3 h-3 mr-1" />
-                                    {memory.viewCount}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <Heart className="w-3 h-3 mr-1" />
-                                    {memory.likeCount}
-                                  </span>
-                                </div>
-                                <span className="text-xs">
-                                  ⏰ {calculateTimeRemaining(memory.expiresAt || null, memory.currentEnergy || null)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        // List View
-                        <div className="flex items-center p-4 space-x-4 rtl:space-x-reverse">
-                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                            {memory.thumbnailUrl ? (
-                              <img 
-                                src={memory.thumbnailUrl} 
-                                alt={memory.title || 'Memory'}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center">
-                                <Camera className="w-6 h-6 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-medium truncate">{memory.title}</h3>
-                              <div className={`text-sm font-medium ${getEnergyColor(memory.currentEnergy)}`}>
-                                ⚡ {memory.currentEnergy}%
-                              </div>
-                            </div>
-                            
-                            <p className="text-sm text-gray-600 truncate mb-2">
-                              {memory.caption}
-                            </p>
-                            
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                              <div className="flex space-x-4 rtl:space-x-reverse">
-                                <span className="flex items-center">
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  {memory.viewCount}
-                                </span>
-                                <span className="flex items-center">
-                                  <Heart className="w-3 h-3 mr-1" />
-                                  {memory.likeCount}
-                                </span>
-                                <Badge variant="outline" className="text-xs">
-                                  {getMemoryTypeIcon(memory.memoryType)}
-                                  <span className="ml-1">{memory.memoryType}</span>
-                                </Badge>
-                              </div>
-                              <span>
-                                ⏰ {calculateTimeRemaining(memory.expiresAt || null, memory.currentEnergy || null)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Filter Buttons */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {[
+              { key: 'all', label: 'الكل', icon: Sparkles },
+              { key: 'fleeting', label: 'عابر', icon: Clock },
+              { key: 'precious', label: 'ثمين', icon: Heart },
+              { key: 'legendary', label: 'أسطوري', icon: Star },
+            ].map(({ key, label, icon: Icon }) => (
+              <Button
+                key={key}
+                variant={filter === key ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter(key as FilterType)}
+                className="flex items-center space-x-2 rtl:space-x-reverse"
+              >
+                <Icon className="w-4 h-4" />
+                <span>{label}</span>
+                {key !== 'all' && (
+                  <Badge variant="secondary" className="ml-1">
+                    {memories.filter(m => m.memoryType === key).length}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Memories Grid/List */}
+        {memoriesLoading ? (
+          <div className="text-center py-12">
+            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">جاري تحميل الذكريات...</p>
+          </div>
+        ) : filteredMemories.length === 0 ? (
+          <Card className="p-12 text-center">
+            <Camera className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">لا توجد ذكريات</h3>
+            <p className="text-gray-600 mb-6">
+              {filter === 'all' 
+                ? 'لم تقم بإنشاء أي ذكريات بعد. ابدأ بمشاركة لحظاتك المميزة!'
+                : `لا توجد ذكريات من نوع "${filter === 'fleeting' ? 'عابر' : filter === 'precious' ? 'ثمين' : 'أسطوري'}"`
+              }
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/create-memory'}
+              className="bg-gradient-to-r from-purple-600 to-pink-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              إنشاء ذكرى جديدة
+            </Button>
+          </Card>
+        ) : (
+          <div className={
+            viewMode === 'grid' 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+          }>
+            {filteredMemories.map((memory) => (
+              <MemoryCard
+                key={memory.id}
+                memory={memory}
+                isOwner={true}
+                onLike={() => handleLike(memory)}
+                onComment={() => handleComment(memory)}
+                onShare={() => handleShare(memory)}
+                onSendGift={() => handleSendGift(memory)}
+                onEdit={() => handleEditMemory(memory)}
+                onDelete={() => handleDeleteMemory(memory)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Privacy Settings Dialog */}
+        <PrivacySettings
+          isOpen={showPrivacySettings}
+          onOpenChange={setShowPrivacySettings}
+          settings={privacySettings}
+          onSave={handlePrivacyUpdate}
+        />
       </div>
     </div>
   );
