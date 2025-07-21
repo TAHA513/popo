@@ -1,57 +1,64 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'wouter';
-import { Home, Video, Users, Settings, PlusCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { Home, Video, Gift, User } from "lucide-react";
 
-export default function MobileNavigation() {
-  const [location] = useLocation();
+interface MobileNavigationProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
 
-  const navItems = [
+export default function MobileNavigation({ activeTab, onTabChange }: MobileNavigationProps) {
+  const navigationItems = [
     {
-      label: 'الرئيسية',
-      href: '/',
+      id: 'home',
+      label: 'Home',
       icon: Home,
-      active: location === '/'
+      labelAr: 'الرئيسية'
     },
     {
-      label: 'البث',
-      href: '/start-stream',
-      icon: PlusCircle,
-      active: location === '/start-stream'
+      id: 'live',
+      label: 'Live',
+      icon: Video,
+      labelAr: 'مباشر'
     },
     {
-      label: 'المتابعون',
-      href: '/following',
-      icon: Users,
-      active: location === '/following'
+      id: 'gifts',
+      label: 'Gifts',
+      icon: Gift,
+      labelAr: 'هدايا'
     },
     {
-      label: 'الإعدادات',
-      href: '/settings',
-      icon: Settings,
-      active: location === '/settings'
+      id: 'profile',
+      label: 'Profile',
+      icon: User,
+      labelAr: 'الملف'
     }
   ];
 
+  const isRTL = document.documentElement.dir === 'rtl';
+
   return (
-    <nav className="mobile-nav">
-      <div className="flex justify-around items-center py-2 px-4">
-        {navItems.map((item) => {
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg">
+      <div className="flex items-center justify-around py-2">
+        {navigationItems.map((item) => {
           const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          
           return (
-            <Link key={item.href} href={item.href}>
-              <a
-                className={cn(
-                  "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors touch-target",
-                  item.active
-                    ? "text-laa-pink bg-laa-pink/10"
-                    : "text-gray-600 dark:text-gray-400 hover:text-laa-pink hover:bg-laa-pink/5"
-                )}
-              >
-                <Icon className="w-5 h-5 mb-1" />
-                <span className="text-xs font-medium">{item.label}</span>
-              </a>
-            </Link>
+            <Button
+              key={item.id}
+              variant="ghost"
+              className={`flex flex-col items-center py-2 px-4 h-auto ${
+                isActive 
+                  ? 'text-laa-pink bg-laa-pink/10' 
+                  : 'text-gray-500 hover:text-laa-pink hover:bg-laa-pink/5'
+              }`}
+              onClick={() => onTabChange(item.id)}
+            >
+              <Icon className={`w-5 h-5 mb-1 ${isActive ? 'text-laa-pink' : ''}`} />
+              <span className={`text-xs ${isActive ? 'font-semibold' : ''}`}>
+                {isRTL ? item.labelAr : item.label}
+              </span>
+            </Button>
           );
         })}
       </div>
