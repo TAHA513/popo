@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import SimpleNavigation from "@/components/simple-navigation";
+import NavigationHeader from "@/components/navigation-header";
 import GiftShop from "@/components/gift-shop";
 import GiftAnimation from "@/components/gift-animation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,7 +80,7 @@ export default function GiftsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <SimpleNavigation />
+      <NavigationHeader />
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header */}
         <div className="text-center mb-8">

@@ -23,7 +23,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import BeautyFilters from '@/components/beauty-filters';
-import SimpleNavigation from '@/components/simple-navigation';
+import NavigationHeader from '@/components/navigation-header';
 import { useLocation } from 'wouter';
 
 interface StreamCategory {
@@ -199,7 +199,7 @@ export default function StartStreamPage() {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${isRTL ? 'rtl' : 'ltr'}`}>
-      <SimpleNavigation />
+      <NavigationHeader />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

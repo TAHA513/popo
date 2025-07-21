@@ -28,7 +28,7 @@ import {
   Shield,
   Lock
 } from "lucide-react";
-import SimpleNavigation from "@/components/simple-navigation";
+import NavigationHeader from "@/components/navigation-header";
 
 type ViewMode = 'grid' | 'list';
 type FilterType = 'all' | 'fleeting' | 'precious' | 'legendary';
@@ -178,7 +178,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <SimpleNavigation />
+        <NavigationHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -193,7 +193,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <SimpleNavigation />
+      <NavigationHeader />
       
       <div className="container mx-auto px-4 py-8">
         {/* Profile Header */}

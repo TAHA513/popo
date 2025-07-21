@@ -32,7 +32,7 @@ import {
   ArrowRight,
   X
 } from "lucide-react";
-import SimpleNavigation from "@/components/simple-navigation";
+import NavigationHeader from "@/components/navigation-header";
 
 export default function CreateMemoryPage() {
   const { user } = useAuth();
@@ -187,7 +187,7 @@ export default function CreateMemoryPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <SimpleNavigation />
+      <NavigationHeader />
       
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
