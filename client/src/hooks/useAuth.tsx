@@ -34,9 +34,9 @@ export function useAuth() {
 
       return response.json();
     },
-    retry: false,
+    retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchInterval: false,
   });

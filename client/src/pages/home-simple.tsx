@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Gift, Users, Settings } from "lucide-react";
 
 export default function HomeSimple() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   if (!user) {
     return (
@@ -25,7 +25,16 @@ export default function HomeSimple() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-gray-600">مرحباً، {user.firstName || user.username}</span>
-              <Button variant="outline" onClick={logout}>
+              <Button 
+                variant="outline" 
+                onClick={async () => {
+                  await fetch("/api/logout", {
+                    method: "POST",
+                    credentials: "include",
+                  });
+                  window.location.href = "/";
+                }}
+              >
                 تسجيل الخروج
               </Button>
             </div>

@@ -52,14 +52,16 @@ export default function Login() {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: "تم بنجاح",
         description: data.message,
       });
       
-      // Force page refresh to reset all state
-      window.location.href = "/";
+      // Wait a bit for the session to be properly set
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
