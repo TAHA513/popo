@@ -27,9 +27,18 @@ import { queryClient } from "@/lib/queryClient";
 
 
 export default function ProfileSimplePage() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isAuthenticated } = useAuth();
   const { userId } = useParams();
-  const profileUserId = userId || currentUser?.id;
+  
+  // If viewing someone else's profile, use their ID, otherwise use current user's ID
+  const profileUserId = userId ? userId : currentUser?.id;
+  
+  console.log('Profile Debug:', {
+    userId,
+    currentUserId: currentUser?.id,
+    profileUserId,
+    isAuthenticated
+  });
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showGiftDialog, setShowGiftDialog] = useState(false);
@@ -61,16 +70,6 @@ export default function ProfileSimplePage() {
 
   // Always use fetched profile data
   const user = profileUser;
-  
-  console.log('Profile data:', {
-    profileUserId,
-    isOwnProfile,
-    currentUser: currentUser?.username,
-    profileUser,
-    user,
-    userLoading,
-    userError
-  });
   
   // Fetch user memories
   const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
@@ -107,7 +106,8 @@ export default function ProfileSimplePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/followers', profileUserId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', profileUserId, 'followers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', profileUserId, 'following'] });
     }
   });
   
@@ -126,8 +126,27 @@ export default function ProfileSimplePage() {
     );
   }
   
-  // Check if user not found or unauthorized
-  if ((!user && !userLoading) || userError) {
+  // Check authentication first
+  if (!isAuthenticated && !userId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <SimpleNavigation />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="p-8 text-center max-w-md mx-auto">
+            <p className="text-gray-600 mb-4">يجب تسجيل الدخول لعرض الملف الشخصي</p>
+            <Link href="/login">
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600">
+                تسجيل الدخول
+              </Button>
+            </Link>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user not found or error
+  if (!user && !userLoading && userError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
@@ -166,7 +185,7 @@ export default function ProfileSimplePage() {
   
   // Fetch followers
   const { data: followers = [] } = useQuery({
-    queryKey: ['/api/users/followers', profileUserId],
+    queryKey: ['/api/users', profileUserId, 'followers'],
     enabled: !!profileUserId && !!user,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}/followers`, {
@@ -179,7 +198,7 @@ export default function ProfileSimplePage() {
   
   // Fetch following
   const { data: following = [] } = useQuery({
-    queryKey: ['/api/users/following', profileUserId],
+    queryKey: ['/api/users', profileUserId, 'following'],
     enabled: !!profileUserId && !!user,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}/following`, {
