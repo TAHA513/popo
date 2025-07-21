@@ -1,9 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Video, Globe, Users, Gift, Star, Moon, Sun, UserPlus } from "lucide-react";
+import { Play, Video, Globe, Users, Gift, Star, Moon, Sun, UserPlus, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Landing() {
   const { theme, toggleTheme } = useTheme();
@@ -45,23 +51,49 @@ export default function Landing() {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Language Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLanguage}
-                className="flex items-center space-x-2"
-              >
-                <Globe className="w-4 h-4" />
-                <span>{language === 'en' ? 'AR' : 'EN'}</span>
-              </Button>
+              {/* Language Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`flex items-center space-x-2 ${
+                      theme === 'dark' ? 'text-white hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>{language === 'en' ? 'English' : 'العربية'}</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className={theme === 'dark' ? 'bg-gray-800 border-gray-700' : ''}>
+                  <DropdownMenuItem 
+                    onClick={() => setLanguage('en')}
+                    className={`cursor-pointer ${
+                      theme === 'dark' ? 'text-white hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    🇺🇸 English
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setLanguage('ar')}
+                    className={`cursor-pointer ${
+                      theme === 'dark' ? 'text-white hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    🇸🇦 العربية
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
               {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="flex items-center"
+                className={`flex items-center ${
+                  theme === 'dark' ? 'text-white hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
+                }`}
               >
                 {theme === 'dark' ? (
                   <Sun className="w-4 h-4" />
@@ -74,14 +106,16 @@ export default function Landing() {
               <Button 
                 onClick={handleSignUp} 
                 variant="outline" 
-                className="border-laa-pink text-laa-pink hover:bg-laa-pink hover:text-white"
+                className={`border-laa-pink text-laa-pink hover:bg-laa-pink hover:text-white ${
+                  theme === 'dark' ? 'border-pink-400 text-pink-400' : ''
+                }`}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                Sign Up
+                {language === 'ar' ? 'إنشاء حساب' : 'Sign Up'}
               </Button>
               
               <Button onClick={handleLogin} className="bg-laa-pink hover:bg-pink-600">
-                Sign In
+                {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
               </Button>
             </div>
           </div>
