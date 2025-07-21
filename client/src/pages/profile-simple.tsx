@@ -40,16 +40,18 @@ export default function ProfileSimplePage() {
   // Fetch profile user data
   const { data: profileUser, isLoading: userLoading } = useQuery({
     queryKey: ['/api/users', profileUserId],
-    enabled: !!profileUserId && profileUserId !== currentUser?.id,
+    enabled: !!profileUserId,
     queryFn: async () => {
-      const response = await fetch(`/api/users/${profileUserId}`);
+      const response = await fetch(`/api/users/${profileUserId}`, {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Failed to fetch user');
       return response.json();
     }
   });
 
-  // Use current user if viewing own profile
-  const user = profileUserId === currentUser?.id ? currentUser : profileUser;
+  // Use fetched profile data
+  const user = profileUser;
   
   // Fetch user memories
   const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
@@ -91,12 +93,22 @@ export default function ProfileSimplePage() {
   
   const isOwnProfile = currentUser?.id === profileUserId;
   
-  console.log("Profile Debug:", {
-    currentUser: currentUser?.id,
-    profileUserId,
-    isOwnProfile,
-    user
-  });
+  // Check if still loading user data
+  if (userLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <SimpleNavigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">جاري تحميل الملف الشخصي...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+
   
   // Fetch available gifts
   const { data: gifts = [] } = useQuery({
@@ -136,18 +148,7 @@ export default function ProfileSimplePage() {
     }
   });
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <SimpleNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center text-gray-600">
-            يرجى تسجيل الدخول لعرض الملف الشخصي
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
