@@ -8,6 +8,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
+import path from 'path';
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -178,6 +179,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Secure admin panel route
+  // Simplified admin panel access (requires login only)
+  app.get('/admin', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'super_admin') {
+        return res.status(403).send(`
+          <html>
+            <body style="font-family: Arial; text-align: center; padding: 50px;">
+              <h2>Access Denied</h2>
+              <p>You need super_admin permissions to access this panel.</p>
+              <p>Current user: ${user?.email || 'Unknown'}</p>
+              <p>Current role: ${user?.role || 'None'}</p>
+              <a href="/" style="color: #FF69B4;">← Back to Home</a>
+            </body>
+          </html>
+        `);
+      }
+      
+      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    } catch (error) {
+      console.error('Admin access error:', error);
+      res.status(500).send('Internal server error');
+    }
+  });
+
   app.get('/panel-9bd2f2-control', checkSuperAdmin, (req, res) => {
     // This serves the admin panel - redirect to frontend admin route
     res.redirect('/admin');
