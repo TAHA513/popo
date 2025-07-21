@@ -20,6 +20,7 @@ import LoginPage from "@/pages/login";
 import GiftsPage from "@/pages/gifts";
 import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
+import MakeAdminPage from "@/pages/make-admin";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/register">
         {isAuthenticated ? <FeedPage /> : <RegisterPage />}
       </Route>
+      <Route path="/make-admin" component={MakeAdminPage} />
       {isAuthenticated ? (
         <>
           <Route path="/" component={FeedPage} />
@@ -66,6 +68,7 @@ function Router() {
         <>
           <Route path="/" component={LoginPage} />
           <Route path="/landing" component={Landing} />
+          <Route path="/make-admin" component={MakeAdminPage} />
           <Route component={LoginPage} />
         </>
       )}
