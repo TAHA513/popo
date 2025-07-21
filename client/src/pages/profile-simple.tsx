@@ -42,6 +42,7 @@ export default function ProfileSimplePage() {
   console.log("Profile params:", params);
   console.log("userId from params:", userId);
   console.log("profileUserId:", profileUserId);
+  console.log("currentUser:", currentUser);
   
   // All hooks must be called before any conditional returns
   
@@ -214,6 +215,11 @@ export default function ProfileSimplePage() {
   // Calculate derived values
   const isOwnProfile = currentUser?.id === profileUserId;
   const user = profileUser;
+  
+  // More debug logs
+  console.log("profileUser:", profileUser);
+  console.log("isOwnProfile:", isOwnProfile);
+  console.log("user data:", user);
   
   // Check if still loading user data - AFTER all hooks
   if (userLoading || !user) {
