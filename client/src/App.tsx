@@ -12,7 +12,7 @@ import StreamPage from "@/pages/stream";
 import AdminPage from "@/pages/admin";
 import StartStreamPage from "@/pages/start-stream";
 import AccountPage from "@/pages/account";
-import CreateMemoryPage from "@/pages/create-memory";
+import CreateMemoryNewPage from "@/pages/create-memory-new";
 import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
 import RegisterPage from "@/pages/register";
@@ -54,7 +54,7 @@ function Router() {
           <Route path="/panel-9bd2f2-control" component={AdminPage} />
           <Route path="/start-stream" component={StartStreamPage} />
           <Route path="/account" component={AccountPage} />
-          <Route path="/create-memory" component={CreateMemoryPage} />
+          <Route path="/create-memory" component={CreateMemoryNewPage} />
           <Route path="/profile" component={ProfileSimplePage} />
           <Route path="/profile/:userId" component={ProfileSimplePage} />
           <Route path="/explore" component={ExplorePage} />

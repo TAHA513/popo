@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { 
   Select, 
   SelectContent, 
@@ -30,16 +31,41 @@ import {
   Share2,
   Gift,
   ArrowRight,
-  X
+  X,
+  Camera,
+  Zap,
+  Smile,
+  Palette,
+  Filter,
+  Sun,
+  Moon,
+  Contrast,
+  Settings,
+  Plus
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
+import BottomNavigation from "@/components/bottom-navigation";
+
+// Filter presets like Instagram/TikTok
+const FILTERS = [
+  { id: 'none', name: 'الأصلي', icon: Sun, style: '' },
+  { id: 'vintage', name: 'كلاسيكي', icon: Clock, style: 'sepia(0.5) brightness(1.1)' },
+  { id: 'dramatic', name: 'دراماتيكي', icon: Contrast, style: 'contrast(1.3) saturate(1.2)' },
+  { id: 'warm', name: 'دافئ', icon: Sun, style: 'hue-rotate(15deg) saturate(1.1)' },
+  { id: 'cool', name: 'بارد', icon: Moon, style: 'hue-rotate(-15deg) brightness(1.1)' },
+  { id: 'bright', name: 'مشرق', icon: Settings, style: 'brightness(1.2) saturate(1.3)' },
+  { id: 'mono', name: 'أبيض وأسود', icon: Palette, style: 'grayscale(1) contrast(1.1)' }
+];
 
 export default function CreateMemoryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [currentStep, setCurrentStep] = useState<'capture' | 'filter' | 'details'>('capture');
+  const [selectedFilter, setSelectedFilter] = useState('none');
   const [formData, setFormData] = useState({
     title: "",
     caption: "",
@@ -61,10 +87,21 @@ export default function CreateMemoryPage() {
       return;
     }
     setSelectedFiles(files);
+    if (files.length > 0) {
+      setCurrentStep('filter');
+    }
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
+    if (newFiles.length === 0) {
+      setCurrentStep('capture');
+    }
+  };
+
+  const getFilePreview = (file: File) => {
+    return URL.createObjectURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -185,79 +222,50 @@ export default function CreateMemoryPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <SimpleNavigation />
-      
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              إنشاء ذكرى جديدة ✨
-            </CardTitle>
-            <p className="text-gray-600">شارك لحظاتك المميزة مع العالم</p>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Step 3: Details and Form */}
+            <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  إضافة التفاصيل
+                </CardTitle>
+                <p className="text-gray-600">أضف وصف وإعدادات للمنشور</p>
+              </CardHeader>
               
-              {/* File Upload Area */}
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">الملفات</Label>
-                
-                <div className="border-2 border-dashed border-purple-300 rounded-xl p-8 text-center hover:border-purple-500 transition-colors">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="media-upload"
-                  />
-                  <label htmlFor="media-upload" className="cursor-pointer">
-                    <Upload className="w-12 h-12 mx-auto text-purple-500 mb-4" />
-                    <p className="text-lg font-semibold text-gray-700 mb-2">
-                      اختر الصور أو الفيديوهات
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      حد أقصى 5 ملفات • JPG, PNG, MP4, WebM
-                    </p>
-                  </label>
-                </div>
-
-                {/* Selected Files Preview */}
-                {selectedFiles.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                          {file.type.startsWith('image/') ? (
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                              <Video className="w-8 h-8 text-gray-500" />
-                            </div>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => removeFile(index)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1 truncate">
-                          {file.name}
-                        </p>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  
+                  {/* Final Preview */}
+                  {selectedFiles.length > 0 && (
+                    <div className="relative rounded-xl overflow-hidden bg-gray-100 mb-4">
+                      {selectedFiles[0].type.startsWith('image/') ? (
+                        <img
+                          src={getFilePreview(selectedFiles[0])}
+                          alt="Final Preview"
+                          className="w-full h-48 object-cover"
+                          style={{ filter: FILTERS.find(f => f.id === selectedFilter)?.style }}
+                        />
+                      ) : (
+                        <video
+                          src={getFilePreview(selectedFiles[0])}
+                          className="w-full h-48 object-cover"
+                          style={{ filter: FILTERS.find(f => f.id === selectedFilter)?.style }}
+                          muted
+                        />
+                      )}
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-white/90 text-gray-700">
+                          {FILTERS.find(f => f.id === selectedFilter)?.name}
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep('filter')}
+                        className="absolute top-3 right-3 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                      >
+                        <Settings className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
 
               {/* Title */}
               <div className="space-y-2">
@@ -384,8 +392,45 @@ export default function CreateMemoryPage() {
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="flex space-x-4 rtl:space-x-reverse">
+                  {/* Submit Button */}
+                  <div className="flex justify-between pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCurrentStep('filter')}
+                      className="border-purple-200 hover:bg-purple-50"
+                    >
+                      رجوع
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isUploading || selectedFiles.length === 0}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 flex-1 mr-4"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          جاري النشر...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          نشر الذكرى
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+      
+      <BottomNavigation />
+    </div>
+  );
+}
                 <Button
                   type="submit"
                   disabled={isUploading || selectedFiles.length === 0}
