@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import MemoryCard from "@/components/memory-card";
-import NavigationHeader from "@/components/navigation-header";
+import SimpleNavigation from "@/components/simple-navigation";
 import {
   Search,
   Users,
@@ -276,7 +276,7 @@ export default function Explore() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavigationHeader />
+      <SimpleNavigation />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

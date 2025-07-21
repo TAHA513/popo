@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import NavigationHeader from "@/components/navigation-header";
+import SimpleNavigation from "@/components/simple-navigation";
 import LiveStreamsGrid from "@/components/live-streams-grid";
 import GiftCharacters from "@/components/gift-characters";
 import UserProfile from "@/components/user-profile";
@@ -264,7 +264,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavigationHeader />
+      <SimpleNavigation />
       
       <main className="pb-16 md:pb-0">
         {renderContent()}
