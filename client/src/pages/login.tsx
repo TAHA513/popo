@@ -61,8 +61,10 @@ export default function Login() {
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
-      // Navigate to dashboard
-      navigate("/");
+      // Force a refresh of the auth state and navigate
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
     },
     onError: (error: Error) => {
       toast({

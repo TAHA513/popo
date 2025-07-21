@@ -25,13 +25,22 @@ type Language = 'en' | 'ar';
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
+        <div className="text-white text-lg">جاري التحميل...</div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
+      {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
           <Route path="/login" component={LoginPage} />
           <Route path="/register" component={RegisterPage} />
+          <Route component={Landing} />
         </>
       ) : (
         <>
@@ -45,9 +54,11 @@ function Router() {
           <Route path="/profile" component={ProfilePage} />
           <Route path="/explore" component={ExplorePage} />
           <Route path="/gifts" component={GiftsPage} />
+          <Route path="/login" component={Home} />
+          <Route path="/register" component={Home} />
+          <Route component={NotFound} />
         </>
       )}
-      <Route component={NotFound} />
     </Switch>
   );
 }

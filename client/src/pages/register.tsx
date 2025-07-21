@@ -85,8 +85,10 @@ export default function Register() {
         description: data.message + " - يمكنك الآن تسجيل الدخول",
       });
       
-      // Navigate to login page
-      navigate("/login");
+      // Navigate to login page after a short delay
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     },
     onError: (error: Error) => {
       toast({
