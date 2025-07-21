@@ -370,8 +370,9 @@ export default function ProfileSimplePage() {
               {followers.map((item: any) => (
                 <Card key={item.follower.id} className="overflow-hidden">
                   <CardContent className="p-4">
-                    <Link href={`/profile/${item.follower.id}`}>
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                    <div 
+                      onClick={() => window.location.href = `/profile/${item.follower.id}`}
+                      className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
                         <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
                           {item.follower.profileImageUrl ? (
                             <img 
@@ -390,7 +391,6 @@ export default function ProfileSimplePage() {
                           </p>
                         </div>
                       </div>
-                    </Link>
                   </CardContent>
                 </Card>
               ))}
@@ -410,8 +410,9 @@ export default function ProfileSimplePage() {
               {following.map((item: any) => (
                 <Card key={item.following.id} className="overflow-hidden">
                   <CardContent className="p-4">
-                    <Link href={`/profile/${item.following.id}`}>
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                    <div 
+                      onClick={() => window.location.href = `/profile/${item.following.id}`}
+                      className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
                         <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
                           {item.following.profileImageUrl ? (
                             <img 
@@ -430,7 +431,6 @@ export default function ProfileSimplePage() {
                           </p>
                         </div>
                       </div>
-                    </Link>
                   </CardContent>
                 </Card>
               ))}
