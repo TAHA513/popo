@@ -63,6 +63,15 @@ async function upsertUser(
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    // Default settings for new users as requested
+    points: 100, // Starting points for new users
+    isStreamer: false,
+    isAdmin: false,
+    role: "user",
+    // Privacy settings with secure defaults
+    isPrivateAccount: false,
+    allowDirectMessages: true,
+    allowGiftsFromStrangers: true,
   });
 }
 
