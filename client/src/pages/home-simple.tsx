@@ -51,96 +51,64 @@ export default function HomeSimple() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 rounded-lg p-8 text-white mb-8">
-          <h2 className="text-3xl font-bold mb-4">
-            أهلاً وسهلاً، {user.firstName || user.username}!
-          </h2>
-          <p className="text-lg opacity-90">
-            مرحباً بك في منصة LaaBoBo Live للبث المباشر والتفاعل الاجتماعي
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <Video className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">ابدأ بث مباشر</h3>
-              <Button 
-                className="w-full"
-                onClick={() => window.location.href = '/start-stream'}
-              >
-                ابدأ الآن
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">تصفح البث المباشر</h3>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => window.location.href = '/explore'}
-              >
-                تصفح
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <Gift className="w-12 h-12 text-pink-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">متجر الهدايا</h3>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => window.location.href = '/gifts'}
-              >
-                تسوق
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <Settings className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">حسابي</h3>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => window.location.href = '/account'}
-              >
-                إعدادات
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* User Stats */}
-        <Card>
+        {/* User Account Info */}
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle>إحصائياتك</CardTitle>
+            <CardTitle className="text-2xl">معلومات الحساب</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">{user.points || 0}</div>
-                <div className="text-gray-600">النقاط المتاحة</div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">اسم المستخدم:</span>
+                <span className="font-semibold">{user.username}</span>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">{user.isStreamer ? 'نعم' : 'لا'}</div>
-                <div className="text-gray-600">حساب مبدع</div>
+              {user.firstName && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">الاسم الأول:</span>
+                  <span className="font-semibold">{user.firstName}</span>
+                </div>
+              )}
+              {user.email && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">البريد الإلكتروني:</span>
+                  <span className="font-semibold">{user.email}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">النقاط:</span>
+                <span className="font-semibold text-purple-600">{user.points || 0}</span>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">{user.totalEarnings || '0'}</div>
-                <div className="text-gray-600">الأرباح الإجمالية</div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">حساب مبدع:</span>
+                <span className="font-semibold text-blue-600">{user.isStreamer ? 'نعم' : 'لا'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">الأرباح الإجمالية:</span>
+                <span className="font-semibold text-green-600">{user.totalEarnings || '0'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">نوع الحساب:</span>
+                <span className="font-semibold">{user.role === 'super_admin' ? 'مسؤول عام' : user.role === 'admin' ? 'مسؤول' : 'مستخدم'}</span>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Simple Navigation Links */}
+        <div className="flex flex-wrap gap-3 justify-center">
+          <Button onClick={() => window.location.href = '/explore'}>
+            تصفح البث المباشر
+          </Button>
+          <Button variant="outline" onClick={() => window.location.href = '/start-stream'}>
+            ابدأ بث مباشر
+          </Button>
+          <Button variant="outline" onClick={() => window.location.href = '/gifts'}>
+            متجر الهدايا
+          </Button>
+          <Button variant="outline" onClick={() => window.location.href = '/account'}>
+            إعدادات الحساب
+          </Button>
+        </div>
       </main>
     </div>
   );
