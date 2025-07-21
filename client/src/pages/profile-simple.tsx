@@ -22,7 +22,7 @@ import {
   Gift
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
 export default function ProfileSimplePage() {
@@ -35,6 +35,7 @@ export default function ProfileSimplePage() {
   const [messageText, setMessageText] = useState("");
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   // All hooks must be called before any conditional returns
   
@@ -466,28 +467,27 @@ export default function ProfileSimplePage() {
                 {followers.map((item: any) => (
                   <Card key={item.follower.id} className="overflow-hidden">
                     <CardContent className="p-4">
-                      <div 
-                        onClick={() => window.location.href = `/profile/${item.follower.id}`}
-                        className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80"
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
-                          {item.follower.profileImageUrl ? (
-                            <img 
-                              src={item.follower.profileImageUrl} 
-                              alt={item.follower.username} 
-                              className="w-full h-full object-cover rounded-full"
-                            />
-                          ) : (
-                            <User className="w-6 h-6" />
-                          )}
+                      <Link href={`/profile/${item.follower.id}`}>
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
+                            {item.follower.profileImageUrl ? (
+                              <img 
+                                src={item.follower.profileImageUrl} 
+                                alt={item.follower.username} 
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            ) : (
+                              <User className="w-6 h-6" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold hover:underline">{item.follower.username || item.follower.firstName || 'مستخدم'}</p>
+                            <p className="text-xs text-gray-500">
+                              متابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold hover:underline">{item.follower.username || item.follower.firstName || 'مستخدم'}</p>
-                          <p className="text-xs text-gray-500">
-                            متابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
-                          </p>
-                        </div>
-                      </div>
+                      </Link>
                     </CardContent>
                   </Card>
                 ))}
@@ -507,28 +507,27 @@ export default function ProfileSimplePage() {
                 {following.map((item: any) => (
                   <Card key={item.following.id} className="overflow-hidden">
                     <CardContent className="p-4">
-                      <div 
-                        onClick={() => window.location.href = `/profile/${item.following.id}`}
-                        className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80"
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
-                          {item.following.profileImageUrl ? (
-                            <img 
-                              src={item.following.profileImageUrl} 
-                              alt={item.following.username} 
-                              className="w-full h-full object-cover rounded-full"
-                            />
-                          ) : (
-                            <User className="w-6 h-6" />
-                          )}
+                      <Link href={`/profile/${item.following.id}`}>
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
+                            {item.following.profileImageUrl ? (
+                              <img 
+                                src={item.following.profileImageUrl} 
+                                alt={item.following.username} 
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            ) : (
+                              <User className="w-6 h-6" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold hover:underline">{item.following.username || item.following.firstName || 'مستخدم'}</p>
+                            <p className="text-xs text-gray-500">
+                              يتابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold hover:underline">{item.following.username || item.following.firstName || 'مستخدم'}</p>
-                          <p className="text-xs text-gray-500">
-                            يتابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
-                          </p>
-                        </div>
-                      </div>
+                      </Link>
                     </CardContent>
                   </Card>
                 ))}
