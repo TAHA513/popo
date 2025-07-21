@@ -18,41 +18,66 @@ export default function Home() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('home');
   
-  // Fetch all public memory fragments
-  const { data: publicMemories = [], isLoading: memoriesLoading } = useQuery({
+  // Fetch all public memory fragments with error handling
+  const { data: publicMemories = [], isLoading: memoriesLoading, error } = useQuery({
     queryKey: ['/api/memories/public'],
     refetchInterval: 30000, // Refresh every 30 seconds to show energy decay
+    retry: 1,
+    staleTime: 5000,
   });
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
+        <div className="text-white text-lg">جاري التحميل...</div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {
       case 'live':
-        return <LiveStreamsGrid />;
+        return (
+          <div className="p-4">
+            <h2 className="text-2xl font-bold mb-4 text-purple-600">البث المباشر</h2>
+            <LiveStreamsGrid />
+          </div>
+        );
       case 'gifts':
-        return <GiftCharacters />;
+        return (
+          <div className="p-4">
+            <h2 className="text-2xl font-bold mb-4 text-purple-600">الهدايا</h2>
+            <GiftCharacters />
+          </div>
+        );
       case 'profile':
-        return <UserProfile />;
+        return (
+          <div className="p-4">
+            <h2 className="text-2xl font-bold mb-4 text-purple-600">الملف الشخصي</h2>
+            <UserProfile />
+          </div>
+        );
       default:
         return (
           <>
-            {/* Hero Section */}
-            <section className="gradient-bg py-16">
+            {/* Simple Hero Section */}
+            <section className="bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 py-12">
               <div className="container mx-auto px-4 text-center">
-                <h1 className="font-bold text-4xl md:text-6xl text-white mb-6">
-                  أهلاً بك، {user?.firstName || user?.username || 'مبدع'}!
+                <h1 className="font-bold text-3xl md:text-4xl text-white mb-4">
+                  مرحباً، {user?.firstName || user?.username || 'مستخدم'}!
                 </h1>
-                <p className="text-white/80 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-                  جاهز للبث المباشر أو اكتشاف محتوى رائع من المبدعين حول العالم؟
+                <p className="text-white/90 text-lg mb-6">
+                  منصة LaaBoBo Live للبث المباشر والتفاعل
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     size="lg"
-                    className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-4"
+                    className="bg-white text-purple-600 hover:bg-gray-100"
                     onClick={() => window.location.href = '/start-stream'}
                   >
-                    <Video className="w-5 h-5 mr-2" />
-                    ابدأ بثاً مباشراً
+                    <Video className="w-4 h-4 mr-2" />
+                    ابدأ بث مباشر
                   </Button>
                   <Button
                     variant="outline"

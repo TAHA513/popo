@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
-import Home from "@/pages/home";
+import Home from "@/pages/home-simple";
 import StreamPage from "@/pages/stream";
 import AdminPage from "@/pages/admin";
 import StartStreamPage from "@/pages/start-stream";
