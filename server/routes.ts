@@ -72,6 +72,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Memory fragments routes
+  app.post('/api/memories', isAuthenticated, upload.array('media', 5), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { title, caption, memoryType, visibilityLevel, allowComments, allowSharing, allowGifts } = req.body;
+      
+      // Process uploaded files
+      const mediaUrls: string[] = [];
+      const files = req.files as Express.Multer.File[];
+      
+      if (files && files.length > 0) {
+        for (const file of files) {
+          // In production, you'd upload to cloud storage (AWS S3, Cloudinary, etc.)
+          // For now, we'll just use the local file path
+          const fileName = `${Date.now()}-${file.originalname}`;
+          const filePath = path.join('uploads', fileName);
+          
+          // Move file to permanent location
+          await fs.rename(file.path, filePath);
+          mediaUrls.push(`/uploads/${fileName}`);
+        }
+      }
+
+      // Create memory fragment
+      const memoryData = {
+        authorId: userId,
+        type: files?.[0]?.mimetype?.startsWith('video') ? 'video' : 'image',
+        title: title || '',
+        caption: caption || '',
+        mediaUrls,
+        thumbnailUrl: mediaUrls[0] || null,
+        memoryType: memoryType || 'fleeting',
+        visibilityLevel: visibilityLevel || 'public',
+        allowComments: allowComments !== 'false',
+        allowSharing: allowSharing !== 'false',
+        allowGifts: allowGifts !== 'false',
+        currentEnergy: 100,
+        initialEnergy: 100,
+        viewCount: 0,
+        likeCount: 0,
+        shareCount: 0,
+        giftCount: 0,
+      };
+
+      const memory = await storage.createMemoryFragment(memoryData);
+      res.json(memory);
+    } catch (error) {
+      console.error("Error creating memory:", error);
+      res.status(500).json({ message: "Failed to create memory" });
+    }
+  });
+
+  app.get('/api/memories/user/:userId?', async (req, res) => {
+    try {
+      const userId = req.params.userId || req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID required" });
+      }
+      
+      const memories = await storage.getUserMemoryFragments(userId);
+      res.json(memories);
+    } catch (error) {
+      console.error("Error fetching user memories:", error);
+      res.status(500).json({ message: "Failed to fetch memories" });
+    }
+  });
+
+  app.post('/api/memories/:id/interact', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const memoryId = parseInt(req.params.id);
+      const { type } = req.body; // 'like', 'view', 'share'
+      
+      await storage.addMemoryInteraction({
+        memoryId,
+        userId,
+        type
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error adding interaction:", error);
+      res.status(500).json({ message: "Failed to add interaction" });
+    }
+  });
+
+  // Serve uploaded files
+  await fs.mkdir('uploads', { recursive: true });
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
+  });
+  
+  const expressModule = await import('express');
+  app.use('/uploads', expressModule.static('uploads'));
+
   app.post('/api/streams', isAuthenticated, async (req: any, res) => {
     try {
       const streamData = insertStreamSchema.parse({

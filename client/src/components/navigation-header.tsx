@@ -1,190 +1,171 @@
-import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator 
-} from "@/components/ui/dropdown-menu";
-import { Globe, Settings, LogOut, Shield, Moon, Sun, Download } from "lucide-react";
-import { useTheme } from "@/hooks/useTheme";
-import { usePWA } from "@/hooks/usePWA";
+  Home, 
+  User, 
+  Settings, 
+  Gift, 
+  Plus, 
+  Video,
+  MessageCircle,
+  LogOut,
+  Sparkles,
+  Camera,
+  Crown
+} from "lucide-react";
 
-type Language = 'en' | 'ar';
-
-interface NavigationHeaderProps {
-  language?: Language;
-  onLanguageChange?: (lang: Language) => void;
-}
-
-export default function NavigationHeader({ 
-  language = 'en', 
-  onLanguageChange 
-}: NavigationHeaderProps) {
+export default function NavigationHeader() {
   const { user } = useAuth();
-  const [currentLanguage, setCurrentLanguage] = useState<Language>(language);
-  const { theme, toggleTheme } = useTheme();
-  const { canInstall, installApp } = usePWA();
-
-  const handleLanguageToggle = () => {
-    const newLang: Language = currentLanguage === 'en' ? 'ar' : 'en';
-    setCurrentLanguage(newLang);
-    onLanguageChange?.(newLang);
-    
-    // Update document direction
-    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = newLang;
-  };
-
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
+  const [location] = useLocation();
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-lg border-b-2 border-gradient sticky top-0 z-50 transition-colors duration-200">
+    <header className="bg-white shadow-md border-b border-gray-200">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 gradient-bg rounded-full flex items-center justify-center">
-              <span className="text-white text-lg">🐰</span>
+          <Link href="/">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                <Crown className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                LaaBoBo Live
+              </span>
             </div>
-            <span className="font-bold text-2xl gradient-text">LaaBoBo Live</span>
-          </div>
-          
-          {/* Navigation Items */}
-          <div className="hidden md:flex items-center space-x-6">
-            <a href="/" className="text-laa-dark hover:text-laa-pink transition-colors">
-              Home
-            </a>
-            <a href="#live" className="text-laa-dark hover:text-laa-pink transition-colors">
-              Live Streams
-            </a>
-            <a href="#gifts" className="text-laa-dark hover:text-laa-pink transition-colors">
-              Gifts
-            </a>
-            <a href="#creators" className="text-laa-dark hover:text-laa-pink transition-colors">
-              Creators
-            </a>
-          </div>
+          </Link>
 
-          {/* User Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Theme Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleTheme}
-              className="flex items-center space-x-2"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-yellow-500" />
-              ) : (
-                <Moon className="w-4 h-4 text-laa-gray" />
-              )}
-            </Button>
-
-            {/* PWA Install Button */}
-            {canInstall && (
-              <Button
-                variant="ghost"
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
+            <Link href="/">
+              <Button 
+                variant={location === "/" ? "default" : "ghost"} 
                 size="sm"
-                onClick={installApp}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-1 rtl:space-x-reverse"
               >
-                <Download className="w-4 h-4 text-laa-gray" />
-                <span className="text-sm hidden md:inline">تثبيت</span>
+                <Home className="w-4 h-4" />
+                <span>الرئيسية</span>
               </Button>
-            )}
+            </Link>
+            
+            <Link href="/profile">
+              <Button 
+                variant={location === "/profile" ? "default" : "ghost"} 
+                size="sm"
+                className="flex items-center space-x-1 rtl:space-x-reverse"
+              >
+                <User className="w-4 h-4" />
+                <span>الملف الشخصي</span>
+              </Button>
+            </Link>
 
-            {/* Language Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLanguageToggle}
-              className="flex items-center space-x-2"
-            >
-              <Globe className="w-4 h-4 text-laa-gray" />
-              <span className="text-sm">{currentLanguage.toUpperCase()}</span>
-            </Button>
-            
-            {/* Points Balance */}
-            <Badge className="gradient-bg text-white px-4 py-2 text-sm font-semibold">
-              <span className="mr-1">💎</span>
-              {user?.points || 0}
-            </Badge>
-            
-            {/* Profile Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10 border-2 border-laa-pink">
-                    <AvatarImage 
-                      src={user?.profileImageUrl || undefined} 
-                      alt={user?.firstName || user?.username || 'User'} 
-                    />
-                    <AvatarFallback className="bg-laa-pink text-white">
-                      {(user?.firstName?.[0] || user?.username?.[0] || 'U').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">
-                      {user?.firstName || user?.username || 'User'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {user?.email || 'No email'}
-                    </p>
-                  </div>
+            <Link href="/gifts">
+              <Button 
+                variant={location === "/gifts" ? "default" : "ghost"} 
+                size="sm"
+                className="flex items-center space-x-1 rtl:space-x-reverse"
+              >
+                <Gift className="w-4 h-4" />
+                <span>الهدايا</span>
+              </Button>
+            </Link>
+
+            <Link href="/start-stream">
+              <Button 
+                variant={location === "/start-stream" ? "default" : "ghost"} 
+                size="sm"
+                className="flex items-center space-x-1 rtl:space-x-reverse"
+              >
+                <Video className="w-4 h-4" />
+                <span>بث مباشر</span>
+              </Button>
+            </Link>
+          </nav>
+
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            {/* Create Memory Button */}
+            <Link href="/create-memory">
+              <Button 
+                size="sm" 
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                إنشاء ذكرى
+              </Button>
+            </Link>
+
+            {/* User Menu */}
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              {user?.profileImageUrl ? (
+                <img
+                  src={user.profileImageUrl}
+                  alt={user.firstName || user.username || 'User'}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={toggleTheme}>
-                  {theme === 'dark' ? (
-                    <>
-                      <Sun className="mr-2 h-4 w-4" />
-                      <span>الوضع النهاري</span>
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="mr-2 h-4 w-4" />
-                      <span>الوضع الليلي</span>
-                    </>
-                  )}
-                </DropdownMenuItem>
-                {canInstall && (
-                  <DropdownMenuItem className="cursor-pointer" onClick={installApp}>
-                    <Download className="mr-2 h-4 w-4" />
-                    <span>تثبيت التطبيق</span>
-                  </DropdownMenuItem>
+              )}
+              
+              <div className="hidden sm:block">
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.firstName || user?.username || 'مستخدم'}
+                </p>
+                {user?.points !== undefined && (
+                  <Badge variant="outline" className="text-xs">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    {user.points} نقطة
+                  </Badge>
                 )}
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/account'}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>إدارة الحساب</span>
-                </DropdownMenuItem>
-                {user?.role === 'super_admin' && (
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/panel-9bd2f2-control'}>
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>لوحة التحكم الرئيسية</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </div>
+            </div>
+
+            {/* Settings Button */}
+            <Link href="/account">
+              <Button variant="ghost" size="sm">
+                <Settings className="w-4 h-4" />
+              </Button>
+            </Link>
+
+            {/* Logout Button */}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => window.location.href = '/api/logout'}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden mt-3 flex justify-center space-x-2 rtl:space-x-reverse">
+          <Link href="/">
+            <Button variant={location === "/" ? "default" : "ghost"} size="sm">
+              <Home className="w-4 h-4" />
+            </Button>
+          </Link>
+          <Link href="/profile">
+            <Button variant={location === "/profile" ? "default" : "ghost"} size="sm">
+              <User className="w-4 h-4" />
+            </Button>
+          </Link>
+          <Link href="/gifts">
+            <Button variant={location === "/gifts" ? "default" : "ghost"} size="sm">
+              <Gift className="w-4 h-4" />
+            </Button>
+          </Link>
+          <Link href="/start-stream">
+            <Button variant={location === "/start-stream" ? "default" : "ghost"} size="sm">
+              <Video className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }

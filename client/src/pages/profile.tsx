@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import MemoryCard from "@/components/memory-card";
 import PrivacySettings from "@/components/privacy-settings";
 import { 
@@ -79,66 +80,20 @@ export default function ProfilePage() {
     allowGiftsFromStrangers: true,
   });
 
-  // Mock memory data with enhanced privacy features
-  const mockMemories: MemoryFragment[] = [
-    {
-      id: "1",
-      type: "image",
-      title: "رحلة إلى الشاطئ",
-      caption: "يوم رائع على شاطئ البحر مع الأصدقاء 🌊",
-      mediaUrls: ["/api/placeholder/400/300"],
-      thumbnailUrl: "/api/placeholder/400/300",
-      currentEnergy: 85,
-      initialEnergy: 100,
-      memoryType: "precious",
-      viewCount: 124,
-      likeCount: 23,
-      shareCount: 5,
-      giftCount: 3,
-      visibilityLevel: "public",
-      allowComments: true,
-      allowSharing: true,
-      allowGifts: true,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      author: {
-        id: user?.id || "user1",
-        username: user?.username || "user",
-        firstName: user?.firstName || "مستخدم",
-        profileImageUrl: user?.profileImageUrl || undefined
-      }
-    },
-    {
-      id: "2",
-      type: "video",
-      title: "لحظة إبداع",
-      caption: "عمل فني جديد في المرسم ✨",
-      mediaUrls: ["/api/placeholder/400/300"],
-      thumbnailUrl: "/api/placeholder/400/300",
-      currentEnergy: 92,
-      initialEnergy: 100,
-      memoryType: "legendary",
-      viewCount: 342,
-      likeCount: 67,
-      shareCount: 12,
-      giftCount: 8,
-      visibilityLevel: "followers",
-      allowComments: true,
-      allowSharing: false,
-      allowGifts: true,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      author: {
-        id: user?.id || "user1",
-        username: user?.username || "user",
-        firstName: user?.firstName || "مستخدم",
-        profileImageUrl: user?.profileImageUrl || undefined
-      }
-    }
-  ];
+  // Fetch real memory data from server
+  const { data: memories = [], isLoading: memoriesLoading } = useQuery({
+    queryKey: ['/api/memories/user', user?.id],
+    enabled: !!user?.id,
+  });
 
-  const memories = mockMemories;
-  const memoriesLoading = false;
+  // Type-safe memories
+  const typedMemories = (memories as any[]);
+
+  const stats = {
+    totalViews: typedMemories.reduce((sum: number, m: any) => sum + (m.viewCount || 0), 0),
+    totalLikes: typedMemories.reduce((sum: number, m: any) => sum + (m.likeCount || 0), 0),
+    totalGifts: typedMemories.reduce((sum: number, m: any) => sum + (m.giftCount || 0), 0),
+  };
 
   const handlePrivacyUpdate = (newSettings: any) => {
     setPrivacySettings(newSettings);
@@ -148,25 +103,25 @@ export default function ProfilePage() {
     });
   };
 
-  // Mock user stats
+  // User stats based on real data
   const userStats = {
-    totalMemories: memories.length,
-    totalViews: memories.reduce((sum, m) => sum + m.viewCount, 0),
-    totalLikes: memories.reduce((sum, m) => sum + m.likeCount, 0),
-    totalGifts: memories.reduce((sum, m) => sum + m.giftCount, 0),
+    totalMemories: typedMemories.length,
+    totalViews: stats.totalViews,
+    totalLikes: stats.totalLikes,
+    totalGifts: stats.totalGifts,
     followersCount: 245,
     followingCount: 89
   };
 
   // Memory interaction functions
-  const handleLike = (memory: MemoryFragment) => {
+  const handleLike = (memory: any) => {
     toast({
       title: "أعجبك هذا!",
       description: "تم إضافة إعجابك للذكرى",
     });
   };
 
-  const handleComment = (memory: MemoryFragment) => {
+  const handleComment = (memory: any) => {
     if (!memory.allowComments) {
       toast({
         title: "التعليقات معطلة",
@@ -177,7 +132,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleShare = (memory: MemoryFragment) => {
+  const handleShare = (memory: any) => {
     if (!memory.allowSharing) {
       toast({
         title: "المشاركة معطلة",
