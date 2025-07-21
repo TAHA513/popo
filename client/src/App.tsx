@@ -13,6 +13,8 @@ import StreamPage from "@/pages/stream";
 import AdminPage from "@/pages/admin";
 import StartStreamPage from "@/pages/start-stream";
 import AccountPage from "@/pages/account";
+import CreateMemoryPage from "@/pages/create-memory";
+import ProfilePage from "@/pages/profile";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -32,6 +34,8 @@ function Router() {
           <Route path="/panel-9bd2f2-control" component={AdminPage} />
           <Route path="/start-stream" component={StartStreamPage} />
           <Route path="/account" component={AccountPage} />
+          <Route path="/create-memory" component={CreateMemoryPage} />
+          <Route path="/profile" component={ProfilePage} />
         </>
       )}
       <Route component={NotFound} />

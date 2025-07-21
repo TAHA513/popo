@@ -6,6 +6,10 @@ import {
   chatMessages,
   pointTransactions,
   followers,
+  memoryFragments,
+  memoryInteractions,
+  memoryCollections,
+  fragmentCollections,
   type User,
   type UpsertUser,
   type Stream,
@@ -19,6 +23,12 @@ import {
   type InsertPointTransaction,
   type Follower,
   type InsertFollower,
+  type MemoryFragment,
+  type InsertMemoryFragment,
+  type MemoryInteraction,
+  type InsertMemoryInteraction,
+  type MemoryCollection,
+  type InsertMemoryCollection,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, count } from "drizzle-orm";
@@ -52,6 +62,20 @@ export interface IStorage {
   followUser(followerId: string, followedId: string): Promise<Follower>;
   unfollowUser(followerId: string, followedId: string): Promise<void>;
   getFollowCount(userId: string): Promise<number>;
+  
+  // Memory Fragment operations
+  createMemoryFragment(fragment: InsertMemoryFragment): Promise<MemoryFragment>;
+  getUserMemoryFragments(userId: string): Promise<MemoryFragment[]>;
+  getMemoryFragmentById(id: number): Promise<MemoryFragment | undefined>;
+  addMemoryInteraction(interaction: InsertMemoryInteraction): Promise<MemoryInteraction>;
+  updateMemoryFragmentEnergy(id: number, energyChange: number): Promise<void>;
+  getExpiredMemoryFragments(): Promise<MemoryFragment[]>;
+  deleteExpiredMemoryFragments(): Promise<void>;
+  
+  // Memory Collection operations
+  createMemoryCollection(collection: InsertMemoryCollection): Promise<MemoryCollection>;
+  getUserMemoryCollections(userId: string): Promise<MemoryCollection[]>;
+  addFragmentToCollection(fragmentId: number, collectionId: number): Promise<void>;
   
   // Admin operations
   getStreamingStats(): Promise<{
@@ -262,6 +286,169 @@ export class DatabaseStorage implements IStorage {
       dailyRevenue: dailyRevenueResult.revenue || 0,
       giftsSent: giftsSentResult.count,
     };
+  }
+
+  // Memory Fragment operations
+  async createMemoryFragment(fragmentData: InsertMemoryFragment): Promise<MemoryFragment> {
+    // Calculate expiration based on memory type
+    const expiresAt = new Date();
+    switch (fragmentData.memoryType) {
+      case 'fleeting':
+        expiresAt.setHours(expiresAt.getHours() + 24); // 1 day
+        break;
+      case 'precious':
+        expiresAt.setDate(expiresAt.getDate() + 7); // 1 week
+        break;
+      case 'legendary':
+        expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month
+        break;
+      default:
+        expiresAt.setHours(expiresAt.getHours() + 24);
+    }
+    
+    const [fragment] = await db
+      .insert(memoryFragments)
+      .values({
+        ...fragmentData,
+        expiresAt,
+      })
+      .returning();
+    return fragment;
+  }
+
+  async getUserMemoryFragments(userId: string): Promise<MemoryFragment[]> {
+    return await db
+      .select()
+      .from(memoryFragments)
+      .where(and(
+        eq(memoryFragments.authorId, userId),
+        eq(memoryFragments.isActive, true)
+      ))
+      .orderBy(desc(memoryFragments.createdAt));
+  }
+
+  async getMemoryFragmentById(id: number): Promise<MemoryFragment | undefined> {
+    const [fragment] = await db
+      .select()
+      .from(memoryFragments)
+      .where(eq(memoryFragments.id, id));
+    return fragment;
+  }
+
+  async addMemoryInteraction(interactionData: InsertMemoryInteraction): Promise<MemoryInteraction> {
+    // Add the interaction
+    const [interaction] = await db
+      .insert(memoryInteractions)
+      .values(interactionData)
+      .returning();
+
+    // Update fragment counters and energy
+    const energyBoost = interactionData.energyBoost || 1;
+    
+    switch (interactionData.type) {
+      case 'view':
+        await db
+          .update(memoryFragments)
+          .set({
+            viewCount: sql`${memoryFragments.viewCount} + 1`,
+            currentEnergy: sql`LEAST(100, ${memoryFragments.currentEnergy} + ${energyBoost})`
+          })
+          .where(eq(memoryFragments.id, interactionData.fragmentId));
+        break;
+      case 'like':
+        await db
+          .update(memoryFragments)
+          .set({
+            likeCount: sql`${memoryFragments.likeCount} + 1`,
+            currentEnergy: sql`LEAST(100, ${memoryFragments.currentEnergy} + ${energyBoost * 2})`
+          })
+          .where(eq(memoryFragments.id, interactionData.fragmentId));
+        break;
+      case 'share':
+        await db
+          .update(memoryFragments)
+          .set({
+            shareCount: sql`${memoryFragments.shareCount} + 1`,
+            currentEnergy: sql`LEAST(100, ${memoryFragments.currentEnergy} + ${energyBoost * 3})`
+          })
+          .where(eq(memoryFragments.id, interactionData.fragmentId));
+        break;
+      case 'gift':
+        await db
+          .update(memoryFragments)
+          .set({
+            giftCount: sql`${memoryFragments.giftCount} + 1`,
+            currentEnergy: sql`LEAST(100, ${memoryFragments.currentEnergy} + ${energyBoost * 5})`
+          })
+          .where(eq(memoryFragments.id, interactionData.fragmentId));
+        break;
+    }
+
+    return interaction;
+  }
+
+  async updateMemoryFragmentEnergy(id: number, energyChange: number): Promise<void> {
+    await db
+      .update(memoryFragments)
+      .set({
+        currentEnergy: sql`GREATEST(0, LEAST(100, ${memoryFragments.currentEnergy} + ${energyChange}))`,
+        updatedAt: new Date()
+      })
+      .where(eq(memoryFragments.id, id));
+  }
+
+  async getExpiredMemoryFragments(): Promise<MemoryFragment[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(memoryFragments)
+      .where(and(
+        eq(memoryFragments.isActive, true),
+        sql`${memoryFragments.expiresAt} < ${now} OR ${memoryFragments.currentEnergy} <= 0`
+      ));
+  }
+
+  async deleteExpiredMemoryFragments(): Promise<void> {
+    const now = new Date();
+    await db
+      .update(memoryFragments)
+      .set({ isActive: false })
+      .where(and(
+        eq(memoryFragments.isActive, true),
+        sql`${memoryFragments.expiresAt} < ${now} OR ${memoryFragments.currentEnergy} <= 0`
+      ));
+  }
+
+  // Memory Collection operations
+  async createMemoryCollection(collectionData: InsertMemoryCollection): Promise<MemoryCollection> {
+    const [collection] = await db
+      .insert(memoryCollections)
+      .values(collectionData)
+      .returning();
+    return collection;
+  }
+
+  async getUserMemoryCollections(userId: string): Promise<MemoryCollection[]> {
+    return await db
+      .select()
+      .from(memoryCollections)
+      .where(eq(memoryCollections.authorId, userId))
+      .orderBy(desc(memoryCollections.createdAt));
+  }
+
+  async addFragmentToCollection(fragmentId: number, collectionId: number): Promise<void> {
+    await db.insert(fragmentCollections).values({
+      fragmentId,
+      collectionId,
+    });
+
+    // Update collection fragment count
+    await db
+      .update(memoryCollections)
+      .set({
+        fragmentCount: sql`${memoryCollections.fragmentCount} + 1`
+      })
+      .where(eq(memoryCollections.id, collectionId));
   }
 }
 

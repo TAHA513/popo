@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, insertMemoryFragmentSchema, insertMemoryInteractionSchema } from "@shared/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
@@ -12,9 +12,27 @@ import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import multer from 'multer';
+import fs from 'fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: 'uploads/',
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only images and videos are allowed.'));
+    }
+  },
+});
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -272,6 +290,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Panel access error:', error);
       res.status(500).send('Internal server error');
+    }
+  });
+
+  // Memory Fragment routes
+  app.post('/api/memories', isAuthenticated, upload.array('media', 5), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: 'At least one media file is required' });
+      }
+
+      // Process uploaded files
+      const mediaUrls: string[] = [];
+      let thumbnailUrl = '';
+
+      for (const file of files) {
+        // In a real app, you would upload to cloud storage (AWS S3, Cloudinary, etc.)
+        // For this demo, we'll create a simple file serving system
+        const fileName = `${Date.now()}-${file.originalname}`;
+        const filePath = `uploads/${fileName}`;
+        
+        await fs.rename(file.path, filePath);
+        const fileUrl = `/uploads/${fileName}`;
+        mediaUrls.push(fileUrl);
+        
+        // Use first image as thumbnail
+        if (!thumbnailUrl && file.mimetype.startsWith('image/')) {
+          thumbnailUrl = fileUrl;
+        }
+      }
+
+      // Create memory fragment
+      const fragmentData = {
+        authorId: userId,
+        type: req.body.type || 'mixed',
+        title: req.body.title || '',
+        caption: req.body.caption || '',
+        mediaUrls: JSON.stringify(mediaUrls),
+        thumbnailUrl,
+        memoryType: req.body.memoryType || 'fleeting',
+        mood: req.body.mood || 'happy',
+        tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+        location: req.body.location || null,
+        isPublic: true,
+      };
+
+      const fragment = await storage.createMemoryFragment(fragmentData);
+      res.json(fragment);
+    } catch (error) {
+      console.error('Error creating memory fragment:', error);
+      res.status(500).json({ message: 'Failed to create memory fragment' });
+    }
+  });
+
+  app.get('/api/memories/user/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const targetUserId = req.params.userId;
+      const currentUserId = req.user.claims.sub;
+      
+      // Users can only view their own memories for now
+      if (targetUserId !== currentUserId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const memories = await storage.getUserMemoryFragments(targetUserId);
+      res.json(memories);
+    } catch (error) {
+      console.error('Error fetching user memories:', error);
+      res.status(500).json({ message: 'Failed to fetch memories' });
+    }
+  });
+
+  app.post('/api/memories/:id/interact', isAuthenticated, async (req: any, res) => {
+    try {
+      const fragmentId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const { type } = req.body;
+
+      if (!['view', 'like', 'share', 'save', 'gift'].includes(type)) {
+        return res.status(400).json({ message: 'Invalid interaction type' });
+      }
+
+      const interaction = await storage.addMemoryInteraction({
+        fragmentId,
+        userId,
+        type,
+        energyBoost: type === 'view' ? 1 : type === 'like' ? 2 : type === 'share' ? 3 : 5,
+      });
+
+      res.json(interaction);
+    } catch (error) {
+      console.error('Error adding interaction:', error);
+      res.status(500).json({ message: 'Failed to add interaction' });
+    }
+  });
+
+  // Serve uploaded files (create directory if it doesn't exist)
+  await fs.mkdir('uploads', { recursive: true });
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
+  });
+  
+  const express = await import('express');
+  app.use('/uploads', express.static('uploads'));
+
+  // User stats endpoint
+  app.get('/api/user/stats/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const targetUserId = req.params.userId;
+      const currentUserId = req.user.claims.sub;
+      
+      if (targetUserId !== currentUserId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Calculate user stats from memory fragments
+      const memories = await storage.getUserMemoryFragments(targetUserId);
+      
+      const stats = {
+        totalViews: memories.reduce((sum, m) => sum + (m.viewCount || 0), 0),
+        totalLikes: memories.reduce((sum, m) => sum + (m.likeCount || 0), 0),
+        totalGifts: memories.reduce((sum, m) => sum + (m.giftCount || 0), 0),
+        totalShares: memories.reduce((sum, m) => sum + (m.shareCount || 0), 0),
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      res.status(500).json({ message: 'Failed to fetch stats' });
     }
   });
 
