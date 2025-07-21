@@ -23,12 +23,16 @@ export function useAuth() {
 
   const { data: user, isLoading, error, isError } = useQuery({
     queryKey: ["/api/auth/user"],
-    queryFn: async (): Promise<User> => {
+    queryFn: async (): Promise<User | null> => {
       const response = await fetch("/api/auth/user", {
         credentials: "include",
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // User not logged in, return null instead of throwing
+          return null;
+        }
         throw new Error("Unauthorized");
       }
 
