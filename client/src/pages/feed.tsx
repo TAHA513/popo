@@ -18,7 +18,7 @@ export default function Feed() {
 
   // Fetch public memories/posts
   const { data: memories = [], isLoading: memoriesLoading } = useQuery({
-    queryKey: ['/api/memories/public/network/all'],
+    queryKey: ['/api/memories/public'],
     refetchInterval: 30000,
   });
 
@@ -70,7 +70,7 @@ export default function Feed() {
                         </Badge>
                         <div className="absolute bottom-4 left-4 flex items-center text-white">
                           <Eye className="w-4 h-4 mr-1" />
-                          <span>{stream.currentViewers}</span>
+                          <span>{stream.viewerCount || 0}</span>
                         </div>
                       </div>
                       
@@ -81,7 +81,7 @@ export default function Feed() {
                         
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
-                            <span className="text-sm text-gray-500">بواسطة: {stream.host?.username}</span>
+                            <span className="text-sm text-gray-500">البث #{stream.id}</span>
                             <Badge variant="outline">{stream.category}</Badge>
                           </div>
                           
@@ -99,8 +99,8 @@ export default function Feed() {
                             {stream.totalGifts} هدية
                           </span>
                           <span className="flex items-center">
-                            <Heart className="w-4 h-4 mr-1 text-red-500" />
-                            {stream.totalLikes} إعجاب
+                            <Users className="w-4 h-4 mr-1 text-blue-500" />
+                            {stream.viewerCount || 0} مشاهد
                           </span>
                         </div>
                       </div>
@@ -134,7 +134,7 @@ export default function Feed() {
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full"></div>
                         <div>
-                          <p className="font-semibold">{memory.author?.username}</p>
+                          <p className="font-semibold">{memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}</p>
                           <p className="text-xs text-gray-500">
                             {new Date(memory.createdAt).toLocaleDateString('ar')}
                           </p>
@@ -150,8 +150,18 @@ export default function Feed() {
                     
                     {/* Media Preview */}
                     {memory.mediaUrls?.length > 0 && (
-                      <div className="bg-gray-100 rounded-lg h-48 mb-3 flex items-center justify-center">
-                        <Video className="w-12 h-12 text-gray-400" />
+                      <div className="relative bg-gray-100 rounded-lg h-48 mb-3 overflow-hidden">
+                        {memory.type === 'image' && memory.thumbnailUrl ? (
+                          <img 
+                            src={memory.thumbnailUrl} 
+                            alt={memory.caption || 'منشور'} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                            <Video className="w-12 h-12 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                     )}
                     

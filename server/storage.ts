@@ -281,13 +281,28 @@ export class DatabaseStorage implements IStorage {
     return result.count;
   }
 
-  async getPublicMemoryFragments(): Promise<MemoryFragment[]> {
-    return await db
-      .select()
+  async getPublicMemoryFragments(): Promise<any[]> {
+    const memories = await db
+      .select({
+        memory: memoryFragments,
+        author: {
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName,
+          profileImageUrl: users.profileImageUrl
+        }
+      })
       .from(memoryFragments)
+      .innerJoin(users, eq(memoryFragments.authorId, users.id))
       .where(eq(memoryFragments.visibilityLevel, 'public'))
       .orderBy(desc(memoryFragments.createdAt))
       .limit(50);
+    
+    // Flatten the data structure
+    return memories.map(({ memory, author }) => ({
+      ...memory,
+      author
+    }));
   }
 
   async getSuggestedUsers(): Promise<any[]> {
