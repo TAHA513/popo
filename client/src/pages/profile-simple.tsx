@@ -37,21 +37,30 @@ export default function ProfileSimplePage() {
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const { toast } = useToast();
   
+  // Define isOwnProfile first
+  const isOwnProfile = currentUser?.id === profileUserId;
+  
   // Fetch profile user data
-  const { data: profileUser, isLoading: userLoading } = useQuery({
+  const { data: profileUser, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ['/api/users', profileUserId],
     enabled: !!profileUserId,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}`, {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch user');
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized');
+        }
+        throw new Error('Failed to fetch user');
+      }
       return response.json();
-    }
+    },
+    retry: false
   });
 
-  // Use fetched profile data
-  const user = profileUser;
+  // Use fetched profile data or current user for own profile
+  const user = isOwnProfile ? currentUser : profileUser;
   
   // Fetch user memories
   const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
@@ -88,10 +97,9 @@ export default function ProfileSimplePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/followers', profileUserId] });
     }
   });
-  
-  const isOwnProfile = currentUser?.id === profileUserId;
   
   // Check if still loading user data
   if (userLoading) {
@@ -108,14 +116,18 @@ export default function ProfileSimplePage() {
     );
   }
   
-  // Check if user not found
-  if (!user && !userLoading) {
+  // Check if user not found or error
+  if ((!user && !userLoading) || userError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
         <div className="container mx-auto px-4 py-8">
           <Card className="p-8 text-center max-w-md mx-auto">
-            <p className="text-gray-600 mb-4">المستخدم غير موجود أو تحتاج لتسجيل الدخول</p>
+            <p className="text-gray-600 mb-4">
+              {userError?.message === 'Unauthorized' 
+                ? 'يجب تسجيل الدخول لعرض الملف الشخصي' 
+                : 'المستخدم غير موجود'}
+            </p>
             <Link href="/">
               <Button className="bg-gradient-to-r from-purple-600 to-pink-600">
                 العودة للرئيسية
