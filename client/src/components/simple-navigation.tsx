@@ -108,21 +108,22 @@ export default function SimpleNavigation() {
           {/* User Info */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
             {/* User Profile */}
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              {user?.profileImageUrl ? (
-                <img
-                  src={user.profileImageUrl}
-                  alt={user.firstName || user.username || 'User'}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-              )}
-              
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">
+            <Link href="/account">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse cursor-pointer hover:opacity-80 transition-opacity">
+                {user?.profileImageUrl ? (
+                  <img
+                    src={user.profileImageUrl}
+                    alt={user.firstName || user.username || 'User'}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                
+                <div className="hidden sm:block">
+                  <p className="text-sm font-medium text-gray-900">
                   {user?.firstName || user?.username || 'مستخدم'}
                 </p>
                 {user?.points !== undefined && (
@@ -133,6 +134,7 @@ export default function SimpleNavigation() {
                 )}
               </div>
             </div>
+            </Link>
 
             {/* Settings Button */}
             <Link href="/account">
