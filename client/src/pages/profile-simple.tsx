@@ -19,7 +19,7 @@ export default function ProfileSimplePage() {
   const { user } = useAuth();
   
   // Fetch user memories
-  const { data: memories = [] } = useQuery({
+  const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
     queryKey: ['/api/memories/user', user?.id],
     enabled: !!user?.id,
   });
@@ -115,7 +115,14 @@ export default function ProfileSimplePage() {
 
         {/* Memories Section */}
         <div>
-          <h2 className="text-xl font-bold mb-4">ذكرياتي ({memories.length})</h2>
+          <h2 className="text-xl font-bold mb-4">منشوراتي ({memories.length})</h2>
+          
+          {memoriesLoading && (
+            <div className="text-center py-8">
+              <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-gray-600">جاري تحميل المنشورات...</p>
+            </div>
+          )}
           
           {memories.length === 0 ? (
             <Card className="p-12 text-center">
@@ -137,17 +144,24 @@ export default function ProfileSimplePage() {
               {memories.map((memory: any) => (
                 <Card key={memory.id} className="overflow-hidden">
                   <CardContent className="p-4">
-                    <div className="aspect-square bg-gray-200 rounded-lg mb-3">
-                      {memory.imageUrl && (
+                    <div className="aspect-square bg-gray-200 rounded-lg mb-3 relative">
+                      {memory.thumbnailUrl && (
                         <img 
-                          src={memory.imageUrl} 
-                          alt={memory.content}
+                          src={memory.thumbnailUrl} 
+                          alt={memory.caption || memory.title}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      )}
+                      {!memory.thumbnailUrl && memory.mediaUrls && memory.mediaUrls[0] && (
+                        <img 
+                          src={memory.mediaUrls[0]} 
+                          alt={memory.caption || memory.title}
                           className="w-full h-full object-cover rounded-lg"
                         />
                       )}
                     </div>
-                    <p className="text-sm text-gray-700 truncate">
-                      {memory.content || 'ذكرى بدون وصف'}
+                    <p className="text-sm text-gray-700 line-clamp-2">
+                      {memory.caption || memory.title || 'منشور بدون وصف'}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(memory.createdAt).toLocaleDateString('ar')}
