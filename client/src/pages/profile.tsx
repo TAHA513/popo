@@ -62,7 +62,7 @@ interface MemoryFragment {
 }
 
 export default function ProfilePage() {
-  const { user, isLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -175,20 +175,8 @@ export default function ProfilePage() {
     return memory.memoryType === filter;
   });
 
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <SimpleNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-lg text-gray-600">جاري تحميل الملف الشخصي...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  if (!isAuthenticated || !user) {
+    return null;
   }
 
   return (
@@ -225,7 +213,7 @@ export default function ProfilePage() {
                   <h1 className="text-2xl font-bold text-gray-800">
                     {user?.firstName || user?.lastName ? 
                       `${user.firstName || ''} ${user.lastName || ''}`.trim() : 
-                      user?.email?.split('@')[0] || 'مستخدم مجهول'
+                      user?.username || 'مستخدم مجهول'
                     }
                   </h1>
                   {user?.isStreamer && (

@@ -13,7 +13,7 @@ import AdminPage from "@/pages/admin";
 import StartStreamPage from "@/pages/start-stream";
 import AccountPage from "@/pages/account";
 import CreateMemoryPage from "@/pages/create-memory";
-import ProfilePage from "@/pages/profile";
+import ProfilePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
