@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 
 interface MemoryCardProps {
   memory: {
@@ -124,11 +124,7 @@ export default function MemoryCard({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full"
-    >
+    <div className="w-full">
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
         {/* Header */}
         <div className="p-4 pb-2">
@@ -208,12 +204,9 @@ export default function MemoryCard({
               <span>{memory.currentEnergy}/{memory.initialEnergy}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <motion.div
+              <div
                 className={`h-2 rounded-full bg-gradient-to-r ${getMemoryColor(memory.memoryType)}`}
                 style={{ width: `${energyPercentage}%` }}
-                initial={{ width: 0 }}
-                animate={{ width: `${energyPercentage}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
               />
             </div>
           </div>
@@ -319,6 +312,6 @@ export default function MemoryCard({
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
