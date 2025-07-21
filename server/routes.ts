@@ -250,9 +250,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId?', async (req, res) => {
+  app.get('/api/memories/user/:userId?', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.params.userId || req.user?.claims?.sub;
+      const userId = req.params.userId || req.user?.id;
       if (!userId) {
         return res.status(400).json({ message: "User ID required" });
       }
@@ -529,13 +529,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Secure admin panel route
   // Admin panel access route
-  app.get('/admin', async (req, res) => {
-    if (!req.requireAuth()) {
-      return res.redirect('/api/login');
-    }
-    
+  app.get('/admin', requireAuth, async (req: any, res) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = req.user?.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'super_admin') {
@@ -574,13 +570,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simplified panel access without access code requirement
-  app.get('/panel-9bd2f2-control', async (req, res) => {
-    if (!req.requireAuth()) {
-      return res.redirect('/api/login');
-    }
-    
+  app.get('/panel-9bd2f2-control', requireAuth, async (req: any, res) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = req.user?.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'super_admin') {
