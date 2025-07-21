@@ -132,7 +132,17 @@ export default function Feed() {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full"></div>
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden">
+                          {memory.author?.profileImageUrl ? (
+                            <img 
+                              src={memory.author.profileImageUrl} 
+                              alt={memory.author.username} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full" />
+                          )}
+                        </div>
                         <div>
                           <p className="font-semibold">{memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}</p>
                           <p className="text-xs text-gray-500">

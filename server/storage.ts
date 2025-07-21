@@ -41,6 +41,7 @@ export interface IStorage {
   createUser(user: Omit<UpsertUser, 'id'> & { passwordHash: string }): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   isUsernameAvailable(username: string): Promise<boolean>;
+  updateUser(id: string, updates: Partial<User>): Promise<User>;
   
   // Stream operations
   createStream(stream: InsertStream): Promise<Stream>;
@@ -142,6 +143,18 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(eq(users.username, username));
     return !existingUser;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
   }
 
   // Stream operations

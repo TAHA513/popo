@@ -187,6 +187,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile image
+  app.post('/api/user/profile-image', requireAuth, upload.single('profileImage'), async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+      
+      // Save image file
+      const fileName = `profile-${userId}-${Date.now()}-${file.originalname}`;
+      const filePath = path.join('uploads', fileName);
+      
+      await fs.rename(file.path, filePath);
+      const imageUrl = `/uploads/${fileName}`;
+      
+      // Update user profile
+      await storage.updateUser(userId, { profileImageUrl: imageUrl });
+      
+      res.json({ 
+        message: 'Profile image updated successfully',
+        profileImageUrl: imageUrl 
+      });
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      res.status(500).json({ message: "Failed to update profile image" });
+    }
+  });
+
   // Stream routes
   app.get('/api/streams', async (req, res) => {
     try {

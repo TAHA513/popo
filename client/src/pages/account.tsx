@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,11 +6,54 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Calendar, CreditCard, UserPlus } from "lucide-react";
+import { User, Mail, Phone, Calendar, CreditCard, UserPlus, Camera, Upload } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AccountPage() {
   const { user } = useAuth();
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  // Profile image upload mutation
+  const uploadProfileImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('profileImage', file);
+      return apiRequest('/api/user/profile-image', 'POST', formData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم تحديث الصورة",
+        description: "تم تحديث صورتك الشخصية بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل رفع الصورة. حاول مرة أخرى.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "الملف كبير جداً",
+          description: "الحد الأقصى لحجم الصورة هو 5 ميجابايت",
+          variant: "destructive",
+        });
+        return;
+      }
+      uploadProfileImageMutation.mutate(file);
+    }
+  };
 
   if (!user) {
     // Account creation form for non-logged users
@@ -77,7 +120,44 @@ export default function AccountPage() {
                   المعلومات الشخصية
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
+                {/* Profile Image Section */}
+                <div className="flex items-center space-x-6 rtl:space-x-reverse">
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500">
+                      {user.profileImageUrl ? (
+                        <img 
+                          src={user.profileImageUrl} 
+                          alt={user.username} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <User className="w-12 h-12 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      size="icon"
+                      className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Camera className="w-4 h-4" />
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold">{user.username}</h3>
+                    <p className="text-sm text-gray-500">انقر على الكاميرا لتغيير الصورة</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">الاسم الأول</Label>
@@ -133,7 +213,7 @@ export default function AccountPage() {
                     <div className="text-sm opacity-90">النقاط الحالية</div>
                   </div>
                   <div className="text-center p-6 bg-gradient-to-r from-laa-purple to-laa-blue rounded-lg text-white">
-                    <div className="text-3xl font-bold">{user.earnings || 0}</div>
+                    <div className="text-3xl font-bold">{user.totalEarnings || 0}</div>
                     <div className="text-sm opacity-90">إجمالي الأرباح</div>
                   </div>
                   <div className="text-center p-6 bg-gradient-to-r from-laa-blue to-laa-pink rounded-lg text-white">
