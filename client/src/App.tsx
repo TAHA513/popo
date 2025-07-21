@@ -19,6 +19,7 @@ import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
 import GiftsPage from "@/pages/gifts";
 import FeedPage from "@/pages/feed";
+import MessagesPage from "@/pages/messages";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -58,6 +59,7 @@ function Router() {
           <Route path="/profile/:userId" component={ProfileSimplePage} />
           <Route path="/explore" component={ExplorePage} />
           <Route path="/gifts" component={GiftsPage} />
+          <Route path="/messages" component={MessagesPage} />
           <Route component={NotFound} />
         </>
       ) : (
