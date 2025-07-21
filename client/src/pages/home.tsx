@@ -6,7 +6,7 @@ import UserProfile from "@/components/user-profile";
 import MobileNavigation from "@/components/mobile-navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Play, Users, TrendingUp } from "lucide-react";
+import { Video, Play, Users, TrendingUp, Gift } from "lucide-react";
 import { useState } from "react";
 
 export default function Home() {
@@ -28,28 +28,37 @@ export default function Home() {
             <section className="gradient-bg py-16">
               <div className="container mx-auto px-4 text-center">
                 <h1 className="font-bold text-4xl md:text-6xl text-white mb-6">
-                  Welcome back, {user?.firstName || user?.username || 'Creator'}!
+                  أهلاً بك، {user?.firstName || user?.username || 'مبدع'}!
                 </h1>
                 <p className="text-white/80 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-                  Ready to go live or discover amazing streams from creators around the world?
+                  جاهز للبث المباشر أو اكتشاف محتوى رائع من المبدعين حول العالم؟
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <Button
                     size="lg"
-                    className="bg-white text-laa-pink hover:bg-gray-100 text-lg px-8 py-4"
+                    className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-4"
                     onClick={() => window.location.href = '/start-stream'}
                   >
                     <Video className="w-5 h-5 mr-2" />
-                    Start Streaming
+                    ابدأ بثاً مباشراً
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    className="border-white text-white hover:bg-white hover:text-laa-pink text-lg px-8 py-4"
+                    className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-4"
+                    onClick={() => window.location.href = '/gifts'}
+                  >
+                    <Gift className="w-5 h-5 mr-2" />
+                    متجر الهدايا
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-4"
                   >
                     <Play className="w-5 h-5 mr-2" />
-                    Browse Streams
+                    تصفح البث المباشر
                   </Button>
                 </div>
               </div>

@@ -2,7 +2,6 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -15,6 +14,7 @@ import StartStreamPage from "@/pages/start-stream";
 import AccountPage from "@/pages/account";
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfilePage from "@/pages/profile";
+import GiftsPage from "@/pages/gifts";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -36,6 +36,7 @@ function Router() {
           <Route path="/account" component={AccountPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
           <Route path="/profile" component={ProfilePage} />
+          <Route path="/gifts" component={GiftsPage} />
         </>
       )}
       <Route component={NotFound} />
@@ -54,12 +55,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-          <Toaster />
-          <Router />
-        </div>
-      </TooltipProvider>
+      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
+        <Toaster />
+        <Router />
+      </div>
     </QueryClientProvider>
   );
 }

@@ -4,12 +4,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive design */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Mobile viewport handling */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+
+  /* Better touch targets for mobile */
+  button, [role="button"], input[type="submit"], input[type="reset"], input[type="button"] {
+    @apply min-h-[44px] min-w-[44px];
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+
+  /* Mobile scroll optimization */
+  .scroll-smooth {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* RTL support improvements */
+  [dir="rtl"] {
+    text-align: right;
+  }
+
+  [dir="rtl"] .rtl\:space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+}
+
 /* Dark mode support */
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
+  
+  /* LaaBoBo Custom Colors */
+  --laa-purple: 280 100% 70%;
+  --laa-pink: 320 100% 74%;
+  --laa-blue: 240 100% 80%;
+  --electric-blue: 190 100% 60%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
   --primary: 222.2 47.4% 11.2%;
@@ -61,6 +106,44 @@
   button {
     min-height: 44px;
     touch-action: manipulation;
+  }
+  
+  /* Mobile gift shop optimizations */
+  .gift-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .gift-card {
+    min-height: 120px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .gift-card:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .gift-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  /* Responsive grid improvements */
+  @media (max-width: 480px) {
+    .gift-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    
+    .gift-card {
+      min-height: 100px;
+    }
+    
+    .gift-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
   }
   
   /* Prevent zoom on inputs */
