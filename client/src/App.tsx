@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import ErrorBoundary from "@/components/error-boundary";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -24,9 +25,24 @@ type Language = 'en' | 'ar';
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">LaaBoBo Live</h2>
+          <p className="text-gray-500">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
+      {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
           <Route path="/register" component={RegisterPage} />
@@ -61,10 +77,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-        <Toaster />
-        <Router />
-      </div>
+      <ErrorBoundary>
+        <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
+          <Toaster />
+          <Router />
+        </div>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }
