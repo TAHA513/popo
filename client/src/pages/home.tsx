@@ -4,14 +4,25 @@ import LiveStreamsGrid from "@/components/live-streams-grid";
 import GiftCharacters from "@/components/gift-characters";
 import UserProfile from "@/components/user-profile";
 import MobileNavigation from "@/components/mobile-navigation";
+import MemoryCard from "@/components/memory-card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Video, Play, Users, TrendingUp, Gift } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Video, Play, Users, TrendingUp, Gift, Clock, Zap, Timer, Sparkles, Eye, Crown, Heart } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('home');
+  
+  // Fetch all public memory fragments
+  const { data: publicMemories = [], isLoading: memoriesLoading } = useQuery({
+    queryKey: ['/api/memories/public'],
+    refetchInterval: 30000, // Refresh every 30 seconds to show energy decay
+  });
 
   const renderContent = () => {
     switch (activeTab) {
@@ -126,6 +137,118 @@ export default function Home() {
                     </CardContent>
                   </Card>
                 </div>
+              </div>
+            </section>
+
+            {/* Memory Fragments Section */}
+            <section className="py-12 bg-white">
+              <div className="container mx-auto px-4">
+                <div className="text-center mb-8">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 mr-3 text-purple-600" />
+                    شظايا الذكريات
+                    <Timer className="w-8 h-8 ml-3 text-pink-600" />
+                  </h2>
+                  <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                    ذكريات حقيقية تتلاشى بمرور الوقت... شاهدها قبل أن تختفي للأبد
+                  </p>
+                  
+                  {/* Energy Legend */}
+                  <div className="flex justify-center mt-6 space-x-6 rtl:space-x-reverse">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400"></div>
+                      <span className="text-sm text-gray-600">عابر (24 ساعة)</span>
+                    </div>
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
+                      <span className="text-sm text-gray-600">ثمين (أسبوع)</span>
+                    </div>
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <div className="w-4 h-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400"></div>
+                      <span className="text-sm text-gray-600">أسطوري (شهر)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Create Memory CTA */}
+                <div className="text-center mb-8">
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4"
+                    onClick={() => window.location.href = '/create-memory'}
+                  >
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    أنشئ ذكرتك الآن
+                  </Button>
+                </div>
+
+                {/* Memories Grid */}
+                {memoriesLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <Card key={i} className="animate-pulse">
+                        <div className="h-64 bg-gray-200 rounded-t-lg"></div>
+                        <CardContent className="p-4">
+                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : publicMemories.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {(publicMemories as any[]).map((memory: any) => (
+                      <MemoryCard
+                        key={memory.id}
+                        memory={memory}
+                        isOwner={memory.authorId === user?.id}
+                        onLike={() => {
+                          toast({
+                            title: "تم الإعجاب! ❤️",
+                            description: "طاقة الذكرى تزداد بتفاعلك",
+                          });
+                        }}
+                        onComment={() => {
+                          toast({
+                            title: "التعليقات قريباً",
+                            description: "ميزة التعليقات ستكون متاحة قريباً",
+                          });
+                        }}
+                        onShare={() => {
+                          toast({
+                            title: "تم النسخ للحافظة",
+                            description: "رابط الذكرى محفوظ للمشاركة",
+                          });
+                        }}
+                        onSendGift={() => {
+                          toast({
+                            title: "إرسال هدية",
+                            description: "اختر هدية لهذه الذكرى الجميلة",
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="text-center py-12 bg-gradient-to-br from-purple-50 to-pink-50">
+                    <CardContent>
+                      <Sparkles className="w-16 h-16 mx-auto text-purple-400 mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                        لا توجد ذكريات بعد
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        كن أول من ينشئ ذكرى في LaaBoBo Live
+                      </p>
+                      <Button
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        onClick={() => window.location.href = '/create-memory'}
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        أنشئ أول ذكرى
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </section>
 

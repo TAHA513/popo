@@ -139,16 +139,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public memory fragments for homepage
+  app.get('/api/memories/public', async (req, res) => {
+    try {
+      // Get public memories from all users, sorted by creation date
+      const memories = await storage.getPublicMemoryFragments();
+      res.json(memories);
+    } catch (error) {
+      console.error("Error fetching public memories:", error);
+      res.status(500).json({ message: "Failed to fetch public memories" });
+    }
+  });
+
   app.post('/api/memories/:id/interact', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const memoryId = parseInt(req.params.id);
-      const { type } = req.body; // 'like', 'view', 'share'
+      const fragmentId = parseInt(req.params.id);
+      const { type } = req.body; // 'like', 'view', 'share', 'gift'
+      
+      const energyBoost = type === 'view' ? 1 : type === 'like' ? 2 : type === 'share' ? 3 : type === 'gift' ? 5 : 1;
       
       await storage.addMemoryInteraction({
-        memoryId,
+        fragmentId,
         userId,
-        type
+        type,
+        energyBoost
       });
       
       res.json({ success: true });

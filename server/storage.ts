@@ -66,6 +66,7 @@ export interface IStorage {
   // Memory Fragment operations
   createMemoryFragment(fragment: InsertMemoryFragment): Promise<MemoryFragment>;
   getUserMemoryFragments(userId: string): Promise<MemoryFragment[]>;
+  getPublicMemoryFragments(): Promise<MemoryFragment[]>;
   getMemoryFragmentById(id: number): Promise<MemoryFragment | undefined>;
   addMemoryInteraction(interaction: InsertMemoryInteraction): Promise<MemoryInteraction>;
   updateMemoryFragmentEnergy(id: number, energyChange: number): Promise<void>;
@@ -243,6 +244,96 @@ export class DatabaseStorage implements IStorage {
       .from(followers)
       .where(eq(followers.followedId, userId));
     return result.count;
+  }
+
+  // Memory Fragment operations
+  async createMemoryFragment(fragmentData: InsertMemoryFragment): Promise<MemoryFragment> {
+    const [fragment] = await db.insert(memoryFragments).values(fragmentData).returning();
+    return fragment;
+  }
+
+  async getUserMemoryFragments(userId: string): Promise<MemoryFragment[]> {
+    return await db
+      .select()
+      .from(memoryFragments)
+      .where(eq(memoryFragments.authorId, userId))
+      .orderBy(desc(memoryFragments.createdAt));
+  }
+
+  async getPublicMemoryFragments(): Promise<MemoryFragment[]> {
+    return await db
+      .select()
+      .from(memoryFragments)
+      .where(eq(memoryFragments.visibilityLevel, 'public'))
+      .orderBy(desc(memoryFragments.createdAt))
+      .limit(50);
+  }
+
+  async getMemoryFragmentById(id: number): Promise<MemoryFragment | undefined> {
+    const [fragment] = await db
+      .select()
+      .from(memoryFragments)
+      .where(eq(memoryFragments.id, id));
+    return fragment;
+  }
+
+  async addMemoryInteraction(interactionData: InsertMemoryInteraction): Promise<MemoryInteraction> {
+    const [interaction] = await db.insert(memoryInteractions).values(interactionData).returning();
+    
+    // Update memory fragment energy based on interaction
+    const energyBoost = interactionData.energyBoost || 1;
+    await db
+      .update(memoryFragments)
+      .set({ 
+        currentEnergy: sql`${memoryFragments.currentEnergy} + ${energyBoost}`,
+        viewCount: interactionData.type === 'view' ? sql`${memoryFragments.viewCount} + 1` : memoryFragments.viewCount,
+        likeCount: interactionData.type === 'like' ? sql`${memoryFragments.likeCount} + 1` : memoryFragments.likeCount,
+        shareCount: interactionData.type === 'share' ? sql`${memoryFragments.shareCount} + 1` : memoryFragments.shareCount,
+        giftCount: interactionData.type === 'gift' ? sql`${memoryFragments.giftCount} + 1` : memoryFragments.giftCount
+      })
+      .where(eq(memoryFragments.id, interactionData.fragmentId));
+    
+    return interaction;
+  }
+
+  async updateMemoryFragmentEnergy(id: number, energyChange: number): Promise<void> {
+    await db
+      .update(memoryFragments)
+      .set({ currentEnergy: sql`${memoryFragments.currentEnergy} + ${energyChange}` })
+      .where(eq(memoryFragments.id, id));
+  }
+
+  async getExpiredMemoryFragments(): Promise<MemoryFragment[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(memoryFragments)
+      .where(sql`${memoryFragments.expiresAt} < ${now}`);
+  }
+
+  async deleteExpiredMemoryFragments(): Promise<void> {
+    const now = new Date();
+    await db
+      .delete(memoryFragments)
+      .where(sql`${memoryFragments.expiresAt} < ${now}`);
+  }
+
+  // Memory Collection operations
+  async createMemoryCollection(collectionData: InsertMemoryCollection): Promise<MemoryCollection> {
+    const [collection] = await db.insert(memoryCollections).values(collectionData).returning();
+    return collection;
+  }
+
+  async getUserMemoryCollections(userId: string): Promise<MemoryCollection[]> {
+    return await db
+      .select()
+      .from(memoryCollections)
+      .where(eq(memoryCollections.ownerId, userId))
+      .orderBy(desc(memoryCollections.createdAt));
+  }
+
+  async addFragmentToCollection(fragmentId: number, collectionId: number): Promise<void> {
+    await db.insert(fragmentCollections).values({ fragmentId, collectionId });
   }
 
   // Admin operations
