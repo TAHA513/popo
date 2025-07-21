@@ -27,18 +27,9 @@ import { queryClient } from "@/lib/queryClient";
 
 
 export default function ProfileSimplePage() {
-  const { user: currentUser, isAuthenticated } = useAuth();
+  const { user: currentUser } = useAuth();
   const { userId } = useParams();
-  
-  // If viewing someone else's profile, use their ID, otherwise use current user's ID
-  const profileUserId = userId ? userId : currentUser?.id;
-  
-  console.log('Profile Debug:', {
-    userId,
-    currentUserId: currentUser?.id,
-    profileUserId,
-    isAuthenticated
-  });
+  const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showGiftDialog, setShowGiftDialog] = useState(false);
@@ -46,29 +37,20 @@ export default function ProfileSimplePage() {
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const { toast } = useToast();
   
-  // Define isOwnProfile first
-  const isOwnProfile = currentUser?.id === profileUserId;
-  
   // Fetch profile user data
-  const { data: profileUser, isLoading: userLoading, error: userError } = useQuery({
+  const { data: profileUser, isLoading: userLoading } = useQuery({
     queryKey: ['/api/users', profileUserId],
     enabled: !!profileUserId,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}`, {
         credentials: 'include'
       });
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized');
-        }
-        throw new Error('Failed to fetch user');
-      }
+      if (!response.ok) throw new Error('Failed to fetch user');
       return response.json();
-    },
-    retry: false
+    }
   });
 
-  // Always use fetched profile data
+  // Use fetched profile data
   const user = profileUser;
   
   // Fetch user memories
@@ -106,13 +88,13 @@ export default function ProfileSimplePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users', profileUserId, 'followers'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users', profileUserId, 'following'] });
     }
   });
   
+  const isOwnProfile = currentUser?.id === profileUserId;
+  
   // Check if still loading user data
-  if (userLoading) {
+  if (userLoading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
@@ -126,54 +108,11 @@ export default function ProfileSimplePage() {
     );
   }
   
-  // Check authentication first
-  if (!isAuthenticated && !userId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <SimpleNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <Card className="p-8 text-center max-w-md mx-auto">
-            <p className="text-gray-600 mb-4">يجب تسجيل الدخول لعرض الملف الشخصي</p>
-            <Link href="/login">
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-600">
-                تسجيل الدخول
-              </Button>
-            </Link>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if user not found or error
-  if (!user && !userLoading && userError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <SimpleNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <Card className="p-8 text-center max-w-md mx-auto">
-            <p className="text-gray-600 mb-4">
-              {userError?.message === 'Unauthorized' 
-                ? 'يجب تسجيل الدخول لعرض الملف الشخصي' 
-                : 'المستخدم غير موجود'}
-            </p>
-            <Link href="/">
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-600">
-                العودة للرئيسية
-              </Button>
-            </Link>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-  
 
   
   // Fetch available gifts
   const { data: gifts = [] } = useQuery({
     queryKey: ['/api/gifts/characters'],
-    enabled: !!currentUser,
     queryFn: async () => {
       const response = await fetch('/api/gifts/characters', {
         credentials: 'include'
@@ -185,8 +124,8 @@ export default function ProfileSimplePage() {
   
   // Fetch followers
   const { data: followers = [] } = useQuery({
-    queryKey: ['/api/users', profileUserId, 'followers'],
-    enabled: !!profileUserId && !!user,
+    queryKey: ['/api/users/followers', profileUserId],
+    enabled: !!profileUserId,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}/followers`, {
         credentials: 'include'
@@ -198,8 +137,8 @@ export default function ProfileSimplePage() {
   
   // Fetch following
   const { data: following = [] } = useQuery({
-    queryKey: ['/api/users', profileUserId, 'following'],
-    enabled: !!profileUserId && !!user,
+    queryKey: ['/api/users/following', profileUserId],
+    enabled: !!profileUserId,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}/following`, {
         credentials: 'include'
