@@ -151,6 +151,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get suggested users to follow
+  app.get('/api/users/suggested', async (req, res) => {
+    try {
+      const users = await storage.getSuggestedUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching suggested users:", error);
+      res.status(500).json({ message: "Failed to fetch suggested users" });
+    }
+  });
+
+  // Follow/Unfollow user
+  app.post('/api/users/:userId/follow', isAuthenticated, async (req: any, res) => {
+    try {
+      const followerId = req.user.claims.sub;
+      const followedId = req.params.userId;
+      
+      if (followerId === followedId) {
+        return res.status(400).json({ message: "Cannot follow yourself" });
+      }
+      
+      await storage.followUser(followerId, followedId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error following user:", error);
+      res.status(500).json({ message: "Failed to follow user" });
+    }
+  });
+
+  app.post('/api/users/:userId/unfollow', isAuthenticated, async (req: any, res) => {
+    try {
+      const followerId = req.user.claims.sub;
+      const followedId = req.params.userId;
+      
+      await storage.unfollowUser(followerId, followedId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+      res.status(500).json({ message: "Failed to unfollow user" });
+    }
+  });
+
   app.post('/api/memories/:id/interact', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

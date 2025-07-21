@@ -13,7 +13,8 @@ import {
   LogOut,
   Sparkles,
   Camera,
-  Crown
+  Crown,
+  Search
 } from "lucide-react";
 
 export default function NavigationHeader() {
@@ -57,6 +58,17 @@ export default function NavigationHeader() {
               >
                 <User className="w-4 h-4" />
                 <span>الملف الشخصي</span>
+              </Button>
+            </Link>
+
+            <Link href="/explore">
+              <Button 
+                variant={location === "/explore" ? "default" : "ghost"} 
+                size="sm"
+                className="flex items-center space-x-1 rtl:space-x-reverse"
+              >
+                <Search className="w-4 h-4" />
+                <span>استكشف</span>
               </Button>
             </Link>
 
@@ -152,6 +164,11 @@ export default function NavigationHeader() {
           <Link href="/profile">
             <Button variant={location === "/profile" ? "default" : "ghost"} size="sm">
               <User className="w-4 h-4" />
+            </Button>
+          </Link>
+          <Link href="/explore">
+            <Button variant={location === "/explore" ? "default" : "ghost"} size="sm">
+              <Search className="w-4 h-4" />
             </Button>
           </Link>
           <Link href="/gifts">

@@ -14,6 +14,7 @@ import StartStreamPage from "@/pages/start-stream";
 import AccountPage from "@/pages/account";
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfilePage from "@/pages/profile";
+import ExplorePage from "@/pages/explore";
 import GiftsPage from "@/pages/gifts";
 import { LanguageOption } from "@/types";
 
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/account" component={AccountPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
           <Route path="/profile" component={ProfilePage} />
+          <Route path="/explore" component={ExplorePage} />
           <Route path="/gifts" component={GiftsPage} />
         </>
       )}

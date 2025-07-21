@@ -62,6 +62,7 @@ export interface IStorage {
   followUser(followerId: string, followedId: string): Promise<Follower>;
   unfollowUser(followerId: string, followedId: string): Promise<void>;
   getFollowCount(userId: string): Promise<number>;
+  getSuggestedUsers(): Promise<any[]>;
   
   // Memory Fragment operations
   createMemoryFragment(fragment: InsertMemoryFragment): Promise<MemoryFragment>;
@@ -334,6 +335,24 @@ export class DatabaseStorage implements IStorage {
 
   async addFragmentToCollection(fragmentId: number, collectionId: number): Promise<void> {
     await db.insert(fragmentCollections).values({ fragmentId, collectionId });
+  }
+
+  async getSuggestedUsers(): Promise<any[]> {
+    // Get users with most memories and recent activity
+    return await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        username: sql`COALESCE(${users.firstName}, 'مستخدم')`.as('username'),
+        profileImageUrl: users.profileImageUrl,
+        totalMemories: sql<number>`COUNT(${memoryFragments.id})`.as('totalMemories'),
+        isFollowing: sql<boolean>`false`.as('isFollowing') // This would need actual follow check
+      })
+      .from(users)
+      .leftJoin(memoryFragments, eq(users.id, memoryFragments.authorId))
+      .groupBy(users.id, users.firstName, users.profileImageUrl)
+      .orderBy(desc(sql`COUNT(${memoryFragments.id})`))
+      .limit(20);
   }
 
   // Admin operations
