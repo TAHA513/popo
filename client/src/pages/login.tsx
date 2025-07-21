@@ -52,19 +52,18 @@ export default function Login() {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: "تم بنجاح",
         description: data.message,
       });
       
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Clear cache and refetch user data
+      queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
       
-      // Force a refresh of the auth state and navigate
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
+      // Navigate after auth state is updated
+      navigate("/");
     },
     onError: (error: Error) => {
       toast({

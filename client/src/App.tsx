@@ -25,6 +25,8 @@ type Language = 'en' | 'ar';
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  console.log('Router state:', { isAuthenticated, isLoading }); // Debug log
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">

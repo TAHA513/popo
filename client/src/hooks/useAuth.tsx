@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 
 export interface User {
   id: string;
@@ -19,8 +20,9 @@ export interface User {
 
 export function useAuth() {
   const queryClient = useQueryClient();
+  const [authChecked, setAuthChecked] = useState(false);
 
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error, isError } = useQuery({
     queryKey: ["/api/auth/user"],
     queryFn: async (): Promise<User> => {
       const response = await fetch("/api/auth/user", {
@@ -35,7 +37,16 @@ export function useAuth() {
     },
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchInterval: false,
   });
+
+  useEffect(() => {
+    if (!isLoading) {
+      setAuthChecked(true);
+    }
+  }, [isLoading]);
 
   const logout = async () => {
     try {
@@ -56,8 +67,8 @@ export function useAuth() {
 
   return {
     user,
-    isAuthenticated: !!user && !error,
-    isLoading,
+    isAuthenticated: !!user && !isError,
+    isLoading: isLoading || !authChecked,
     logout,
   };
 }
