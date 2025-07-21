@@ -4,14 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Gift, Users, Settings } from "lucide-react";
 
 export default function HomeSimple() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (!user) {
+  console.log('HomeSimple - user:', user, 'isLoading:', isLoading);
+
+  // Show loading while checking auth
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
         <div className="text-white text-lg">جاري التحميل...</div>
       </div>
     );
+  }
+
+  // If no user after loading, redirect to login
+  if (!user) {
+    console.log('No user found, redirecting to login...');
+    window.location.href = '/login';
+    return null;
   }
 
   return (
