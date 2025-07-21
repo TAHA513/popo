@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import Browse from "@/pages/browse";
 import StreamPage from "@/pages/stream";
 import AdminPage from "@/pages/admin";
 import StartStreamPage from "@/pages/start-stream";
@@ -29,6 +30,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/browse" component={Browse} />
           <Route path="/stream/:id" component={StreamPage} />
           <Route path="/admin" component={AdminPage} />
           <Route path="/panel-9bd2f2-control" component={AdminPage} />
