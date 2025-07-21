@@ -17,6 +17,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
+import { setupMessageRoutes } from './routes/messages';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,6 +49,9 @@ const connectedClients = new Map<string, ConnectedClient>();
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize gift characters
   await initializeGiftCharacters();
+  
+  // Setup message routes
+  setupMessageRoutes(app);
 
   // Local authentication routes
   app.post('/api/register', async (req, res) => {

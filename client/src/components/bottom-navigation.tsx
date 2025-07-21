@@ -17,12 +17,12 @@ export default function BottomNavigation() {
     { href: "/explore", icon: Search, label: "استكشف" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
-    { href: "/profile", icon: User, label: "الملف الشخصي" }
+    { href: "/profile", icon: User, label: "الملف" }
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
-      <div className="flex items-center justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
+      <div className="flex items-center justify-around py-1 px-2">
         {navItems.map((item) => {
           const isActive = location === item.href;
           const Icon = item.icon;
@@ -30,11 +30,11 @@ export default function BottomNavigation() {
           if (item.isSpecial) {
             return (
               <Link key={item.href} href={item.href}>
-                <div className="flex flex-col items-center justify-center -mt-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                    <Icon className="w-6 h-6 text-white" />
+                <div className="flex flex-col items-center justify-center -mt-4 relative">
+                  <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-white">
+                    <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <span className="text-xs mt-1 text-gray-600">{item.label}</span>
+                  <span className="text-xs mt-1 text-purple-600 font-medium">{item.label}</span>
                 </div>
               </Link>
             );
@@ -42,11 +42,13 @@ export default function BottomNavigation() {
           
           return (
             <Link key={item.href} href={item.href}>
-              <div className={`flex flex-col items-center justify-center p-2 ${
-                isActive ? 'text-purple-600' : 'text-gray-500'
+              <div className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                isActive 
+                  ? 'text-purple-600 bg-purple-50 scale-105' 
+                  : 'text-gray-500 hover:text-purple-400 hover:bg-gray-50'
               }`}>
-                <Icon className="w-6 h-6" />
-                <span className="text-xs mt-1">{item.label}</span>
+                <Icon className={`w-6 h-6 ${isActive ? 'animate-pulse' : ''}`} />
+                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-purple-600' : ''}`}>{item.label}</span>
               </div>
             </Link>
           );

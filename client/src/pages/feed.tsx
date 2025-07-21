@@ -128,9 +128,9 @@ export default function Feed() {
               </Button>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {typedMemories.map((memory) => (
-                <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <Link href={`/profile/${memory.authorId}`}>
@@ -154,10 +154,21 @@ export default function Feed() {
                           </div>
                         </div>
                       </Link>
-                      <Button size="sm" variant="outline">
-                        <User className="w-4 h-4 mr-1" />
-                        متابعة
-                      </Button>
+                      {memory.authorId !== user?.id && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="hover:bg-purple-50 hover:border-purple-200"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // TODO: Add follow functionality
+                            console.log('Follow user:', memory.authorId);
+                          }}
+                        >
+                          <User className="w-4 h-4 mr-1" />
+                          متابعة
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   
@@ -183,28 +194,39 @@ export default function Feed() {
                       </div>
                     )}
                     
-                    {/* Interaction Buttons - TikTok Style */}
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                        <button className="flex items-center space-x-1 rtl:space-x-reverse hover:text-red-500 transition-colors">
-                          <Heart className="w-5 h-5" />
-                          <span className="text-sm">{memory.likeCount || 0}</span>
+                    {/* Interaction Buttons - Enhanced TikTok Style */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex items-center space-x-6 rtl:space-x-reverse">
+                        <button className="flex flex-col items-center space-y-1 group hover:scale-105 transition-transform">
+                          <div className="p-2 rounded-full group-hover:bg-red-50 transition-colors">
+                            <Heart className="w-6 h-6 text-gray-600 group-hover:text-red-500 transition-colors" />
+                          </div>
+                          <span className="text-xs text-gray-500 group-hover:text-red-500">{memory.likeCount || 0}</span>
                         </button>
-                        <button className="flex items-center space-x-1 rtl:space-x-reverse hover:text-blue-500 transition-colors">
-                          <MessageCircle className="w-5 h-5" />
-                          <span className="text-sm">تعليق</span>
+                        
+                        <button className="flex flex-col items-center space-y-1 group hover:scale-105 transition-transform">
+                          <div className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
+                            <MessageCircle className="w-6 h-6 text-gray-600 group-hover:text-blue-500 transition-colors" />
+                          </div>
+                          <span className="text-xs text-gray-500 group-hover:text-blue-500">تعليق</span>
                         </button>
-                        <button className="flex items-center space-x-1 rtl:space-x-reverse hover:text-purple-500 transition-colors">
-                          <Gift className="w-5 h-5" />
-                          <span className="text-sm">هدية</span>
-                        </button>
+                        
+                        <Link href={`/profile/${memory.authorId}`}>
+                          <button className="flex flex-col items-center space-y-1 group hover:scale-105 transition-transform">
+                            <div className="p-2 rounded-full group-hover:bg-purple-50 transition-colors">
+                              <Gift className="w-6 h-6 text-gray-600 group-hover:text-purple-500 transition-colors" />
+                            </div>
+                            <span className="text-xs text-gray-500 group-hover:text-purple-500">هدية</span>
+                          </button>
+                        </Link>
                       </div>
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <button className="hover:text-yellow-500 transition-colors">
-                          <Bookmark className="w-5 h-5" />
+                      
+                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                        <button className="p-2 rounded-full hover:bg-yellow-50 hover:scale-105 transition-all">
+                          <Bookmark className="w-5 h-5 text-gray-600 hover:text-yellow-500 transition-colors" />
                         </button>
-                        <button className="hover:text-green-500 transition-colors">
-                          <Share2 className="w-5 h-5" />
+                        <button className="p-2 rounded-full hover:bg-green-50 hover:scale-105 transition-all">
+                          <Share2 className="w-5 h-5 text-gray-600 hover:text-green-500 transition-colors" />
                         </button>
                       </div>
                     </div>

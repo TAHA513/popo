@@ -325,19 +325,21 @@ export default function ProfileSimplePage() {
                           onClick={() => followMutation.mutate()}
                           disabled={followMutation.isPending}
                           variant={isFollowing ? "outline" : "default"}
-                          className={!isFollowing ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" : ""}
+                          className={!isFollowing ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700" : "border-purple-200 hover:bg-purple-50 hover:border-purple-300"}
                         >
-                          {isFollowing ? (
-                            <>
-                              <UserMinus className="w-4 h-4 mr-2" />
-                              إلغاء المتابعة
-                            </>
+                          {followMutation.isPending ? (
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                          ) : isFollowing ? (
+                            <UserMinus className="w-4 h-4 mr-2" />
                           ) : (
-                            <>
-                              <UserPlus className="w-4 h-4 mr-2" />
-                              متابعة
-                            </>
+                            <UserPlus className="w-4 h-4 mr-2" />
                           )}
+                          {followMutation.isPending 
+                            ? "جاري التحديث..." 
+                            : isFollowing 
+                              ? "إلغاء المتابعة" 
+                              : "متابعة"
+                          }
                         </Button>
                         <Button
                           onClick={() => setShowMessageDialog(true)}
