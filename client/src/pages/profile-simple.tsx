@@ -27,7 +27,8 @@ import { queryClient } from "@/lib/queryClient";
 
 export default function ProfileSimplePage() {
   const { user: currentUser } = useAuth();
-  const { userId } = useParams();
+  const params = useParams();
+  const userId = params.userId;
   const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
@@ -36,6 +37,11 @@ export default function ProfileSimplePage() {
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  
+  // Log para debug
+  console.log("Profile params:", params);
+  console.log("userId from params:", userId);
+  console.log("profileUserId:", profileUserId);
   
   // All hooks must be called before any conditional returns
   
