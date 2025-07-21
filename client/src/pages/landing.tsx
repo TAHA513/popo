@@ -20,7 +20,7 @@ export default function Landing() {
   };
   
   const handleSignUp = () => {
-    window.location.href = "/api/login"; // Same endpoint for both login and signup with Replit Auth
+    window.location.href = "/register";
   };
   
   const toggleLanguage = () => {
