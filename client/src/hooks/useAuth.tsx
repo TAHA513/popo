@@ -20,7 +20,6 @@ export interface User {
 
 export function useAuth() {
   const queryClient = useQueryClient();
-  const [authChecked, setAuthChecked] = useState(false);
 
   const { data: user, isLoading, error, isError } = useQuery({
     queryKey: ["/api/auth/user"],
@@ -42,12 +41,6 @@ export function useAuth() {
     refetchInterval: false,
   });
 
-  useEffect(() => {
-    if (!isLoading) {
-      setAuthChecked(true);
-    }
-  }, [isLoading]);
-
   const logout = async () => {
     try {
       await fetch("/api/logout", {
@@ -68,7 +61,7 @@ export function useAuth() {
   return {
     user,
     isAuthenticated: !!user && !isError,
-    isLoading: isLoading || !authChecked,
+    isLoading,
     logout,
   };
 }

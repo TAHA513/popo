@@ -23,10 +23,9 @@ import { LanguageOption } from "@/types";
 type Language = 'en' | 'ar';
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
-  console.log('Router state:', { isAuthenticated, isLoading }); // Debug log
-
+  // Always show loading screen while checking auth
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
@@ -35,16 +34,16 @@ function Router() {
     );
   }
 
+  // Once loaded, show appropriate routes based on auth status
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/register" component={RegisterPage} />
-          <Route component={Landing} />
-        </>
-      ) : (
+      <Route path="/login">
+        {isAuthenticated ? <Home /> : <LoginPage />}
+      </Route>
+      <Route path="/register">
+        {isAuthenticated ? <Home /> : <RegisterPage />}
+      </Route>
+      {isAuthenticated ? (
         <>
           <Route path="/" component={Home} />
           <Route path="/stream/:id" component={StreamPage} />
@@ -56,9 +55,12 @@ function Router() {
           <Route path="/profile" component={ProfilePage} />
           <Route path="/explore" component={ExplorePage} />
           <Route path="/gifts" component={GiftsPage} />
-          <Route path="/login" component={Home} />
-          <Route path="/register" component={Home} />
           <Route component={NotFound} />
+        </>
+      ) : (
+        <>
+          <Route path="/" component={Landing} />
+          <Route component={Landing} />
         </>
       )}
     </Switch>

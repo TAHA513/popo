@@ -52,18 +52,14 @@ export default function Login() {
 
       return response.json();
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       toast({
         title: "تم بنجاح",
         description: data.message,
       });
       
-      // Clear cache and refetch user data
-      queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-      
-      // Navigate after auth state is updated
-      navigate("/");
+      // Force page refresh to reset all state
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
