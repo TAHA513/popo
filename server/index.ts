@@ -6,6 +6,7 @@ import { setupLocalAuth } from "./localAuth";
 import passport from "passport";
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy for proper session handling
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

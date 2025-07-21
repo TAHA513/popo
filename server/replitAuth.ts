@@ -36,10 +36,12 @@ export function getSession() {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    name: 'sessionId',
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Always false for development and Replit environment
       maxAge: sessionTtl,
+      sameSite: 'lax',
     },
   });
 }
