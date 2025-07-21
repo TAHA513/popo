@@ -3,8 +3,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Users, Play, Video, Heart, MessageCircle, Share2, Gift, User } from "lucide-react";
+import { Eye, Users, Play, Video, Heart, MessageCircle, Share2, Gift, User, Bookmark } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
+import BottomNavigation from "@/components/bottom-navigation";
 import { Stream } from "@/types";
 import { Link } from "wouter";
 
@@ -44,7 +45,7 @@ export default function Feed() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <SimpleNavigation />
       
       <main className="container mx-auto px-4 py-4 max-w-6xl">
@@ -182,24 +183,30 @@ export default function Feed() {
                       </div>
                     )}
                     
-                    {/* Interaction Buttons */}
-                    <div className="flex items-center justify-between text-gray-500">
-                      <Button variant="ghost" size="sm">
-                        <Heart className="w-4 h-4 mr-1" />
-                        {memory.likeCount || 0}
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        تعليق
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Share2 className="w-4 h-4 mr-1" />
-                        مشاركة
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Gift className="w-4 h-4 mr-1" />
-                        هدية
-                      </Button>
+                    {/* Interaction Buttons - TikTok Style */}
+                    <div className="flex items-center justify-between pt-3 border-t">
+                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                        <button className="flex items-center space-x-1 rtl:space-x-reverse hover:text-red-500 transition-colors">
+                          <Heart className="w-5 h-5" />
+                          <span className="text-sm">{memory.likeCount || 0}</span>
+                        </button>
+                        <button className="flex items-center space-x-1 rtl:space-x-reverse hover:text-blue-500 transition-colors">
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="text-sm">تعليق</span>
+                        </button>
+                        <button className="flex items-center space-x-1 rtl:space-x-reverse hover:text-purple-500 transition-colors">
+                          <Gift className="w-5 h-5" />
+                          <span className="text-sm">هدية</span>
+                        </button>
+                      </div>
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <button className="hover:text-yellow-500 transition-colors">
+                          <Bookmark className="w-5 h-5" />
+                        </button>
+                        <button className="hover:text-green-500 transition-colors">
+                          <Share2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -208,6 +215,8 @@ export default function Feed() {
           )}
         </div>
       </main>
+      
+      <BottomNavigation />
     </div>
   );
 }

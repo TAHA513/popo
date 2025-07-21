@@ -21,8 +21,8 @@ export default function SimpleNavigation() {
   const [location] = useLocation();
 
   return (
-    <header className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3">
+    <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/">
@@ -36,27 +36,27 @@ export default function SimpleNavigation() {
             </div>
           </Link>
 
-          {/* Navigation Links - Desktop */}
-          <nav className="hidden md:flex items-center space-x-4 rtl:space-x-reverse">
+          {/* Search Bar - Mobile */}
+          <div className="flex-1 mx-4 md:hidden">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="بحث..."
+                className="w-full bg-gray-100 rounded-full py-2 pr-10 pl-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+
+          {/* Navigation Links - Desktop Only */}
+          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
             <Link href="/">
               <Button 
                 variant={location === "/" ? "default" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
               >
-                <Home className="w-4 h-4" />
-                <span>الرئيسية</span>
-              </Button>
-            </Link>
-            
-            <Link href="/profile">
-              <Button 
-                variant={location === "/profile" ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
-              >
-                <User className="w-4 h-4" />
-                <span>الملف الشخصي</span>
+                <Home className="w-4 h-4 ml-1" />
+                الرئيسية
               </Button>
             </Link>
 
@@ -64,43 +64,30 @@ export default function SimpleNavigation() {
               <Button 
                 variant={location === "/explore" ? "default" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
               >
-                <Search className="w-4 h-4" />
-                <span>استكشف</span>
-              </Button>
-            </Link>
-
-            <Link href="/create-memory">
-              <Button 
-                variant={location === "/create-memory" ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-              >
-                <Plus className="w-4 h-4" />
-                <span>إنشاء ذكرى</span>
+                <Search className="w-4 h-4 ml-1" />
+                استكشف
               </Button>
             </Link>
 
             <Link href="/start-stream">
               <Button 
-                variant={location === "/start-stream" ? "default" : "ghost"} 
+                variant="outline"
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
+                className="border-purple-600 text-purple-600 hover:bg-purple-50"
               >
-                <Video className="w-4 h-4" />
-                <span>بث مباشر</span>
+                <Video className="w-4 h-4 ml-1" />
+                بث مباشر
               </Button>
             </Link>
 
-            <Link href="/gifts">
+            <Link href="/create-memory">
               <Button 
-                variant={location === "/gifts" ? "default" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
               >
-                <Gift className="w-4 h-4" />
-                <span>الهدايا</span>
+                <Plus className="w-4 h-4 ml-1" />
+                إنشاء
               </Button>
             </Link>
           </nav>

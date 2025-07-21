@@ -22,6 +22,7 @@ import {
   Gift
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
+import BottomNavigation from "@/components/bottom-navigation";
 import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
@@ -237,7 +238,7 @@ export default function ProfileSimplePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20 md:pb-0">
       <SimpleNavigation />
       
       <div className="container mx-auto px-4 py-8">
@@ -640,6 +641,8 @@ export default function ProfileSimplePage() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      <BottomNavigation />
     </div>
   );
 }
