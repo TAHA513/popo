@@ -3,26 +3,80 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   User, 
   Sparkles,
   Plus,
   Calendar,
   Zap,
-  TrendingUp
+  TrendingUp,
+  UserPlus,
+  UserMinus
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
-import { Link } from "wouter";
+import { Link, useParams } from "wouter";
+import { queryClient } from "@/lib/queryClient";
+
 
 export default function ProfileSimplePage() {
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
+  const { userId } = useParams();
+  const profileUserId = userId || currentUser?.id;
+  
+  // Fetch profile user data
+  const { data: profileUser, isLoading: userLoading } = useQuery({
+    queryKey: ['/api/users', profileUserId],
+    enabled: !!profileUserId && profileUserId !== currentUser?.id,
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${profileUserId}`);
+      if (!response.ok) throw new Error('Failed to fetch user');
+      return response.json();
+    }
+  });
+
+  // Use current user if viewing own profile
+  const user = profileUserId === currentUser?.id ? currentUser : profileUser;
   
   // Fetch user memories
   const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
-    queryKey: ['/api/memories/user', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['/api/memories/user', profileUserId],
+    enabled: !!profileUserId,
   });
+  
+  // Check if following
+  const { data: isFollowing = false } = useQuery({
+    queryKey: ['/api/users/following', profileUserId],
+    enabled: !!currentUser && !!profileUserId && profileUserId !== currentUser?.id,
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${profileUserId}/is-following`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return false;
+      const data = await response.json();
+      return data.isFollowing;
+    }
+  });
+  
+  // Follow/Unfollow mutation
+  const followMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/users/${profileUserId}/follow`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to follow/unfollow');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
+    }
+  });
+  
+  const isOwnProfile = currentUser?.id === profileUserId;
 
   if (!user) {
     return (
@@ -100,14 +154,35 @@ export default function ProfileSimplePage() {
 
               {/* Action Buttons */}
               <div className="flex flex-col space-y-2">
-                <Link href="/create-memory">
+                {isOwnProfile ? (
+                  <Link href="/create-memory">
+                    <Button 
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      ذكرى جديدة
+                    </Button>
+                  </Link>
+                ) : (
                   <Button 
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    onClick={() => followMutation.mutate()}
+                    disabled={followMutation.isPending}
+                    className={isFollowing ? "" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}
+                    variant={isFollowing ? "outline" : "default"}
                   >
-                    <Plus className="w-4 h-4 mr-2" />
-                    ذكرى جديدة
+                    {isFollowing ? (
+                      <>
+                        <UserMinus className="w-4 h-4 mr-2" />
+                        إلغاء المتابعة
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        متابعة
+                      </>
+                    )}
                   </Button>
-                </Link>
+                )}
               </div>
             </div>
           </CardContent>

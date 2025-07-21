@@ -318,7 +318,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Follow/Unfollow user
+  // Get user by ID
+  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+  
+  // Check if following
+  app.get('/api/users/:userId/is-following', requireAuth, async (req: any, res) => {
+    try {
+      const followerId = req.user.id;
+      const followedId = req.params.userId;
+      
+      const isFollowing = await storage.isFollowing(followerId, followedId);
+      res.json({ isFollowing });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ message: "Failed to check follow status" });
+    }
+  });
+  
+  // Follow/Unfollow user (toggle)
   app.post('/api/users/:userId/follow', requireAuth, async (req: any, res) => {
     try {
       const followerId = req.user.id;
@@ -328,11 +359,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cannot follow yourself" });
       }
       
-      await storage.followUser(followerId, followedId);
-      res.json({ success: true });
+      const isFollowing = await storage.isFollowing(followerId, followedId);
+      
+      if (isFollowing) {
+        await storage.unfollowUser(followerId, followedId);
+        res.json({ success: true, following: false });
+      } else {
+        await storage.followUser(followerId, followedId);
+        res.json({ success: true, following: true });
+      }
     } catch (error) {
-      console.error("Error following user:", error);
-      res.status(500).json({ message: "Failed to follow user" });
+      console.error("Error following/unfollowing user:", error);
+      res.status(500).json({ message: "Failed to follow/unfollow user" });
     }
   });
 

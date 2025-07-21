@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Users, Play, Video, Heart, MessageCircle, Share2, Gift } from "lucide-react";
+import { Eye, Users, Play, Video, Heart, MessageCircle, Share2, Gift, User } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import { Stream } from "@/types";
+import { Link } from "wouter";
 
 export default function Feed() {
   const { user } = useAuth();
@@ -131,25 +132,31 @@ export default function Feed() {
                 <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden">
-                          {memory.author?.profileImageUrl ? (
-                            <img 
-                              src={memory.author.profileImageUrl} 
-                              alt={memory.author.username} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full" />
-                          )}
+                      <Link href={`/profile/${memory.authorId}`}>
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden">
+                            {memory.author?.profileImageUrl ? (
+                              <img 
+                                src={memory.author.profileImageUrl} 
+                                alt={memory.author.username} 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold hover:underline">{memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(memory.createdAt).toLocaleDateString('ar')}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold">{memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(memory.createdAt).toLocaleDateString('ar')}
-                          </p>
-                        </div>
-                      </div>
+                      </Link>
+                      <Button size="sm" variant="outline">
+                        <User className="w-4 h-4 mr-1" />
+                        متابعة
+                      </Button>
                     </div>
                   </CardHeader>
                   

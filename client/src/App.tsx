@@ -55,6 +55,7 @@ function Router() {
           <Route path="/account" component={AccountPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
           <Route path="/profile" component={ProfilePage} />
+          <Route path="/profile/:userId" component={ProfilePage} />
           <Route path="/explore" component={ExplorePage} />
           <Route path="/gifts" component={GiftsPage} />
           <Route component={NotFound} />
