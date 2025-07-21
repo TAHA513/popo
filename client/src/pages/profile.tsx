@@ -170,7 +170,7 @@ export default function ProfilePage() {
     });
   };
 
-  const filteredMemories = memories.filter(memory => {
+  const filteredMemories = typedMemories.filter((memory: any) => {
     if (filter === 'all') return true;
     return memory.memoryType === filter;
   });
@@ -356,7 +356,7 @@ export default function ProfilePage() {
                 <span>{label}</span>
                 {key !== 'all' && (
                   <Badge variant="secondary" className="ml-1">
-                    {memories.filter(m => m.memoryType === key).length}
+                    {typedMemories.filter((m: any) => m.memoryType === key).length}
                   </Badge>
                 )}
               </Button>
