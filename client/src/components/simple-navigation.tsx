@@ -13,7 +13,8 @@ import {
   Sparkles,
   Camera,
   Crown,
-  Search
+  Search,
+  MessageCircle
 } from "lucide-react";
 
 export default function SimpleNavigation() {
@@ -27,10 +28,10 @@ export default function SimpleNavigation() {
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                <Crown className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                <Crown className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
                 LaaBoBo Live
               </span>
             </div>
@@ -92,8 +93,16 @@ export default function SimpleNavigation() {
             </Link>
           </nav>
 
-          {/* User Info */}
-          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+          {/* User Info - Desktop Only */}
+          <div className="hidden md:flex items-center space-x-3 rtl:space-x-reverse">
+            {/* Notifications */}
+            <button className="relative p-2 text-gray-600 hover:text-purple-600 transition-colors">
+              <MessageCircle className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                3
+              </span>
+            </button>
+
             {/* User Profile */}
             <Link href="/profile">
               <div className="flex items-center space-x-2 rtl:space-x-reverse cursor-pointer hover:opacity-80 transition-opacity">
@@ -101,15 +110,15 @@ export default function SimpleNavigation() {
                   <img
                     src={user.profileImageUrl}
                     alt={user.firstName || user.username || 'User'}
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-purple-200"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center border-2 border-purple-200">
                     <User className="w-4 h-4 text-white" />
                   </div>
                 )}
                 
-                <div className="hidden sm:block">
+                <div className="hidden lg:block">
                   <p className="text-sm font-medium text-gray-900">
                   {user?.firstName || user?.username || 'مستخدم'}
                 </p>

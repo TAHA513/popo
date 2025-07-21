@@ -132,103 +132,128 @@ export default function Feed() {
               {typedMemories.map((memory) => (
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-3">
                       <Link href={`/profile/${memory.authorId}`}>
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden">
-                            {memory.author?.profileImageUrl ? (
-                              <img 
-                                src={memory.author.profileImageUrl} 
-                                alt={memory.author.username} 
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full" />
-                            )}
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                          <div className="relative">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
+                              {memory.author?.profileImageUrl ? (
+                                <img 
+                                  src={memory.author.profileImageUrl} 
+                                  alt={memory.author.username} 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <User className="w-6 h-6 text-white m-3" />
+                              )}
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                           </div>
                           <div>
-                            <p className="font-semibold hover:underline">{memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}</p>
+                            <p className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">
+                              {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
+                            </p>
                             <p className="text-xs text-gray-500">
-                              {new Date(memory.createdAt).toLocaleDateString('ar')}
+                              {new Date(memory.createdAt).toLocaleDateString('ar')} • 
+                              <span className="mr-1">منشور</span>
                             </p>
                           </div>
                         </div>
                       </Link>
-                      {memory.authorId !== user?.id && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="hover:bg-purple-50 hover:border-purple-200"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            // TODO: Add follow functionality
-                            console.log('Follow user:', memory.authorId);
-                          }}
-                        >
-                          <User className="w-4 h-4 mr-1" />
-                          متابعة
-                        </Button>
-                      )}
+                      
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                        {memory.authorId !== user?.id && (
+                          <Button 
+                            size="sm" 
+                            className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4 py-1 text-xs font-medium"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log('Follow user:', memory.authorId);
+                            }}
+                          >
+                            متابعة
+                          </Button>
+                        )}
+                        <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </CardHeader>
                   
-                  <CardContent>
-                    {memory.caption && (
-                      <p className="text-gray-700 mb-3">{memory.caption}</p>
-                    )}
-                    
+                  <CardContent className="px-4 pb-3">
                     {/* Media Preview */}
                     {memory.mediaUrls?.length > 0 && (
-                      <div className="relative bg-gray-100 rounded-lg h-48 mb-3 overflow-hidden">
+                      <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl h-64 mb-4 overflow-hidden group cursor-pointer">
                         {memory.type === 'image' && memory.thumbnailUrl ? (
                           <img 
                             src={memory.thumbnailUrl} 
                             alt={memory.caption || 'منشور'} 
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="flex items-center justify-center h-full">
-                            <Video className="w-12 h-12 text-gray-400" />
+                            <div className="text-center">
+                              <Video className="w-16 h-16 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-500">فيديو</p>
+                            </div>
                           </div>
                         )}
+                        {/* Overlay gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>
                     )}
                     
-                    {/* Interaction Buttons - Enhanced TikTok Style */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div className="flex items-center space-x-6 rtl:space-x-reverse">
-                        <button className="flex flex-col items-center space-y-1 group hover:scale-105 transition-transform">
-                          <div className="p-2 rounded-full group-hover:bg-red-50 transition-colors">
-                            <Heart className="w-6 h-6 text-gray-600 group-hover:text-red-500 transition-colors" />
-                          </div>
-                          <span className="text-xs text-gray-500 group-hover:text-red-500">{memory.likeCount || 0}</span>
+                    {/* Interaction Buttons - Instagram/TikTok Style */}
+                    <div className="flex items-center justify-between py-2">
+                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-2 -m-2 group">
+                          <Heart className="w-6 h-6 text-gray-700 group-hover:text-red-500 group-active:scale-125 transition-all duration-200" />
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-red-500">
+                            {memory.likeCount || 0}
+                          </span>
                         </button>
                         
-                        <button className="flex flex-col items-center space-y-1 group hover:scale-105 transition-transform">
-                          <div className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
-                            <MessageCircle className="w-6 h-6 text-gray-600 group-hover:text-blue-500 transition-colors" />
-                          </div>
-                          <span className="text-xs text-gray-500 group-hover:text-blue-500">تعليق</span>
+                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-2 -m-2 group">
+                          <MessageCircle className="w-6 h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
                         </button>
                         
-                        <Link href={`/profile/${memory.authorId}`}>
-                          <button className="flex flex-col items-center space-y-1 group hover:scale-105 transition-transform">
-                            <div className="p-2 rounded-full group-hover:bg-purple-50 transition-colors">
-                              <Gift className="w-6 h-6 text-gray-600 group-hover:text-purple-500 transition-colors" />
-                            </div>
-                            <span className="text-xs text-gray-500 group-hover:text-purple-500">هدية</span>
-                          </button>
-                        </Link>
+                        <button className="p-2 -m-2 group">
+                          <Share2 className="w-6 h-6 text-gray-700 group-hover:text-green-500 transition-colors duration-200" />
+                        </button>
                       </div>
                       
-                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                        <button className="p-2 rounded-full hover:bg-yellow-50 hover:scale-105 transition-all">
-                          <Bookmark className="w-5 h-5 text-gray-600 hover:text-yellow-500 transition-colors" />
-                        </button>
-                        <button className="p-2 rounded-full hover:bg-green-50 hover:scale-105 transition-all">
-                          <Share2 className="w-5 h-5 text-gray-600 hover:text-green-500 transition-colors" />
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <Link href={`/profile/${memory.authorId}`}>
+                          <button className="p-2 -m-2 group">
+                            <Gift className="w-6 h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
+                          </button>
+                        </Link>
+                        <button className="p-2 -m-2 group">
+                          <Bookmark className="w-6 h-6 text-gray-700 group-hover:text-yellow-500 transition-colors duration-200" />
                         </button>
                       </div>
+                    </div>
+                    
+                    {/* Like count and comments preview */}
+                    <div className="space-y-1 text-sm">
+                      {(memory.likeCount && memory.likeCount > 0) && (
+                        <p className="font-semibold text-gray-900">
+                          {memory.likeCount} إعجاب
+                        </p>
+                      )}
+                      {memory.caption && (
+                        <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                          <span className="font-semibold text-gray-900">{memory.author?.username}</span>
+                          <span className="text-gray-700">{memory.caption}</span>
+                        </div>
+                      )}
+                      <p className="text-gray-500 text-xs uppercase">
+                        {new Date(memory.createdAt).toLocaleDateString('ar')}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
