@@ -386,6 +386,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to unfollow user" });
     }
   });
+  
+  // Get user followers
+  app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const followers = await storage.getFollowers(userId);
+      res.json(followers);
+    } catch (error) {
+      console.error("Error fetching followers:", error);
+      res.status(500).json({ message: "Failed to fetch followers" });
+    }
+  });
+  
+  // Get user following
+  app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const following = await storage.getFollowing(userId);
+      res.json(following);
+    } catch (error) {
+      console.error("Error fetching following:", error);
+      res.status(500).json({ message: "Failed to fetch following" });
+    }
+  });
 
   // Custom registration endpoint
   app.post('/api/auth/register', async (req, res) => {

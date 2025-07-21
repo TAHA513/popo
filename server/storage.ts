@@ -314,6 +314,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(followers.followedId, userId));
     return result.count;
   }
+  
+  async getFollowingCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(followers)
+      .where(eq(followers.followerId, userId));
+    return result.count;
+  }
+  
+  async getFollowers(userId: string): Promise<any[]> {
+    const followersList = await db
+      .select({
+        follower: users,
+        followedAt: followers.createdAt
+      })
+      .from(followers)
+      .innerJoin(users, eq(followers.followerId, users.id))
+      .where(eq(followers.followedId, userId))
+      .orderBy(desc(followers.createdAt));
+    return followersList;
+  }
+  
+  async getFollowing(userId: string): Promise<any[]> {
+    const followingList = await db
+      .select({
+        following: users,
+        followedAt: followers.createdAt
+      })
+      .from(followers)
+      .innerJoin(users, eq(followers.followedId, users.id))
+      .where(eq(followers.followerId, userId))
+      .orderBy(desc(followers.createdAt));
+    return followingList;
+  }
 
   async getPublicMemoryFragments(): Promise<any[]> {
     const memories = await db

@@ -12,7 +12,8 @@ import {
   Zap,
   TrendingUp,
   UserPlus,
-  UserMinus
+  UserMinus,
+  Users
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import { Link, useParams } from "wouter";
@@ -23,6 +24,7 @@ export default function ProfileSimplePage() {
   const { user: currentUser } = useAuth();
   const { userId } = useParams();
   const profileUserId = userId || currentUser?.id;
+  const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   
   // Fetch profile user data
   const { data: profileUser, isLoading: userLoading } = useQuery({
@@ -77,6 +79,32 @@ export default function ProfileSimplePage() {
   });
   
   const isOwnProfile = currentUser?.id === profileUserId;
+  
+  // Fetch followers
+  const { data: followers = [] } = useQuery({
+    queryKey: ['/api/users/followers', profileUserId],
+    enabled: !!profileUserId,
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${profileUserId}/followers`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+  
+  // Fetch following
+  const { data: following = [] } = useQuery({
+    queryKey: ['/api/users/following', profileUserId],
+    enabled: !!profileUserId,
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${profileUserId}/following`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
 
   if (!user) {
     return (
@@ -149,6 +177,14 @@ export default function ProfileSimplePage() {
                     <Calendar className="w-4 h-4 text-blue-500" />
                     <span>انضم في {new Date().toLocaleDateString('ar')}</span>
                   </div>
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <Users className="w-4 h-4 text-purple-500" />
+                    <span>{followers.length} متابع</span>
+                  </div>
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <UserPlus className="w-4 h-4 text-pink-500" />
+                    <span>{following.length} يتابع</span>
+                  </div>
                 </div>
               </div>
 
@@ -188,8 +224,33 @@ export default function ProfileSimplePage() {
           </CardContent>
         </Card>
 
+        {/* Tabs */}
+        <div className="flex space-x-2 rtl:space-x-reverse mb-6">
+          <Button
+            variant={activeTab === "memories" ? "default" : "outline"}
+            onClick={() => setActiveTab("memories")}
+            className={activeTab === "memories" ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}
+          >
+            المنشورات ({memories.length})
+          </Button>
+          <Button
+            variant={activeTab === "followers" ? "default" : "outline"}
+            onClick={() => setActiveTab("followers")}
+            className={activeTab === "followers" ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}
+          >
+            المتابعون ({followers.length})
+          </Button>
+          <Button
+            variant={activeTab === "following" ? "default" : "outline"}
+            onClick={() => setActiveTab("following")}
+            className={activeTab === "following" ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}
+          >
+            يتابع ({following.length})
+          </Button>
+        </div>
+
         {/* Memories Section */}
-        <div>
+        <div style={{display: activeTab === "memories" ? "block" : "none"}}>
           <h2 className="text-xl font-bold mb-4">منشوراتي ({memories.length})</h2>
           
           {memoriesLoading && (
@@ -241,6 +302,86 @@ export default function ProfileSimplePage() {
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(memory.createdAt).toLocaleDateString('ar')}
                     </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Followers Section */}
+        <div style={{display: activeTab === "followers" ? "block" : "none"}}>
+          <h2 className="text-xl font-bold mb-4">المتابعون ({followers.length})</h2>
+          {followers.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-gray-600">لا يوجد متابعون بعد</p>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {followers.map((item: any) => (
+                <Card key={item.follower.id} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <Link href={`/profile/${item.follower.id}`}>
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
+                          {item.follower.profileImageUrl ? (
+                            <img 
+                              src={item.follower.profileImageUrl} 
+                              alt={item.follower.username} 
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <User className="w-6 h-6" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold hover:underline">{item.follower.username || item.follower.firstName || 'مستخدم'}</p>
+                          <p className="text-xs text-gray-500">
+                            متابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Following Section */}
+        <div style={{display: activeTab === "following" ? "block" : "none"}}>
+          <h2 className="text-xl font-bold mb-4">يتابع ({following.length})</h2>
+          {following.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-gray-600">لا يتابع أحد بعد</p>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {following.map((item: any) => (
+                <Card key={item.following.id} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <Link href={`/profile/${item.following.id}`}>
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
+                          {item.following.profileImageUrl ? (
+                            <img 
+                              src={item.following.profileImageUrl} 
+                              alt={item.following.username} 
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <User className="w-6 h-6" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold hover:underline">{item.following.username || item.following.firstName || 'مستخدم'}</p>
+                          <p className="text-xs text-gray-500">
+                            يتابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
                   </CardContent>
                 </Card>
               ))}
