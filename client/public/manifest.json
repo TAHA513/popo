@@ -1,0 +1,27 @@
+{
+  "name": "LaaBoBo Live - بث مباشر",
+  "short_name": "LaaBoBo Live",
+  "description": "منصة البث المباشر والتفاعل الاجتماعي",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#ec4899",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["entertainment", "social"],
+  "lang": "ar",
+  "dir": "rtl"
+}

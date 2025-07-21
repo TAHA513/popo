@@ -10,7 +10,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
-import { Globe, Settings, LogOut, Shield } from "lucide-react";
+import { Globe, Settings, LogOut, Shield, Moon, Sun, Download } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { usePWA } from "@/hooks/usePWA";
+
 type Language = 'en' | 'ar';
 
 interface NavigationHeaderProps {
@@ -24,6 +27,8 @@ export default function NavigationHeader({
 }: NavigationHeaderProps) {
   const { user } = useAuth();
   const [currentLanguage, setCurrentLanguage] = useState<Language>(language);
+  const { theme, toggleTheme } = useTheme();
+  const { canInstall, installApp } = usePWA();
 
   const handleLanguageToggle = () => {
     const newLang: Language = currentLanguage === 'en' ? 'ar' : 'en';
@@ -40,7 +45,7 @@ export default function NavigationHeader({
   };
 
   return (
-    <nav className="bg-white shadow-lg border-b-2 border-gradient sticky top-0 z-50">
+    <nav className="bg-white dark:bg-gray-900 shadow-lg border-b-2 border-gradient sticky top-0 z-50 transition-colors duration-200">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -69,6 +74,33 @@ export default function NavigationHeader({
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="flex items-center space-x-2"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-yellow-500" />
+              ) : (
+                <Moon className="w-4 h-4 text-laa-gray" />
+              )}
+            </Button>
+
+            {/* PWA Install Button */}
+            {canInstall && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={installApp}
+                className="flex items-center space-x-2"
+              >
+                <Download className="w-4 h-4 text-laa-gray" />
+                <span className="text-sm hidden md:inline">تثبيت</span>
+              </Button>
+            )}
+
             {/* Language Toggle */}
             <Button
               variant="ghost"
@@ -114,9 +146,28 @@ export default function NavigationHeader({
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={toggleTheme}>
+                  {theme === 'dark' ? (
+                    <>
+                      <Sun className="mr-2 h-4 w-4" />
+                      <span>الوضع النهاري</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="mr-2 h-4 w-4" />
+                      <span>الوضع الليلي</span>
+                    </>
+                  )}
+                </DropdownMenuItem>
+                {canInstall && (
+                  <DropdownMenuItem className="cursor-pointer" onClick={installApp}>
+                    <Download className="mr-2 h-4 w-4" />
+                    <span>تثبيت التطبيق</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/account'}>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>إدارة الحساب</span>
                 </DropdownMenuItem>
                 {user?.role === 'super_admin' && (
                   <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/panel-9bd2f2-control'}>

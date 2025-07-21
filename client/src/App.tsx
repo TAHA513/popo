@@ -11,6 +11,7 @@ import Home from "@/pages/home";
 import StreamPage from "@/pages/stream";
 import AdminPage from "@/pages/admin";
 import StartStreamPage from "@/pages/start-stream";
+import AccountPage from "@/pages/account";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -29,6 +30,7 @@ function Router() {
           <Route path="/admin" component={AdminPage} />
           <Route path="/panel-9bd2f2-control" component={AdminPage} />
           <Route path="/start-stream" component={StartStreamPage} />
+          <Route path="/account" component={AccountPage} />
         </>
       )}
       <Route component={NotFound} />
