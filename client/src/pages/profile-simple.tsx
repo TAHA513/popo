@@ -62,6 +62,16 @@ export default function ProfileSimplePage() {
   // Always use fetched profile data
   const user = profileUser;
   
+  console.log('Profile data:', {
+    profileUserId,
+    isOwnProfile,
+    currentUser: currentUser?.username,
+    profileUser,
+    user,
+    userLoading,
+    userError
+  });
+  
   // Fetch user memories
   const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
     queryKey: ['/api/memories/user', profileUserId],
