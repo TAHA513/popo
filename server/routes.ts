@@ -7,6 +7,7 @@ import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users } 
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
+// @ts-ignore
 import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
 import path from 'path';
 
@@ -179,21 +180,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Secure admin panel route
-  // Simplified admin panel access (requires login only)
-  app.get('/admin', isAuthenticated, async (req, res) => {
+  // Admin panel access route
+  app.get('/admin', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.redirect('/api/login');
+    }
+    
     try {
       const userId = (req.user as any)?.claims?.sub;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'super_admin') {
         return res.status(403).send(`
-          <html>
-            <body style="font-family: Arial; text-align: center; padding: 50px;">
-              <h2>Access Denied</h2>
-              <p>You need super_admin permissions to access this panel.</p>
-              <p>Current user: ${user?.email || 'Unknown'}</p>
-              <p>Current role: ${user?.role || 'None'}</p>
-              <a href="/" style="color: #FF69B4;">← Back to Home</a>
+          <html dir="rtl" lang="ar">
+            <head>
+              <meta charset="UTF-8">
+              <title>Access Denied - LaaBoBo Live</title>
+              <style>
+                body { font-family: 'Cairo', Arial; text-align: center; padding: 50px; background: linear-gradient(135deg, #FF69B4, #9333EA); color: white; }
+                .card { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; margin: 20px auto; max-width: 500px; }
+                .btn { background: #FF69B4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <h2>🚫 الوصول مرفوض</h2>
+                <p>تحتاج صلاحية super_admin للوصول لهذه اللوحة</p>
+                <p><strong>المستخدم الحالي:</strong> ${user?.email || 'غير معروف'}</p>
+                <p><strong>الصلاحية:</strong> ${user?.role || 'لا توجد'}</p>
+                <br>
+                <a href="/" class="btn">← العودة للرئيسية</a>
+                <a href="/api/login" class="btn">تسجيل دخول جديد</a>
+              </div>
             </body>
           </html>
         `);

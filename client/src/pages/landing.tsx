@@ -71,6 +71,12 @@ export default function Landing() {
               Watch Live
             </Button>
           </div>
+          
+          <div className="mt-6 text-sm text-white/70">
+            <a href="/admin" className="text-white/90 hover:text-white underline">
+              🛡️ Admin Panel Access
+            </a>
+          </div>
         </div>
       </section>
 
