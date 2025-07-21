@@ -94,7 +94,7 @@ export default function ProfileSimplePage() {
   const isOwnProfile = currentUser?.id === profileUserId;
   
   // Check if still loading user data
-  if (userLoading || !user) {
+  if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
@@ -108,11 +108,31 @@ export default function ProfileSimplePage() {
     );
   }
   
+  // Check if user not found
+  if (!user && !userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <SimpleNavigation />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="p-8 text-center max-w-md mx-auto">
+            <p className="text-gray-600 mb-4">المستخدم غير موجود أو تحتاج لتسجيل الدخول</p>
+            <Link href="/">
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600">
+                العودة للرئيسية
+              </Button>
+            </Link>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+  
 
   
   // Fetch available gifts
   const { data: gifts = [] } = useQuery({
     queryKey: ['/api/gifts/characters'],
+    enabled: !!currentUser,
     queryFn: async () => {
       const response = await fetch('/api/gifts/characters', {
         credentials: 'include'
@@ -125,7 +145,7 @@ export default function ProfileSimplePage() {
   // Fetch followers
   const { data: followers = [] } = useQuery({
     queryKey: ['/api/users/followers', profileUserId],
-    enabled: !!profileUserId,
+    enabled: !!profileUserId && !!user,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}/followers`, {
         credentials: 'include'
@@ -138,7 +158,7 @@ export default function ProfileSimplePage() {
   // Fetch following
   const { data: following = [] } = useQuery({
     queryKey: ['/api/users/following', profileUserId],
-    enabled: !!profileUserId,
+    enabled: !!profileUserId && !!user,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}/following`, {
         credentials: 'include'
