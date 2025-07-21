@@ -59,8 +59,9 @@ function Router() {
         </>
       ) : (
         <>
-          <Route path="/" component={Landing} />
-          <Route component={Landing} />
+          <Route path="/" component={LoginPage} />
+          <Route path="/landing" component={Landing} />
+          <Route component={LoginPage} />
         </>
       )}
     </Switch>
