@@ -24,16 +24,17 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (required for Replit Auth)
+// User storage table with local authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  username: varchar("username").unique(),
+  username: varchar("username").unique().notNull(), // Required and unique
+  passwordHash: varchar("password_hash").notNull(), // Required for local auth
   bio: text("bio"),
-  points: integer("points").default(0),
+  points: integer("points").default(100), // Start with 100 points
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0"),
   isStreamer: boolean("is_streamer").default(false),
   isAdmin: boolean("is_admin").default(false),
@@ -223,6 +224,29 @@ export type InsertFragmentCollection = typeof fragmentCollections.$inferInsert;
 export type FragmentCollection = typeof fragmentCollections.$inferSelect;
 
 // Zod schemas
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const registerSchema = z.object({
+  username: z.string().min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل").max(20, "اسم المستخدم لا يمكن أن يزيد عن 20 حرف"),
+  firstName: z.string().min(2, "الاسم الأول مطلوب"),
+  lastName: z.string().min(2, "الاسم الأخير مطلوب"),
+  email: z.string().email("البريد الإلكتروني غير صالح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
+  path: ["confirmPassword"],
+});
+
+export const loginSchema = z.object({
+  username: z.string().min(1, "اسم المستخدم مطلوب"),
+  password: z.string().min(1, "كلمة المرور مطلوبة"),
+});
+
 export const insertStreamSchema = createInsertSchema(streams).omit({
   id: true,
   createdAt: true,

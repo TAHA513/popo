@@ -1,373 +1,320 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Eye, EyeOff, Check, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import {
-  User,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Crown,
-  Sparkles,
-  Heart,
-  Star,
-  Globe,
-  Users,
-  Camera,
-  Gift
-} from "lucide-react";
 
-type RegistrationStep = 'choose' | 'details' | 'credentials';
+const registerSchema = z.object({
+  username: z.string()
+    .min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل")
+    .max(20, "اسم المستخدم لا يمكن أن يزيد عن 20 حرف")
+    .regex(/^[a-zA-Z0-9_]+$/, "اسم المستخدم يجب أن يحتوي على أحرف وأرقام و _ فقط"),
+  firstName: z.string().min(2, "الاسم الأول مطلوب"),
+  lastName: z.string().min(2, "الاسم الأخير مطلوب"),
+  email: z.string().email("البريد الإلكتروني غير صالح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
+  path: ["confirmPassword"],
+});
+
+type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { toast } = useToast();
-  const [step, setStep] = useState<RegistrationStep>('choose');
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    username: '',
-    password: '',
-    registrationType: '' as 'email' | 'username'
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const watchedUsername = watch("username");
+
+  // Check username availability
+  const { data: usernameCheck, isLoading: checkingUsername } = useQuery({
+    queryKey: ["/api/check-username", watchedUsername],
+    queryFn: async () => {
+      if (!watchedUsername || watchedUsername.length < 3) return null;
+      
+      const response = await fetch(`/api/check-username?username=${encodeURIComponent(watchedUsername)}`);
+      if (!response.ok) return null;
+      
+      return response.json();
+    },
+    enabled: !!watchedUsername && watchedUsername.length >= 3,
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      return await apiRequest('POST', '/api/auth/register', data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "مرحباً بك في LaaBoBo Live! 🎉",
-        description: "تم إنشاء حسابك بنجاح. ستتم إعادة توجيهك للصفحة الرئيسية",
+    mutationFn: async (data: RegisterForm) => {
+      const response = await apiRequest("/api/register", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-      setTimeout(() => {
-        window.location.href = '/api/login';
-      }, 2000);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "حدث خطأ أثناء إنشاء الحساب");
+      }
+
+      return response.json();
     },
-    onError: (error: any) => {
+    onSuccess: (data) => {
       toast({
-        title: "خطأ في التسجيل",
-        description: error.message || "حدث خطأ أثناء إنشاء الحساب",
+        title: "تم بنجاح",
+        description: data.message + " - يمكنك الآن تسجيل الدخول",
+      });
+      
+      // Navigate to login page
+      navigate("/login");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ",
+        description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: RegisterForm) => {
+    if (usernameCheck && !usernameCheck.available) {
+      toast({
+        title: "خطأ",
+        description: "اسم المستخدم غير متاح",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    if (!formData.firstName.trim()) {
-      toast({
-        title: "اسمك مطلوب",
-        description: "يرجى إدخال اسمك الأول",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.registrationType === 'email' && !formData.email.includes('@')) {
-      toast({
-        title: "إيميل غير صحيح",
-        description: "يرجى إدخال إيميل صحيح",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.registrationType === 'username' && formData.username.length < 3) {
-      toast({
-        title: "اسم المستخدم قصير",
-        description: "يجب أن يكون اسم المستخدم 3 أحرف على الأقل",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast({
-        title: "كلمة المرور قصيرة",
-        description: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    registerMutation.mutate(formData);
+    registerMutation.mutate(data);
   };
 
-  const ChooseRegistrationMethod = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Crown className="w-10 h-10 text-white" />
-        </div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">انضم إلى LaaBoBo Live</h1>
-        <p className="text-gray-600">منصة الذكريات والبث المباشر الأولى في العالم</p>
-      </div>
+  const getUsernameStatus = () => {
+    if (!watchedUsername || watchedUsername.length < 3) return null;
+    if (checkingUsername) return "checking";
+    if (usernameCheck?.available) return "available";
+    if (usernameCheck?.available === false) return "unavailable";
+    return null;
+  };
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card 
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-purple-300 group"
-          onClick={() => {
-            setFormData(prev => ({ ...prev, registrationType: 'email' }));
-            setStep('details');
-          }}
-        >
-          <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <Mail className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">التسجيل بالإيميل</h3>
-            <p className="text-gray-600 text-sm">استخدم عنوان إيميلك للتسجيل بسرعة وأمان</p>
-            <Badge className="mt-3 bg-blue-100 text-blue-800">الأكثر شيوعاً</Badge>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-green-300 group"
-          onClick={() => {
-            setFormData(prev => ({ ...prev, registrationType: 'username' }));
-            setStep('details');
-          }}
-        >
-          <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <User className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">التسجيل باسم المستخدم</h3>
-            <p className="text-gray-600 text-sm">أنشئ اسم مستخدم فريد لحسابك</p>
-            <Badge className="mt-3 bg-green-100 text-green-800">سريع ومباشر</Badge>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex items-center justify-center space-x-4 rtl:space-x-reverse text-sm text-gray-500">
-        <div className="flex items-center">
-          <Heart className="w-4 h-4 mr-1 text-red-500" />
-          <span>مجاني تماماً</span>
-        </div>
-        <div className="flex items-center">
-          <Star className="w-4 h-4 mr-1 text-yellow-500" />
-          <span>بدون إعلانات</span>
-        </div>
-        <div className="flex items-center">
-          <Globe className="w-4 h-4 mr-1 text-blue-500" />
-          <span>عالمي</span>
-        </div>
-      </div>
-    </div>
-  );
-
-  const UserDetailsForm = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Sparkles className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">أخبرنا عن نفسك</h2>
-        <p className="text-gray-600">هذه المعلومات ستساعد أصدقاءك في العثور عليك</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            الاسم الأول *
-          </label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="اسمك الأول"
-              value={formData.firstName}
-              onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-              className="pl-10 pr-4"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            اسم العائلة (اختياري)
-          </label>
-          <div className="relative">
-            <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="اسم العائلة"
-              value={formData.lastName}
-              onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-              className="pl-10 pr-4"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={() => setStep('choose')}
-          className="flex items-center"
-        >
-          ← العودة
-        </Button>
-        <Button
-          onClick={() => setStep('credentials')}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-          disabled={!formData.firstName.trim()}
-        >
-          التالي →
-        </Button>
-      </div>
-    </div>
-  );
-
-  const CredentialsForm = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Lock className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          {formData.registrationType === 'email' ? 'إعداد حساب الإيميل' : 'إعداد اسم المستخدم'}
-        </h2>
-        <p className="text-gray-600">آخر خطوة لإنشاء حسابك</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {formData.registrationType === 'email' ? (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              عنوان الإيميل *
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="email"
-                placeholder="example@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="pl-10 pr-4"
-                required
-              />
-            </div>
-          </div>
-        ) : (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              اسم المستخدم *
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="اسم المستخدم الفريد"
-                value={formData.username}
-                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                className="pl-10 pr-4"
-                required
-              />
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            كلمة المرور *
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="كلمة مرور قوية"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              className="pl-10 pr-12"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">يجب أن تكون 6 أحرف على الأقل</p>
-        </div>
-
-        <div className="flex justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setStep('details')}
-          >
-            ← العودة
-          </Button>
-          <Button
-            type="submit"
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-            disabled={registerMutation.isPending}
-          >
-            {registerMutation.isPending ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                جاري الإنشاء...
-              </>
-            ) : (
-              <>
-                <Gift className="w-4 h-4 mr-2" />
-                إنشاء الحساب
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
+  const usernameStatus = getUsernameStatus();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-2xl border-0">
-        <CardContent className="p-8">
-          {step === 'choose' && <ChooseRegistrationMethod />}
-          {step === 'details' && <UserDetailsForm />}
-          {step === 'credentials' && <CredentialsForm />}
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-purple-600">
+            إنشاء حساب جديد
+          </CardTitle>
+          <p className="text-gray-600">انضم إلى LaaBoBo Live اليوم</p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">الاسم الأول</Label>
+                <Input
+                  id="firstName"
+                  {...register("firstName")}
+                  placeholder="الاسم الأول"
+                  disabled={registerMutation.isPending}
+                />
+                {errors.firstName && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{errors.firstName.message}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
 
-      {/* Features Showcase */}
-      <div className="fixed bottom-4 left-4 right-4 md:left-auto md:w-80">
-        <Card className="bg-white/90 backdrop-blur-sm border border-white/20">
-          <CardContent className="p-4">
-            <h3 className="font-bold text-center text-gray-800 mb-3">ميزات LaaBoBo Live</h3>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center text-gray-600">
-                <Camera className="w-3 h-3 mr-1 text-blue-500" />
-                بث مباشر
-              </div>
-              <div className="flex items-center text-gray-600">
-                <Sparkles className="w-3 h-3 mr-1 text-purple-500" />
-                ذكريات تفاعلية
-              </div>
-              <div className="flex items-center text-gray-600">
-                <Gift className="w-3 h-3 mr-1 text-green-500" />
-                هدايا افتراضية
-              </div>
-              <div className="flex items-center text-gray-600">
-                <Users className="w-3 h-3 mr-1 text-orange-500" />
-                شبكة اجتماعية
+              <div className="space-y-2">
+                <Label htmlFor="lastName">الاسم الأخير</Label>
+                <Input
+                  id="lastName"
+                  {...register("lastName")}
+                  placeholder="الاسم الأخير"
+                  disabled={registerMutation.isPending}
+                />
+                {errors.lastName && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{errors.lastName.message}</AlertDescription>
+                  </Alert>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username">اسم المستخدم</Label>
+              <div className="relative">
+                <Input
+                  id="username"
+                  {...register("username")}
+                  placeholder="اسم المستخدم (مطلوب وفريد)"
+                  disabled={registerMutation.isPending}
+                />
+                {usernameStatus && (
+                  <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+                    {usernameStatus === "checking" && (
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                    )}
+                    {usernameStatus === "available" && (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                    {usernameStatus === "unavailable" && (
+                      <X className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                )}
+              </div>
+              {errors.username && (
+                <Alert variant="destructive">
+                  <AlertDescription>{errors.username.message}</AlertDescription>
+                </Alert>
+              )}
+              {usernameStatus === "unavailable" && (
+                <Alert variant="destructive">
+                  <AlertDescription>اسم المستخدم غير متاح</AlertDescription>
+                </Alert>
+              )}
+              {usernameStatus === "available" && (
+                <Alert>
+                  <AlertDescription className="text-green-600">
+                    اسم المستخدم متاح
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Input
+                id="email"
+                type="email"
+                {...register("email")}
+                placeholder="البريد الإلكتروني"
+                disabled={registerMutation.isPending}
+              />
+              {errors.email && (
+                <Alert variant="destructive">
+                  <AlertDescription>{errors.email.message}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">كلمة المرور</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                  placeholder="كلمة المرور (6 أحرف على الأقل)"
+                  disabled={registerMutation.isPending}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 h-auto p-1"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={registerMutation.isPending}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              {errors.password && (
+                <Alert variant="destructive">
+                  <AlertDescription>{errors.password.message}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  {...register("confirmPassword")}
+                  placeholder="تأكيد كلمة المرور"
+                  disabled={registerMutation.isPending}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 h-auto p-1"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={registerMutation.isPending}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              {errors.confirmPassword && (
+                <Alert variant="destructive">
+                  <AlertDescription>{errors.confirmPassword.message}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              disabled={registerMutation.isPending || usernameStatus === "unavailable"}
+            >
+              {registerMutation.isPending ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري إنشاء الحساب...
+                </>
+              ) : (
+                "إنشاء حساب"
+              )}
+            </Button>
+
+            <div className="text-center pt-4">
+              <p className="text-sm text-gray-600">
+                لديك حساب بالفعل؟{" "}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-purple-600 hover:text-purple-700"
+                  onClick={() => navigate("/login")}
+                  disabled={registerMutation.isPending}
+                >
+                  تسجيل الدخول
+                </Button>
+              </p>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

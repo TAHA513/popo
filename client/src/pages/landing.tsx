@@ -16,7 +16,7 @@ export default function Landing() {
   const [language, setLanguage] = useState('en');
   
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
   };
   
   const handleSignUp = () => {

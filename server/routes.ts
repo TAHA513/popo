@@ -2,12 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, insertMemoryFragmentSchema, insertMemoryInteractionSchema } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
+import bcrypt from "bcryptjs";
+import passport from "passport";
 // @ts-ignore
 import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
 import path from 'path';
@@ -44,18 +46,141 @@ interface ConnectedClient {
 const connectedClients = new Map<string, ConnectedClient>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
-
   // Initialize gift characters
   await initializeGiftCharacters();
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Local authentication routes
+  app.post('/api/register', async (req, res) => {
     try {
-      const userId = (req.user as any).claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const validatedData = registerSchema.parse(req.body);
+      
+      // Check if username is available
+      const isAvailable = await storage.isUsernameAvailable(validatedData.username);
+      if (!isAvailable) {
+        return res.status(400).json({ message: "اسم المستخدم غير متاح" });
+      }
+
+      // Hash password
+      const saltRounds = 12;
+      const passwordHash = await bcrypt.hash(validatedData.password, saltRounds);
+
+      // Create user
+      const user = await storage.createUser({
+        username: validatedData.username,
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        email: validatedData.email,
+        passwordHash,
+      });
+
+      res.status(201).json({ 
+        message: "تم إنشاء الحساب بنجاح",
+        user: {
+          id: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+        }
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "بيانات غير صالحة",
+          errors: error.errors.map(e => ({ field: e.path[0], message: e.message }))
+        });
+      }
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "حدث خطأ أثناء إنشاء الحساب" });
+    }
+  });
+
+  app.post('/api/login', (req, res, next) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+      
+      passport.authenticate('local', (err: any, user: any, info: any) => {
+        if (err) {
+          return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
+        }
+        if (!user) {
+          return res.status(401).json({ message: info?.message || "اسم المستخدم أو كلمة المرور غير صحيحة" });
+        }
+        
+        req.logIn(user, (err) => {
+          if (err) {
+            return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
+          }
+          
+          res.json({
+            message: "تم تسجيل الدخول بنجاح",
+            user: {
+              id: user.id,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              role: user.role,
+              points: user.points,
+            }
+          });
+        });
+      })(req, res, next);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "بيانات غير صالحة",
+          errors: error.errors.map(e => ({ field: e.path[0], message: e.message }))
+        });
+      }
+      res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
+    }
+  });
+
+  app.post('/api/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
+      }
+      res.json({ message: "تم تسجيل الخروج بنجاح" });
+    });
+  });
+
+  app.get('/api/check-username', async (req, res) => {
+    try {
+      const { username } = req.query;
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ message: "اسم المستخدم مطلوب" });
+      }
+      
+      const isAvailable = await storage.isUsernameAvailable(username);
+      res.json({ available: isAvailable });
+    } catch (error) {
+      console.error("Username check error:", error);
+      res.status(500).json({ message: "حدث خطأ أثناء التحقق من اسم المستخدم" });
+    }
+  });
+
+  // Auth routes
+  app.get('/api/auth/user', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      res.json({
+        id: user.id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        points: user.points,
+        profileImageUrl: user.profileImageUrl,
+        bio: user.bio,
+        isStreamer: user.isStreamer,
+        totalEarnings: user.totalEarnings,
+        isPrivateAccount: user.isPrivateAccount,
+        allowDirectMessages: user.allowDirectMessages,
+        allowGiftsFromStrangers: user.allowGiftsFromStrangers,
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -74,9 +199,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memory fragments routes
-  app.post('/api/memories', isAuthenticated, upload.array('media', 5), async (req: any, res) => {
+  app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { title, caption, memoryType, visibilityLevel, allowComments, allowSharing, allowGifts } = req.body;
       
       // Process uploaded files
@@ -164,9 +289,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Follow/Unfollow user
-  app.post('/api/users/:userId/follow', isAuthenticated, async (req: any, res) => {
+  app.post('/api/users/:userId/follow', requireAuth, async (req: any, res) => {
     try {
-      const followerId = req.user.claims.sub;
+      const followerId = req.user.id;
       const followedId = req.params.userId;
       
       if (followerId === followedId) {
@@ -181,9 +306,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/users/:userId/unfollow', isAuthenticated, async (req: any, res) => {
+  app.post('/api/users/:userId/unfollow', requireAuth, async (req: any, res) => {
     try {
-      const followerId = req.user.claims.sub;
+      const followerId = req.user.id;
       const followedId = req.params.userId;
       
       await storage.unfollowUser(followerId, followedId);
@@ -240,9 +365,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/memories/:id/interact', isAuthenticated, async (req: any, res) => {
+  app.post('/api/memories/:id/interact', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const fragmentId = parseInt(req.params.id);
       const { type } = req.body; // 'like', 'view', 'share', 'gift'
       
@@ -272,11 +397,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
 
-  app.post('/api/streams', isAuthenticated, async (req: any, res) => {
+  app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
       const streamData = insertStreamSchema.parse({
         ...req.body,
-        hostId: req.user.claims.sub,
+        hostId: req.user.id,
       });
       const stream = await storage.createStream(streamData);
       res.json(stream);
@@ -300,12 +425,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams/:id/end', isAuthenticated, async (req: any, res) => {
+  app.post('/api/streams/:id/end', requireAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
       const stream = await storage.getStreamById(streamId);
       
-      if (!stream || stream.hostId !== req.user.claims.sub) {
+      if (!stream || stream.hostId !== req.user.id) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
@@ -328,11 +453,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/gifts/send', isAuthenticated, async (req: any, res) => {
+  app.post('/api/gifts/send', requireAuth, async (req: any, res) => {
     try {
       const giftData = insertGiftSchema.parse({
         ...req.body,
-        senderId: req.user.claims.sub,
+        senderId: req.user.id,
       });
       
       // Check if user has enough points
@@ -370,9 +495,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get('/api/admin/stats', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/stats', requireAuth, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -405,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Secure admin panel route
   // Admin panel access route
   app.get('/admin', async (req, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.requireAuth()) {
       return res.redirect('/api/login');
     }
     
@@ -450,7 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Simplified panel access without access code requirement
   app.get('/panel-9bd2f2-control', async (req, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.requireAuth()) {
       return res.redirect('/api/login');
     }
     
@@ -494,9 +619,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memory Fragment routes
-  app.post('/api/memories', isAuthenticated, upload.array('media', 5), async (req: any, res) => {
+  app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
       
       if (!files || files.length === 0) {
@@ -546,10 +671,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/memories/user/:userId', requireAuth, async (req: any, res) => {
     try {
       const targetUserId = req.params.userId;
-      const currentUserId = req.user.claims.sub;
+      const currentUserId = req.user.id;
       
       // Users can only view their own memories for now
       if (targetUserId !== currentUserId) {
@@ -564,10 +689,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/memories/:id/interact', isAuthenticated, async (req: any, res) => {
+  app.post('/api/memories/:id/interact', requireAuth, async (req: any, res) => {
     try {
       const fragmentId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { type } = req.body;
 
       if (!['view', 'like', 'share', 'save', 'gift'].includes(type)) {
@@ -599,10 +724,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/uploads', express.static('uploads'));
 
   // User stats endpoint
-  app.get('/api/user/stats/:userId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/user/stats/:userId', requireAuth, async (req: any, res) => {
     try {
       const targetUserId = req.params.userId;
-      const currentUserId = req.user.claims.sub;
+      const currentUserId = req.user.id;
       
       if (targetUserId !== currentUserId) {
         return res.status(403).json({ message: 'Access denied' });

@@ -32,11 +32,15 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, count } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 export interface IStorage {
-  // User operations (required for Replit Auth)
+  // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: Omit<UpsertUser, 'id'> & { passwordHash: string }): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  isUsernameAvailable(username: string): Promise<boolean>;
   
   // Stream operations
   createStream(stream: InsertStream): Promise<Stream>;
@@ -95,6 +99,28 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: Omit<UpsertUser, 'id'> & { passwordHash: string }): Promise<User> {
+    const id = nanoid();
+    const [user] = await db
+      .insert(users)
+      .values({
+        id,
+        ...userData,
+        points: 100,
+        role: 'user',
+        isPrivateAccount: false,
+        allowDirectMessages: true,
+        allowGiftsFromStrangers: true,
+      })
+      .returning();
+    return user;
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -108,6 +134,14 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async isUsernameAvailable(username: string): Promise<boolean> {
+    const [existingUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, username));
+    return !existingUser;
   }
 
   // Stream operations
