@@ -1,34 +1,83 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Video, Globe, Users, Gift, Star } from "lucide-react";
+import { Play, Video, Globe, Users, Gift, Star, Moon, Sun, UserPlus } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { useState } from "react";
 
 export default function Landing() {
+  const { theme, toggleTheme } = useTheme();
+  const [language, setLanguage] = useState('en');
+  
   const handleLogin = () => {
     window.location.href = "/api/login";
   };
+  
+  const handleSignUp = () => {
+    window.location.href = "/api/login"; // Same endpoint for both login and signup with Replit Auth
+  };
+  
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'en' ? 'ar' : 'en');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className={`min-h-screen transition-colors duration-300 ${
+      theme === 'dark' 
+        ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+        : 'bg-gradient-to-br from-gray-50 to-gray-100'
+    }`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <nav className={`backdrop-blur-md border-b sticky top-0 z-50 transition-colors duration-300 ${
+        theme === 'dark' 
+          ? 'bg-gray-900/80 border-gray-700' 
+          : 'bg-white/80 border-gray-200'
+      }`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 gradient-bg rounded-full flex items-center justify-center">
                 <span className="text-white text-lg">🐰</span>
               </div>
-              <span className="font-bold text-2xl gradient-text">LaaBoBo Live</span>
+              <span className={`font-bold text-2xl transition-colors duration-300 ${
+                theme === 'dark' ? 'text-white' : 'gradient-text'
+              }`}>LaaBoBo Live</span>
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Language Toggle */}
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={toggleLanguage}
                 className="flex items-center space-x-2"
               >
                 <Globe className="w-4 h-4" />
-                <span>EN</span>
+                <span>{language === 'en' ? 'AR' : 'EN'}</span>
+              </Button>
+              
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="flex items-center"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+              </Button>
+              
+              {/* Auth Buttons */}
+              <Button 
+                onClick={handleSignUp} 
+                variant="outline" 
+                className="border-laa-pink text-laa-pink hover:bg-laa-pink hover:text-white"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Sign Up
               </Button>
               
               <Button onClick={handleLogin} className="bg-laa-pink hover:bg-pink-600">
@@ -43,23 +92,35 @@ export default function Landing() {
       <section className="gradient-bg py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-bold text-5xl md:text-7xl text-white mb-6">
-            Welcome to LaaBoBo Live
+            {language === 'ar' ? 'مرحباً بك في لاا بوبو لايف' : 'Welcome to LaaBoBo Live'}
           </h1>
           <h2 className="text-2xl md:text-3xl text-white/90 mb-4">
-            مرحباً بك في لاا بوبو لايف
+            {language === 'ar' ? 'منصة البث المباشر الأكثر تفاعلاً' : 'The Most Interactive Live Streaming Platform'}
           </h2>
           <p className="text-white/80 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-            Stream, connect, and earn with our amazing gift system and cute characters!
+            {language === 'ar' 
+              ? 'ابدأ البث، تواصل واربح مع نظام الهدايا المدهش والشخصيات اللطيفة!' 
+              : 'Stream, connect, and earn with our amazing gift system and cute characters!'
+            }
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button
-              onClick={handleLogin}
+              onClick={handleSignUp}
               size="lg"
               className="bg-white text-laa-pink hover:bg-gray-100 text-lg px-8 py-4"
             >
+              <UserPlus className="w-5 h-5 mr-2" />
+              {language === 'ar' ? 'إنشاء حساب' : 'Create Account'}
+            </Button>
+            <Button
+              onClick={handleLogin}
+              variant="outline"
+              size="lg"
+              className="border-white text-white hover:bg-white hover:text-laa-pink text-lg px-8 py-4"
+            >
               <Video className="w-5 h-5 mr-2" />
-              Start Streaming
+              {language === 'ar' ? 'ابدأ البث' : 'Start Streaming'}
             </Button>
             <Button
               onClick={handleLogin}
@@ -68,13 +129,13 @@ export default function Landing() {
               className="border-white text-white hover:bg-white hover:text-laa-pink text-lg px-8 py-4"
             >
               <Play className="w-5 h-5 mr-2" />
-              Watch Live
+              {language === 'ar' ? 'شاهد البث المباشر' : 'Watch Live'}
             </Button>
           </div>
           
           <div className="mt-6 text-sm text-white/70">
             <a href="/admin" className="text-white/90 hover:text-white underline">
-              🛡️ Admin Panel Access
+              🛡️ {language === 'ar' ? 'الوصول للوحة الإدارة' : 'Admin Panel Access'}
             </a>
           </div>
         </div>
