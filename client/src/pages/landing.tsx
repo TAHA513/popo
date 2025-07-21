@@ -167,11 +167,7 @@ export default function Landing() {
             </Button>
           </div>
           
-          <div className="mt-6 text-sm text-white/70">
-            <a href="/admin" className="text-white/90 hover:text-white underline">
-              🛡️ {language === 'ar' ? 'الوصول للوحة الإدارة' : 'Admin Panel Access'}
-            </a>
-          </div>
+
         </div>
       </section>
 
