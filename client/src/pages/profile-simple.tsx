@@ -88,12 +88,52 @@ export default function ProfileSimplePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/followers', profileUserId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/following', profileUserId] });
     }
   });
   
+  // Fetch available gifts - MUST be before any conditional returns
+  const { data: gifts = [] } = useQuery({
+    queryKey: ['/api/gifts/characters'],
+    queryFn: async () => {
+      const response = await fetch('/api/gifts/characters', {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+  
+  // Fetch followers - MUST be before any conditional returns
+  const { data: followers = [] } = useQuery({
+    queryKey: ['/api/users/followers', profileUserId],
+    enabled: !!profileUserId,
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${profileUserId}/followers`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+  
+  // Fetch following - MUST be before any conditional returns
+  const { data: following = [] } = useQuery({
+    queryKey: ['/api/users/following', profileUserId],
+    enabled: !!profileUserId,
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${profileUserId}/following`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+
   const isOwnProfile = currentUser?.id === profileUserId;
   
-  // Check if still loading user data
+  // Check if still loading user data - AFTER all hooks
   if (userLoading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -107,46 +147,6 @@ export default function ProfileSimplePage() {
       </div>
     );
   }
-  
-
-  
-  // Fetch available gifts
-  const { data: gifts = [] } = useQuery({
-    queryKey: ['/api/gifts/characters'],
-    queryFn: async () => {
-      const response = await fetch('/api/gifts/characters', {
-        credentials: 'include'
-      });
-      if (!response.ok) return [];
-      return response.json();
-    }
-  });
-  
-  // Fetch followers
-  const { data: followers = [] } = useQuery({
-    queryKey: ['/api/users/followers', profileUserId],
-    enabled: !!profileUserId,
-    queryFn: async () => {
-      const response = await fetch(`/api/users/${profileUserId}/followers`, {
-        credentials: 'include'
-      });
-      if (!response.ok) return [];
-      return response.json();
-    }
-  });
-  
-  // Fetch following
-  const { data: following = [] } = useQuery({
-    queryKey: ['/api/users/following', profileUserId],
-    enabled: !!profileUserId,
-    queryFn: async () => {
-      const response = await fetch(`/api/users/${profileUserId}/following`, {
-        credentials: 'include'
-      });
-      if (!response.ok) return [];
-      return response.json();
-    }
-  });
 
 
 
