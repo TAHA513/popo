@@ -91,6 +91,13 @@ export default function ProfileSimplePage() {
   
   const isOwnProfile = currentUser?.id === profileUserId;
   
+  console.log("Profile Debug:", {
+    currentUser: currentUser?.id,
+    profileUserId,
+    isOwnProfile,
+    user
+  });
+  
   // Fetch available gifts
   const { data: gifts = [] } = useQuery({
     queryKey: ['/api/gifts/characters'],
@@ -212,22 +219,22 @@ export default function ProfileSimplePage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col space-y-2">
+              <div className="flex flex-col space-y-2 min-w-[120px]">
                 {isOwnProfile ? (
                   <Link href="/create-memory">
                     <Button 
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       ذكرى جديدة
                     </Button>
                   </Link>
-                ) : (
-                  <div className="space-y-2">
+                ) : currentUser ? (
+                  <div className="flex flex-col space-y-2">
                     <Button 
                       onClick={() => followMutation.mutate()}
                       disabled={followMutation.isPending}
-                      className={isFollowing ? "" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}
+                      className={isFollowing ? "w-full" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full"}
                       variant={isFollowing ? "outline" : "default"}
                     >
                       {isFollowing ? (
@@ -243,21 +250,23 @@ export default function ProfileSimplePage() {
                       )}
                     </Button>
                     <Button 
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => setShowMessageDialog(true)}
+                      className="w-full bg-blue-100 hover:bg-blue-200 text-blue-700"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       رسالة
                     </Button>
                     <Button 
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => setShowGiftDialog(true)}
+                      className="w-full bg-pink-100 hover:bg-pink-200 text-pink-700"
                     >
                       <Gift className="w-4 h-4 mr-2" />
                       هدية
                     </Button>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           </CardContent>
