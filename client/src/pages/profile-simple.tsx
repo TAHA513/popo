@@ -42,9 +42,7 @@ export default function ProfileSimplePage() {
     queryKey: ['/api/users', profileUserId],
     enabled: !!profileUserId && profileUserId !== currentUser?.id,
     queryFn: async () => {
-      const response = await fetch(`/api/users/${profileUserId}`, {
-        credentials: 'include'
-      });
+      const response = await fetch(`/api/users/${profileUserId}`);
       if (!response.ok) throw new Error('Failed to fetch user');
       return response.json();
     }
@@ -93,7 +91,12 @@ export default function ProfileSimplePage() {
   
   const isOwnProfile = currentUser?.id === profileUserId;
   
-
+  console.log("Profile Debug:", {
+    currentUser: currentUser?.id,
+    profileUserId,
+    isOwnProfile,
+    user
+  });
   
   // Fetch available gifts
   const { data: gifts = [] } = useQuery({
@@ -133,27 +136,13 @@ export default function ProfileSimplePage() {
     }
   });
 
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <SimpleNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-gray-600">جاري التحميل...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center text-gray-600">
-            المستخدم غير موجود
+            يرجى تسجيل الدخول لعرض الملف الشخصي
           </div>
         </div>
       </div>
