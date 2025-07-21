@@ -108,7 +108,7 @@ export default function SimpleNavigation() {
           {/* User Info */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
             {/* User Profile */}
-            <Link href="/account">
+            <Link href="/profile">
               <div className="flex items-center space-x-2 rtl:space-x-reverse cursor-pointer hover:opacity-80 transition-opacity">
                 {user?.profileImageUrl ? (
                   <img
