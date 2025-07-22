@@ -273,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         caption: caption || '',
         mediaUrls,
         thumbnailUrl: mediaUrls[0] || null,
-        memoryType: memoryType || 'fleeting',
+        memoryType: memoryType || 'star',
         visibilityLevel: visibilityLevel || 'public',
         allowComments: allowComments !== 'false',
         allowSharing: allowSharing !== 'false',

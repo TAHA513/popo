@@ -336,9 +336,19 @@ export default function Home() {
                         memory.type === 'video' ? (
                           <video
                             src={memory.mediaUrls[0]}
-                            className="w-full h-full object-cover"
-                            muted
+                            className="w-full h-full object-cover cursor-pointer"
+                            controls
+                            preload="metadata"
                             poster={memory.thumbnailUrl}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const video = e.currentTarget;
+                              if (video.paused) {
+                                video.play();
+                              } else {
+                                video.pause();
+                              }
+                            }}
                           />
                         ) : (
                           <img

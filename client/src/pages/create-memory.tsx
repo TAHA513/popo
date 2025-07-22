@@ -101,6 +101,7 @@ export default function CreateMemoryPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<'upload' | 'filter' | 'details'>('upload');
@@ -169,6 +170,7 @@ export default function CreateMemoryPage() {
     if (!selectedFile) return;
 
     setIsUploading(true);
+    setUploadProgress(0);
     
     try {
       const formDataToSend = new FormData();
@@ -181,10 +183,24 @@ export default function CreateMemoryPage() {
       formDataToSend.append('allowGifts', formData.allowGifts.toString());
       formDataToSend.append('filter', selectedFilter);
 
+      // Simulate upload progress with better timing
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return Math.min(prev + Math.random() * 10 + 5, 90);
+        });
+      }, 200);
+
       const response = await fetch('/api/memories', {
         method: 'POST',
         body: formDataToSend,
       });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
       if (!response.ok) {
         throw new Error('فشل في نشر المحتوى');
@@ -195,22 +211,27 @@ export default function CreateMemoryPage() {
         description: "تم نشر محتواك وهو متاح الآن للآخرين",
       });
 
-      resetUpload();
-      
-      // Navigate to feed
+      // Wait a bit before resetting to show 100% progress
       setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
+        resetUpload();
+        setUploadProgress(0);
+        
+        // Navigate to feed
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
+      }, 1000);
 
     } catch (error) {
       console.error('Upload error:', error);
+      setUploadProgress(0);
       toast({
         title: "خطأ في النشر",
         description: "حدث خطأ أثناء نشر المحتوى. يرجى المحاولة مرة أخرى",
         variant: "destructive"
       });
     } finally {
-      setIsUploading(false);
+      // Keep uploading state until navigation
     }
   };
 
@@ -561,19 +582,29 @@ export default function CreateMemoryPage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={isUploading}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl flex-1 shadow-lg tiktok-button"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl flex-1 shadow-lg tiktok-button relative overflow-hidden"
                 >
-                  {isUploading ? (
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
-                      جاري النشر...
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <Sparkles className="h-5 w-5 ml-2" />
-                      نشر الذكرى
-                    </div>
+                  {/* Progress bar background */}
+                  {isUploading && (
+                    <div 
+                      className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-500 transition-all duration-300 ease-out"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
                   )}
+                  
+                  <div className="relative z-10">
+                    {isUploading ? (
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
+                        <span>جاري النشر... {Math.round(uploadProgress)}%</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <Sparkles className="h-5 w-5 ml-2" />
+                        نشر الذكرى
+                      </div>
+                    )}
+                  </div>
                 </Button>
               </div>
             </div>
