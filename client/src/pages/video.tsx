@@ -26,7 +26,8 @@ import {
   Star,
   ChevronUp,
   ChevronDown,
-  Plus
+  Plus,
+  Check
 } from "lucide-react";
 
 interface VideoData {
@@ -63,6 +64,7 @@ export default function VideoPage() {
   const [isMuted, setIsMuted] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch all public videos for TikTok-style browsing
@@ -100,6 +102,22 @@ export default function VideoPage() {
   }, [videoId, allVideos]);
 
   const currentVideo = allVideos[currentVideoIndex];
+
+  // Check if current user is following the video author
+  const { data: followStatus } = useQuery({
+    queryKey: ['/api/users', currentVideo?.author?.id, 'is-following'],
+    queryFn: async () => {
+      if (!currentVideo?.author?.id || !user) return { isFollowing: false };
+      const response = await fetch(`/api/users/${currentVideo.author.id}/is-following`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return { isFollowing: false };
+      return response.json();
+    },
+    enabled: !!currentVideo?.author?.id && !!user
+  });
+
+  const isFollowing = followStatus?.isFollowing || false;
 
   // Auto-play and handle video changes
   useEffect(() => {
@@ -295,7 +313,21 @@ export default function VideoPage() {
         title: data.following ? "تمت المتابعة!" : "تم إلغاء المتابعة",
         description: data.following ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
       });
+      // Update local state immediately
+      if (currentVideo?.author?.id) {
+        setFollowingUsers(prev => {
+          const newSet = new Set(prev);
+          if (data.following) {
+            newSet.add(currentVideo.author.id);
+          } else {
+            newSet.delete(currentVideo.author.id);
+          }
+          return newSet;
+        });
+      }
+      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', currentVideo?.author?.id, 'is-following'] });
     },
     onError: (error: any) => {
       console.error("Follow error:", error);
@@ -538,10 +570,21 @@ export default function VideoPage() {
             {currentVideo.author?.id !== user?.id && (
               <Button 
                 size="sm"
-                className="w-6 h-6 md:w-8 md:h-8 p-0 rounded-full bg-red-600 text-white border-2 border-white hover:bg-red-700"
+                className={`w-6 h-6 md:w-8 md:h-8 p-0 rounded-full border-2 border-white transition-colors ${
+                  isFollowing 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
                 onClick={handleFollow}
+                disabled={followMutation.isPending}
               >
-                <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                {followMutation.isPending ? (
+                  <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : isFollowing ? (
+                  <Check className="w-3 h-3 md:w-4 md:h-4" />
+                ) : (
+                  <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                )}
               </Button>
             )}
           </div>
