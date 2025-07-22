@@ -186,31 +186,6 @@ export default function Home() {
                 </div>
               </Button>
             </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-3 animate-pulse">
-                    <span className="text-white text-lg">🔥</span>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-gray-800">النشاط المباشر</h3>
-                    <p className="text-sm text-gray-600">
-                      {typedStreams.length > 0 
-                        ? `${typedStreams.length} بث مباشر الآن • ${typedMemories.length} منشور جديد`
-                        : typedMemories.length > 0 
-                          ? `${typedMemories.length} منشور جديد • انضم للمتعة!`
-                          : "كن أول من يبدأ البث أو ينشر محتوى!"
-                      }
-                    </p>
-                  </div>
-                </div>
-                <div className="hidden md:flex items-center space-x-2 rtl:space-x-reverse">
-                  <div className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-medium">
-                    مباشر
-                  </div>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
