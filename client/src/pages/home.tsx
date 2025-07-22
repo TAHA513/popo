@@ -18,7 +18,8 @@ import {
   User,
   Plus,
   Image,
-  PlayCircle
+  PlayCircle,
+  Radio
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -143,7 +144,57 @@ export default function Home() {
           
           {/* Live Activity Banner */}
           <div className="mb-2">
-            <div className="bg-white/80 backdrop-blur-lg border border-gray-200 p-3 shadow-lg">
+            <div className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 p-4 shadow-2xl relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.3),transparent_50%)]"></div>
+                <div className="absolute top-4 right-4 w-12 h-12 border-2 border-white/20 rounded-full animate-pulse"></div>
+                <div className="absolute bottom-4 left-6 w-8 h-8 border border-white/20 rounded-full animate-bounce"></div>
+              </div>
+              
+              <div className="relative z-10 flex items-center justify-between">
+                {/* Live Status & Info */}
+                <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 shadow-lg">
+                    <div className="relative">
+                      <Radio className="w-8 h-8 text-white" />
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="text-white">
+                    <h2 className="text-2xl font-bold mb-1">النشاط المباشر</h2>
+                    <div className="flex items-center space-x-6 rtl:space-x-reverse text-white/90">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                        <span className="text-sm font-medium">{typedStreams.length} بث مباشر</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Eye className="w-4 h-4 mr-2" />
+                        <span className="text-sm">{typedStreams.reduce((sum, stream) => sum + (stream.viewerCount || 0), 0)} مشاهد</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Start Stream Button */}
+                <div className="flex flex-col items-end space-y-2">
+                  <Button
+                    onClick={() => window.location.href = '/start-stream'}
+                    className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-xl font-bold text-lg backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <Video className="w-5 h-5" />
+                      <span>ابدأ البث</span>
+                      <PlayCircle className="w-5 h-5 animate-pulse" />
+                    </div>
+                  </Button>
+                  <div className="flex items-center text-white/70 text-xs">
+                    <Zap className="w-3 h-3 mr-1" />
+                    <span>انطلق واربح النقاط</span>
+                  </div>
+                </div>
+              </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-3 animate-pulse">
@@ -228,9 +279,9 @@ export default function Home() {
                       
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          {stream.hostProfileImage ? (
+                          {(stream as any).hostProfileImage ? (
                             <img
-                              src={stream.hostProfileImage}
+                              src={(stream as any).hostProfileImage}
                               alt="صورة المضيف"
                               className="w-8 h-8 rounded-full object-cover border-2 border-purple-300"
                             />
@@ -239,7 +290,7 @@ export default function Home() {
                               <User className="w-4 h-4 text-white" />
                             </div>
                           )}
-                          <span className="mr-2 text-sm font-medium text-gray-700">{stream.hostId}</span>
+                          <span className="mr-2 text-sm font-medium text-gray-700">{(stream as any).hostName || stream.hostId}</span>
                         </div>
                       </div>
 
