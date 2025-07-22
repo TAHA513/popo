@@ -35,7 +35,7 @@ export default function SimpleNavigation() {
                 <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
                   Live
                 </span>
-                <span className="text-sm font-medium text-gray-700 hidden md:block ml-2 rtl:ml-0 rtl:mr-2">
+                <span className="text-base font-medium text-purple-600 hidden sm:block ml-3 rtl:ml-0 rtl:mr-3">
                   LaaBoBo
                 </span>
               </div>
