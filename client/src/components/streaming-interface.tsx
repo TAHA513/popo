@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/lib/websocket";
 import { useMutation } from "@tanstack/react-query";
@@ -289,17 +290,21 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
               >
                 {chatMessages.map((message) => (
                   <div key={message.id} className="flex items-start space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={message.user?.profileImageUrl} />
-                      <AvatarFallback className="text-xs">
-                        {message.user?.username?.[0]?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <Link href={`/user/${message.user?.id}`}>
+                      <Avatar className="w-6 h-6 cursor-pointer hover:scale-105 transition-transform">
+                        <AvatarImage src={message.user?.profileImageUrl} />
+                        <AvatarFallback className="text-xs">
+                          {message.user?.username?.[0]?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-xs text-laa-pink">
-                          {message.user?.username || 'Anonymous'}
-                        </span>
+                        <Link href={`/user/${message.user?.id}`} className="hover:text-purple-600 transition-colors">
+                          <span className="font-semibold text-xs text-laa-pink cursor-pointer">
+                            {message.user?.username || 'Anonymous'}
+                          </span>
+                        </Link>
                         <span className="text-xs text-gray-500">
                           {message.sentAt ? new Date(message.sentAt).toLocaleTimeString([], { 
                             hour: '2-digit', 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -130,16 +131,20 @@ export default function MemoryCard({
         <div className="p-4 pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 rtl:space-x-reverse">
-              {/* Memory Type Icon */}
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-2xl shadow-lg`}>
-                {getMemoryIcon(memory.memoryType)}
-              </div>
+              {/* Memory Type Icon - Clickable to profile */}
+              <Link href={`/user/${memory.author.id}`}>
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-2xl shadow-lg cursor-pointer hover:scale-105 transition-transform`}>
+                  {getMemoryIcon(memory.memoryType)}
+                </div>
+              </Link>
               
               <div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                  <h3 className="font-semibold text-sm">
-                    {memory.author.firstName || memory.author.username}
-                  </h3>
+                  <Link href={`/user/${memory.author.id}`} className="hover:text-purple-600 transition-colors">
+                    <h3 className="font-semibold text-sm cursor-pointer">
+                      {memory.author.firstName || memory.author.username}
+                    </h3>
+                  </Link>
                   {getVisibilityIcon(memory.visibilityLevel)}
                 </div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse text-xs text-gray-500">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -346,21 +347,25 @@ export default function Explore() {
                 {typedUsers.slice(0, 6).map((suggestedUser: any) => (
                   <Card key={suggestedUser.id} className="p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                      {suggestedUser.profileImageUrl ? (
-                        <img
-                          src={suggestedUser.profileImageUrl}
-                          alt={suggestedUser.firstName || suggestedUser.username}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                          <Users className="w-6 h-6 text-white" />
-                        </div>
-                      )}
+                      <Link href={`/user/${suggestedUser.id}`}>
+                        {suggestedUser.profileImageUrl ? (
+                          <img
+                            src={suggestedUser.profileImageUrl}
+                            alt={suggestedUser.firstName || suggestedUser.username}
+                            className="w-12 h-12 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+                            <Users className="w-6 h-6 text-white" />
+                          </div>
+                        )}
+                      </Link>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">
-                          {suggestedUser.firstName || suggestedUser.username}
-                        </h3>
+                        <Link href={`/user/${suggestedUser.id}`} className="hover:text-purple-600 transition-colors">
+                          <h3 className="font-semibold text-gray-800 cursor-pointer">
+                            {suggestedUser.firstName || suggestedUser.username}
+                          </h3>
+                        </Link>
                         <p className="text-sm text-gray-600">
                           {suggestedUser.totalMemories || 0} ذكرى
                         </p>

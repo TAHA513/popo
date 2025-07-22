@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -154,27 +155,32 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
       <div className="w-full h-full bg-white rounded-xl shadow-xl p-6 flex flex-col justify-between">
         {/* User Info */}
         <div className="flex items-center mb-4">
-          {content.author?.profileImageUrl ? (
-            <img
-              src={content.author.profileImageUrl}
-              alt="صورة الكاتب"
-              className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 shadow-md"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                if (nextElement) {
-                  nextElement.style.display = 'flex';
-                }
-              }}
-            />
-          ) : null}
-          <div className={`w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md ${content.author?.profileImageUrl ? 'hidden' : ''}`}>
-            <User className="w-6 h-6 text-white" />
-          </div>
+          <Link href={`/user/${content.author?.id || content.authorId}`}>
+            {content.author?.profileImageUrl ? (
+              <img
+                src={content.author.profileImageUrl}
+                alt="صورة الكاتب"
+                className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 shadow-md cursor-pointer hover:scale-105 transition-transform"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (nextElement) {
+                    nextElement.style.display = 'flex';
+                  }
+                }}
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-105 transition-transform">
+                <User className="w-6 h-6 text-white" />
+              </div>
+            )}
+          </Link>
           <div className="mr-3 flex-1">
-            <h4 className="font-bold text-gray-900 text-lg">
-              {content.author?.firstName || content.author?.username || content.authorId || 'مستخدم'}
-            </h4>
+            <Link href={`/user/${content.author?.id || content.authorId}`} className="hover:text-purple-600 transition-colors">
+              <h4 className="font-bold text-gray-900 text-lg cursor-pointer">
+                {content.author?.firstName || content.author?.username || content.authorId || 'مستخدم'}
+              </h4>
+            </Link>
             <p className="text-gray-600 text-sm flex items-center">
               <Clock className="w-3 h-3 mr-1" />
               منذ يوم

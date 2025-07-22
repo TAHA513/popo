@@ -60,6 +60,7 @@ function Router() {
           <Route path="/create-memory" component={CreateMemoryPage} />
           <Route path="/profile" component={ProfileSimplePage} />
           <Route path="/profile/:userId" component={ProfileSimplePage} />
+          <Route path="/user/:userId" component={ProfileSimplePage} />
           <Route path="/explore" component={ExplorePage} />
           <Route path="/gifts" component={GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
