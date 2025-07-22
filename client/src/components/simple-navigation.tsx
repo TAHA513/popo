@@ -35,6 +35,9 @@ export default function SimpleNavigation() {
                 <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
                   Live
                 </span>
+                <span className="text-sm font-medium text-gray-700 hidden md:block ml-2 rtl:ml-0 rtl:mr-2">
+                  LaaBoBo
+                </span>
               </div>
             </Link>
           </div>
@@ -51,15 +54,7 @@ export default function SimpleNavigation() {
             </div>
           </div>
 
-          {/* App Name with Search Icon - Desktop Only */}
-          <div className="hidden md:flex items-center justify-center flex-1">
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Search className="w-5 h-5 text-purple-500" />
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                LaaBoBo Live
-              </span>
-            </div>
-          </div>
+
 
           {/* Navigation Links - Desktop Only */}
           <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse flex-shrink-0">
@@ -78,7 +73,7 @@ export default function SimpleNavigation() {
                 variant={location === "/explore" ? "default" : "ghost"} 
                 size="sm"
               >
-                <Search className="w-4 h-4 ml-1" />
+                <Search className="w-3 h-3 ml-1" />
                 استكشف
               </Button>
             </Link>
