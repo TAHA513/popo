@@ -94,6 +94,8 @@ export default function CreateMemoryPage() {
     allowSharing: true,
     allowGifts: true
   });
+  const [showYinYang, setShowYinYang] = useState(false);
+  const [selectedContentFilter, setSelectedContentFilter] = useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -232,99 +234,144 @@ export default function CreateMemoryPage() {
             </div>
           </div>
 
-          {/* Step 1: Media Capture */}
+          {/* Step 1: Innovative Pop-up Design */}
           {currentStep === 'capture' && (
-            <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  اختر الوسائط
-                </CardTitle>
-                <p className="text-gray-600">التقط صورة أو فيديو أو اختر من المعرض</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Camera Options - Enhanced with more options */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    size="lg"
-                    className="h-20 bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex-col space-y-1 text-white shadow-lg"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Camera className="w-7 h-7" />
-                    <span className="text-xs font-medium">التقط صورة</span>
-                  </Button>
-                  
-                  <Button
-                    size="lg"
-                    className="h-20 bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 flex-col space-y-1 text-white shadow-lg"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Video className="w-7 h-7" />
-                    <span className="text-xs font-medium">سجل فيديو</span>
-                  </Button>
-                </div>
+            <div className="relative">
+              {/* Glassmorphism Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-pink-900/20 to-blue-900/20 backdrop-blur-3xl rounded-3xl"></div>
+              
+              <Card className="relative shadow-2xl border-0 bg-white/10 backdrop-blur-xl overflow-hidden">
+                {/* Header Section */}
+                <CardHeader className="text-center pb-8 pt-12">
+                  <div className="relative mb-8">
+                    <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-4">
+                      🎥 ابدأ إبداعك الآن
+                    </CardTitle>
+                    
+                    {/* Animated Pulse Button */}
+                    <div className="relative flex justify-center mb-8">
+                      <div className="absolute w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-ping opacity-20"></div>
+                      <div className="absolute w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse opacity-40"></div>
+                      <Button
+                        className="relative w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300"
+                        onClick={() => setShowYinYang(!showYinYang)}
+                      >
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                      </Button>
+                    </div>
+                    
+                    <p className="text-white/80 text-lg">انقر لبدء التصوير أو اختيار وسائط</p>
+                  </div>
+                </CardHeader>
 
-                {/* Additional Quick Options */}
-                <div className="grid grid-cols-3 gap-2 mt-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-16 border-2 border-green-200 hover:bg-green-50 flex-col space-y-1 text-green-700"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Image className="w-5 h-5" />
-                    <span className="text-xs">المعرض</span>
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-16 border-2 border-orange-200 hover:bg-orange-50 flex-col space-y-1 text-orange-700"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    <span className="text-xs">إبداعي</span>
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-16 border-2 border-pink-200 hover:bg-pink-50 flex-col space-y-1 text-pink-700"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Heart className="w-5 h-5" />
-                    <span className="text-xs">شخصي</span>
-                  </Button>
-                </div>
+                <CardContent className="space-y-8 px-8 pb-12">
+                  {/* Yin-Yang Circles */}
+                  {showYinYang && (
+                    <div className="flex justify-center items-center mb-8">
+                      <div className="relative w-80 h-40 flex items-center justify-center">
+                        {/* Camera Circle (Left) */}
+                        <Button
+                          className="absolute left-0 w-32 h-32 bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 rounded-full shadow-2xl hover:scale-110 transition-all duration-500 flex-col space-y-2 text-white transform hover:rotate-12"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Camera className="w-8 h-8" />
+                          <span className="text-xs font-bold">صوّر الآن</span>
+                        </Button>
+                        
+                        {/* Gallery Circle (Right) */}
+                        <Button
+                          className="absolute right-0 w-32 h-32 bg-gradient-to-br from-blue-600 via-cyan-600 to-blue-800 rounded-full shadow-2xl hover:scale-110 transition-all duration-500 flex-col space-y-2 text-white transform hover:-rotate-12"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Image className="w-8 h-8" />
+                          <span className="text-xs font-bold">من معرضك</span>
+                        </Button>
+                        
+                        {/* Center Connection */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 bg-white/20 rounded-full backdrop-blur-sm border border-white/30 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full animate-spin"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                {/* Upload Zone - Enhanced */}
-                <div 
-                  className="border-2 border-dashed border-purple-300 rounded-2xl p-6 text-center cursor-pointer hover:border-purple-400 hover:bg-gradient-to-br hover:from-purple-50 hover:to-pink-50 transition-all group"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="relative">
-                    <Upload className="w-10 h-10 text-purple-400 mx-auto mb-3 group-hover:text-purple-600 transition-colors" />
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Plus className="w-2 h-2 text-white" />
+                  {/* Content Filters */}
+                  <div className="space-y-4">
+                    <h3 className="text-white/90 text-lg font-semibold text-center">🔲 فلاتر المحتوى</h3>
+                    <div className="flex justify-center space-x-4 rtl:space-x-reverse">
+                      {[
+                        { id: 'creative', name: 'إبداعي', icon: '✨', color: 'from-yellow-500 to-orange-500' },
+                        { id: 'personal', name: 'شخصي', icon: '❤️', color: 'from-pink-500 to-red-500' },
+                        { id: 'fun', name: 'ترفيهي', icon: '🎭', color: 'from-green-500 to-teal-500' },
+                        { id: 'art', name: 'فنّي', icon: '🎨', color: 'from-purple-500 to-indigo-500' },
+                        { id: 'story', name: 'حكاية', icon: '💬', color: 'from-blue-500 to-cyan-500' }
+                      ].map((filter) => (
+                        <Button
+                          key={filter.id}
+                          className={`w-16 h-16 rounded-full bg-gradient-to-br ${filter.color} shadow-lg hover:scale-110 transition-all duration-300 flex-col space-y-1 text-white text-xs font-bold hover:shadow-2xl ${
+                            selectedContentFilter === filter.id ? 'ring-4 ring-white/50 scale-110' : ''
+                          }`}
+                          onClick={() => {
+                            setSelectedContentFilter(filter.id);
+                          }}
+                        >
+                          <span className="text-lg">{filter.icon}</span>
+                          <span>{filter.name}</span>
+                        </Button>
+                      ))}
                     </div>
                   </div>
-                  <p className="text-gray-700 mb-1 font-medium">اسحب ملفاتك هنا</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    📸 صور: JPG, PNG, WEBP<br />
-                    🎬 فيديو: MP4, MOV, WEBM<br />
-                    ⚡ حد أقصى: 5 ملفات
-                  </p>
-                </div>
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </CardContent>
-            </Card>
+                  {/* Wave-shaped Drag & Drop Zone */}
+                  <div className="relative">
+                    <div 
+                      className="relative bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm rounded-3xl p-8 border-2 border-dashed border-white/30 cursor-pointer hover:border-white/50 hover:bg-white/20 transition-all duration-300 group overflow-hidden"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {/* Wave Pattern Background */}
+                      <div className="absolute inset-0 opacity-20">
+                        <svg className="w-full h-full" viewBox="0 0 400 100" preserveAspectRatio="none">
+                          <path d="M0,50 Q100,20 200,50 T400,50 L400,100 L0,100 Z" fill="url(#wave-gradient)" />
+                          <defs>
+                            <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#8B5CF6" />
+                              <stop offset="50%" stopColor="#EC4899" />
+                              <stop offset="100%" stopColor="#3B82F6" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="relative text-center">
+                        <div className="mb-4">
+                          <Upload className="w-12 h-12 text-white/80 mx-auto mb-2 group-hover:text-white group-hover:scale-110 transition-all duration-300" />
+                          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto animate-bounce opacity-60"></div>
+                        </div>
+                        
+                        <p className="text-white font-semibold text-lg mb-2">🗂️ اسحب ملفاتك هنا</p>
+                        <div className="text-white/70 text-sm space-y-1">
+                          <p>📸 JPG / PNG / WEBP</p>
+                          <p>🎥 MP4 / MOV / WEBM</p>
+                          <p>⚡ حتى 5 ملفات</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Step 2: Filters */}
