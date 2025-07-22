@@ -140,27 +140,29 @@ export default function Home() {
       <main className="pt-20 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              مرحباً في LaaBoBo! 🐰
-            </h1>
-            <p className="text-gray-600 text-lg">شاهد وتفاعل مع كل المحتوى</p>
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-2xl p-8 text-center text-white shadow-xl">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold mb-3">
+                استكشف المحتوى المميز
+              </h1>
+              <p className="text-white/90 text-lg">
+                اكتشف أحدث البثوث المباشرة والمنشورات من المبدعين
+              </p>
+            </div>
           </div>
 
           {/* Live Streams Section */}
           {typedStreams.length > 0 && (
             <div className="mb-12">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
-                  البث المباشر ({typedStreams.length})
-                </h2>
-                <Link href="/start-stream">
-                  <Button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
-                    ابدأ بث مباشر
-                  </Button>
-                </Link>
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
+                البث المباشر ({typedStreams.length})
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {typedStreams.map((stream) => (
                   <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-red-200">
@@ -256,17 +258,10 @@ export default function Home() {
 
           {/* Posts/Memories Section */}
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                <Sparkles className="w-5 h-5 mr-3 text-purple-600" />
-                المنشورات ({typedMemories.length})
-              </h2>
-              <Link href="/create-memory">
-                <Button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">
-                  إنشاء منشور
-                </Button>
-              </Link>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <Sparkles className="w-5 h-5 mr-3 text-purple-600" />
+              المنشورات ({typedMemories.length})
+            </h2>
             
             {typedMemories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -395,12 +390,7 @@ export default function Home() {
               <div className="text-center py-12 bg-white rounded-lg shadow">
                 <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-600 mb-2">لا توجد منشورات حالياً</h3>
-                <p className="text-gray-500 mb-6">ابدأ بإنشاء منشور لمشاركة إبداعك!</p>
-                <Link href="/create-memory">
-                  <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3">
-                    إنشاء منشور الآن
-                  </Button>
-                </Link>
+                <p className="text-gray-500">تحقق مرة أخرى قريباً للاطلاع على المحتوى الجديد</p>
               </div>
             )}
           </div>
@@ -412,10 +402,10 @@ export default function Home() {
                 <Sparkles className="w-12 h-12 text-purple-600" />
               </div>
               <h3 className="text-3xl font-bold text-gray-800 mb-4">
-                مرحباً بك في مجتمع LaaBoBo! 🐰
+                لا يوجد محتوى متاح حالياً
               </h3>
-              <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-                ابدأ بإنشاء محتوى رائع أو انطلق في بث مباشر لتكون جزءاً من المجتمع
+              <p className="text-gray-600 text-lg max-w-md mx-auto">
+                تحقق مرة أخرى قريباً لاستكشاف المحتوى الجديد والمثير
               </p>
             </div>
           )}
