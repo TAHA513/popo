@@ -271,7 +271,7 @@ export default function Feed() {
                   <CardContent className="px-4 pb-3">
                     {/* Media Preview */}
                     {memory.mediaUrls?.length > 0 && (
-                      <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl h-80 mb-4 overflow-hidden group cursor-pointer">
+                      <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl aspect-square mb-3 sm:mb-4 overflow-hidden group cursor-pointer">
                         {memory.type === 'image' && memory.thumbnailUrl ? (
                           <img 
                             src={memory.thumbnailUrl} 

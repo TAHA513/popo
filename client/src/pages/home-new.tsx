@@ -180,29 +180,32 @@ export default function HomeNew() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <SimpleNavigation />
       
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-7xl">
         {/* Welcome Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
             مرحباً، {user?.firstName || user?.username || 'مستخدم'}! 🐰
           </h1>
-          <p className="text-gray-600">استكشف البثوث المباشرة والمحتوى الجديد</p>
+          <p className="text-sm sm:text-base text-gray-600">استكشف البثوث المباشرة والمحتوى الجديد</p>
         </div>
 
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="all" className="text-sm">
-              <Users className="w-4 h-4 mr-2" />
-              الكل
+          <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6 h-12 sm:h-auto">
+            <TabsTrigger value="all" className="text-xs sm:text-sm px-1 sm:px-3">
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">الكل</span>
+              <span className="sm:hidden">الكل</span>
             </TabsTrigger>
-            <TabsTrigger value="live" className="text-sm">
-              <Video className="w-4 h-4 mr-2" />
-              بث مباشر ({typedStreams.length})
+            <TabsTrigger value="live" className="text-xs sm:text-sm px-1 sm:px-3">
+              <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">بث مباشر ({typedStreams.length})</span>
+              <span className="sm:hidden">مباشر</span>
             </TabsTrigger>
-            <TabsTrigger value="posts" className="text-sm">
-              <Sparkles className="w-4 h-4 mr-2" />
-              منشورات ({typedMemories.length})
+            <TabsTrigger value="posts" className="text-xs sm:text-sm px-1 sm:px-3">
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">منشورات ({typedMemories.length})</span>
+              <span className="sm:hidden">منشورات</span>
             </TabsTrigger>
           </TabsList>
 
@@ -211,18 +214,18 @@ export default function HomeNew() {
             {/* Live Streams Section */}
             {typedStreams.length > 0 && (
               <div>
-                <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800 flex items-center">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full mr-2 animate-pulse"></div>
                   بث مباشر الآن
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-8">
                   {typedStreams.slice(0, 6).map((stream) => (
                     <Card 
                       key={stream.id} 
                       className="overflow-hidden hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                       onClick={() => handleJoinStream(stream.id)}
                     >
-                      <div className="relative h-48 bg-gradient-to-br from-purple-500 to-pink-500">
+                      <div className="relative aspect-video bg-gradient-to-br from-purple-500 to-pink-500">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Play className="w-12 h-12 text-white opacity-80" />
                         </div>
@@ -256,15 +259,15 @@ export default function HomeNew() {
 
             {/* Recent Posts Section */}
             <div>
-              <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
+              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800 flex items-center">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-purple-600" />
                 أحدث المنشورات
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {typedMemories.slice(0, 9).map((memory) => (
-                  <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                {typedMemories.slice(0, 12).map((memory) => (
+                  <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all w-full">
                     {/* Media Content */}
-                    <div className="relative h-64 bg-gray-200 rounded-t-lg overflow-hidden">
+                    <div className="relative aspect-square bg-gray-200 rounded-t-lg overflow-hidden w-full">
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
                         memory.type === 'video' ? (
                           <video
@@ -387,14 +390,14 @@ export default function HomeNew() {
                 </Button>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {typedStreams.map((stream) => (
                   <Card 
                     key={stream.id} 
                     className="overflow-hidden hover:shadow-lg transition-all cursor-pointer"
                     onClick={() => handleJoinStream(stream.id)}
                   >
-                    <div className="relative h-48 bg-gradient-to-br from-purple-500 to-pink-500">
+                    <div className="relative aspect-video bg-gradient-to-br from-purple-500 to-pink-500">
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Play className="w-16 h-16 text-white" />
                       </div>
@@ -434,11 +437,11 @@ export default function HomeNew() {
                 </Button>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                 {typedMemories.map((memory) => (
-                  <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all">
+                  <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all w-full">
                     {/* Same card content as above */}
-                    <div className="relative h-64 bg-gray-200 rounded-t-lg overflow-hidden">
+                    <div className="relative aspect-square bg-gray-200 rounded-t-lg overflow-hidden w-full">
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
                         memory.type === 'video' ? (
                           <video
