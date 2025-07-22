@@ -228,9 +228,17 @@ export default function Home() {
                       
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <User className="w-4 h-4 text-white" />
-                          </div>
+                          {stream.hostProfileImage ? (
+                            <img
+                              src={stream.hostProfileImage}
+                              alt="صورة المضيف"
+                              className="w-8 h-8 rounded-full object-cover border-2 border-purple-300"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                              <User className="w-4 h-4 text-white" />
+                            </div>
+                          )}
                           <span className="mr-2 text-sm font-medium text-gray-700">{stream.hostId}</span>
                         </div>
                       </div>
@@ -368,9 +376,17 @@ export default function Home() {
                       {/* Author Info */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <User className="w-4 h-4 text-white" />
-                          </div>
+                          {memory.author?.profileImageUrl ? (
+                            <img
+                              src={memory.author.profileImageUrl}
+                              alt="صورة الكاتب"
+                              className="w-8 h-8 rounded-full object-cover border-2 border-purple-300"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                              <User className="w-4 h-4 text-white" />
+                            </div>
+                          )}
                           <div className="mr-2">
                             <span className="text-sm font-medium text-gray-700">
                               {memory.author?.firstName || memory.author?.username || memory.authorId}
