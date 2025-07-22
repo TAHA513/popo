@@ -1,27 +1,27 @@
+import { useAuth } from "@/hooks/useAuth";
+import SimpleNavigation from "@/components/simple-navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Video, 
-  Users, 
-  Eye, 
   Play, 
-  User, 
+  Users, 
   Heart, 
   MessageCircle, 
   Share2, 
   Gift, 
-  Bookmark,
+  Eye, 
+  Crown, 
   Sparkles,
-  Crown,
-  Star,
   Zap,
+  Timer,
+  User,
+  Bookmark,
+  Send,
   MoreHorizontal
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import SimpleNavigation from "@/components/simple-navigation";
-import BottomNavigation from "@/components/bottom-navigation";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -127,38 +127,44 @@ export default function HomeNew() {
     interactionMutation.mutate({ memoryId: postId, type: 'bookmark' });
   };
 
-  const getMemoryTypeColor = (type: string) => {
-    const colors = {
-      fleeting: 'bg-gray-500',
-      trending: 'bg-orange-500', 
-      star: 'bg-purple-500',
-      legend: 'bg-yellow-500'
-    };
-    return colors[type as keyof typeof colors] || 'bg-gray-500';
+  const handleSendGift = (postId: number) => {
+    interactionMutation.mutate({ memoryId: postId, type: 'gift' });
   };
 
   const getMemoryTypeIcon = (type: string) => {
-    const icons = {
-      fleeting: <Zap className="w-3 h-3" />,
-      trending: <Sparkles className="w-3 h-3" />,
-      star: <Star className="w-3 h-3" />,
-      legend: <Crown className="w-3 h-3" />
-    };
-    return icons[type as keyof typeof icons] || <Sparkles className="w-3 h-3" />;
+    switch (type) {
+      case 'flash':
+        return <Zap className="w-4 h-4" />;
+      case 'trending':
+        return <Sparkles className="w-4 h-4" />;
+      case 'star':
+        return <Crown className="w-4 h-4" />;
+      case 'legend':
+        return <Timer className="w-4 h-4" />;
+      default:
+        return <Sparkles className="w-4 h-4" />;
+    }
+  };
+
+  const getMemoryTypeColor = (type: string) => {
+    switch (type) {
+      case 'flash':
+        return 'bg-yellow-500';
+      case 'trending':
+        return 'bg-pink-500';
+      case 'star':
+        return 'bg-purple-500';
+      case 'legend':
+        return 'bg-orange-500';
+      default:
+        return 'bg-blue-500';
+    }
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <SimpleNavigation />
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="text-lg mb-4">يرجى تسجيل الدخول</div>
-            <Button onClick={() => window.location.href = '/login'}>
-              تسجيل الدخول
-            </Button>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
+        <div className="text-white text-lg">جاري التحميل...</div>
       </div>
     );
   }
@@ -222,7 +228,7 @@ export default function HomeNew() {
                       className="overflow-hidden hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                       onClick={() => handleJoinStream(stream.id)}
                     >
-                      <div className="relative h-48 bg-gradient-to-br from-purple-500 to-pink-500">
+                      <div className="relative h-64 bg-gradient-to-br from-purple-500 to-pink-500">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Play className="w-12 h-12 text-white opacity-80" />
                         </div>
@@ -264,27 +270,25 @@ export default function HomeNew() {
                 {typedMemories.slice(0, 9).map((memory) => (
                   <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all">
                     {/* Media Content */}
-                    <div className="relative h-64 bg-gray-200 rounded-t-lg overflow-hidden">
-                      {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
-                        memory.type === 'video' ? (
+                    <div className="relative h-64 bg-gray-200">
+                      {memory.mediaUrls?.[0] || memory.thumbnailUrl ? (
+                        memory.mediaUrls?.[0] || memory.thumbnailUrl.includes('.mp4') || memory.mediaUrls?.[0] || memory.thumbnailUrl.includes('.webm') ? (
                           <video
-                            src={memory.mediaUrls[0]}
+                            src={memory.mediaUrls?.[0] || memory.thumbnailUrl}
                             className="w-full h-full object-cover"
                             muted
                             loop
-                            poster={memory.thumbnailUrl}
+                            poster="/placeholder-video.jpg"
                             onMouseEnter={(e) => e.currentTarget.play()}
                             onMouseLeave={(e) => e.currentTarget.pause()}
                           />
                         ) : (
                           <img
-                            src={memory.thumbnailUrl || memory.mediaUrls[0]}
+                            src={memory.mediaUrls?.[0] || memory.thumbnailUrl}
                             alt="Memory"
                             className="w-full h-full object-cover"
-                            loading="lazy"
                             onError={(e) => {
-                              const target = e.currentTarget;
-                              target.src = '/placeholder-image.jpg';
+                              e.currentTarget.src = '/placeholder-image.jpg';
                             }}
                           />
                         )
@@ -321,52 +325,59 @@ export default function HomeNew() {
                       {/* Author Info */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
                             <User className="w-4 h-4 text-white" />
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">
-                              {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
-                            </p>
-                            <p className="text-xs text-gray-500">منذ دقائق</p>
-                          </div>
+                          <span className="mr-2 text-sm text-gray-600">{memory.authorId}</span>
                         </div>
+                        <span className="text-xs text-gray-400">منذ ساعة</span>
                       </div>
 
                       {/* Interaction Buttons */}
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                        <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                          <button 
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleLike(memory.id)}
-                            className="flex items-center space-x-1 rtl:space-x-reverse text-gray-500 hover:text-red-500 transition-colors"
+                            className={`p-2 ${likedPosts.has(memory.id) ? 'text-red-500' : 'text-gray-500'}`}
                           >
-                            <Heart className={`w-4 h-4 ${likedPosts.has(memory.id) ? 'text-red-500 fill-current' : ''}`} />
-                            <span className="text-xs">{memory.likeCount || 0}</span>
-                          </button>
-                          
-                          <button 
-                            onClick={() => handleComment(memory.id)}
-                            className="flex items-center space-x-1 rtl:space-x-reverse text-gray-500 hover:text-blue-500 transition-colors"
+                            <Heart className={`w-4 h-4 ${likedPosts.has(memory.id) ? 'fill-current' : ''}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleComment(memory.id)} className="p-2 text-gray-500 hover:text-blue-500"
                           >
                             <MessageCircle className="w-4 h-4" />
-                            <span className="text-xs">{memory.commentCount || 0}</span>
-                          </button>
-                          
-                          <button 
-                            onClick={() => handleShare(memory.id)}
-                            className="flex items-center space-x-1 rtl:space-x-reverse text-gray-500 hover:text-green-500 transition-colors"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleShare(memory.id)} className="p-2 text-gray-500 hover:text-green-500"
                           >
                             <Share2 className="w-4 h-4" />
-                            <span className="text-xs">{memory.shareCount || 0}</span>
-                          </button>
+                          </Button>
                         </div>
-
-                        <button 
-                          onClick={() => handleBookmark(memory.id)}
-                          className={`p-1 ${bookmarkedPosts.has(memory.id) ? 'text-purple-600' : 'text-gray-500 hover:text-purple-600'} transition-colors`}
-                        >
-                          <Bookmark className={`w-4 h-4 ${bookmarkedPosts.has(memory.id) ? 'fill-current' : ''}`} />
-                        </button>
+                        
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSendGift(memory.id)}
+                            className="p-2 text-gray-500 hover:text-purple-500"
+                          >
+                            <Gift className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleBookmark(memory.id)}
+                            className={`p-2 ${bookmarkedPosts.has(memory.id) ? 'text-yellow-500' : 'text-gray-500'}`}
+                          >
+                            <Bookmark className={`w-4 h-4 ${bookmarkedPosts.has(memory.id) ? 'fill-current' : ''}`} />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -375,43 +386,38 @@ export default function HomeNew() {
             </div>
           </TabsContent>
 
-          {/* Live Tab Content */}
+          {/* Live Streams Only */}
           <TabsContent value="live" className="space-y-4">
-            {typedStreams.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد بثوث مباشرة حالياً</h3>
-                <p className="text-gray-500 mb-6">كن أول من يبدأ بثاً مباشراً!</p>
-                <Button onClick={() => window.location.href = '/start-stream'}>
-                  ابدأ البث الآن
-                </Button>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {typedStreams.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {typedStreams.map((stream) => (
                   <Card 
                     key={stream.id} 
-                    className="overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+                    className="overflow-hidden hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                     onClick={() => handleJoinStream(stream.id)}
                   >
-                    <div className="relative h-48 bg-gradient-to-br from-purple-500 to-pink-500">
+                    <div className="relative h-64 bg-gradient-to-br from-purple-500 to-pink-500">
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Play className="w-16 h-16 text-white" />
+                        <Play className="w-12 h-12 text-white opacity-80" />
                       </div>
-                      <Badge className="absolute top-4 left-4 bg-red-600 text-white">
+                      <Badge className="absolute top-3 left-3 bg-red-600 text-white">
+                        <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
                         مباشر
                       </Badge>
-                      <div className="absolute bottom-4 left-4 flex items-center text-white">
-                        <Eye className="w-4 h-4 mr-1" />
-                        <span>{stream.viewerCount || 0}</span>
+                      <div className="absolute bottom-3 left-3 flex items-center text-white bg-black/50 px-2 py-1 rounded">
+                        <Eye className="w-3 h-3 mr-1" />
+                        <span className="text-sm">{stream.viewerCount || 0}</span>
                       </div>
                     </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-semibold mb-2">{stream.title}</h3>
-                      <p className="text-gray-600 mb-4">{stream.description}</p>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-gray-800 mb-2">{stream.title}</h3>
+                      <p className="text-gray-600 text-sm mb-3">{stream.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">البث #{stream.id}</span>
-                        <Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        <div className="flex items-center text-sm text-gray-500">
+                          <User className="w-4 h-4 mr-1" />
+                          {stream.hostId}
+                        </div>
+                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
                           انضم الآن
                         </Button>
                       </div>
@@ -419,46 +425,46 @@ export default function HomeNew() {
                   </Card>
                 ))}
               </div>
+            ) : (
+              <div className="text-center py-12">
+                <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">لا توجد بثوث مباشرة حالياً</h3>
+                <p className="text-gray-500 mb-4">كن أول من يبدأ بث مباشر!</p>
+                <Link href="/start-stream">
+                  <Button className="bg-purple-600 hover:bg-purple-700">
+                    ابدأ بث مباشر
+                  </Button>
+                </Link>
+              </div>
             )}
           </TabsContent>
 
-          {/* Posts Tab Content */}
+          {/* Posts Only */}
           <TabsContent value="posts" className="space-y-4">
-            {typedMemories.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد منشورات حالياً</h3>
-                <p className="text-gray-500 mb-6">كن أول من يشارك منشوراً!</p>
-                <Button onClick={() => window.location.href = '/create-memory'}>
-                  إنشاء منشور جديد
-                </Button>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {typedMemories.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {typedMemories.map((memory) => (
                   <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all">
-                    {/* Same card content as above */}
-                    <div className="relative h-64 bg-gray-200 rounded-t-lg overflow-hidden">
-                      {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
-                        memory.type === 'video' ? (
+                    {/* Media Content */}
+                    <div className="relative h-64 bg-gray-200">
+                      {memory.mediaUrls?.[0] || memory.thumbnailUrl ? (
+                        memory.mediaUrls?.[0] || memory.thumbnailUrl.includes('.mp4') || memory.mediaUrls?.[0] || memory.thumbnailUrl.includes('.webm') ? (
                           <video
-                            src={memory.mediaUrls[0]}
+                            src={memory.mediaUrls?.[0] || memory.thumbnailUrl}
                             className="w-full h-full object-cover"
                             muted
                             loop
-                            poster={memory.thumbnailUrl}
+                            poster="/placeholder-video.jpg"
                             onMouseEnter={(e) => e.currentTarget.play()}
                             onMouseLeave={(e) => e.currentTarget.pause()}
                           />
                         ) : (
                           <img
-                            src={memory.thumbnailUrl || memory.mediaUrls[0]}
+                            src={memory.mediaUrls?.[0] || memory.thumbnailUrl}
                             alt="Memory"
                             className="w-full h-full object-cover"
-                            loading="lazy"
                             onError={(e) => {
-                              const target = e.currentTarget;
-                              target.src = '/placeholder-image.jpg';
+                              e.currentTarget.src = '/placeholder-image.jpg';
                             }}
                           />
                         )
@@ -468,6 +474,7 @@ export default function HomeNew() {
                         </div>
                       )}
                       
+                      {/* Memory Type Badge */}
                       <Badge className={`absolute top-3 left-3 ${getMemoryTypeColor(memory.memoryType)} text-white`}>
                         <div className="flex items-center">
                           {getMemoryTypeIcon(memory.memoryType)}
@@ -477,69 +484,87 @@ export default function HomeNew() {
                     </div>
 
                     <CardContent className="p-4">
+                      {/* Caption */}
                       <p className="text-gray-800 mb-3 line-clamp-2 text-right">
                         {memory.caption || "منشور جديد"}
                       </p>
 
+                      {/* Author Info */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
                             <User className="w-4 h-4 text-white" />
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">
-                              {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
-                            </p>
-                            <p className="text-xs text-gray-500">منذ دقائق</p>
-                          </div>
+                          <span className="mr-2 text-sm text-gray-600">{memory.authorId}</span>
                         </div>
+                        <span className="text-xs text-gray-400">منذ ساعة</span>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                        <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                          <button 
+                      {/* Interaction Buttons */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleLike(memory.id)}
-                            className="flex items-center space-x-1 rtl:space-x-reverse text-gray-500 hover:text-red-500 transition-colors"
+                            className={`p-2 ${likedPosts.has(memory.id) ? 'text-red-500' : 'text-gray-500'}`}
                           >
-                            <Heart className={`w-4 h-4 ${likedPosts.has(memory.id) ? 'text-red-500 fill-current' : ''}`} />
-                            <span className="text-xs">{memory.likeCount || 0}</span>
-                          </button>
-                          
-                          <button 
-                            onClick={() => handleComment(memory.id)}
-                            className="flex items-center space-x-1 rtl:space-x-reverse text-gray-500 hover:text-blue-500 transition-colors"
+                            <Heart className={`w-4 h-4 ${likedPosts.has(memory.id) ? 'fill-current' : ''}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleComment(memory.id)} className="p-2 text-gray-500 hover:text-blue-500"
                           >
                             <MessageCircle className="w-4 h-4" />
-                            <span className="text-xs">{memory.commentCount || 0}</span>
-                          </button>
-                          
-                          <button 
-                            onClick={() => handleShare(memory.id)}
-                            className="flex items-center space-x-1 rtl:space-x-reverse text-gray-500 hover:text-green-500 transition-colors"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleShare(memory.id)} className="p-2 text-gray-500 hover:text-green-500"
                           >
                             <Share2 className="w-4 h-4" />
-                            <span className="text-xs">{memory.shareCount || 0}</span>
-                          </button>
+                          </Button>
                         </div>
-
-                        <button 
-                          onClick={() => handleBookmark(memory.id)}
-                          className={`p-1 ${bookmarkedPosts.has(memory.id) ? 'text-purple-600' : 'text-gray-500 hover:text-purple-600'} transition-colors`}
-                        >
-                          <Bookmark className={`w-4 h-4 ${bookmarkedPosts.has(memory.id) ? 'fill-current' : ''}`} />
-                        </button>
+                        
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSendGift(memory.id)}
+                            className="p-2 text-gray-500 hover:text-purple-500"
+                          >
+                            <Gift className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleBookmark(memory.id)}
+                            className={`p-2 ${bookmarkedPosts.has(memory.id) ? 'text-yellow-500' : 'text-gray-500'}`}
+                          >
+                            <Bookmark className={`w-4 h-4 ${bookmarkedPosts.has(memory.id) ? 'fill-current' : ''}`} />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
+            ) : (
+              <div className="text-center py-12">
+                <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">لا توجد منشورات حالياً</h3>
+                <p className="text-gray-500 mb-4">كن أول من ينشر ذكرى!</p>
+                <Link href="/create-memory">
+                  <Button className="bg-purple-600 hover:bg-purple-700">
+                    إنشاء ذكرى
+                  </Button>
+                </Link>
+              </div>
             )}
           </TabsContent>
         </Tabs>
       </main>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation />
     </div>
   );
 }
