@@ -60,6 +60,11 @@ export default function ProfileSimplePage() {
       
       if (!response.ok) {
         console.error('Error fetching user:', response.status, response.statusText);
+        if (response.status === 401) {
+          // إعادة توجيه لصفحة تسجيل الدخول
+          setLocation('/login');
+          throw new Error('Authentication required');
+        }
         throw new Error(`Failed to fetch user: ${response.status}`);
       }
       
@@ -252,6 +257,22 @@ export default function ProfileSimplePage() {
   // If there's an error fetching user
   if (userError) {
     console.error('User error:', userError);
+    
+    // إذا كانت المشكلة في المصادقة، لا نظهر صفحة الخطأ لأنه سيتم إعادة توجيه
+    if (userError.message === 'Authentication required') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+          <SimpleNavigation />
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">جاري إعادة التوجيه لصفحة تسجيل الدخول...</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
@@ -260,7 +281,7 @@ export default function ProfileSimplePage() {
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">خطأ في تحميل الملف الشخصي</h2>
             <p className="text-gray-600 mb-4">{userError.message || 'حدث خطأ غير متوقع'}</p>
-            <div className="space-x-4">
+            <div className="space-x-4 rtl:space-x-reverse">
               <Button 
                 onClick={() => window.location.reload()} 
                 className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -270,6 +291,11 @@ export default function ProfileSimplePage() {
               <Link href="/explore">
                 <Button className="bg-purple-600 hover:bg-purple-700 text-white">
                   استكشاف المستخدمين
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  تسجيل الدخول
                 </Button>
               </Link>
             </div>
