@@ -142,10 +142,16 @@ export default function Feed() {
                                   src={memory.author.profileImageUrl} 
                                   alt={memory.author.username} 
                                   className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling?.classList.remove('hidden');
+                                  }}
                                 />
-                              ) : (
-                                <User className="w-6 h-6 text-white m-3" />
-                              )}
+                              ) : null}
+                              <User className={`w-6 h-6 text-white m-3 ${memory.author?.profileImageUrl ? 'hidden' : ''}`} />
                             </div>
                             {/* Online Status Indicator - TikTok Style */}
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
@@ -197,6 +203,23 @@ export default function Feed() {
                             src={memory.thumbnailUrl} 
                             alt={memory.caption || 'منشور'} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
+                          <video
+                            src={memory.mediaUrls[0]}
+                            className="w-full h-full object-cover"
+                            muted
+                            loop
+                            preload="metadata"
+                            poster={memory.thumbnailUrl}
+                            onMouseEnter={(e) => e.currentTarget.play()}
+                            onMouseLeave={(e) => e.currentTarget.pause()}
                           />
                         ) : (
                           <div className="flex items-center justify-center h-full">
@@ -213,32 +236,32 @@ export default function Feed() {
                     
                     {/* Interaction Buttons - Instagram/TikTok Style */}
                     <div className="flex items-center justify-between py-2">
-                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-2 -m-2 group">
-                          <Heart className="w-6 h-6 text-gray-700 group-hover:text-red-500 group-active:scale-125 transition-all duration-200" />
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-red-500">
+                      <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
+                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group">
+                          <Heart className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-red-500 group-active:scale-125 transition-all duration-200" />
+                          <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-red-500">
                             {memory.likeCount || 0}
                           </span>
                         </button>
                         
-                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-2 -m-2 group">
-                          <MessageCircle className="w-6 h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
+                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group">
+                          <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
+                          <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
                         </button>
                         
-                        <button className="p-2 -m-2 group">
-                          <Share2 className="w-6 h-6 text-gray-700 group-hover:text-green-500 transition-colors duration-200" />
+                        <button className="p-1.5 md:p-2 -m-2 group">
+                          <Share2 className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-green-500 transition-colors duration-200" />
                         </button>
                       </div>
                       
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                      <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
                         <Link href={`/profile/${memory.authorId}`}>
-                          <button className="p-2 -m-2 group">
-                            <Gift className="w-6 h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
+                          <button className="p-1.5 md:p-2 -m-2 group">
+                            <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
                           </button>
                         </Link>
-                        <button className="p-2 -m-2 group">
-                          <Bookmark className="w-6 h-6 text-gray-700 group-hover:text-yellow-500 transition-colors duration-200" />
+                        <button className="p-1.5 md:p-2 -m-2 group">
+                          <Bookmark className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-yellow-500 transition-colors duration-200" />
                         </button>
                       </div>
                     </div>

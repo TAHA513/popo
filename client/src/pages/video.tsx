@@ -344,12 +344,14 @@ export default function VideoPage() {
           muted={isMuted}
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           poster={currentVideo.thumbnailUrl}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
           onLoadStart={() => setIsVideoPlaying(false)}
           onCanPlay={() => setIsVideoPlaying(true)}
+          onWaiting={() => setIsVideoPlaying(false)}
+          onLoadedData={() => setIsVideoPlaying(true)}
         />
 
         {/* Video Controls Overlay */}
@@ -360,15 +362,15 @@ export default function VideoPage() {
               variant="ghost"
               size="lg"
               onClick={handleVideoToggle}
-              className={`w-20 h-20 rounded-full text-white bg-black/40 hover:bg-black/60 transition-all duration-300 ${isVideoPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-90 hover:opacity-100'}`}
+              className={`w-16 h-16 md:w-20 md:h-20 rounded-full text-white bg-black/40 hover:bg-black/60 transition-all duration-300 ${isVideoPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-90 hover:opacity-100'}`}
             >
               {isVideoPlaying ? (
-                <div className="w-6 h-6 flex items-center justify-center">
-                  <div className="w-2 h-6 bg-white rounded mr-1"></div>
-                  <div className="w-2 h-6 bg-white rounded"></div>
+                <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
+                  <div className="w-1.5 h-5 md:w-2 md:h-6 bg-white rounded mr-1"></div>
+                  <div className="w-1.5 h-5 md:w-2 md:h-6 bg-white rounded"></div>
                 </div>
               ) : (
-                <Play className="w-8 h-8 ml-1" fill="white" />
+                <Play className="w-6 h-6 md:w-8 md:h-8 ml-1" fill="white" />
               )}
             </Button>
           </div>
@@ -379,9 +381,9 @@ export default function VideoPage() {
               variant="ghost"
               size="sm"
               onClick={handleVolumeToggle}
-              className={`w-12 h-12 rounded-full border-2 border-white/40 hover:border-white/70 transition-all duration-300 ${isMuted ? 'text-red-500' : 'text-green-500'} bg-black/50 hover:bg-black/70`}
+              className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white/40 hover:border-white/70 transition-all duration-300 ${isMuted ? 'text-red-500' : 'text-green-500'} bg-black/50 hover:bg-black/70`}
             >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              {isMuted ? <VolumeX className="w-4 h-4 md:w-5 md:h-5" /> : <Volume2 className="w-4 h-4 md:w-5 md:h-5" />}
             </Button>
           </div>
 
@@ -395,72 +397,73 @@ export default function VideoPage() {
         </div>
 
         {/* Video Info & Actions - TikTok Style Right Sidebar */}
-        <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-6 z-10">
+        <div className="absolute right-2 md:right-4 bottom-20 flex flex-col items-center space-y-4 md:space-y-6 z-10">
           {/* Author Profile */}
           <div className="flex flex-col items-center">
             {currentVideo.author?.profileImageUrl ? (
               <img
                 src={currentVideo.author.profileImageUrl}
                 alt="صورة المنشور"
-                className="w-16 h-16 rounded-full object-cover border-2 border-white/50 mb-2"
+                className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-white/50 mb-2"
+                loading="lazy"
               />
             ) : (
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-2 border-white/50 mb-2">
-                <User className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-2 border-white/50 mb-2">
+                <User className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
             )}
             
             {currentVideo.author?.id !== user?.id && (
               <Button 
                 size="sm"
-                className="w-8 h-8 p-0 rounded-full bg-red-600 text-white border-2 border-white hover:bg-red-700"
+                className="w-6 h-6 md:w-8 md:h-8 p-0 rounded-full bg-red-600 text-white border-2 border-white hover:bg-red-700"
                 onClick={() => handleInteraction('المتابعة')}
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3 h-3 md:w-4 md:h-4" />
               </Button>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col items-center space-y-6">
+          <div className="flex flex-col items-center space-y-4 md:space-y-6">
             <Button
               variant="ghost"
               size="lg"
               onClick={handleLike}
-              className={`flex flex-col items-center ${likedVideos.has(`video-${currentVideo.id}`) ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent`}
+              className={`flex flex-col items-center ${likedVideos.has(`video-${currentVideo.id}`) ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent p-2 md:p-3`}
             >
-              <Heart className={`w-8 h-8 ${likedVideos.has(`video-${currentVideo.id}`) ? 'fill-current' : ''}`} />
-              <span className="text-sm mt-1">{currentVideo.likeCount}</span>
+              <Heart className={`w-6 h-6 md:w-8 md:h-8 ${likedVideos.has(`video-${currentVideo.id}`) ? 'fill-current' : ''}`} />
+              <span className="text-xs md:text-sm mt-1">{currentVideo.likeCount}</span>
             </Button>
             
             <Button
               variant="ghost"
               size="lg"
               onClick={() => handleInteraction('التعليق')}
-              className="flex flex-col items-center text-white hover:text-blue-400 bg-transparent"
+              className="flex flex-col items-center text-white hover:text-blue-400 bg-transparent p-2 md:p-3"
             >
-              <MessageCircle className="w-8 h-8" />
-              <span className="text-sm mt-1">تعليق</span>
+              <MessageCircle className="w-6 h-6 md:w-8 md:h-8" />
+              <span className="text-xs md:text-sm mt-1">تعليق</span>
             </Button>
             
             <Button
               variant="ghost"
               size="lg"
               onClick={() => handleInteraction('المشاركة')}
-              className="flex flex-col items-center text-white hover:text-green-400 bg-transparent"
+              className="flex flex-col items-center text-white hover:text-green-400 bg-transparent p-2 md:p-3"
             >
-              <Share2 className="w-8 h-8" />
-              <span className="text-sm mt-1">مشاركة</span>
+              <Share2 className="w-6 h-6 md:w-8 md:h-8" />
+              <span className="text-xs md:text-sm mt-1">مشاركة</span>
             </Button>
             
             <Button
               variant="ghost"
               size="lg"
               onClick={() => handleInteraction('إرسال هدية')}
-              className="flex flex-col items-center text-white hover:text-yellow-400 bg-transparent"
+              className="flex flex-col items-center text-white hover:text-yellow-400 bg-transparent p-2 md:p-3"
             >
-              <Gift className="w-8 h-8" />
-              <span className="text-sm mt-1">هدية</span>
+              <Gift className="w-6 h-6 md:w-8 md:h-8" />
+              <span className="text-xs md:text-sm mt-1">هدية</span>
             </Button>
           </div>
         </div>
