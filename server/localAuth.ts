@@ -19,6 +19,10 @@ export function setupLocalAuth(app: Express) {
         if (!user) {
           return done(null, false, { message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
         }
+        
+        if (!user.passwordHash) {
+          return done(null, false, { message: 'هذا الحساب لا يحتوي على كلمة مرور محلية' });
+        }
 
         const isValid = await bcrypt.compare(password, user.passwordHash);
         
@@ -28,6 +32,7 @@ export function setupLocalAuth(app: Express) {
 
         return done(null, user);
       } catch (error) {
+        console.error('Local auth error:', error);
         return done(error);
       }
     }
