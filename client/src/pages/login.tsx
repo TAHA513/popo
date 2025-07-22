@@ -165,7 +165,7 @@ export default function Login() {
               <div className="text-center">
                 <Button
                   variant="link"
-                  className="text-[#f21d1d] hover:text-white text-sm p-0 h-auto"
+                  className="text-[#e019ca] hover:text-white text-sm p-0 h-auto"
                   type="button"
                 >
                   نسيت كلمة المرور؟
