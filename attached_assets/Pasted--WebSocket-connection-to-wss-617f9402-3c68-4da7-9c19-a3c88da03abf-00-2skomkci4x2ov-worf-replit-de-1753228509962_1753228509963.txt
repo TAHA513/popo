@@ -1,0 +1,1327 @@
+ WebSocket connection to 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/?token=PSeBeDq24zqB' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) 
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ SW registered:  ServiceWorkerRegistration
+ 🔧 ProfileSimplePage Debug Info:
+ 👤 userId from params: undefined
+ 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+ profileUser: undefined
+ isOwnProfile: true
+ userLoading: true
+ userError: null
+ 🔍 Fetching user profile for: tgEdqzdzvCGHpzO8jp7hS
+ 🔧 ProfileSimplePage Debug Info:
+ 👤 userId from params: undefined
+ 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+ profileUser: undefined
+ isOwnProfile: true
+ userLoading: true
+ userError: null
+profile:1 Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)
+ 🔧 ProfileSimplePage Debug Info:
+ 👤 userId from params: undefined
+ 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+ profileUser: undefined
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: true
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:119 📡 Response status: 200
+profile-simple.tsx:149 ✅ User profile fetched successfully: Object
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: Object
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:173 🔍 Fetching memories for user: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: Object
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: Object
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: Object
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:187 ✅ Memories fetched: 1 items
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: Object
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+profile-simple.tsx:100 🔍 Fetching user profile for: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:173 🔍 Fetching memories for user: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:119 📡 Response status: 200
+profile-simple.tsx:149 ✅ User profile fetched successfully: Object
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: Object
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: Object
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:187 ✅ Memories fetched: 1 items
+profile-simple.tsx:100 🔍 Fetching user profile for: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:119 📡 Response status: 200
+profile-simple.tsx:149 ✅ User profile fetched successfully: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:173 🔍 Fetching memories for user: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:187 ✅ Memories fetched: 1 items
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+profile-simple.tsx:100 🔍 Fetching user profile for: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:173 🔍 Fetching memories for user: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:119 📡 Response status: 200
+profile-simple.tsx:149 ✅ User profile fetched successfully: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:187 ✅ Memories fetched: 1 items
+profile-simple.tsx:100 🔍 Fetching user profile for: tgEdqzdzvCGHpzO8jp7hS
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+profile-simple.tsx:119 📡 Response status: 200
+profile-simple.tsx:173 🔍 Fetching memories for user: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:149 ✅ User profile fetched successfully: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:187 ✅ Memories fetched: 1 items
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+profile-simple.tsx:100 🔍 Fetching user profile for: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:119 📡 Response status: 200
+profile-simple.tsx:173 🔍 Fetching memories for user: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:149 ✅ User profile fetched successfully: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:187 ✅ Memories fetched: 1 items
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+simple-navigation.tsx:80 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+chunk-WERSD76P.js?v=ac155a4c:3750 Uncaught TypeError: logout is not a function
+    at onClick (simple-navigation.tsx:80:32)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (chunk-WERSD76P.js?v=ac155a4c:3736:33)
+    at executeDispatch (chunk-WERSD76P.js?v=ac155a4c:7014:11)
+    at processDispatchQueueItemsInOrder (chunk-WERSD76P.js?v=ac155a4c:7034:15)
+    at processDispatchQueue (chunk-WERSD76P.js?v=ac155a4c:7043:13)
+    at dispatchEventsForPlugins (chunk-WERSD76P.js?v=ac155a4c:7051:11)
+    at chunk-WERSD76P.js?v=ac155a4c:7174:20
+onClick @ simple-navigation.tsx:80
+callCallback2 @ chunk-WERSD76P.js?v=ac155a4c:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=ac155a4c:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=ac155a4c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=ac155a4c:3736
+executeDispatch @ chunk-WERSD76P.js?v=ac155a4c:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=ac155a4c:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=ac155a4c:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=ac155a4c:7051
+(anonymous) @ chunk-WERSD76P.js?v=ac155a4c:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=ac155a4c:18913
+batchedUpdates @ chunk-WERSD76P.js?v=ac155a4c:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=ac155a4c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=ac155a4c:5478
+dispatchEvent @ chunk-WERSD76P.js?v=ac155a4c:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=ac155a4c:5449
+profile-simple.tsx:100 🔍 Fetching user profile for: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:173 🔍 Fetching memories for user: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:119 📡 Response status: 200
+profile-simple.tsx:149 ✅ User profile fetched successfully: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:47 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:48 👤 userId from params: undefined
+profile-simple.tsx:49 🎯 Final profileUserId: tgEdqzdzvCGHpzO8jp7hS
+profile-simple.tsx:314 profileUser: {id: 'tgEdqzdzvCGHpzO8jp7hS', email: 'asaad11asaad44@gmail.com', firstName: 'ali', lastName: 'ali', profileImageUrl: null, …}
+profile-simple.tsx:315 isOwnProfile: true
+profile-simple.tsx:316 userLoading: false
+profile-simple.tsx:317 userError: null
+profile-simple.tsx:187 ✅ Memories fetched: 1 items

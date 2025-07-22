@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function SimpleNavigation() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [location] = useLocation();
 
   return (
@@ -77,7 +77,18 @@ export default function SimpleNavigation() {
             {/* Logout Button */}
             {user && (
               <button 
-                onClick={() => logout()}
+                onClick={async () => {
+                  try {
+                    const response = await fetch("/api/logout", {
+                      method: "POST",
+                      credentials: "include",
+                    });
+                    window.location.href = "/login";
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                    window.location.href = "/login";
+                  }
+                }}
                 className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full hover:bg-red-500/20"
                 title="تسجيل الخروج"
               >

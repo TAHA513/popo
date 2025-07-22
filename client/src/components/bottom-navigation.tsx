@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 export default function BottomNavigation() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [location] = useLocation();
 
   const navItems = [
@@ -46,7 +46,18 @@ export default function BottomNavigation() {
             return (
               <button 
                 key={index}
-                onClick={() => logout()}
+                onClick={async () => {
+                  try {
+                    const response = await fetch("/api/logout", {
+                      method: "POST",
+                      credentials: "include",
+                    });
+                    window.location.href = "/login";
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                    window.location.href = "/login";
+                  }
+                }}
                 className="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 text-red-500 hover:text-red-600 hover:bg-red-50"
               >
                 <Icon className="w-6 h-6" />
