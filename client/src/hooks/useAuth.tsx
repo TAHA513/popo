@@ -42,22 +42,25 @@ export function useAuth() {
   });
 
   const logout = async () => {
+    console.log("Logout function called");
     try {
-      await fetch("/api/logout", {
+      const response = await fetch("/api/logout", {
         method: "POST",
         credentials: "include",
       });
       
+      console.log("Logout response:", response.status);
+      
       // Clear all cached data
       queryClient.clear();
       
-      // Redirect to login page after logout
-      window.location.href = "/login";
+      // Force reload to ensure complete logout
+      window.location.replace("/login");
     } catch (error) {
       console.error("Logout error:", error);
       // Even if logout fails on server, clear local data and redirect
       queryClient.clear();
-      window.location.href = "/login";
+      window.location.replace("/login");
     }
   };
 
