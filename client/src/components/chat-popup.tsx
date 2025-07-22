@@ -6,6 +6,7 @@ import { X, Send, Smile, Image, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { OnlineStatus } from "./online-status";
 
 interface ChatPopupProps {
   recipientId: string;
@@ -96,7 +97,7 @@ export default function ChatPopup({ recipientId, recipientName, recipientImage, 
               </div>
               <div>
                 <CardTitle className="text-lg">{recipientName}</CardTitle>
-                <p className="text-sm opacity-90">متصل الآن</p>
+                <OnlineStatus userId={recipientId} className="opacity-90" />
               </div>
             </div>
             <Button

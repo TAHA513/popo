@@ -46,6 +46,8 @@ export const users = pgTable("users", {
   showLastSeen: boolean("show_last_seen").default(true), // Show last seen to others
   lastSeenAt: timestamp("last_seen_at").defaultNow(), // Track last activity
   isOnline: boolean("is_online").default(false), // Current online status
+  lastActivityAt: timestamp("last_activity_at").defaultNow(), // Track any user activity
+  onlineStatusUpdatedAt: timestamp("online_status_updated_at").defaultNow(), // When online status was last updated
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

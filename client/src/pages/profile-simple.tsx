@@ -24,6 +24,7 @@ import {
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import ChatPopup from "@/components/chat-popup";
+import { OnlineStatus } from "@/components/online-status";
 import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
@@ -474,6 +475,13 @@ export default function ProfileSimplePage() {
                 </div>
                 
                 <p className="text-gray-600 mb-3">{user?.bio || 'لا يوجد وصف متاح'}</p>
+                
+                {/* Online Status */}
+                {!isOwnProfile && (
+                  <div className="mb-3">
+                    <OnlineStatus userId={profileUserId!} className="text-sm" />
+                  </div>
+                )}
                 
                 {/* Stats */}
                 <div className="flex flex-wrap gap-6 text-sm">

@@ -12,6 +12,7 @@ import bcrypt from "bcryptjs";
 import passport from "passport";
 // @ts-ignore
 import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
+import { trackUserActivity, cleanupStaleOnlineUsers } from "./middleware/activityTracker";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -49,6 +50,12 @@ const connectedClients = new Map<string, ConnectedClient>();
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize gift characters
   await initializeGiftCharacters();
+  
+  // Setup activity tracking for all authenticated routes
+  app.use('/api', trackUserActivity);
+  
+  // Setup periodic cleanup of stale online users (every 2 minutes)
+  setInterval(cleanupStaleOnlineUsers, 2 * 60 * 1000);
   
   // Setup message routes
   setupMessageRoutes(app);
@@ -385,6 +392,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("❌ Error fetching user:", error);
       res.status(500).json({ message: "فشل في جلب بيانات المستخدم" });
+    }
+  });
+
+  // Get user online status and last seen
+  app.get('/api/users/:userId/status', async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await db
+        .select({
+          isOnline: users.isOnline,
+          lastSeenAt: users.lastSeenAt,
+          lastActivityAt: users.lastActivityAt,
+          showLastSeen: users.showLastSeen
+        })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!user[0]) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+
+      // If user has privacy settings to hide last seen, only show online status
+      if (!user[0].showLastSeen && req.user && req.user.id !== userId) {
+        res.json({
+          isOnline: user[0].isOnline,
+          lastSeenAt: null,
+          showLastSeen: false
+        });
+      } else {
+        res.json(user[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching user status:", error);
+      res.status(500).json({ message: "خطأ في جلب حالة المستخدم" });
     }
   });
   

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RealTimeTimestamp } from "./real-time-timestamp";
+import { OnlineStatus } from "./online-status";
 import { 
   Play, 
   Heart, 

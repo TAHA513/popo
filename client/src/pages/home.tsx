@@ -4,6 +4,8 @@ import FlipCard from "@/components/flip-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RealTimeTimestamp } from "@/components/real-time-timestamp";
+import { OnlineStatus } from "@/components/online-status";
 import { 
   Video, 
   Play, 
