@@ -34,11 +34,12 @@ export function useAuth() {
 
       return response.json();
     },
-    retry: 1,
+    retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchInterval: false,
+    gcTime: 1000 * 60 * 10, // 10 minutes
   });
 
   const logout = async () => {

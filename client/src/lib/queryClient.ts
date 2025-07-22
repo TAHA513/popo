@@ -47,9 +47,9 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: 5000, // تحديث كل 5 ثواني
-      refetchOnWindowFocus: true, // تحديث عند العودة للتبويب
-      staleTime: 0, // البيانات تصبح قديمة فوراً
+      refetchInterval: false, // منع التحديث التلقائي المستمر
+      refetchOnWindowFocus: false, // منع التحديث عند العودة للتبويب
+      staleTime: 1000 * 60 * 5, // البيانات تبقى حديثة لمدة 5 دقائق
       retry: false,
     },
     mutations: {
