@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +22,10 @@ import {
   ArrowLeft,
   Sparkles,
   Crown,
-  Star
+  Star,
+  ChevronUp,
+  ChevronDown,
+  Plus
 } from "lucide-react";
 
 interface VideoData {
@@ -57,40 +60,37 @@ export default function VideoPage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch video data
-  const { data: video, isLoading: videoLoading } = useQuery<VideoData>({
-    queryKey: ['/api/memories', videoId],
-    enabled: !!videoId,
+  // Fetch all public videos for TikTok-style browsing
+  const { data: allVideos = [], isLoading: videosLoading } = useQuery<VideoData[]>({
+    queryKey: ['/api/memories/public'],
     queryFn: async () => {
-      const response = await fetch(`/api/memories/${videoId}`, {
+      const response = await fetch('/api/memories/public', {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('فشل في تحميل الفيديو');
-      return response.json();
+      if (!response.ok) throw new Error('فشل في تحميل الفيديوهات');
+      const data = await response.json();
+      // Filter only videos
+      return data.filter((item: any) => item.type === 'video');
     }
   });
 
-  // Fetch author's other videos
-  const { data: authorVideos = [], isLoading: authorVideosLoading } = useQuery<VideoData[]>({
-    queryKey: ['/api/memories/user', video?.authorId],
-    enabled: !!video?.authorId,
-    queryFn: async () => {
-      const response = await fetch(`/api/memories/user/${video?.authorId}`, {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('فشل في تحميل فيديوهات المستخدم');
-      return response.json();
+  // Find current video index
+  useEffect(() => {
+    if (videoId && allVideos.length > 0) {
+      const index = allVideos.findIndex(v => v.id === parseInt(videoId));
+      if (index !== -1) {
+        setCurrentVideoIndex(index);
+      }
     }
-  });
+  }, [videoId, allVideos]);
 
-  // Filter only videos (not images) and exclude current video
-  const otherVideos = authorVideos.filter(v => 
-    v.type === 'video' && v.id !== parseInt(videoId || '0')
-  );
+  const currentVideo = allVideos[currentVideoIndex];
 
   const handleVideoToggle = () => {
-    const videoElement = document.querySelector('video') as HTMLVideoElement;
+    const videoElement = document.querySelector(`#video-${currentVideo?.id}`) as HTMLVideoElement;
     if (!videoElement) return;
 
     if (isVideoPlaying) {
@@ -103,7 +103,7 @@ export default function VideoPage() {
   };
 
   const handleVolumeToggle = () => {
-    const videoElement = document.querySelector('video') as HTMLVideoElement;
+    const videoElement = document.querySelector(`#video-${currentVideo?.id}`) as HTMLVideoElement;
     if (!videoElement) return;
 
     if (isMuted) {
@@ -116,9 +116,9 @@ export default function VideoPage() {
   };
 
   const handleLike = () => {
-    if (!video) return;
+    if (!currentVideo) return;
     
-    const videoKey = `video-${video.id}`;
+    const videoKey = `video-${currentVideo.id}`;
     setLikedVideos(prev => {
       const newSet = new Set(prev);
       if (newSet.has(videoKey)) {
@@ -137,6 +137,68 @@ export default function VideoPage() {
       return newSet;
     });
   };
+
+  const goToNextVideo = () => {
+    if (currentVideoIndex < allVideos.length - 1) {
+      const nextIndex = currentVideoIndex + 1;
+      setCurrentVideoIndex(nextIndex);
+      window.history.pushState(null, '', `/video/${allVideos[nextIndex].id}`);
+    }
+  };
+
+  const goToPrevVideo = () => {
+    if (currentVideoIndex > 0) {
+      const prevIndex = currentVideoIndex - 1;
+      setCurrentVideoIndex(prevIndex);
+      window.history.pushState(null, '', `/video/${allVideos[prevIndex].id}`);
+    }
+  };
+
+  // Handle swipe gestures
+  useEffect(() => {
+    let startY = 0;
+    let startX = 0;
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX;
+    };
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault(); // Prevent scrolling
+    };
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      const endY = e.changedTouches[0].clientY;
+      const endX = e.changedTouches[0].clientX;
+      const deltaY = startY - endY;
+      const deltaX = Math.abs(startX - endX);
+      
+      // Only handle vertical swipes (ignore horizontal)
+      if (deltaX < 50 && Math.abs(deltaY) > 50) {
+        if (deltaY > 50) {
+          // Swipe up - next video
+          goToNextVideo();
+        } else if (deltaY < -50) {
+          // Swipe down - previous video
+          goToPrevVideo();
+        }
+      }
+    };
+    
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('touchstart', handleTouchStart, { passive: true });
+      container.addEventListener('touchmove', handleTouchMove, { passive: false });
+      container.addEventListener('touchend', handleTouchEnd, { passive: true });
+      
+      return () => {
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchmove', handleTouchMove);
+        container.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [currentVideoIndex, allVideos]);
 
   const handleInteraction = (action: string) => {
     toast({
@@ -163,278 +225,257 @@ export default function VideoPage() {
     }
   };
 
-  if (videoLoading) {
+  if (videosLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">جاري تحميل الفيديو...</p>
+          <p className="mt-4 text-white">جاري تحميل الفيديوهات...</p>
         </div>
       </div>
     );
   }
 
-  if (!video) {
+  if (!currentVideo || allVideos.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">الفيديو غير موجود</h2>
-          <Button onClick={() => window.history.back()}>العودة</Button>
+          <h2 className="text-2xl font-bold text-white mb-4">لا توجد فيديوهات</h2>
+          <Button onClick={() => window.history.back()} className="bg-purple-600 text-white">العودة</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black flex">
-      {/* Main Video Area - Like Instagram */}
-      <div className="flex-1 flex items-center justify-center relative">
-        {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          onClick={() => window.history.back()}
-          className="absolute top-4 left-4 z-10 text-white bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 p-0"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </Button>
+    <div 
+      ref={containerRef}
+      className="min-h-screen bg-black relative overflow-hidden"
+      style={{ touchAction: 'pan-y' }}
+    >
+      {/* Back Button */}
+      <Button 
+        variant="ghost" 
+        onClick={() => window.history.back()}
+        className="absolute top-4 left-4 z-20 text-white bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 p-0"
+      >
+        <ArrowLeft className="w-6 h-6" />
+      </Button>
 
-        {/* Video Player - Full Screen Style */}
-        <div className="relative w-full h-full flex items-center justify-center group">
-          <video
-            src={video.mediaUrls[0]}
-            className="max-w-full max-h-full object-contain"
-            autoPlay
-            muted={isMuted}
-            loop
-            playsInline
-            preload="auto"
-            poster={video.thumbnailUrl}
-            onPlay={() => setIsVideoPlaying(true)}
-            onPause={() => setIsVideoPlaying(false)}
-            style={{ maxHeight: '90vh' }}
-          />
-
-          {/* Video Controls Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            {/* Play/Pause Button - Center */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={handleVideoToggle}
-                className={`w-20 h-20 rounded-full text-white bg-black/40 hover:bg-black/60 transition-all duration-300 ${isVideoPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-90 hover:opacity-100'}`}
-              >
-                {isVideoPlaying ? (
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <div className="w-2 h-6 bg-white rounded mr-1"></div>
-                    <div className="w-2 h-6 bg-white rounded"></div>
-                  </div>
-                ) : (
-                  <Play className="w-8 h-8 ml-1" fill="white" />
-                )}
-              </Button>
-            </div>
-
-            {/* Volume Control - Top Right */}
-            <div className="absolute top-4 right-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleVolumeToggle}
-                className={`w-12 h-12 rounded-full border-2 border-white/40 hover:border-white/70 transition-all duration-300 ${isMuted ? 'text-red-500' : 'text-green-500'} bg-black/50 hover:bg-black/70`}
-              >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </Button>
-            </div>
-
-            {/* Memory Type Badge - Top Left */}
-            <Badge className={`absolute top-4 left-20 ${getMemoryTypeColor(video.memoryType)} text-white`}>
-              <div className="flex items-center">
-                {getMemoryTypeIcon(video.memoryType)}
-                <span className="text-xs mr-1">{video.memoryType}</span>
-              </div>
-            </Badge>
-          </div>
-
-          {/* Video Info Overlay - Bottom */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 text-white">
-            <div className="flex items-center justify-between">
-              {/* Author Info */}
-              <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                {video.author?.profileImageUrl ? (
-                  <img
-                    src={video.author.profileImageUrl}
-                    alt="صورة المنشور"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white/50"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                    <User className="w-6 h-6 text-white" />
-                  </div>
-                )}
-                
-                <div>
-                  <h4 className="font-bold text-white text-lg">
-                    {video.author?.firstName || video.author?.username || 'مستخدم'}
-                  </h4>
-                  <p className="text-white/80 text-sm">@{video.author?.username}</p>
-                </div>
-                
-                {video.author?.id !== user?.id && (
-                  <Button 
-                    size="sm"
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-none hover:from-purple-700 hover:to-pink-700"
-                    onClick={() => handleInteraction('المتابعة')}
-                  >
-                    متابعة
-                  </Button>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLike}
-                  className={`${likedVideos.has(`video-${video.id}`) ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-black/30 hover:bg-black/50`}
-                >
-                  <Heart className={`w-6 h-6 ${likedVideos.has(`video-${video.id}`) ? 'fill-current' : ''}`} />
-                  <span className="ml-1">{video.likeCount}</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleInteraction('التعليق')}
-                  className="text-white hover:text-blue-400 bg-black/30 hover:bg-black/50"
-                >
-                  <MessageCircle className="w-6 h-6" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleInteraction('المشاركة')}
-                  className="text-white hover:text-green-400 bg-black/30 hover:bg-black/50"
-                >
-                  <Share2 className="w-6 h-6" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleInteraction('إرسال هدية')}
-                  className="text-white hover:text-yellow-400 bg-black/30 hover:bg-black/50"
-                >
-                  <Gift className="w-6 h-6" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Caption */}
-            {video.title || video.caption ? (
-              <div className="mt-4">
-                {video.title && (
-                  <h2 className="text-white font-bold text-xl mb-2 text-right">
-                    {video.title}
-                  </h2>
-                )}
-                <p className="text-white/90 text-right leading-relaxed">
-                  {video.caption || "فيديو رائع"}
-                </p>
-              </div>
-            ) : null}
-
-            {/* Video Stats */}
-            <div className="flex items-center space-x-6 rtl:space-x-reverse mt-4 text-white/70">
-              <div className="flex items-center">
-                <Eye className="w-4 h-4 ml-1" />
-                <span className="text-sm">{video.viewCount}</span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="w-4 h-4 ml-1" />
-                <span className="text-sm">{new Date(video.createdAt).toLocaleDateString('ar')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Navigation Arrows - Desktop */}
+      <div className="hidden md:flex absolute right-4 top-1/2 transform -translate-y-1/2 z-20 flex-col space-y-4">
+        {currentVideoIndex > 0 && (
+          <Button
+            variant="ghost"
+            onClick={goToPrevVideo}
+            className="w-12 h-12 rounded-full text-white bg-black/50 hover:bg-black/70"
+          >
+            <ChevronUp className="w-6 h-6" />
+          </Button>
+        )}
+        {currentVideoIndex < allVideos.length - 1 && (
+          <Button
+            variant="ghost"
+            onClick={goToNextVideo}
+            className="w-12 h-12 rounded-full text-white bg-black/50 hover:bg-black/70"
+          >
+            <ChevronDown className="w-6 h-6" />
+          </Button>
+        )}
       </div>
 
-      {/* Sidebar - More Videos */}
-      <div className="w-80 bg-black/95 backdrop-blur-sm border-l border-gray-800 overflow-y-auto">
-        <div className="p-4">
-          <h3 className="text-white font-bold text-lg mb-4 text-right">فيديوهات أخرى</h3>
-          
-          {otherVideos.length > 0 ? (
-            <div className="space-y-3">
-              {otherVideos.map((otherVideo) => (
-                <div 
-                  key={otherVideo.id}
-                  className="cursor-pointer hover:bg-white/10 p-3 rounded-lg transition-all duration-300 group"
-                  onClick={() => window.location.href = `/video/${otherVideo.id}`}
-                >
-                  <div className="flex items-start space-x-3 rtl:space-x-reverse">
-                    {/* Video Thumbnail */}
-                    <div className="relative flex-shrink-0">
-                      {otherVideo.thumbnailUrl || otherVideo.mediaUrls[0] ? (
-                        <img
-                          src={otherVideo.thumbnailUrl || otherVideo.mediaUrls[0]}
-                          alt="فيديو"
-                          className="w-24 h-16 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="w-24 h-16 bg-gradient-to-br from-purple-100/20 to-pink-100/20 rounded-lg flex items-center justify-center">
-                          <Play className="w-8 h-8 text-white/50" />
-                        </div>
-                      )}
-                      
-                      {/* Play Icon Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 rounded-lg">
-                        <Play className="w-6 h-6 text-white" fill="white" />
-                      </div>
+      {/* Video Container */}
+      <div className="relative w-full h-screen flex items-center justify-center group">
+        <video
+          id={`video-${currentVideo.id}`}
+          src={currentVideo.mediaUrls[0]}
+          className="w-full h-full object-cover"
+          autoPlay
+          muted={isMuted}
+          loop
+          playsInline
+          preload="auto"
+          poster={currentVideo.thumbnailUrl}
+          onPlay={() => setIsVideoPlaying(true)}
+          onPause={() => setIsVideoPlaying(false)}
+        />
 
-                      {/* Memory Type Badge */}
-                      <Badge className={`absolute top-1 left-1 ${getMemoryTypeColor(otherVideo.memoryType)} text-white text-xs`}>
-                        {getMemoryTypeIcon(otherVideo.memoryType)}
-                      </Badge>
-                    </div>
-                    
-                    {/* Video Info */}
-                    <div className="flex-1 min-w-0">
-                      <h5 className="text-white font-medium text-sm text-right line-clamp-2 group-hover:text-purple-300 transition-colors">
-                        {otherVideo.title || otherVideo.caption || 'فيديو بدون عنوان'}
-                      </h5>
-                      
-                      <div className="flex items-center justify-between mt-2 text-xs text-white/60">
-                        <div className="flex items-center">
-                          <Eye className="w-3 h-3 ml-1" />
-                          <span>{otherVideo.viewCount}</span>
-                        </div>
-                        <span>{new Date(otherVideo.createdAt).toLocaleDateString('ar')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Play className="w-8 h-8 text-white/50" />
-              </div>
-              <p className="text-white/60 text-sm">لا توجد فيديوهات أخرى</p>
-            </div>
-          )}
-
-          {/* View All Videos Button */}
-          {otherVideos.length > 0 && (
-            <Button 
-              variant="outline" 
-              className="w-full mt-4 border-white/20 text-white hover:bg-white/10 hover:border-white/40"
-              onClick={() => window.location.href = `/profile/${video.author?.username}`}
+        {/* Video Controls Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {/* Play/Pause Button - Center */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={handleVideoToggle}
+              className={`w-20 h-20 rounded-full text-white bg-black/40 hover:bg-black/60 transition-all duration-300 ${isVideoPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-90 hover:opacity-100'}`}
             >
-              مشاهدة جميع الفيديوهات ({otherVideos.length})
+              {isVideoPlaying ? (
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <div className="w-2 h-6 bg-white rounded mr-1"></div>
+                  <div className="w-2 h-6 bg-white rounded"></div>
+                </div>
+              ) : (
+                <Play className="w-8 h-8 ml-1" fill="white" />
+              )}
             </Button>
-          )}
+          </div>
+
+          {/* Volume Control - Top Right */}
+          <div className="absolute top-4 right-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleVolumeToggle}
+              className={`w-12 h-12 rounded-full border-2 border-white/40 hover:border-white/70 transition-all duration-300 ${isMuted ? 'text-red-500' : 'text-green-500'} bg-black/50 hover:bg-black/70`}
+            >
+              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </Button>
+          </div>
+
+          {/* Memory Type Badge - Top Left */}
+          <Badge className={`absolute top-4 left-20 ${getMemoryTypeColor(currentVideo.memoryType)} text-white`}>
+            <div className="flex items-center">
+              {getMemoryTypeIcon(currentVideo.memoryType)}
+              <span className="text-xs mr-1">{currentVideo.memoryType}</span>
+            </div>
+          </Badge>
         </div>
+
+        {/* Video Info & Actions - TikTok Style Right Sidebar */}
+        <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-6 z-10">
+          {/* Author Profile */}
+          <div className="flex flex-col items-center">
+            {currentVideo.author?.profileImageUrl ? (
+              <img
+                src={currentVideo.author.profileImageUrl}
+                alt="صورة المنشور"
+                className="w-16 h-16 rounded-full object-cover border-2 border-white/50 mb-2"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-2 border-white/50 mb-2">
+                <User className="w-8 h-8 text-white" />
+              </div>
+            )}
+            
+            {currentVideo.author?.id !== user?.id && (
+              <Button 
+                size="sm"
+                className="w-8 h-8 p-0 rounded-full bg-red-600 text-white border-2 border-white hover:bg-red-700"
+                onClick={() => handleInteraction('المتابعة')}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col items-center space-y-6">
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={handleLike}
+              className={`flex flex-col items-center ${likedVideos.has(`video-${currentVideo.id}`) ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent`}
+            >
+              <Heart className={`w-8 h-8 ${likedVideos.has(`video-${currentVideo.id}`) ? 'fill-current' : ''}`} />
+              <span className="text-sm mt-1">{currentVideo.likeCount}</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => handleInteraction('التعليق')}
+              className="flex flex-col items-center text-white hover:text-blue-400 bg-transparent"
+            >
+              <MessageCircle className="w-8 h-8" />
+              <span className="text-sm mt-1">تعليق</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => handleInteraction('المشاركة')}
+              className="flex flex-col items-center text-white hover:text-green-400 bg-transparent"
+            >
+              <Share2 className="w-8 h-8" />
+              <span className="text-sm mt-1">مشاركة</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => handleInteraction('إرسال هدية')}
+              className="flex flex-col items-center text-white hover:text-yellow-400 bg-transparent"
+            >
+              <Gift className="w-8 h-8" />
+              <span className="text-sm mt-1">هدية</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Video Info - Bottom Left */}
+        <div className="absolute bottom-0 left-0 right-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 text-white">
+          {/* Author Info */}
+          <div className="flex items-center space-x-3 rtl:space-x-reverse mb-4">
+            <h4 className="font-bold text-white text-lg">
+              @{currentVideo.author?.username || 'مستخدم'}
+            </h4>
+            {currentVideo.author?.points && (
+              <div className="flex items-center">
+                <Sparkles className="w-4 h-4 text-yellow-500 ml-1" />
+                <span className="text-sm text-white/80">{currentVideo.author.points}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Caption */}
+          <div className="mb-4">
+            {currentVideo.title && (
+              <h3 className="text-white font-bold text-lg mb-2 text-right">
+                {currentVideo.title}
+              </h3>
+            )}
+            <p className="text-white/90 text-right leading-relaxed text-sm">
+              {currentVideo.caption || "فيديو رائع"}
+            </p>
+          </div>
+
+          {/* Video Stats */}
+          <div className="flex items-center space-x-6 rtl:space-x-reverse text-white/70">
+            <div className="flex items-center">
+              <Eye className="w-4 h-4 ml-1" />
+              <span className="text-sm">{currentVideo.viewCount}</span>
+            </div>
+            <div className="flex items-center">
+              <Calendar className="w-4 h-4 ml-1" />
+              <span className="text-sm">{new Date(currentVideo.createdAt).toLocaleDateString('ar')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Video Progress Indicator */}
+        <div className="absolute top-1/2 left-2 transform -translate-y-1/2 flex flex-col items-center space-y-1 z-10">
+          {allVideos.map((_, index) => (
+            <div
+              key={index}
+              className={`w-1 h-8 rounded-full transition-all duration-300 ${
+                index === currentVideoIndex 
+                  ? 'bg-white' 
+                  : index < currentVideoIndex 
+                    ? 'bg-white/60' 
+                    : 'bg-white/20'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Swipe Instruction - Show on first load */}
+        {currentVideoIndex === 0 && (
+          <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white/70 animate-pulse">
+            <ChevronUp className="w-8 h-8 mx-auto mb-2" />
+            <p className="text-sm">اسحب للأعلى للفيديو التالي</p>
+          </div>
+        )}
       </div>
     </div>
   );
