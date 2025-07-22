@@ -138,35 +138,20 @@ export default function Home() {
       <SimpleNavigation />
       
       {/* Hero Section */}
-      <div className="pt-20 pb-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full shadow-2xl mb-6 transform hover:scale-105 transition-all duration-300">
-              <span className="text-2xl mr-2 animate-bounce">🌟</span>
-              <span className="font-bold text-lg">مرحباً بك في LaaBoBo Live!</span>
-              <span className="text-2xl ml-2 animate-bounce delay-300">✨</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent mb-4">
-              اكتشف عالماً من المحتوى المثير
-            </h1>
-            
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              شاهد البثوث المباشرة، تفاعل مع المنشورات، وانضم لمجتمع LaaBoBo الرائع
-            </p>
-          </div>
+      <div className="pt-16 pb-4">
+        <div className="w-full">
           
           {/* Live Activity Banner */}
-          <div className="mb-8">
-            <div className="bg-white/80 backdrop-blur-lg border-2 border-gradient-to-r from-orange-200 to-pink-200 rounded-2xl p-4 shadow-xl">
+          <div className="mb-4 px-4">
+            <div className="bg-white/80 backdrop-blur-lg border border-gray-200 rounded-lg p-3 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-4 animate-pulse">
-                    <span className="text-white text-xl">🔥</span>
+                  <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-3 animate-pulse">
+                    <span className="text-white text-lg">🔥</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800">النشاط المباشر</h3>
-                    <p className="text-gray-600">
+                    <h3 className="text-base font-bold text-gray-800">النشاط المباشر</h3>
+                    <p className="text-sm text-gray-600">
                       {typedStreams.length > 0 
                         ? `${typedStreams.length} بث مباشر الآن • ${typedMemories.length} منشور جديد`
                         : typedMemories.length > 0 
@@ -177,10 +162,10 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="hidden md:flex items-center space-x-2 rtl:space-x-reverse">
-                  <div className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-medium">
                     مباشر
                   </div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
                 </div>
               </div>
             </div>
@@ -188,28 +173,28 @@ export default function Home() {
         </div>
       </div>
       
-      <main className="pb-20 px-4">
-        <div className="max-w-7xl mx-auto">
+      <main className="pb-16">
+        <div className="w-full">
 
           {/* Live Streams Section */}
           {typedStreams.length > 0 && (
-            <div className="mb-12">
-              <div className="flex items-center justify-between mb-8">
+            <div className="mb-8 px-4">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
-                    <Video className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
+                    <Video className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">البث المباشر</h2>
-                    <p className="text-gray-600 text-sm">{typedStreams.length} بث نشط الآن</p>
+                    <h2 className="text-xl font-bold text-gray-900">البث المباشر</h2>
+                    <p className="text-gray-600 text-xs">{typedStreams.length} بث نشط الآن</p>
                   </div>
                 </div>
-                <div className="flex items-center bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-ping"></div>
+                <div className="flex items-center bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">
+                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1 animate-ping"></div>
                   مباشر
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {typedStreams.map((stream) => (
                   <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-red-300 group">
                     <div 
@@ -303,25 +288,25 @@ export default function Home() {
           )}
 
           {/* Posts/Memories Section */}
-          <div>
-            <div className="flex items-center justify-between mb-8">
+          <div className="px-4">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
-                  <Sparkles className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">المنشورات المميزة</h2>
-                  <p className="text-gray-600 text-sm">{typedMemories.length} منشور جديد</p>
+                  <h2 className="text-xl font-bold text-gray-900">المنشورات المميزة</h2>
+                  <p className="text-gray-600 text-xs">{typedMemories.length} منشور جديد</p>
                 </div>
               </div>
-              <div className="flex items-center bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
-                <Sparkles className="w-3 h-3 mr-2" />
+              <div className="flex items-center bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs font-medium">
+                <Sparkles className="w-3 h-3 mr-1" />
                 مميز
               </div>
             </div>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {typedMemories.map((memory) => (
                   <Card key={`memory-${memory.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group">
                     {/* Media Display */}

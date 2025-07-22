@@ -32,7 +32,7 @@ export default function SimpleNavigation() {
                 <span className="text-white text-lg font-bold">🐰</span>
               </div>
               <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
-                LaaBoBo Live
+                Live
               </span>
             </div>
           </Link>
