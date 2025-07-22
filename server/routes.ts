@@ -356,16 +356,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
+      console.log('🔍 Fetching user profile:', {
+        requestedUserId: userId,
+        requestingUser: req.user?.id,
+        requestingUsername: req.user?.username
+      });
+      
+      // Validate userId parameter
+      if (!userId || userId.trim() === '') {
+        console.log('❌ Invalid user ID provided');
+        return res.status(400).json({ message: "معرف المستخدم غير صحيح" });
+      }
+      
       const user = await storage.getUserById(userId);
       
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        console.log('❌ User not found:', userId);
+        return res.status(404).json({ message: "المستخدم غير موجود" });
       }
+      
+      console.log('✅ User found successfully:', {
+        userId: user.id,
+        username: user.username,
+        firstName: user.firstName
+      });
       
       res.json(user);
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      console.error("❌ Error fetching user:", error);
+      res.status(500).json({ message: "فشل في جلب بيانات المستخدم" });
     }
   });
   

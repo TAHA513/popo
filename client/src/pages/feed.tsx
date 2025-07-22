@@ -207,7 +207,7 @@ export default function Feed() {
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
-                      <Link href={`/profile/${memory.authorId}`}>
+                      <Link href={`/user/${memory.authorId}`}>
                         <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
                           <div className="relative">
                             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
@@ -338,7 +338,7 @@ export default function Feed() {
                       </div>
                       
                       <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
-                        <Link href={`/profile/${memory.authorId}`}>
+                        <Link href={`/user/${memory.authorId}`}>
                           <button className="p-1.5 md:p-2 -m-2 group">
                             <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
                           </button>

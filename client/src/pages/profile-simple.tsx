@@ -48,6 +48,7 @@ export default function ProfileSimplePage() {
   console.log("🔒 isAuthenticated:", isAuthenticated);
   console.log("⏳ authLoading:", authLoading);
   console.log("🌐 Current URL:", window.location.pathname);
+  console.log("📦 All URL search params:", new URLSearchParams(window.location.search).toString());
   
   // Early return if auth is still loading
   if (authLoading) {
