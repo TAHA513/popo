@@ -78,7 +78,11 @@ export default function VideoPage() {
       const data = await response.json();
       // Filter only videos
       return data.filter((item: any) => item.type === 'video');
-    }
+    },
+    refetchInterval: 1000, // كل ثانية واحدة - سرعة الصاروخ! 🚀
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Find current video index and stop previous video

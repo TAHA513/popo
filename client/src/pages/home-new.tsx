@@ -40,13 +40,17 @@ export default function HomeNew() {
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
     queryKey: ['/api/streams'],
-    refetchInterval: 30000,
+    refetchInterval: 3000, // كل 3 ثواني
+    staleTime: 0,
   });
 
   // Fetch public memories/posts
   const { data: memories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 30000,
+    refetchInterval: 2000, // كل ثانيتين - سرعة البرق!
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const typedStreams = (streams as Stream[]);

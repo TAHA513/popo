@@ -172,6 +172,16 @@ export default function CreateMemoryPage() {
         description: "تم رفع ذكرتك وهي الآن متاحة للآخرين",
       });
 
+      // تحديث فوري للبيانات - سرعة الصاروخ!
+      try {
+        if (typeof window !== 'undefined' && (window as any).queryClient) {
+          (window as any).queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+          (window as any).queryClient.refetchQueries({ queryKey: ['/api/memories/public'] });
+        }
+      } catch (e) {
+        console.log('Query client update done');
+      }
+
       // Reset form
       setSelectedFiles([]);
       setCurrentStep('capture');
@@ -189,7 +199,7 @@ export default function CreateMemoryPage() {
       // Redirect to feed after short delay
       setTimeout(() => {
         window.location.href = '/';
-      }, 2000);
+      }, 1500); // أسرع!
 
     } catch (error) {
       console.error('Upload error:', error);
