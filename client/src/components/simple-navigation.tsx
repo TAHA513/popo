@@ -49,6 +49,16 @@ export default function SimpleNavigation() {
             </div>
           </div>
 
+          {/* App Name with Search Icon - Desktop Only */}
+          <div className="hidden md:flex items-center justify-center flex-1">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Search className="w-5 h-5 text-purple-500" />
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                LaaBoBo Live
+              </span>
+            </div>
+          </div>
+
           {/* Navigation Links - Desktop Only */}
           <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
             <Link href="/">
