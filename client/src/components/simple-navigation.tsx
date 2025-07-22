@@ -24,18 +24,20 @@ export default function SimpleNavigation() {
   return (
     <header className="bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 shadow-sm border-b border-purple-200 sticky top-0 z-50">
       <div className="w-full px-2 py-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           {/* Logo */}
-          <Link href="/">
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg font-bold rabbit-animated">🐰</span>
+          <div className="flex-shrink-0">
+            <Link href="/">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg font-bold rabbit-animated">🐰</span>
+                </div>
+                <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
+                  Live
+                </span>
               </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
-                Live
-              </span>
-            </div>
-          </Link>
+            </Link>
+          </div>
 
           {/* Search Bar - Mobile */}
           <div className="flex-1 mx-4 md:hidden">
@@ -60,7 +62,7 @@ export default function SimpleNavigation() {
           </div>
 
           {/* Navigation Links - Desktop Only */}
-          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
+          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse flex-shrink-0">
             <Link href="/">
               <Button 
                 variant={location === "/" ? "default" : "ghost"} 
@@ -104,7 +106,7 @@ export default function SimpleNavigation() {
           </nav>
 
           {/* User Info - Desktop Only */}
-          <div className="hidden md:flex items-center space-x-3 rtl:space-x-reverse">
+          <div className="hidden md:flex items-center space-x-3 rtl:space-x-reverse flex-shrink-0">
             {/* Notifications */}
             <button className="relative p-2 text-gray-600 hover:text-purple-600 transition-colors">
               <MessageCircle className="w-5 h-5" />
