@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
+import ChatPopup from "@/components/chat-popup";
 import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
@@ -33,6 +34,7 @@ export default function ProfileSimplePage() {
   const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showChatPopup, setShowChatPopup] = useState(false);
   const [showGiftDialog, setShowGiftDialog] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
@@ -261,42 +263,7 @@ export default function ProfileSimplePage() {
     }
   });
 
-  // Send message mutation
-  const sendMessageMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/messages/send', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          recipientId: profileUserId,
-          content: messageText
-        })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to send message');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "تم إرسال الرسالة",
-        description: "تم إرسال طلب المحادثة بنجاح",
-      });
-      setShowMessageDialog(false);
-      setMessageText("");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل إرسال الرسالة",
-        variant: "destructive"
-      });
-    }
-  });
+
 
   // Send gift mutation
   const sendGiftMutation = useMutation({
@@ -573,7 +540,7 @@ export default function ProfileSimplePage() {
                         {/* Message Button */}
                         <div className="flex flex-col items-center">
                           <button
-                            onClick={() => setShowMessageDialog(true)}
+                            onClick={() => setShowChatPopup(true)}
                             className="w-14 h-14 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 hover:border-purple-400"
                           >
                             <MessageCircle className="w-5 h-5 text-gray-700" />
@@ -788,40 +755,15 @@ export default function ProfileSimplePage() {
       </div>
       
       {/* Message Dialog */}
-      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>إرسال رسالة إلى {user?.username || user?.firstName}</DialogTitle>
-            <DialogDescription>
-              يمكنك إرسال رسالة واحدة فقط. سيتمكن المستخدم من الرد عليك إذا وافق على المراسلة.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="message">رسالتك</Label>
-              <Textarea
-                id="message"
-                placeholder="اكتب رسالتك هنا..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-              <Button variant="outline" onClick={() => setShowMessageDialog(false)}>
-                إلغاء
-              </Button>
-              <Button
-                className="bg-gradient-to-r from-purple-600 to-pink-600"
-                onClick={() => sendMessageMutation.mutate()}
-                disabled={sendMessageMutation.isPending || !messageText.trim()}
-              >
-                {sendMessageMutation.isPending ? 'جاري الإرسال...' : 'إرسال'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* TikTok-Style Chat Popup */}
+      {showChatPopup && (
+        <ChatPopup
+          recipientId={profileUserId!}
+          recipientName={user?.username || user?.firstName || 'مستخدم'}
+          recipientImage={user?.profileImageUrl}
+          onClose={() => setShowChatPopup(false)}
+        />
+      )}
       
       {/* Gift Dialog */}
       <Dialog open={showGiftDialog} onOpenChange={setShowGiftDialog}>

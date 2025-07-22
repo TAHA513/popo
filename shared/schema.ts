@@ -118,7 +118,29 @@ export const followers = pgTable("followers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Private Messages table
+// Direct Messages table for TikTok-style chat
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  recipientId: varchar("recipient_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  isRead: boolean("is_read").default(false),
+  messageType: varchar("message_type").default("text"), // 'text', 'image', 'gif', 'sticker'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Conversations table to track chat threads
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+  user1Id: varchar("user1_id").notNull().references(() => users.id),
+  user2Id: varchar("user2_id").notNull().references(() => users.id),
+  lastMessage: text("last_message"),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Private Messages table (legacy)
 export const privateMessages = pgTable("private_messages", {
   id: serial("id").primaryKey(),
   senderId: varchar("sender_id").notNull().references(() => users.id),
