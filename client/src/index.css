@@ -4,6 +4,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Rabbit Animation */
+@keyframes rabbit-head-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+@keyframes rabbit-blink {
+  0%, 90%, 100% { opacity: 1; }
+  95% { opacity: 0.3; }
+}
+
+.rabbit-animated {
+  animation: rabbit-head-shake 3s ease-in-out infinite, rabbit-blink 4s ease-in-out infinite;
+  transform-origin: center center;
+}
+
 /* TikTok-inspired animations and styles */
 .scrollbar-hide {
   -ms-overflow-style: none;

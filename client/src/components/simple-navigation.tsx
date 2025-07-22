@@ -29,7 +29,7 @@ export default function SimpleNavigation() {
           <Link href="/">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg font-bold">🐰</span>
+                <span className="text-white text-lg font-bold rabbit-animated">🐰</span>
               </div>
               <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
                 Live
