@@ -276,7 +276,7 @@ export default function Feed() {
                           <img 
                             src={memory.thumbnailUrl} 
                             alt={memory.caption || 'منشور'} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
                             decoding="async"
                             onError={(e) => {
@@ -287,7 +287,7 @@ export default function Feed() {
                         ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
                           <video
                             src={memory.mediaUrls[0]}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-gray-100"
                             muted
                             loop
                             preload="metadata"

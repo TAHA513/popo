@@ -543,13 +543,13 @@ export default function CreateMemoryPage() {
                         <img
                           src={getFilePreview(selectedFiles[0])}
                           alt="Final Preview"
-                          className="w-full h-48 object-cover"
+                          className="w-full h-48 object-contain bg-gray-100"
                           style={{ filter: FILTERS.find(f => f.id === selectedFilter)?.style }}
                         />
                       ) : (
                         <video
                           src={getFilePreview(selectedFiles[0])}
-                          className="w-full h-48 object-cover"
+                          className="w-full h-48 object-contain bg-gray-100"
                           style={{ filter: FILTERS.find(f => f.id === selectedFilter)?.style }}
                           muted
                         />

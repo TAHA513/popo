@@ -275,7 +275,7 @@ export default function HomeNew() {
                         memory.mediaUrl.includes('.mp4') || memory.mediaUrl.includes('.webm') ? (
                           <video
                             src={memory.mediaUrl}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-gray-100"
                             muted
                             loop
                             poster="/placeholder-video.jpg"
@@ -286,7 +286,7 @@ export default function HomeNew() {
                           <img
                             src={memory.mediaUrl}
                             alt="Memory"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-gray-100"
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-image.jpg';
                             }}
@@ -451,7 +451,7 @@ export default function HomeNew() {
                         memory.mediaUrl.includes('.mp4') || memory.mediaUrl.includes('.webm') ? (
                           <video
                             src={memory.mediaUrl}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-gray-100"
                             muted
                             loop
                             poster="/placeholder-video.jpg"
@@ -462,7 +462,7 @@ export default function HomeNew() {
                           <img
                             src={memory.mediaUrl}
                             alt="Memory"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-gray-100"
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-image.jpg';
                             }}
