@@ -20,8 +20,7 @@ import {
   Image,
   PlayCircle,
   Radio,
-  Maximize2,
-  Download
+  Maximize2
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -413,13 +412,11 @@ export default function Home() {
                               </Button>
                             </div>
                             
-                            {/* Video Interaction Overlay - Always Visible */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent">
-                              {/* Bottom Controls */}
-                              <div className="absolute bottom-3 left-3 right-3">
+                            {/* Video Overlay with Interaction */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="absolute bottom-2 left-2 right-2">
                                 <div className="flex items-center justify-between">
-                                  {/* Interaction Buttons */}
-                                  <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                                  <div className="flex items-center space-x-3 rtl:space-x-reverse">
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -427,9 +424,9 @@ export default function Home() {
                                         e.stopPropagation();
                                         handleLike(`memory-${memory.id}`);
                                       }}
-                                      className={`p-2 bg-black/30 backdrop-blur-sm rounded-full border border-white/20 ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500 bg-red-500/20' : 'text-white'} hover:text-red-400 hover:bg-red-500/30 transition-all`}
+                                      className={`p-1 ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500' : 'text-white'} hover:text-red-400`}
                                     >
-                                      <Heart className={`w-5 h-5 ${likedItems.has(`memory-${memory.id}`) ? 'fill-current' : ''}`} />
+                                      <Heart className={`w-4 h-4 ${likedItems.has(`memory-${memory.id}`) ? 'fill-current' : ''}`} />
                                     </Button>
                                     <Button
                                       variant="ghost"
@@ -438,9 +435,9 @@ export default function Home() {
                                         e.stopPropagation();
                                         handleInteraction('التعليق');
                                       }}
-                                      className="p-2 bg-black/30 backdrop-blur-sm rounded-full border border-white/20 text-white hover:text-blue-400 hover:bg-blue-500/30 transition-all"
+                                      className="p-1 text-white hover:text-blue-400"
                                     >
-                                      <MessageCircle className="w-5 h-5" />
+                                      <MessageCircle className="w-4 h-4" />
                                     </Button>
                                     <Button
                                       variant="ghost"
@@ -449,9 +446,9 @@ export default function Home() {
                                         e.stopPropagation();
                                         handleInteraction('المشاركة');
                                       }}
-                                      className="p-2 bg-black/30 backdrop-blur-sm rounded-full border border-white/20 text-white hover:text-green-400 hover:bg-green-500/30 transition-all"
+                                      className="p-1 text-white hover:text-green-400"
                                     >
-                                      <Share2 className="w-5 h-5" />
+                                      <Share2 className="w-4 h-4" />
                                     </Button>
                                     <Button
                                       variant="ghost"
@@ -460,52 +457,31 @@ export default function Home() {
                                         e.stopPropagation();
                                         handleInteraction('الهدية');
                                       }}
-                                      className="p-2 bg-black/30 backdrop-blur-sm rounded-full border border-white/20 text-white hover:text-purple-400 hover:bg-purple-500/30 transition-all"
+                                      className="p-1 text-white hover:text-purple-400"
                                     >
-                                      <Gift className="w-5 h-5" />
+                                      <Gift className="w-4 h-4" />
                                     </Button>
                                   </div>
-                                  
-                                  {/* View Counter & Actions */}
-                                  <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                                    <div className="flex items-center space-x-1 rtl:space-x-reverse text-white bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full border border-white/20">
-                                      <Eye className="w-4 h-4" />
-                                      <span className="text-sm font-medium">{memory.viewCount || 0}</span>
+                                  <div className="flex items-center space-x-3 rtl:space-x-reverse text-xs text-white">
+                                    <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                                      <Eye className="w-3 h-3" />
+                                      <span>{memory.viewCount || 0}</span>
                                     </div>
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        // Open fullscreen video viewer
                                         const video = e.currentTarget.closest('.premium-video')?.querySelector('video') as HTMLVideoElement;
                                         if (video && video.requestFullscreen) {
                                           video.requestFullscreen();
                                         }
                                       }}
-                                      className="p-2 bg-black/30 backdrop-blur-sm rounded-full border border-white/20 text-white hover:text-yellow-400 hover:bg-yellow-500/30 transition-all"
+                                      className="p-1 text-white hover:text-yellow-400"
                                       title="مشاهدة كاملة"
                                     >
-                                      <Maximize2 className="w-5 h-5" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Download video
-                                        const video = e.currentTarget.closest('.premium-video')?.querySelector('video') as HTMLVideoElement;
-                                        if (video?.src) {
-                                          const link = document.createElement('a');
-                                          link.href = video.src;
-                                          link.download = `video-${memory.id}.mp4`;
-                                          link.click();
-                                        }
-                                        handleInteraction('تحميل الفيديو');
-                                      }}
-                                      className="p-2 bg-black/30 backdrop-blur-sm rounded-full border border-white/20 text-white hover:text-cyan-400 hover:bg-cyan-500/30 transition-all"
-                                      title="حفظ الفيديو"
-                                    >
-                                      <Download className="w-5 h-5" />
+                                      <Maximize2 className="w-4 h-4" />
                                     </Button>
                                   </div>
                                 </div>
