@@ -482,7 +482,7 @@ export default function CreateMemoryPage() {
                     return (
                       <button
                         key={option.value}
-                        onClick={() => setFormData(prev => ({ ...prev, visibilityLevel: option.value }))}
+                        onClick={() => setFormData(prev => ({ ...prev, visibilityLevel: option.value as any }))}
                         className={`w-full flex items-center space-x-3 rtl:space-x-reverse p-3 rounded-xl transition-all tiktok-button ${
                           formData.visibilityLevel === option.value
                             ? 'bg-pink-500/20 border border-pink-500/50'
