@@ -140,36 +140,27 @@ export default function Home() {
       <main className="pt-20 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-10">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
               مرحباً في LaaBoBo! 🐰
             </h1>
             <p className="text-gray-600 text-lg">شاهد وتفاعل مع كل المحتوى</p>
           </div>
 
-          {/* Quick Actions */}
-          <div className="flex justify-center gap-4 mb-10">
-            <Link href="/create-memory">
-              <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg">
-                <Plus className="w-5 h-5 mr-2" />
-                إنشاء منشور
-              </Button>
-            </Link>
-            <Link href="/start-stream">
-              <Button size="lg" className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-4 text-lg">
-                <Video className="w-5 h-5 mr-2" />
-                بث مباشر
-              </Button>
-            </Link>
-          </div>
-
           {/* Live Streams Section */}
           {typedStreams.length > 0 && (
             <div className="mb-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
-                البث المباشر ({typedStreams.length})
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
+                  البث المباشر ({typedStreams.length})
+                </h2>
+                <Link href="/start-stream">
+                  <Button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                    ابدأ بث مباشر
+                  </Button>
+                </Link>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {typedStreams.map((stream) => (
                   <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-red-200">
@@ -265,10 +256,17 @@ export default function Home() {
 
           {/* Posts/Memories Section */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <Sparkles className="w-5 h-5 mr-3 text-purple-600" />
-              المنشورات ({typedMemories.length})
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <Sparkles className="w-5 h-5 mr-3 text-purple-600" />
+                المنشورات ({typedMemories.length})
+              </h2>
+              <Link href="/create-memory">
+                <Button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">
+                  إنشاء منشور
+                </Button>
+              </Link>
+            </div>
             
             {typedMemories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -419,20 +417,6 @@ export default function Home() {
               <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
                 ابدأ بإنشاء محتوى رائع أو انطلق في بث مباشر لتكون جزءاً من المجتمع
               </p>
-              <div className="flex gap-4 justify-center">
-                <Link href="/create-memory">
-                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4">
-                    <Plus className="w-5 h-5 mr-2" />
-                    إنشاء منشور
-                  </Button>
-                </Link>
-                <Link href="/start-stream">
-                  <Button size="lg" className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-4">
-                    <Video className="w-5 h-5 mr-2" />
-                    ابدأ بث مباشر
-                  </Button>
-                </Link>
-              </div>
             </div>
           )}
         </div>
