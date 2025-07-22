@@ -482,3 +482,38 @@ input:checked + .slider:before {
   .border-laa-purple { border-color: var(--laa-purple); }
   .border-laa-blue { border-color: var(--laa-blue); }
 }
+
+/* Professional Premium Video Styles */
+@keyframes luxury-glow {
+  0% {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.5), 0 0 60px rgba(236, 72, 153, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+  }
+}
+
+.premium-video {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.premium-video video {
+  border-radius: 16px;
+  filter: brightness(1.1) contrast(1.2) saturate(1.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-video:hover video {
+  transform: scale(1.05);
+  filter: brightness(1.2) contrast(1.3) saturate(1.2);
+}
+
+.premium-video:hover {
+  animation: luxury-glow 2s ease-in-out infinite;
+}

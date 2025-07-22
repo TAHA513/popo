@@ -327,29 +327,64 @@ export default function Home() {
             </div>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 auto-rows-max">
                 {typedMemories.map((memory) => (
-                  <Card key={`memory-${memory.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group">
+                  <Card key={`memory-${memory.id}`} className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group ${memory.type === 'video' ? 'col-span-2 row-span-2' : ''}`}>
                     {/* Media Display */}
-                    <div className="relative h-48 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden">
+                    <div className={`relative ${memory.type === 'video' ? 'h-96' : 'h-48'} bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden`}>
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
                         memory.type === 'video' ? (
-                          <video
-                            src={memory.mediaUrls[0]}
-                            className="w-full h-full object-cover cursor-pointer"
-                            controls
-                            preload="metadata"
-                            poster={memory.thumbnailUrl}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const video = e.currentTarget;
-                              if (video.paused) {
+                          <div className="premium-video relative w-full h-full bg-black rounded-lg overflow-hidden group">
+                            <video
+                              src={memory.mediaUrls[0]}
+                              className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                              autoPlay
+                              muted
+                              loop
+                              playsInline
+                              preload="auto"
+                              poster={memory.thumbnailUrl}
+                              onMouseEnter={(e) => {
+                                const video = e.currentTarget;
+                                video.muted = false;
                                 video.play();
-                              } else {
-                                video.pause();
-                              }
-                            }}
-                          />
+                              }}
+                              onMouseLeave={(e) => {
+                                const video = e.currentTarget;
+                                video.muted = true;
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const video = e.currentTarget;
+                                if (video.paused) {
+                                  video.play();
+                                } else {
+                                  video.pause();
+                                }
+                              }}
+                            />
+                            
+                            {/* Professional Video Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="absolute bottom-4 left-4 right-4">
+                                <div className="flex items-center justify-between text-white">
+                                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                                    <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+                                      <Play className="w-4 h-4 text-white" />
+                                    </div>
+                                    <span className="text-sm font-semibold">فيديو حصري</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1 rtl:space-x-reverse text-xs">
+                                    <Eye className="w-3 h-3" />
+                                    <span>{memory.viewCount || 0}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Luxury Border Effect */}
+                            <div className="absolute inset-0 border-2 border-gradient-to-r from-pink-500/50 to-purple-500/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          </div>
                         ) : (
                           <img
                             src={memory.mediaUrls[0]}
@@ -374,25 +409,25 @@ export default function Home() {
                         </div>
                       </Badge>
 
-                      {/* Video Indicator */}
+                      {/* Premium Video Indicator */}
                       {memory.type === 'video' && (
-                        <div className="absolute bottom-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center">
-                          <PlayCircle className="w-3 h-3 mr-1" />
-                          فيديو
+                        <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center shadow-lg">
+                          <span className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
+                          HD LIVE
                         </div>
                       )}
                     </div>
 
-                    <CardContent className="p-4">
+                    <CardContent className={`${memory.type === 'video' ? 'p-6' : 'p-4'}`}>
                       {/* Title */}
                       {memory.title && (
-                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">
+                        <h3 className={`font-bold text-gray-900 mb-2 line-clamp-1 ${memory.type === 'video' ? 'text-lg' : ''}`}>
                           {memory.title}
                         </h3>
                       )}
                       
                       {/* Caption */}
-                      <p className="text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed">
+                      <p className={`text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed ${memory.type === 'video' ? 'text-base' : 'text-sm'}`}>
                         {memory.caption || "منشور جديد"}
                       </p>
 
@@ -403,17 +438,23 @@ export default function Home() {
                             <img
                               src={memory.author.profileImageUrl}
                               alt="صورة الكاتب"
-                              className="w-8 h-8 rounded-full object-cover border-2 border-purple-300"
+                              className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} rounded-full object-cover border-2 border-purple-300`}
                             />
                           ) : (
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-white" />
+                            <div className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center`}>
+                              <User className={`${memory.type === 'video' ? 'w-5 h-5' : 'w-4 h-4'} text-white`} />
                             </div>
                           )}
                           <div className="mr-2">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className={`${memory.type === 'video' ? 'text-base' : 'text-sm'} font-medium text-gray-700`}>
                               {memory.author?.firstName || memory.author?.username || memory.authorId}
                             </span>
+                            {memory.type === 'video' && (
+                              <div className="flex items-center mt-1">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                                <span className="text-xs text-green-600 font-medium">متاح الآن</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <span className="text-xs text-gray-400">منذ يوم</span>
