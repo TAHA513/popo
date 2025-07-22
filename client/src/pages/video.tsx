@@ -288,7 +288,7 @@ export default function VideoPage() {
   // Follow/Unfollow mutation
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      return await apiRequest('POST', `/api/users/${userId}/follow`);
+      return await apiRequest(`/api/users/${userId}/follow`, 'POST');
     },
     onSuccess: (data) => {
       toast({
@@ -297,19 +297,28 @@ export default function VideoPage() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Follow error:", error);
+      const isAuthError = error.message?.includes("401") || error.message?.includes("يجب تسجيل الدخول");
       toast({
         title: "خطأ في المتابعة",
-        description: "حاول مرة أخرى",
+        description: isAuthError ? "يجب تسجيل الدخول أولاً" : "حاول مرة أخرى",
         variant: "destructive",
       });
+      
+      // If authentication error, redirect to login
+      if (isAuthError) {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      }
     }
   });
 
   // Video interaction mutation
   const interactionMutation = useMutation({
     mutationFn: async ({ videoId, type }: { videoId: number; type: string }) => {
-      return await apiRequest('POST', `/api/memories/${videoId}/interact`, { type });
+      return await apiRequest(`/api/memories/${videoId}/interact`, 'POST', { type });
     },
     onSuccess: (_, { type }) => {
       const messages = {
@@ -326,12 +335,21 @@ export default function VideoPage() {
 
       queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Interaction error:", error);
+      const isAuthError = error.message?.includes("401") || error.message?.includes("يجب تسجيل الدخول");
       toast({
         title: "خطأ في التفاعل",
-        description: "حاول مرة أخرى",
+        description: isAuthError ? "يجب تسجيل الدخول أولاً" : "حاول مرة أخرى",
         variant: "destructive",
       });
+      
+      // If authentication error, redirect to login
+      if (isAuthError) {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      }
     }
   });
 
