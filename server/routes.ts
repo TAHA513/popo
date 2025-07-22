@@ -517,27 +517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/memories/:id/interact', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const fragmentId = parseInt(req.params.id);
-      const { type } = req.body; // 'like', 'view', 'share', 'gift'
-      
-      const energyBoost = type === 'view' ? 1 : type === 'like' ? 2 : type === 'share' ? 3 : type === 'gift' ? 5 : 1;
-      
-      await storage.addMemoryInteraction({
-        fragmentId,
-        userId,
-        type,
-        energyBoost
-      });
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error adding interaction:", error);
-      res.status(500).json({ message: "Failed to add interaction" });
-    }
-  });
+
 
   // Serve uploaded files
   await fs.mkdir('uploads', { recursive: true });

@@ -79,17 +79,42 @@ export default function VideoPage() {
     }
   });
 
-  // Find current video index
+  // Find current video index and stop previous video
   useEffect(() => {
     if (videoId && allVideos.length > 0) {
+      // Stop all videos first
+      const allVideoElements = document.querySelectorAll('video');
+      allVideoElements.forEach(video => {
+        video.pause();
+        video.currentTime = 0;
+        video.muted = true;
+      });
+      
       const index = allVideos.findIndex(v => v.id === parseInt(videoId));
       if (index !== -1) {
         setCurrentVideoIndex(index);
+        setIsVideoPlaying(true);
+        setIsMuted(true);
       }
     }
   }, [videoId, allVideos]);
 
   const currentVideo = allVideos[currentVideoIndex];
+
+  // Auto-play and handle video changes
+  useEffect(() => {
+    if (currentVideo && isVideoPlaying) {
+      setTimeout(() => {
+        const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.muted = isMuted;
+          videoElement.play().catch(() => {
+            // Auto-play failed, user needs to interact first
+          });
+        }
+      }, 100);
+    }
+  }, [currentVideo, isVideoPlaying, isMuted]);
 
   const handleVideoToggle = () => {
     const videoElement = document.querySelector(`#video-${currentVideo?.id}`) as HTMLVideoElement;
@@ -135,10 +160,24 @@ export default function VideoPage() {
     interactionMutation.mutate({ videoId: currentVideo.id, type: 'like' });
   };
 
+  const stopCurrentVideo = () => {
+    if (currentVideo) {
+      const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+      if (videoElement) {
+        videoElement.pause();
+        videoElement.currentTime = 0;
+      }
+    }
+  };
+
   const goToNextVideo = () => {
     if (currentVideoIndex < allVideos.length - 1) {
+      // Stop current video first
+      stopCurrentVideo();
+      
       const nextIndex = currentVideoIndex + 1;
       setCurrentVideoIndex(nextIndex);
+      setIsVideoPlaying(true); // Start new video
       // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[nextIndex].id}`);
     }
@@ -146,8 +185,12 @@ export default function VideoPage() {
 
   const goToPrevVideo = () => {
     if (currentVideoIndex > 0) {
+      // Stop current video first
+      stopCurrentVideo();
+      
       const prevIndex = currentVideoIndex - 1;
       setCurrentVideoIndex(prevIndex);
+      setIsVideoPlaying(true); // Start new video
       // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[prevIndex].id}`);
     }
