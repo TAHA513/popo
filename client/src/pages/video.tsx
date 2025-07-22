@@ -497,7 +497,7 @@ export default function VideoPage() {
           key={currentVideo.id}
           id={`video-${currentVideo.id}`}
           src={currentVideo.mediaUrls[0]}
-          className="w-full h-full object-contain bg-gray-100"
+          className="w-full h-full object-cover"
           autoPlay
           muted={isMuted}
           loop
@@ -562,7 +562,7 @@ export default function VideoPage() {
               <img
                 src={currentVideo.author.profileImageUrl}
                 alt="صورة المنشور"
-                className="w-12 h-12 md:w-16 md:h-16 rounded-full object-contain bg-gray-100 border-2 border-white/50 mb-2"
+                className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-white/50 mb-2"
                 loading="lazy"
               />
             ) : (

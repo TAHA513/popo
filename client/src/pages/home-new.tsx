@@ -228,7 +228,7 @@ export default function HomeNew() {
                       className="overflow-hidden hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                       onClick={() => handleJoinStream(stream.id)}
                     >
-                      <div className="relative h-48 bg-gradient-to-br from-purple-500 to-pink-500">
+                      <div className="relative h-64 bg-gradient-to-br from-purple-500 to-pink-500">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Play className="w-12 h-12 text-white opacity-80" />
                         </div>
@@ -270,12 +270,12 @@ export default function HomeNew() {
                 {typedMemories.slice(0, 9).map((memory) => (
                   <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all">
                     {/* Media Content */}
-                    <div className="relative h-48 bg-gray-200">
+                    <div className="relative h-64 bg-gray-200">
                       {memory.mediaUrl ? (
                         memory.mediaUrl.includes('.mp4') || memory.mediaUrl.includes('.webm') ? (
                           <video
                             src={memory.mediaUrl}
-                            className="w-full h-full object-contain bg-gray-100"
+                            className="w-full h-full object-cover"
                             muted
                             loop
                             poster="/placeholder-video.jpg"
@@ -286,7 +286,7 @@ export default function HomeNew() {
                           <img
                             src={memory.mediaUrl}
                             alt="Memory"
-                            className="w-full h-full object-contain bg-gray-100"
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-image.jpg';
                             }}
@@ -396,7 +396,7 @@ export default function HomeNew() {
                     className="overflow-hidden hover:shadow-lg transition-all cursor-pointer hover:scale-105"
                     onClick={() => handleJoinStream(stream.id)}
                   >
-                    <div className="relative h-48 bg-gradient-to-br from-purple-500 to-pink-500">
+                    <div className="relative h-64 bg-gradient-to-br from-purple-500 to-pink-500">
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Play className="w-12 h-12 text-white opacity-80" />
                       </div>
@@ -446,12 +446,12 @@ export default function HomeNew() {
                 {typedMemories.map((memory) => (
                   <Card key={memory.id} className="overflow-hidden hover:shadow-lg transition-all">
                     {/* Media Content */}
-                    <div className="relative h-48 bg-gray-200">
+                    <div className="relative h-64 bg-gray-200">
                       {memory.mediaUrl ? (
                         memory.mediaUrl.includes('.mp4') || memory.mediaUrl.includes('.webm') ? (
                           <video
                             src={memory.mediaUrl}
-                            className="w-full h-full object-contain bg-gray-100"
+                            className="w-full h-full object-cover"
                             muted
                             loop
                             poster="/placeholder-video.jpg"
@@ -462,7 +462,7 @@ export default function HomeNew() {
                           <img
                             src={memory.mediaUrl}
                             alt="Memory"
-                            className="w-full h-full object-contain bg-gray-100"
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-image.jpg';
                             }}

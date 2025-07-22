@@ -137,7 +137,7 @@ export default function Feed() {
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
                       {/* Stream Preview */}
-                      <div className="relative md:w-1/3 h-48 md:h-auto bg-gradient-to-br from-purple-500 to-pink-500">
+                      <div className="relative md:w-1/3 h-64 md:h-auto bg-gradient-to-br from-purple-500 to-pink-500">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Play className="w-16 h-16 text-white" />
                         </div>
@@ -271,12 +271,12 @@ export default function Feed() {
                   <CardContent className="px-4 pb-3">
                     {/* Media Preview */}
                     {memory.mediaUrls?.length > 0 && (
-                      <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl h-64 mb-4 overflow-hidden group cursor-pointer">
+                      <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl h-80 mb-4 overflow-hidden group cursor-pointer">
                         {memory.type === 'image' && memory.thumbnailUrl ? (
                           <img 
                             src={memory.thumbnailUrl} 
                             alt={memory.caption || 'منشور'} 
-                            className="w-full h-full object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
                             decoding="async"
                             onError={(e) => {
@@ -287,7 +287,7 @@ export default function Feed() {
                         ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
                           <video
                             src={memory.mediaUrls[0]}
-                            className="w-full h-full object-contain bg-gray-100"
+                            className="w-full h-full object-cover"
                             muted
                             loop
                             preload="metadata"
