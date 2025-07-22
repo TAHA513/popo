@@ -27,7 +27,7 @@ import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
 export default function ProfileSimplePage() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const params = useParams();
   const userId = params.userId;
   const profileUserId = userId || currentUser?.id;
@@ -39,45 +39,151 @@ export default function ProfileSimplePage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
-  // Log para debug
-  console.log("Profile params:", params);
-  console.log("userId from params:", userId);
-  console.log("profileUserId:", profileUserId);
-  console.log("currentUser:", currentUser);
+  // Enhanced debug logging
+  console.log("🔧 ProfileSimplePage Debug Info:");
+  console.log("📍 URL params:", params);
+  console.log("👤 userId from params:", userId);
+  console.log("🎯 Final profileUserId:", profileUserId);
+  console.log("🔑 currentUser:", currentUser);
+  console.log("🔒 isAuthenticated:", isAuthenticated);
+  console.log("⏳ authLoading:", authLoading);
+  console.log("🌐 Current URL:", window.location.pathname);
+  
+  // Early return if auth is still loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <SimpleNavigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">جاري التحقق من حالة تسجيل الدخول...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // If no profileUserId could be determined
+  if (!profileUserId) {
+    console.error("❌ No profile user ID available");
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <SimpleNavigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">❌</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">معرف المستخدم مفقود</h2>
+            <p className="text-gray-600 mb-4">لم يتم تحديد معرف المستخدم المطلوب عرضه</p>
+            <Link href="/home">
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                العودة للصفحة الرئيسية
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   // All hooks must be called before any conditional returns
   
   // Fetch profile user data
-  const { data: profileUser, isLoading: userLoading, error: userError } = useQuery({
+  const { data: profileUser, isLoading: userLoading, error: userError, refetch: refetchUser } = useQuery({
     queryKey: ['/api/users', profileUserId],
     enabled: !!profileUserId,
     retry: 3,
+    staleTime: 30000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
     queryFn: async () => {
-      console.log('Fetching user profile for:', profileUserId);
-      const response = await fetch(`/api/users/${profileUserId}`, {
-        credentials: 'include'
-      });
+      console.log('🔍 Fetching user profile for:', profileUserId);
       
-      if (!response.ok) {
-        console.error('Error fetching user:', response.status, response.statusText);
-        if (response.status === 401) {
-          // إعادة توجيه لصفحة تسجيل الدخول
-          setLocation('/login');
-          throw new Error('Authentication required');
+      // Add timeout to fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        const response = await fetch(`/api/users/${profileUserId}`, {
+          credentials: 'include',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          console.error('❌ Error fetching user:', response.status, response.statusText);
+          
+          let errorMessage = `خطأ في الخادم: ${response.status}`;
+          
+          try {
+            const errorData = await response.text();
+            console.error('📋 Error response body:', errorData);
+            const parsedError = JSON.parse(errorData);
+            errorMessage = parsedError.message || errorMessage;
+          } catch (e) {
+            console.error('📋 Could not parse error response');
+          }
+          
+          if (response.status === 401) {
+            setLocation('/login');
+            throw new Error('يجب تسجيل الدخول أولاً');
+          } else if (response.status === 404) {
+            throw new Error('المستخدم غير موجود');
+          } else if (response.status === 403) {
+            throw new Error('ليس لديك صلاحية لعرض هذا الملف الشخصي');
+          } else {
+            throw new Error(errorMessage);
+          }
         }
-        throw new Error(`Failed to fetch user: ${response.status}`);
+        
+        const data = await response.json();
+        console.log('✅ User profile fetched successfully:', data);
+        return data;
+        
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        
+        if (error.name === 'AbortError') {
+          console.error('⏱️ Request timeout');
+          throw new Error('انتهت مهلة الطلب - يرجى المحاولة مرة أخرى');
+        }
+        
+        console.error('🚨 Fetch error:', error);
+        throw error;
       }
-      
-      const data = await response.json();
-      console.log('User profile fetched:', data);
-      return data;
     }
   });
 
   // Fetch user memories
-  const { data: memories = [], isLoading: memoriesLoading } = useQuery<any[]>({
+  const { data: memories = [], isLoading: memoriesLoading, error: memoriesError } = useQuery<any[]>({
     queryKey: ['/api/memories/user', profileUserId],
-    enabled: !!profileUserId,
+    enabled: !!profileUserId && !!profileUser, // Only fetch memories after user data is loaded
+    retry: 2,
+    staleTime: 30000,
+    queryFn: async () => {
+      console.log('🔍 Fetching memories for user:', profileUserId);
+      const response = await fetch(`/api/memories/user/${profileUserId}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        console.warn('⚠️ Could not fetch memories:', response.status);
+        if (response.status === 401) {
+          return []; // Return empty array if not authorized
+        }
+        throw new Error(`Failed to fetch memories: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Memories fetched:', data?.length || 0, 'items');
+      return data || [];
+    }
   });
   
   // Check if following
@@ -246,8 +352,15 @@ export default function ProfileSimplePage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">جاري تحميل الملف الشخصي...</p>
-            <p className="text-sm text-gray-400 mt-2">ID: {profileUserId}</p>
+            <p className="text-gray-600 text-lg">جاري تحميل الملف الشخصي...</p>
+            <p className="text-sm text-gray-400 mt-2">معرف المستخدم: {profileUserId}</p>
+            <div className="mt-4 space-y-2">
+              <div className="bg-gray-200 animate-pulse h-4 w-48 mx-auto rounded"></div>
+              <div className="bg-gray-200 animate-pulse h-4 w-32 mx-auto rounded"></div>
+            </div>
+            <p className="text-xs text-gray-400 mt-4">
+              إذا استغرق التحميل وقتاً طويلاً، يرجى إعادة تحميل الصفحة
+            </p>
           </div>
         </div>
       </div>
@@ -256,10 +369,10 @@ export default function ProfileSimplePage() {
 
   // If there's an error fetching user
   if (userError) {
-    console.error('User error:', userError);
+    console.error('🚨 User profile error:', userError);
     
     // إذا كانت المشكلة في المصادقة، لا نظهر صفحة الخطأ لأنه سيتم إعادة توجيه
-    if (userError.message === 'Authentication required') {
+    if (userError.message === 'يجب تسجيل الدخول أولاً' || userError.message === 'Authentication required') {
       return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
           <SimpleNavigation />
@@ -277,27 +390,47 @@ export default function ProfileSimplePage() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
+          <div className="text-center max-w-md mx-auto">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">خطأ في تحميل الملف الشخصي</h2>
-            <p className="text-gray-600 mb-4">{userError.message || 'حدث خطأ غير متوقع'}</p>
-            <div className="space-x-4 rtl:space-x-reverse">
+            <p className="text-gray-600 mb-6">{userError.message || 'حدث خطأ غير متوقع'}</p>
+            
+            {/* Debug information */}
+            <div className="bg-gray-100 p-4 rounded-lg mb-6 text-left">
+              <p className="text-xs text-gray-500 mb-2">معلومات التشخيص:</p>
+              <p className="text-xs text-gray-600">معرف المستخدم: {profileUserId}</p>
+              <p className="text-xs text-gray-600">المستخدم الحالي: {currentUser?.username || 'غير مسجل دخول'}</p>
+              <p className="text-xs text-gray-600">نوع الخطأ: {userError?.name || 'غير محدد'}</p>
+            </div>
+            
+            <div className="space-y-3">
               <Button 
-                onClick={() => window.location.reload()} 
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => refetchUser()} 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={userLoading}
               >
-                إعادة المحاولة
+                {userLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    جاري إعادة المحاولة...
+                  </>
+                ) : (
+                  'إعادة المحاولة'
+                )}
               </Button>
-              <Link href="/explore">
-                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                  استكشاف المستخدمين
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button className="bg-green-600 hover:bg-green-700 text-white">
-                  تسجيل الدخول
-                </Button>
-              </Link>
+              
+              <div className="flex gap-2">
+                <Link href="/explore" className="flex-1">
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                    استكشاف المستخدمين
+                  </Button>
+                </Link>
+                <Link href="/home" className="flex-1">
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    الصفحة الرئيسية
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
