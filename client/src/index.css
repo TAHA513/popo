@@ -545,3 +545,23 @@ input:checked + .slider:before {
   background: white;
   border-radius: 2px;
 }
+
+/* Volume Control Button Styles */
+.volume-control {
+  background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.volume-control:hover {
+  background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 100%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.volume-muted {
+  color: #ef4444 !important;
+}
+
+.volume-on {
+  color: #10b981 !important;
+}

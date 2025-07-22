@@ -20,7 +20,9 @@ import {
   Image,
   PlayCircle,
   Radio,
-  Maximize2
+  Maximize2,
+  Volume2,
+  VolumeX
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -33,6 +35,7 @@ export default function Home() {
   const { toast } = useToast();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
+  const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
   
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
@@ -92,6 +95,22 @@ export default function Home() {
     } else {
       videoElement.play();
       setPlayingVideos(prev => new Set(prev).add(videoId));
+    }
+  };
+
+  const handleVolumeToggle = (videoId: string, videoElement: HTMLVideoElement) => {
+    const isMuted = mutedVideos.has(videoId);
+    
+    if (isMuted) {
+      videoElement.muted = false;
+      setMutedVideos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(videoId);
+        return newSet;
+      });
+    } else {
+      videoElement.muted = true;
+      setMutedVideos(prev => new Set(prev).add(videoId));
     }
   };
 
@@ -364,12 +383,16 @@ export default function Home() {
                               poster={memory.thumbnailUrl}
                               onMouseEnter={(e) => {
                                 const video = e.currentTarget;
-                                video.muted = false;
+                                if (!mutedVideos.has(`video-${memory.id}`)) {
+                                  video.muted = false;
+                                }
                                 video.play();
                               }}
                               onMouseLeave={(e) => {
                                 const video = e.currentTarget;
-                                video.muted = true;
+                                if (!mutedVideos.has(`video-${memory.id}`)) {
+                                  video.muted = true;
+                                }
                               }}
                               onPlay={() => {
                                 setPlayingVideos(prev => new Set(prev).add(`video-${memory.id}`));
@@ -380,6 +403,18 @@ export default function Home() {
                                   newSet.delete(`video-${memory.id}`);
                                   return newSet;
                                 });
+                              }}
+                              onVolumeChange={(e) => {
+                                const video = e.currentTarget;
+                                if (video.muted) {
+                                  setMutedVideos(prev => new Set(prev).add(`video-${memory.id}`));
+                                } else {
+                                  setMutedVideos(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(`video-${memory.id}`);
+                                    return newSet;
+                                  });
+                                }
                               }}
                             />
                             
@@ -408,6 +443,28 @@ export default function Home() {
                                   </div>
                                 ) : (
                                   <Play className="w-6 h-6 ml-1" fill="white" />
+                                )}
+                              </Button>
+                            </div>
+                            
+                            {/* Volume Control Button */}
+                            <div className="absolute top-4 left-4">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const video = e.currentTarget.parentElement?.parentElement?.querySelector('video') as HTMLVideoElement;
+                                  if (video) {
+                                    handleVolumeToggle(`video-${memory.id}`, video);
+                                  }
+                                }}
+                                className={`volume-control w-10 h-10 rounded-full border border-white/30 hover:border-white/50 transition-all duration-300 ${mutedVideos.has(`video-${memory.id}`) ? 'volume-muted' : 'volume-on'}`}
+                              >
+                                {mutedVideos.has(`video-${memory.id}`) ? (
+                                  <VolumeX className="w-4 h-4" />
+                                ) : (
+                                  <Volume2 className="w-4 h-4" />
                                 )}
                               </Button>
                             </div>
