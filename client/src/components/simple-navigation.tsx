@@ -51,15 +51,18 @@ export default function SimpleNavigation() {
             </button>
           </div>
 
-          {/* Center - App Name */}
+          {/* Center - App Name with Rabbit */}
           <div className="flex-1 flex justify-center">
             <Link href="/">
-              <div className="text-center">
-                <div className="text-xl font-bold text-white tracking-wide">
-                  LaaBoBo Live
-                </div>
-                <div className="text-xs text-white/80 font-medium">
-                  لايف بوبو
+              <div className="text-center flex items-center space-x-2 rtl:space-x-reverse">
+                <div className="text-2xl animate-bounce">🐰</div>
+                <div>
+                  <div className="text-xl font-bold text-white tracking-wide">
+                    LaaBoBo Live
+                  </div>
+                  <div className="text-xs text-white/80 font-medium">
+                    لايف بوبو
+                  </div>
                 </div>
               </div>
             </Link>
