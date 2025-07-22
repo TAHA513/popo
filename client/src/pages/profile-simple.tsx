@@ -533,63 +533,71 @@ export default function ProfileSimplePage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col space-y-2 min-w-[120px]">
+              {/* TikTok-Style Action Buttons */}
+              <div className="flex flex-col items-center space-y-4 min-w-[80px]">
                 {isOwnProfile ? (
                   <Link href="/create-memory">
-                    <Button 
-                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      إنشاء ذكرى
-                    </Button>
+                    <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                      <Plus className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs text-gray-600 text-center mt-1">إنشاء</p>
                   </Link>
                 ) : (
                   <>
                     {currentUser ? (
                       <>
-                        <Button
-                          onClick={() => followMutation.mutate()}
-                          disabled={followMutation.isPending}
-                          variant={isFollowing ? "outline" : "default"}
-                          className={!isFollowing ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700" : "border-purple-200 hover:bg-purple-50 hover:border-purple-300"}
-                        >
-                          {followMutation.isPending ? (
-                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                          ) : isFollowing ? (
-                            <UserMinus className="w-4 h-4 mr-2" />
-                          ) : (
-                            <UserPlus className="w-4 h-4 mr-2" />
-                          )}
-                          {followMutation.isPending 
-                            ? "جاري التحديث..." 
-                            : isFollowing 
-                              ? "إلغاء المتابعة" 
-                              : "متابعة"
-                          }
-                        </Button>
-                        <Button
-                          onClick={() => setShowMessageDialog(true)}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          رسالة
-                        </Button>
-                        <Button
-                          onClick={() => setShowGiftDialog(true)}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          <Gift className="w-4 h-4 mr-2" />
-                          إرسال هدية
-                        </Button>
+                        {/* Follow Button */}
+                        <div className="flex flex-col items-center">
+                          <button
+                            onClick={() => followMutation.mutate()}
+                            disabled={followMutation.isPending}
+                            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${
+                              isFollowing 
+                                ? "bg-white border-2 border-purple-500 text-purple-500" 
+                                : "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                            }`}
+                          >
+                            {followMutation.isPending ? (
+                              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : isFollowing ? (
+                              <UserMinus className="w-5 h-5" />
+                            ) : (
+                              <UserPlus className="w-5 h-5" />
+                            )}
+                          </button>
+                          <p className="text-xs text-gray-600 text-center mt-1">
+                            {isFollowing ? "متابع" : "متابعة"}
+                          </p>
+                        </div>
+
+                        {/* Message Button */}
+                        <div className="flex flex-col items-center">
+                          <button
+                            onClick={() => setShowMessageDialog(true)}
+                            className="w-14 h-14 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 hover:border-purple-400"
+                          >
+                            <MessageCircle className="w-5 h-5 text-gray-700" />
+                          </button>
+                          <p className="text-xs text-gray-600 text-center mt-1">رسالة</p>
+                        </div>
+
+                        {/* Gift Button */}
+                        <div className="flex flex-col items-center">
+                          <button
+                            onClick={() => setShowGiftDialog(true)}
+                            className="w-14 h-14 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                          >
+                            <Gift className="w-5 h-5 text-white" />
+                          </button>
+                          <p className="text-xs text-gray-600 text-center mt-1">هدية</p>
+                        </div>
                       </>
                     ) : (
                       <Link href="/login">
-                        <Button className="w-full">
-                          تسجيل الدخول للمتابعة
-                        </Button>
+                        <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                          <UserPlus className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs text-gray-600 text-center mt-1">دخول</p>
                       </Link>
                     )}
                   </>
