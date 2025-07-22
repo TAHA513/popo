@@ -448,7 +448,7 @@ export default function Home() {
                             </div>
                             
                             {/* Volume Control Button */}
-                            <div className="absolute top-4 left-4">
+                            <div className="absolute top-3 right-3 z-20">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -459,12 +459,12 @@ export default function Home() {
                                     handleVolumeToggle(`video-${memory.id}`, video);
                                   }
                                 }}
-                                className={`volume-control w-10 h-10 rounded-full border border-white/30 hover:border-white/50 transition-all duration-300 ${mutedVideos.has(`video-${memory.id}`) ? 'volume-muted' : 'volume-on'}`}
+                                className={`volume-control w-12 h-12 rounded-full border-2 border-white/40 hover:border-white/70 transition-all duration-300 shadow-lg hover:scale-105 ${mutedVideos.has(`video-${memory.id}`) ? 'volume-muted' : 'volume-on'}`}
                               >
                                 {mutedVideos.has(`video-${memory.id}`) ? (
-                                  <VolumeX className="w-4 h-4" />
+                                  <VolumeX className="w-5 h-5" />
                                 ) : (
-                                  <Volume2 className="w-4 h-4" />
+                                  <Volume2 className="w-5 h-5" />
                                 )}
                               </Button>
                             </div>

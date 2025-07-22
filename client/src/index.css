@@ -548,20 +548,27 @@ input:checked + .slider:before {
 
 /* Volume Control Button Styles */
 .volume-control {
-  background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 100%);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .volume-control:hover {
-  background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 100%);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background: radial-gradient(circle, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  transform: scale(1.05);
 }
 
 .volume-muted {
   color: #ef4444 !important;
+  animation: pulse 2s infinite;
 }
 
 .volume-on {
   color: #10b981 !important;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
