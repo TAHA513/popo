@@ -320,7 +320,16 @@ export default function Home() {
                   return (
                     <FlipCard
                       key={`memory-${memory.id}`}
-                      content={memory}
+                      content={{
+                        ...memory,
+                        mediaUrls: memory.mediaUrls || [],
+                        author: memory.author || {
+                          id: memory.authorId,
+                          firstName: memory.authorId,
+                          username: memory.authorId,
+                          profileImageUrl: null
+                        }
+                      }}
                       type={cardType}
                       isLiked={likedItems.has(`memory-${memory.id}`)}
                       onLike={(id) => handleLike(id)}

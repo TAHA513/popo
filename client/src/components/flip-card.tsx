@@ -64,7 +64,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           type === 'video' || type === 'live' ? (
             <video
               src={content.mediaUrls[0]}
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-cover"
               muted
               loop
               playsInline
@@ -74,9 +74,10 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <img
               src={content.mediaUrls[0]}
               alt="منشور"
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = '/placeholder-image.jpg';
+                // Show gradient background instead of broken image
+                e.currentTarget.style.display = 'none';
               }}
             />
           )
@@ -86,8 +87,10 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           </div>
         )}
 
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+        {/* Overlay Gradient - only if there's media */}
+        {content.mediaUrls && content.mediaUrls.length > 0 && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+        )}
 
         {/* Top Badges */}
         <div className="absolute top-3 left-3 flex items-center space-x-2 rtl:space-x-reverse">
@@ -131,14 +134,14 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
 
         {/* Bottom Info */}
         <div className="absolute bottom-3 left-3 right-3">
-          <div className="text-white">
+          <div className={`${content.mediaUrls && content.mediaUrls.length > 0 ? 'text-white' : 'text-gray-100'}`}>
             {content.title && (
               <h3 className="font-bold text-lg mb-1 line-clamp-1 drop-shadow-lg">
                 {content.title}
               </h3>
             )}
-            <p className="text-sm text-white/90 line-clamp-2 drop-shadow">
-              {content.caption || "منشور جديد"}
+            <p className={`text-sm line-clamp-2 drop-shadow ${content.mediaUrls && content.mediaUrls.length > 0 ? 'text-white/90' : 'text-gray-200'}`}>
+              {content.caption || content.description || "منشور جديد"}
             </p>
           </div>
         </div>
@@ -155,16 +158,22 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <img
               src={content.author.profileImageUrl}
               alt="صورة الكاتب"
-              className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
+              className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 shadow-md"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                if (nextElement) {
+                  nextElement.style.display = 'flex';
+                }
+              }}
             />
-          ) : (
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-white" />
-            </div>
-          )}
+          ) : null}
+          <div className={`w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md ${content.author?.profileImageUrl ? 'hidden' : ''}`}>
+            <User className="w-6 h-6 text-white" />
+          </div>
           <div className="mr-3 flex-1">
             <h4 className="font-bold text-gray-900 text-lg">
-              {content.author?.firstName || content.author?.username || content.authorId}
+              {content.author?.firstName || content.author?.username || content.authorId || 'مستخدم'}
             </h4>
             <p className="text-gray-600 text-sm flex items-center">
               <Clock className="w-3 h-3 mr-1" />
