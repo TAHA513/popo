@@ -1,0 +1,168 @@
+ WebSocket connection to 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/?token=h4So0HbaWdNK' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) 
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ SW registered:  ServiceWorkerRegistration
+ 🔧 ProfileSimplePage Debug Info:
+ 📍 URL params: Object
+ 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+ 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+ 🔑 currentUser: Object
+ 🔒 isAuthenticated: true
+ ⏳ authLoading: false
+ 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+ 📦 All URL search params: 
+ profileUser: undefined
+ isOwnProfile: false
+ user data: undefined
+ userLoading: true
+ userError: null
+ 🔍 Fetching user profile for: h8KzqCRfUJabh6lL8lr2G
+ 🔧 ProfileSimplePage Debug Info:
+ 📍 URL params: Object
+ 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+ 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+ 🔑 currentUser: Object
+ 🔒 isAuthenticated: true
+ ⏳ authLoading: false
+ 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+ 📦 All URL search params: 
+ profileUser: undefined
+ isOwnProfile: false
+ user data: undefined
+ userLoading: true
+ userError: null
+h8KzqCRfUJabh6lL8lr2G:1 Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)
+ 🔧 ProfileSimplePage Debug Info:
+ 📍 URL params: Object
+ 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+ 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+ 🔑 currentUser: Object
+ 🔒 isAuthenticated: true
+ ⏳ authLoading: false
+ 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+ 📦 All URL search params: 
+ profileUser: undefined
+ isOwnProfile: false
+ user data: undefined
+ userLoading: true
+ userError: null
+ 🔧 ProfileSimplePage Debug Info:
+ 📍 URL params: Object
+ 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+ 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+ 🔑 currentUser: Object
+ 🔒 isAuthenticated: true
+ ⏳ authLoading: false
+ 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+ 📦 All URL search params: 
+ profileUser: undefined
+profile-simple.tsx:343 isOwnProfile: false
+profile-simple.tsx:344 user data: undefined
+profile-simple.tsx:345 userLoading: true
+profile-simple.tsx:346 userError: null
+profile-simple.tsx:117 📡 Response status: 200
+profile-simple.tsx:118 📡 Response headers: Object
+profile-simple.tsx:147 ✅ User profile fetched successfully: Object
+profile-simple.tsx:43 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:44 📍 URL params: Object
+profile-simple.tsx:45 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:46 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:47 🔑 currentUser: Object
+profile-simple.tsx:48 🔒 isAuthenticated: true
+profile-simple.tsx:49 ⏳ authLoading: false
+profile-simple.tsx:50 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:51 📦 All URL search params: 
+profile-simple.tsx:342 profileUser: Object
+profile-simple.tsx:343 isOwnProfile: false
+profile-simple.tsx:344 user data: Object
+profile-simple.tsx:345 userLoading: false
+profile-simple.tsx:346 userError: null
+profile-simple.tsx:43 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:44 📍 URL params: Object
+profile-simple.tsx:45 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:46 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:47 🔑 currentUser: Object
+profile-simple.tsx:48 🔒 isAuthenticated: true
+profile-simple.tsx:49 ⏳ authLoading: false
+profile-simple.tsx:50 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:51 📦 All URL search params: 
+profile-simple.tsx:342 profileUser: Object
+profile-simple.tsx:343 isOwnProfile: false
+profile-simple.tsx:344 user data: Object
+profile-simple.tsx:345 userLoading: false
+profile-simple.tsx:346 userError: null
+profile-simple.tsx:745 Uncaught TypeError: following.map is not a function
+    at ProfileSimplePage (profile-simple.tsx:745:28)
+    at renderWithHooks (chunk-WERSD76P.js?v=ac155a4c:11548:26)
+    at updateFunctionComponent (chunk-WERSD76P.js?v=ac155a4c:14582:28)
+    at beginWork (chunk-WERSD76P.js?v=ac155a4c:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=ac155a4c:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=ac155a4c:19198:20)
+    at workLoopSync (chunk-WERSD76P.js?v=ac155a4c:19137:13)
+profile-simple.tsx:43 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:44 📍 URL params: Object
+profile-simple.tsx:45 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:46 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:47 🔑 currentUser: Object
+profile-simple.tsx:48 🔒 isAuthenticated: true
+profile-simple.tsx:49 ⏳ authLoading: false
+profile-simple.tsx:50 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:51 📦 All URL search params: 
+profile-simple.tsx:342 profileUser: Object
+profile-simple.tsx:343 isOwnProfile: false
+profile-simple.tsx:344 user data: Object
+profile-simple.tsx:345 userLoading: false
+profile-simple.tsx:346 userError: null
+profile-simple.tsx:43 🔧 ProfileSimplePage Debug Info:
+profile-simple.tsx:44 📍 URL params: Object
+profile-simple.tsx:45 👤 userId from params: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:46 🎯 Final profileUserId: h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:47 🔑 currentUser: Object
+profile-simple.tsx:48 🔒 isAuthenticated: true
+profile-simple.tsx:49 ⏳ authLoading: false
+profile-simple.tsx:50 🌐 Current URL: /user/h8KzqCRfUJabh6lL8lr2G
+profile-simple.tsx:51 📦 All URL search params: 
+profile-simple.tsx:342 profileUser: Object
+profile-simple.tsx:343 isOwnProfile: false
+profile-simple.tsx:344 user data: Object
+profile-simple.tsx:345 userLoading: false
+profile-simple.tsx:346 userError: null
+profile-simple.tsx:745 Uncaught TypeError: following.map is not a function
+    at ProfileSimplePage (profile-simple.tsx:745:28)
+    at renderWithHooks (chunk-WERSD76P.js?v=ac155a4c:11548:26)
+    at updateFunctionComponent (chunk-WERSD76P.js?v=ac155a4c:14582:28)
+    at beginWork (chunk-WERSD76P.js?v=ac155a4c:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=ac155a4c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=ac155a4c:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=ac155a4c:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=ac155a4c:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=ac155a4c:19198:20)
+    at workLoopSync (chunk-WERSD76P.js?v=ac155a4c:19137:13)
+chunk-WERSD76P.js?v=ac155a4c:14032 The above error occurred in the <ProfileSimplePage> component:
+
+    at ProfileSimplePage (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/pages/profile-simple.tsx:47:74)
+    at Route (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ac155a4c:265:16)
+    at Switch (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ac155a4c:321:17)
+    at Router (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?v=4MLBJsmYSsnZqBsAS1KZ9:42:48)
+    at div
+    at QueryClientProvider (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ac155a4c:2805:3)
+    at App (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?v=4MLBJsmYSsnZqBsAS1KZ9:214:35)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-WERSD76P.js?v=ac155a4c:14032
+chunk-WERSD76P.js?v=ac155a4c:9129 Uncaught TypeError: following.map is not a function
+    at ProfileSimplePage (profile-simple.tsx:745:28)
+    at renderWithHooks (chunk-WERSD76P.js?v=ac155a4c:11548:26)
+    at updateFunctionComponent (chunk-WERSD76P.js?v=ac155a4c:14582:28)
+    at beginWork (chunk-WERSD76P.js?v=ac155a4c:15924:22)
+    at beginWork$1 (chunk-WERSD76P.js?v=ac155a4c:19753:22)
+    at performUnitOfWork (chunk-WERSD76P.js?v=ac155a4c:19198:20)
+    at workLoopSync (chunk-WERSD76P.js?v=ac155a4c:19137:13)
+    at renderRootSync (chunk-WERSD76P.js?v=ac155a4c:19116:15)
+    at recoverFromConcurrentError (chunk-WERSD76P.js?v=ac155a4c:18736:28)
+    at performSyncWorkOnRoot (chunk-WERSD76P.js?v=ac155a4c:18879:28)
