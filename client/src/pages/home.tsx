@@ -327,11 +327,11 @@ export default function Home() {
             </div>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 auto-rows-max">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
                 {typedMemories.map((memory) => (
-                  <Card key={`memory-${memory.id}`} className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group ${memory.type === 'video' ? 'col-span-2 row-span-2' : ''}`}>
+                  <Card key={`memory-${memory.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group">
                     {/* Media Display */}
-                    <div className={`relative ${memory.type === 'video' ? 'h-96' : 'h-48'} bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden`}>
+                    <div className="relative h-48 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden">
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
                         memory.type === 'video' ? (
                           <div className="premium-video relative w-full h-full bg-black rounded-lg overflow-hidden group">
@@ -364,26 +364,63 @@ export default function Home() {
                               }}
                             />
                             
-                            {/* Professional Video Overlay */}
+                            {/* Video Overlay with Interaction */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="absolute bottom-4 left-4 right-4">
-                                <div className="flex items-center justify-between text-white">
-                                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                                    <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                                      <Play className="w-4 h-4 text-white" />
-                                    </div>
-                                    <span className="text-sm font-semibold">فيديو حصري</span>
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleLike(`memory-${memory.id}`);
+                                      }}
+                                      className={`p-1 ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500' : 'text-white'} hover:text-red-400`}
+                                    >
+                                      <Heart className={`w-4 h-4 ${likedItems.has(`memory-${memory.id}`) ? 'fill-current' : ''}`} />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleInteraction('التعليق');
+                                      }}
+                                      className="p-1 text-white hover:text-blue-400"
+                                    >
+                                      <MessageCircle className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleInteraction('المشاركة');
+                                      }}
+                                      className="p-1 text-white hover:text-green-400"
+                                    >
+                                      <Share2 className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleInteraction('الهدية');
+                                      }}
+                                      className="p-1 text-white hover:text-purple-400"
+                                    >
+                                      <Gift className="w-4 h-4" />
+                                    </Button>
                                   </div>
-                                  <div className="flex items-center space-x-1 rtl:space-x-reverse text-xs">
+                                  <div className="flex items-center space-x-1 rtl:space-x-reverse text-xs text-white">
                                     <Eye className="w-3 h-3" />
                                     <span>{memory.viewCount || 0}</span>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                            
-                            {/* Luxury Border Effect */}
-                            <div className="absolute inset-0 border-2 border-gradient-to-r from-pink-500/50 to-purple-500/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           </div>
                         ) : (
                           <img
@@ -418,16 +455,16 @@ export default function Home() {
                       )}
                     </div>
 
-                    <CardContent className={`${memory.type === 'video' ? 'p-6' : 'p-4'}`}>
+                    <CardContent className="p-4">
                       {/* Title */}
                       {memory.title && (
-                        <h3 className={`font-bold text-gray-900 mb-2 line-clamp-1 ${memory.type === 'video' ? 'text-lg' : ''}`}>
+                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">
                           {memory.title}
                         </h3>
                       )}
                       
                       {/* Caption */}
-                      <p className={`text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed ${memory.type === 'video' ? 'text-base' : 'text-sm'}`}>
+                      <p className="text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed text-sm">
                         {memory.caption || "منشور جديد"}
                       </p>
 
@@ -438,21 +475,21 @@ export default function Home() {
                             <img
                               src={memory.author.profileImageUrl}
                               alt="صورة الكاتب"
-                              className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} rounded-full object-cover border-2 border-purple-300`}
+                              className="w-8 h-8 rounded-full object-cover border-2 border-purple-300"
                             />
                           ) : (
-                            <div className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center`}>
-                              <User className={`${memory.type === 'video' ? 'w-5 h-5' : 'w-4 h-4'} text-white`} />
+                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                              <User className="w-4 h-4 text-white" />
                             </div>
                           )}
                           <div className="mr-2">
-                            <span className={`${memory.type === 'video' ? 'text-base' : 'text-sm'} font-medium text-gray-700`}>
+                            <span className="text-sm font-medium text-gray-700">
                               {memory.author?.firstName || memory.author?.username || memory.authorId}
                             </span>
                             {memory.type === 'video' && (
                               <div className="flex items-center mt-1">
                                 <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                                <span className="text-xs text-green-600 font-medium">متاح الآن</span>
+                                <span className="text-xs text-green-600 font-medium">فيديو</span>
                               </div>
                             )}
                           </div>
