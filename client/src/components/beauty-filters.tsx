@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import React from 'react';
 import { Sparkles, Eye, Zap, Sun, Moon, Heart, Star, Wand2 } from 'lucide-react';
 
 interface BeautyFilter {
@@ -143,7 +144,8 @@ export default function BeautyFilters({
     return isRTL ? filter.nameAr : filter.name;
   };
 
-  if (!isStreaming) {
+  // Enable for both streaming and memory creation
+  if (!isStreaming && onFilterChange === undefined) {
     return null;
   }
 
@@ -151,7 +153,7 @@ export default function BeautyFilters({
     <Card className="w-full max-w-lg mx-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
       <CardHeader className="pb-3">
         <CardTitle className={`flex items-center gap-2 text-lg font-semibold ${isRTL ? 'flex-row-reverse' : ''}`}>
-          <Sparkles className="w-5 h-5 text-pink-500" />
+          <Sparkles className="w-6 h-6 text-pink-500" strokeWidth={2.5} />
           <span>{isRTL ? 'فلاتر التجميل' : 'Beauty Filters'}</span>
         </CardTitle>
       </CardHeader>
@@ -166,8 +168,13 @@ export default function BeautyFilters({
                 className={`w-full h-auto p-3 ${isRTL ? 'flex-row-reverse' : ''}`}
                 onClick={() => setSelectedFilter(filter.id === selectedFilter ? null : filter.id)}
               >
-                <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  {filter.icon}
+                <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div className="w-8 h-8 flex items-center justify-center text-lg">
+                    {React.cloneElement(filter.icon as React.ReactElement, { 
+                      className: "w-6 h-6", 
+                      strokeWidth: 2.5 
+                    })}
+                  </div>
                   <div className="text-left">
                     <div className="text-xs font-medium">{getFilterName(filter)}</div>
                     {filter.premium && (
@@ -206,14 +213,14 @@ export default function BeautyFilters({
             onClick={resetFilters}
             className="flex-1"
           >
-            <Wand2 className="w-4 h-4 mr-2" />
+            <Wand2 className="w-5 h-5 mr-2" strokeWidth={2.5} />
             {isRTL ? 'إعادة تعيين' : 'Reset All'}
           </Button>
           <Button 
             size="sm" 
             className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Sparkles className="w-5 h-5 mr-2" strokeWidth={2.5} />
             {isRTL ? 'تطبيق الفلاتر' : 'Apply Filters'}
           </Button>
         </div>

@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
+import BeautyFilters from "@/components/beauty-filters";
 
 // Enhanced filter presets with unique concepts
 const FILTERS = [
@@ -437,13 +438,13 @@ export default function CreateMemoryPage() {
                         {/* Background Color */}
                         <div className={`absolute inset-0 ${filter.color} opacity-20`} />
                         
-                        {/* Icon with gradient background */}
-                        <div className={`relative w-8 h-8 mx-auto mb-1 rounded-full flex items-center justify-center ${
+                        {/* Icon with enhanced quality and gradient background */}
+                        <div className={`relative w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center transition-all duration-200 ${
                           selectedFilter === filter.id 
-                            ? 'bg-gradient-to-br from-purple-400 to-purple-600 text-white'
-                            : 'bg-white shadow-sm text-gray-600'
+                            ? 'bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-lg scale-105'
+                            : 'bg-white shadow-md text-gray-600 hover:shadow-lg hover:scale-102'
                         }`}>
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-6 h-6" strokeWidth={2.5} />
                         </div>
                         
                         <p className={`text-xs font-medium relative ${
@@ -461,6 +462,22 @@ export default function CreateMemoryPage() {
                       </button>
                     );
                   })}
+                </div>
+
+                {/* Beauty Filters Section */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl border border-pink-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-6 h-6 text-pink-500" />
+                    <h3 className="text-lg font-bold text-gray-800">فلاتر الجمال</h3>
+                    <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">مميز</Badge>
+                  </div>
+                  <BeautyFilters 
+                    isStreaming={false} 
+                    language="ar"
+                    onFilterChange={(filterId, intensity) => {
+                      console.log(`Beauty filter ${filterId} applied with intensity ${intensity}%`);
+                    }}
+                  />
                 </div>
 
                 {/* Enhanced Navigation */}
