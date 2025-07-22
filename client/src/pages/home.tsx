@@ -173,135 +173,134 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100">
       <SimpleNavigation />
       
-      {/* Live Activity Banner - Sticky under navigation */}
-      <div className="sticky top-16 z-40 bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
-        <div className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 px-3 py-2 shadow-lg relative overflow-hidden">
+      {/* Live Activity Banner */}
+      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 px-4 py-3 shadow-lg">
+        <div className="relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute top-1 right-2 w-6 h-6 border border-white/20 rounded-full animate-pulse"></div>
               <div className="absolute bottom-1 left-3 w-4 h-4 border border-white/20 rounded-full animate-bounce"></div>
             </div>
             
-            <div className="relative z-10 flex items-center justify-between">
-              {/* Live Status & Info */}
-              <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
+            <div className="relative z-10 flex items-center justify-center">
+              {/* Live Status & Info - Centered */}
+              <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
                   <div className="relative">
-                    <Radio className="w-5 h-5 text-white" />
-                    <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></div>
-                    <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-yellow-400 rounded-full"></div>
+                    <Radio className="w-6 h-6 text-white" />
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full animate-ping"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full"></div>
                   </div>
                 </div>
-                <div className="text-white">
-                  <h2 className="text-lg font-bold mb-0.5">النشاط المباشر</h2>
-                  <div className="flex items-center space-x-4 rtl:space-x-reverse text-white/90 text-xs">
+                <div className="text-white text-center">
+                  <h2 className="text-xl font-bold mb-1">النشاط المباشر</h2>
+                  <div className="flex items-center justify-center space-x-6 rtl:space-x-reverse text-white/90 text-sm">
                     <div className="flex items-center">
-                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5 animate-pulse"></div>
-                      <span>{typedStreams.length} بث</span>
+                      <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                      <span className="font-medium">{typedStreams.length} بث نشط</span>
                     </div>
                     <div className="flex items-center">
-                      <Eye className="w-3 h-3 mr-1.5" />
-                      <span>{typedStreams.reduce((sum, stream) => sum + (stream.viewerCount || 0), 0)} مشاهد</span>
+                      <Eye className="w-4 h-4 mr-2" />
+                      <span className="font-medium">{typedStreams.reduce((sum, stream) => sum + (stream.viewerCount || 0), 0)} مشاهد</span>
                     </div>
                   </div>
                 </div>
+                
+                {/* Start Stream Button */}
+                <Button
+                  onClick={() => window.location.href = '/start-stream'}
+                  className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-xl font-bold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-lg"
+                >
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <Video className="w-5 h-5" />
+                    <span>ابدأ البث</span>
+                  </div>
+                </Button>
               </div>
-
-              {/* Start Stream Button */}
-              <Button
-                onClick={() => window.location.href = '/start-stream'}
-                className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-4 py-2 rounded-lg font-bold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-md"
-              >
-                <div className="flex items-center space-x-1.5 rtl:space-x-reverse">
-                  <Video className="w-4 h-4" />
-                  <span>ابدأ البث</span>
-                </div>
-              </Button>
             </div>
         </div>
       </div>
       
-      <main className="pb-0 pt-0">
-        <div className="w-full">
+      <main className="px-2 py-4">
+        <div className="w-full max-w-7xl mx-auto">
 
           {/* Live Streams Section */}
           {typedStreams.length > 0 && (
-            <div className="mb-0">
-              <div className="flex items-center justify-between mb-1 px-1">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4 px-2">
                 <div className="flex items-center">
-                  <div className="w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-2">
-                    <Video className="w-3 h-3 text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                    <Video className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-gray-900">البث المباشر</h2>
-                    <p className="text-gray-600 text-xs">{typedStreams.length} بث نشط الآن</p>
+                    <h2 className="text-xl font-bold text-gray-800">البث المباشر</h2>
+                    <p className="text-gray-600 text-sm">{typedStreams.length} بث نشط الآن</p>
                   </div>
                 </div>
-                <div className="flex items-center bg-red-100 text-red-600 px-1 py-0.5 rounded-full text-xs font-medium">
-                  <div className="w-1 h-1 bg-red-500 rounded-full mr-1 animate-ping"></div>
+                <div className="flex items-center bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium shadow-sm">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-ping"></div>
                   مباشر
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {typedStreams.map((stream) => (
-                  <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-red-300 group">
+                  <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white border border-gray-200 hover:border-purple-300 group rounded-xl">
                     <div 
-                      className="relative h-48 bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 overflow-hidden"
+                      className="relative h-44 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 overflow-hidden"
                       onClick={() => handleJoinStream(stream.id)}
                     >
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <PlayCircle className="w-16 h-16 text-white opacity-90" />
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform duration-300">
+                          <PlayCircle className="w-8 h-8 text-white" />
+                        </div>
                       </div>
                       
                       {/* Live Badge */}
-                      <Badge className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1">
+                      <Badge className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full shadow-lg">
                         <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
-                        مباشر
+                        <span className="text-xs font-bold">مباشر</span>
                       </Badge>
                       
                       {/* Viewers */}
-                      <div className="absolute top-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-sm flex items-center">
+                      <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center backdrop-blur-sm">
                         <Eye className="w-3 h-3 mr-1" />
-                        {stream.viewerCount || 0}
+                        <span className="font-medium">{stream.viewerCount || 0}</span>
                       </div>
                     </div>
 
                     <CardContent className="p-4">
-                      <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-1">
+                      <h3 className="font-bold text-gray-900 text-base mb-2 line-clamp-1">
                         {stream.title}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {stream.description}
-                      </p>
                       
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
+                      <div className="flex items-center mb-3">
+                        <div className="flex items-center flex-1">
                           {(stream as any).hostProfileImage ? (
                             <img
                               src={(stream as any).hostProfileImage}
                               alt="صورة المضيف"
-                              className="w-8 h-8 rounded-full object-cover border-2 border-purple-300"
+                              className="w-7 h-7 rounded-full object-cover border-2 border-purple-200"
                             />
                           ) : (
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-white" />
+                            <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                              <User className="w-3 h-3 text-white" />
                             </div>
                           )}
-                          <span className="mr-2 text-sm font-medium text-gray-700">{(stream as any).hostName || stream.hostId}</span>
+                          <span className="mr-2 text-sm font-medium text-gray-700 truncate">{(stream as any).hostName || stream.hostId}</span>
                         </div>
                       </div>
 
-                      {/* Stream Actions */}
+                      {/* Stream Actions - مرتبة في صف واحد */}
                       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleLike(`stream-${stream.id}`)}
-                            className={`p-1 ${likedItems.has(`stream-${stream.id}`) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
+                            className={`p-2 rounded-full ${likedItems.has(`stream-${stream.id}`) ? 'text-red-500 bg-red-50' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'} transition-colors`}
                           >
                             <Heart className={`w-4 h-4 ${likedItems.has(`stream-${stream.id}`) ? 'fill-current' : ''}`} />
                           </Button>
@@ -309,7 +308,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('التعليق')}
-                            className="p-1 text-gray-500 hover:text-blue-500"
+                            className="p-2 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
@@ -317,7 +316,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('المشاركة')}
-                            className="p-1 text-gray-500 hover:text-green-500"
+                            className="p-2 rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Share2 className="w-4 h-4" />
                           </Button>
@@ -325,7 +324,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('الهدية')}
-                            className="p-1 text-gray-500 hover:text-purple-500"
+                            className="p-2 rounded-full text-gray-500 hover:text-purple-500 hover:bg-purple-50 transition-colors"
                           >
                             <Gift className="w-4 h-4" />
                           </Button>
@@ -334,7 +333,7 @@ export default function Home() {
                         <Button
                           size="sm"
                           onClick={() => handleJoinStream(stream.id)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-4"
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full font-medium shadow-lg transition-all duration-300 hover:scale-105"
                         >
                           انضم
                         </Button>
@@ -348,28 +347,28 @@ export default function Home() {
 
           {/* Posts/Memories Section */}
           <div>
-            <div className="flex items-center justify-between mb-1 px-1">
+            <div className="flex items-center justify-between mb-4 px-2">
               <div className="flex items-center">
-                <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-2">
-                  <Sparkles className="w-3 h-3 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">المنشورات المميزة</h2>
-                  <p className="text-gray-600 text-xs">{typedMemories.length} منشور جديد</p>
+                  <h2 className="text-xl font-bold text-gray-800">المنشورات المميزة</h2>
+                  <p className="text-gray-600 text-sm">{typedMemories.length} منشور جديد</p>
                 </div>
               </div>
-              <div className="flex items-center bg-purple-100 text-purple-600 px-1 py-0.5 rounded-full text-xs font-medium">
-                <Sparkles className="w-3 h-3 mr-1" />
+              <div className="flex items-center bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium shadow-sm">
+                <Sparkles className="w-3 h-3 mr-2" />
                 مميز
               </div>
             </div>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {typedMemories.map((memory) => (
                   <Card 
                     key={`memory-${memory.id}`} 
-                    className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group cursor-pointer ${memory.type === 'video' ? 'col-span-3 row-span-3' : ''}`}
+                    className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white border border-gray-200 hover:border-purple-300 group cursor-pointer rounded-xl"
                     onClick={() => {
                       if (memory.type === 'video') {
                         setLocation(`/video/${memory.id}`);
@@ -377,180 +376,23 @@ export default function Home() {
                     }}
                   >
                     {/* Media Display */}
-                    <div className={`relative ${memory.type === 'video' ? 'h-[32rem]' : 'h-48'} bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden`}>
+                    <div className="relative h-44 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 overflow-hidden">
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
                         memory.type === 'video' ? (
-                          <div className="premium-video relative w-full h-full bg-black rounded-lg overflow-hidden group">
+                          <div className="relative w-full h-full overflow-hidden">
                             <video
                               src={memory.mediaUrls[0]}
-                              className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
-                              autoPlay
+                              className="w-full h-full object-cover"
                               muted
                               loop
                               playsInline
-                              preload="auto"
                               poster={memory.thumbnailUrl}
-                              onMouseEnter={(e) => {
-                                const video = e.currentTarget;
-                                if (!mutedVideos.has(`video-${memory.id}`)) {
-                                  video.muted = false;
-                                }
-                                video.play();
-                              }}
-                              onMouseLeave={(e) => {
-                                const video = e.currentTarget;
-                                if (!mutedVideos.has(`video-${memory.id}`)) {
-                                  video.muted = true;
-                                }
-                              }}
-                              onPlay={() => {
-                                setPlayingVideos(prev => new Set(prev).add(`video-${memory.id}`));
-                              }}
-                              onPause={() => {
-                                setPlayingVideos(prev => {
-                                  const newSet = new Set(prev);
-                                  newSet.delete(`video-${memory.id}`);
-                                  return newSet;
-                                });
-                              }}
-                              onVolumeChange={(e) => {
-                                const video = e.currentTarget;
-                                if (video.muted) {
-                                  setMutedVideos(prev => new Set(prev).add(`video-${memory.id}`));
-                                } else {
-                                  setMutedVideos(prev => {
-                                    const newSet = new Set(prev);
-                                    newSet.delete(`video-${memory.id}`);
-                                    return newSet;
-                                  });
-                                }
-                              }}
                             />
                             
-                            {/* Center Play/Pause Button */}
+                            {/* Center Play Button */}
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <Button
-                                variant="ghost"
-                                size="lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const video = e.currentTarget.parentElement?.parentElement?.querySelector('video') as HTMLVideoElement;
-                                  if (video) {
-                                    handleVideoToggle(`video-${memory.id}`, video);
-                                  }
-                                }}
-                                className={`
-                                  video-play-button w-16 h-16 rounded-full text-white
-                                  hover:scale-110 transition-all duration-300
-                                  ${playingVideos.has(`video-${memory.id}`) ? 'opacity-0 group-hover:opacity-100' : 'opacity-80 hover:opacity-100'}
-                                `}
-                              >
-                                {playingVideos.has(`video-${memory.id}`) ? (
-                                  <div className="w-4 h-4 flex items-center justify-center">
-                                    <div className="w-1.5 h-4 bg-white rounded mr-1"></div>
-                                    <div className="w-1.5 h-4 bg-white rounded"></div>
-                                  </div>
-                                ) : (
-                                  <Play className="w-6 h-6 ml-1" fill="white" />
-                                )}
-                              </Button>
-                            </div>
-                            
-                            {/* Volume Control Button */}
-                            <div className="absolute top-3 right-3 z-20">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const video = e.currentTarget.parentElement?.parentElement?.querySelector('video') as HTMLVideoElement;
-                                  if (video) {
-                                    handleVolumeToggle(`video-${memory.id}`, video);
-                                  }
-                                }}
-                                className={`volume-control w-12 h-12 rounded-full border-2 border-white/40 hover:border-white/70 transition-all duration-300 shadow-lg hover:scale-105 ${mutedVideos.has(`video-${memory.id}`) ? 'volume-muted' : 'volume-on'}`}
-                              >
-                                {mutedVideos.has(`video-${memory.id}`) ? (
-                                  <VolumeX className="w-5 h-5" />
-                                ) : (
-                                  <Volume2 className="w-5 h-5" />
-                                )}
-                              </Button>
-                            </div>
-                            
-                            {/* Video Overlay with Interaction */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="absolute bottom-2 left-2 right-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleLike(`memory-${memory.id}`);
-                                      }}
-                                      className={`p-1 ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500' : 'text-white'} hover:text-red-400`}
-                                    >
-                                      <Heart className={`w-4 h-4 ${likedItems.has(`memory-${memory.id}`) ? 'fill-current' : ''}`} />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleInteraction('التعليق');
-                                      }}
-                                      className="p-1 text-white hover:text-blue-400"
-                                    >
-                                      <MessageCircle className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleInteraction('المشاركة');
-                                      }}
-                                      className="p-1 text-white hover:text-green-400"
-                                    >
-                                      <Share2 className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleInteraction('الهدية');
-                                      }}
-                                      className="p-1 text-white hover:text-purple-400"
-                                    >
-                                      <Gift className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                  <div className="flex items-center space-x-3 rtl:space-x-reverse text-xs text-white">
-                                    <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                                      <Eye className="w-3 h-3" />
-                                      <span>{memory.viewCount || 0}</span>
-                                    </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Open fullscreen video viewer
-                                        const video = e.currentTarget.closest('.premium-video')?.querySelector('video') as HTMLVideoElement;
-                                        if (video && video.requestFullscreen) {
-                                          video.requestFullscreen();
-                                        }
-                                      }}
-                                      className="p-1 text-white hover:text-yellow-400"
-                                      title="مشاهدة كاملة"
-                                    >
-                                      <Maximize2 className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                </div>
+                              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform duration-300">
+                                <PlayCircle className="w-8 h-8 text-white" />
                               </div>
                             </div>
                           </div>
@@ -565,79 +407,69 @@ export default function Home() {
                           />
                         )
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                          <Image className="w-12 h-12 text-gray-400" />
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30">
+                            <Image className="w-8 h-8 text-white" />
+                          </div>
                         </div>
                       )}
                       
                       {/* Memory Type Badge */}
-                      <Badge className={`absolute top-3 left-3 ${getMemoryTypeColor(memory.memoryType)} text-white`}>
+                      <Badge className={`absolute top-3 left-3 ${getMemoryTypeColor(memory.memoryType)} text-white px-2 py-1 rounded-full shadow-lg`}>
                         <div className="flex items-center">
                           {getMemoryTypeIcon(memory.memoryType)}
-                          <span className="mr-1 text-xs">{memory.memoryType}</span>
+                          <span className="mr-1 text-xs font-medium">{memory.memoryType}</span>
                         </div>
                       </Badge>
 
-
+                      {/* Views Count */}
+                      <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center backdrop-blur-sm">
+                        <Eye className="w-3 h-3 mr-1" />
+                        <span className="font-medium">{memory.viewCount || 0}</span>
+                      </div>
                     </div>
 
-                    <CardContent className={`${memory.type === 'video' ? 'p-6' : 'p-4'}`}>
+                    <CardContent className="p-4">
                       {/* Title */}
                       {memory.title && (
-                        <h3 className={`font-bold text-gray-900 mb-2 line-clamp-1 ${memory.type === 'video' ? 'text-lg' : ''}`}>
+                        <h3 className="font-bold text-gray-900 text-base mb-2 line-clamp-1">
                           {memory.title}
                         </h3>
                       )}
                       
                       {/* Caption */}
-                      <p className={`text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed ${memory.type === 'video' ? 'text-base' : 'text-sm'}`}>
+                      <p className="text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed text-sm">
                         {memory.caption || "منشور جديد"}
                       </p>
 
                       {/* Author Info */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
+                      <div className="flex items-center mb-3">
+                        <div className="flex items-center flex-1">
                           {memory.author?.profileImageUrl ? (
                             <img
                               src={memory.author.profileImageUrl}
                               alt="صورة الكاتب"
-                              className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} rounded-full object-cover border-2 border-purple-300`}
+                              className="w-7 h-7 rounded-full object-cover border-2 border-purple-200"
                             />
                           ) : (
-                            <div className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center`}>
-                              <User className={`${memory.type === 'video' ? 'w-5 h-5' : 'w-4 h-4'} text-white`} />
+                            <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                              <User className="w-3 h-3 text-white" />
                             </div>
                           )}
-                          <div className="mr-2">
-                            <span className={`${memory.type === 'video' ? 'text-base' : 'text-sm'} font-medium text-gray-700`}>
-                              {memory.author?.firstName || memory.author?.username || memory.authorId}
-                            </span>
-                            {memory.type === 'video' && (
-                              <div className="flex items-center mt-1">
-                                <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse"></div>
-                                <span className="text-xs text-red-600 font-medium">LIVE</span>
-                              </div>
-                            )}
-                          </div>
+                          <span className="mr-2 text-sm font-medium text-gray-700 truncate">
+                            {memory.author?.firstName || memory.author?.username || memory.authorId}
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-400">منذ يوم</span>
                       </div>
 
-                      {/* Engagement Stats */}
-                      <div className="flex items-center text-xs text-gray-500 mb-3 space-x-4 rtl:space-x-reverse">
-                        <span>👁 {memory.viewCount || 0} مشاهدة</span>
-                        <span>❤️ {memory.likeCount || 0} إعجاب</span>
-                        <span>🎁 {memory.giftCount || 0} هدية</span>
-                      </div>
-
-                      {/* Post Actions */}
+                      {/* Post Actions - مرتبة في صف واحد */}
                       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleLike(`memory-${memory.id}`)}
-                            className={`p-1 ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
+                            className={`p-2 rounded-full ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500 bg-red-50' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'} transition-colors`}
                           >
                             <Heart className={`w-4 h-4 ${likedItems.has(`memory-${memory.id}`) ? 'fill-current' : ''}`} />
                           </Button>
@@ -645,7 +477,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('التعليق')}
-                            className="p-1 text-gray-500 hover:text-blue-500"
+                            className="p-2 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
@@ -653,7 +485,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('المشاركة')}
-                            className="p-1 text-gray-500 hover:text-green-500"
+                            className="p-2 rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Share2 className="w-4 h-4" />
                           </Button>
@@ -661,10 +493,14 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('الهدية')}
-                            className="p-1 text-gray-500 hover:text-purple-500"
+                            className="p-2 rounded-full text-gray-500 hover:text-purple-500 hover:bg-purple-50 transition-colors"
                           >
                             <Gift className="w-4 h-4" />
                           </Button>
+                        </div>
+                        
+                        <div className="text-xs text-gray-500 font-medium">
+                          منذ يوم
                         </div>
                       </div>
                     </CardContent>
