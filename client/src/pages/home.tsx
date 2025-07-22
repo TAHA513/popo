@@ -20,9 +20,9 @@ import {
   User,
   Bookmark,
   MoreHorizontal,
-  Send,
   Plus,
-  Camera
+  Calendar,
+  TrendingUp
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -128,15 +128,15 @@ export default function Home() {
   const getMemoryTypeIcon = (type: string) => {
     switch (type) {
       case 'flash':
-        return <Zap className="w-3 h-3" />;
+        return <Zap className="w-4 h-4" />;
       case 'trending':
-        return <Sparkles className="w-3 h-3" />;
+        return <Sparkles className="w-4 h-4" />;
       case 'star':
-        return <Crown className="w-3 h-3" />;
+        return <Crown className="w-4 h-4" />;
       case 'legend':
-        return <Timer className="w-3 h-3" />;
+        return <Timer className="w-4 h-4" />;
       default:
-        return <Sparkles className="w-3 h-3" />;
+        return <Sparkles className="w-4 h-4" />;
     }
   };
 
@@ -167,298 +167,299 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-white">
         <SimpleNavigation />
         <div className="flex items-center justify-center h-screen">
-          <div className="text-white text-lg">جاري التحميل...</div>
+          <div className="text-lg text-gray-600">جاري التحميل...</div>
         </div>
       </div>
     );
   }
 
-  // Mix streams and memories in chronological order
+  // Mix all content chronologically
   const allContent = [
-    ...typedStreams.map(stream => ({ ...stream, type: 'stream' })),
-    ...typedMemories.map(memory => ({ ...memory, type: 'memory' }))
-  ].sort(() => Math.random() - 0.5); // Random mix for demo
+    ...typedStreams.map(stream => ({ ...stream, type: 'stream', timestamp: new Date() })),
+    ...typedMemories.map(memory => ({ ...memory, type: 'memory', timestamp: new Date() }))
+  ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white">
       <SimpleNavigation />
       
-      {/* Main Content Feed */}
-      <main className="pt-16 pb-20">
-        {/* Create Story/Post Button */}
-        <div className="sticky top-16 z-40 bg-black/80 backdrop-blur-sm border-b border-gray-800 p-4">
-          <div className="flex items-center justify-between max-w-md mx-auto">
-            <Link href="/create-memory">
-              <Button className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 mr-2">
-                <Plus className="w-4 h-4 mr-2" />
-                إنشاء منشور
-              </Button>
-            </Link>
-            <Link href="/start-stream">
-              <Button className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800">
-                <Video className="w-4 h-4 mr-2" />
-                بث مباشر
-              </Button>
-            </Link>
+      <main className="pt-20 pb-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              مرحباً، {user?.firstName || user?.username || 'مستخدم'}! 🐰
+            </h1>
+            <p className="text-gray-600 mb-6">تابع أحدث البثوث والمنشورات من المجتمع</p>
+            
+            {/* Quick Actions */}
+            <div className="flex gap-4 justify-center mb-8">
+              <Link href="/create-memory">
+                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3">
+                  <Plus className="w-4 h-4 mr-2" />
+                  إنشاء منشور
+                </Button>
+              </Link>
+              <Link href="/start-stream">
+                <Button className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3">
+                  <Video className="w-4 h-4 mr-2" />
+                  بث مباشر
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Content Feed */}
-        <div className="max-w-md mx-auto space-y-0">
-          {allContent.length > 0 ? (
-            allContent.map((item, index) => (
-              <div key={`${item.type}-${item.id}`} className="relative">
-                {item.type === 'stream' ? (
-                  // Live Stream Card
-                  <div className="relative h-screen w-full bg-gradient-to-br from-purple-900 via-pink-900 to-red-900">
-                    {/* Live Stream Content */}
-                    <div 
-                      className="absolute inset-0 cursor-pointer"
-                      onClick={() => handleJoinStream(item.id)}
-                    >
-                      <div className="relative h-full w-full flex items-center justify-center">
-                        <Play className="w-20 h-20 text-white opacity-80" />
-                        
-                        {/* Live Badge */}
-                        <div className="absolute top-6 left-4 bg-red-600 text-white px-3 py-1 rounded-full flex items-center">
-                          <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
-                          <span className="text-sm font-semibold">مباشر</span>
-                        </div>
-
-                        {/* Viewer Count */}
-                        <div className="absolute top-6 right-4 bg-black/50 text-white px-3 py-1 rounded-full flex items-center">
-                          <Eye className="w-4 h-4 mr-1" />
-                          <span className="text-sm">{item.viewerCount || 0}</span>
-                        </div>
-
-                        {/* Stream Info Overlay */}
-                        <div className="absolute bottom-20 left-4 right-20">
-                          <div className="flex items-center mb-3">
-                            <Avatar className="w-10 h-10 mr-3">
+          {/* Content Timeline */}
+          <div className="space-y-6">
+            {allContent.length > 0 ? (
+              allContent.map((item, index) => (
+                <Card key={`${item.type}-${item.id}`} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 bg-white">
+                  {item.type === 'stream' ? (
+                    // Live Stream
+                    <div className="relative">
+                      {/* Stream Header */}
+                      <div className="p-4 border-b bg-gradient-to-r from-red-50 to-pink-50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <Avatar className="w-12 h-12 mr-3">
                               <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
                                 {item.hostId?.charAt(0)?.toUpperCase() || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-semibold text-white">{item.hostId}</p>
-                              <p className="text-gray-300 text-sm">بث مباشر</p>
+                              <h3 className="font-semibold text-gray-900">{item.hostId}</h3>
+                              <div className="flex items-center text-sm text-gray-600">
+                                <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+                                <span>بث مباشر الآن</span>
+                              </div>
                             </div>
                           </div>
-                          <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
-                          <p className="text-gray-200 text-sm">{item.description}</p>
+                          <Badge className="bg-red-600 text-white px-3 py-1">
+                            <Eye className="w-3 h-3 mr-1" />
+                            {item.viewerCount || 0} مشاهد
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Stream Content */}
+                      <div 
+                        className="relative h-80 bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 cursor-pointer"
+                        onClick={() => handleJoinStream(item.id)}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center text-white">
+                            <Play className="w-16 h-16 mx-auto mb-4 opacity-80" />
+                            <h4 className="text-xl font-bold mb-2">{item.title}</h4>
+                            <p className="text-gray-200">{item.description}</p>
+                          </div>
+                        </div>
+                        <div className="absolute top-4 left-4">
+                          <Badge className="bg-red-600 text-white">
+                            <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+                            مباشر
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Stream Actions */}
+                      <div className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleLike(item.id, true)}
+                              className={`flex items-center ${likedStreams.has(item.id) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
+                            >
+                              <Heart className={`w-5 h-5 mr-1 ${likedStreams.has(item.id) ? 'fill-current' : ''}`} />
+                              <span>123</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleComment(item.id)}
+                              className="flex items-center text-gray-500 hover:text-blue-500"
+                            >
+                              <MessageCircle className="w-5 h-5 mr-1" />
+                              <span>45</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleShare(item.id)}
+                              className="flex items-center text-gray-500 hover:text-green-500"
+                            >
+                              <Share2 className="w-5 h-5 mr-1" />
+                              <span>مشاركة</span>
+                            </Button>
+                          </div>
+                          <Button
+                            onClick={() => handleJoinStream(item.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-6"
+                          >
+                            انضم للبث
+                          </Button>
                         </div>
                       </div>
                     </div>
-
-                    {/* Action Buttons - Right Side */}
-                    <div className="absolute bottom-32 right-4 space-y-6">
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLike(item.id, true)}
-                          className={`p-3 rounded-full ${likedStreams.has(item.id) ? 'bg-red-500' : 'bg-black/40'} hover:bg-red-500/80`}
-                        >
-                          <Heart className={`w-6 h-6 ${likedStreams.has(item.id) ? 'fill-current text-white' : 'text-white'}`} />
-                        </Button>
-                        <span className="text-white text-xs mt-1">123</span>
+                  ) : (
+                    // Memory/Post
+                    <div className="relative">
+                      {/* Post Header */}
+                      <div className="p-4 border-b">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <Avatar className="w-12 h-12 mr-3">
+                              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                                {item.authorId?.charAt(0)?.toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{item.authorId}</h3>
+                              <div className="flex items-center text-sm text-gray-500">
+                                <Calendar className="w-3 h-3 mr-1" />
+                                <span>منذ ساعة</span>
+                                <Badge className={`mr-2 ${getMemoryTypeColor(item.memoryType)} text-white`}>
+                                  {getMemoryTypeIcon(item.memoryType)}
+                                  <span className="mr-1 text-xs">{item.memoryType}</span>
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <MoreHorizontal className="w-5 h-5" />
+                          </Button>
+                        </div>
+                        
+                        {/* Post Caption */}
+                        {item.caption && (
+                          <div className="mt-3">
+                            <p className="text-gray-800 text-right leading-relaxed">{item.caption}</p>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleComment(item.id)}
-                          className="p-3 rounded-full bg-black/40 hover:bg-blue-500/80"
-                        >
-                          <MessageCircle className="w-6 h-6 text-white" />
-                        </Button>
-                        <span className="text-white text-xs mt-1">45</span>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleShare(item.id)}
-                          className="p-3 rounded-full bg-black/40 hover:bg-green-500/80"
-                        >
-                          <Share2 className="w-6 h-6 text-white" />
-                        </Button>
-                        <span className="text-white text-xs mt-1">12</span>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSendGift(item.id)}
-                          className="p-3 rounded-full bg-black/40 hover:bg-purple-500/80"
-                        >
-                          <Gift className="w-6 h-6 text-white" />
-                        </Button>
-                        <span className="text-white text-xs mt-1">هدية</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  // Memory/Post Card
-                  <div className="relative h-screen w-full bg-black">
-                    {/* Media Content */}
-                    <div className="absolute inset-0">
-                      {item.mediaUrl ? (
-                        item.mediaUrl.includes('.mp4') || item.mediaUrl.includes('.webm') ? (
-                          <video
-                            src={item.mediaUrl}
-                            className="w-full h-full object-cover"
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                          />
+                      {/* Media Content */}
+                      <div className="relative">
+                        {item.mediaUrl ? (
+                          item.mediaUrl.includes('.mp4') || item.mediaUrl.includes('.webm') ? (
+                            <video
+                              src={item.mediaUrl}
+                              className="w-full h-80 object-cover"
+                              controls
+                              poster="/placeholder-video.jpg"
+                            />
+                          ) : (
+                            <img
+                              src={item.mediaUrl}
+                              alt="Memory"
+                              className="w-full h-80 object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder-image.jpg';
+                              }}
+                            />
+                          )
                         ) : (
-                          <img
-                            src={item.mediaUrl}
-                            alt="Memory"
-                            className="w-full h-full object-cover"
-                          />
-                        )
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 flex items-center justify-center">
-                          <Sparkles className="w-20 h-20 text-white opacity-60" />
-                        </div>
-                      )}
-                    </div>
+                          <div className="w-full h-80 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center">
+                            <div className="text-center text-gray-500">
+                              <Sparkles className="w-12 h-12 mx-auto mb-2" />
+                              <p>منشور نصي</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Memory Type Badge */}
-                    <div className="absolute top-6 left-4">
-                      <Badge className={`${getMemoryTypeColor(item.memoryType)} text-white`}>
-                        <div className="flex items-center">
-                          {getMemoryTypeIcon(item.memoryType)}
-                          <span className="mr-1 text-xs">{item.memoryType}</span>
+                      {/* Post Actions */}
+                      <div className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-6 rtl:space-x-reverse">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleLike(item.id)}
+                              className={`flex items-center ${likedPosts.has(item.id) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
+                            >
+                              <Heart className={`w-5 h-5 mr-1 ${likedPosts.has(item.id) ? 'fill-current' : ''}`} />
+                              <span>89</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleComment(item.id)}
+                              className="flex items-center text-gray-500 hover:text-blue-500"
+                            >
+                              <MessageCircle className="w-5 h-5 mr-1" />
+                              <span>23</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleShare(item.id)}
+                              className="flex items-center text-gray-500 hover:text-green-500"
+                            >
+                              <Share2 className="w-5 h-5 mr-1" />
+                              <span>7</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSendGift(item.id)}
+                              className="flex items-center text-gray-500 hover:text-purple-500"
+                            >
+                              <Gift className="w-5 h-5 mr-1" />
+                              <span>هدية</span>
+                            </Button>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleBookmark(item.id)}
+                            className={`${bookmarkedPosts.has(item.id) ? 'text-yellow-500' : 'text-gray-500'} hover:text-yellow-500`}
+                          >
+                            <Bookmark className={`w-5 h-5 ${bookmarkedPosts.has(item.id) ? 'fill-current' : ''}`} />
+                          </Button>
                         </div>
-                      </Badge>
+                      </div>
                     </div>
-
-                    {/* More Options */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-6 right-4 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full"
-                    >
-                      <MoreHorizontal className="w-5 h-5" />
+                  )}
+                </Card>
+              ))
+            ) : (
+              // Empty State
+              <div className="text-center py-16">
+                <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <TrendingUp className="w-12 h-12 text-purple-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                  مرحباً بك في LaaBoBo Live! 🐰
+                </h3>
+                <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                  لا يوجد محتوى حالياً. ابدأ بإنشاء منشور أو بث مباشر لمشاركة إبداعك مع المجتمع!
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Link href="/create-memory">
+                    <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3">
+                      <Plus className="w-4 h-4 mr-2" />
+                      إنشاء منشور
                     </Button>
-
-                    {/* Content Info Overlay */}
-                    <div className="absolute bottom-20 left-4 right-20">
-                      <div className="flex items-center mb-3">
-                        <Avatar className="w-10 h-10 mr-3">
-                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                            {item.authorId?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold text-white">{item.authorId}</p>
-                          <p className="text-gray-300 text-sm">منذ ساعة</p>
-                        </div>
-                      </div>
-                      <p className="text-white mb-4">{item.caption || "منشور جديد"}</p>
-                    </div>
-
-                    {/* Action Buttons - Right Side */}
-                    <div className="absolute bottom-32 right-4 space-y-6">
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLike(item.id)}
-                          className={`p-3 rounded-full ${likedPosts.has(item.id) ? 'bg-red-500' : 'bg-black/40'} hover:bg-red-500/80`}
-                        >
-                          <Heart className={`w-6 h-6 ${likedPosts.has(item.id) ? 'fill-current text-white' : 'text-white'}`} />
-                        </Button>
-                        <span className="text-white text-xs mt-1">89</span>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleComment(item.id)}
-                          className="p-3 rounded-full bg-black/40 hover:bg-blue-500/80"
-                        >
-                          <MessageCircle className="w-6 h-6 text-white" />
-                        </Button>
-                        <span className="text-white text-xs mt-1">23</span>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleShare(item.id)}
-                          className="p-3 rounded-full bg-black/40 hover:bg-green-500/80"
-                        >
-                          <Share2 className="w-6 h-6 text-white" />
-                        </Button>
-                        <span className="text-white text-xs mt-1">7</span>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSendGift(item.id)}
-                          className="p-3 rounded-full bg-black/40 hover:bg-purple-500/80"
-                        >
-                          <Gift className="w-6 h-6 text-white" />
-                        </Button>
-                        <span className="text-white text-xs mt-1">هدية</span>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleBookmark(item.id)}
-                          className={`p-3 rounded-full ${bookmarkedPosts.has(item.id) ? 'bg-yellow-500' : 'bg-black/40'} hover:bg-yellow-500/80`}
-                        >
-                          <Bookmark className={`w-6 h-6 ${bookmarkedPosts.has(item.id) ? 'fill-current text-white' : 'text-white'}`} />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  </Link>
+                  <Link href="/start-stream">
+                    <Button className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3">
+                      <Video className="w-4 h-4 mr-2" />
+                      ابدأ بث مباشر
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            ))
-          ) : (
-            // Empty State
-            <div className="flex flex-col items-center justify-center h-screen text-center px-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-6">
-                <Sparkles className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">مرحباً بك في LaaBoBo! 🐰</h3>
-              <p className="text-gray-400 mb-8 max-w-sm">
-                لا يوجد محتوى حالياً. كن أول من ينشر أو يبدأ بث مباشر!
-              </p>
-              <div className="space-y-4 w-full max-w-xs">
-                <Link href="/create-memory">
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    إنشاء منشور
-                  </Button>
-                </Link>
-                <Link href="/start-stream">
-                  <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800">
-                    <Video className="w-4 h-4 mr-2" />
-                    ابدأ بث مباشر
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </main>
     </div>
