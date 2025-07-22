@@ -139,27 +139,27 @@ export default function Home() {
       
       <main className="pt-20 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Daily Challenge Bar */}
+          {/* Trending Now Bar */}
           <div className="mb-6">
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-3 shadow-lg">
+            <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg p-3 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
-                    <Crown className="w-4 h-4 text-white" />
-                  </div>
+                  <span className="text-2xl mr-2 animate-pulse">🔥</span>
                   <div>
-                    <div className="text-white font-semibold text-sm">تحدي اليوم</div>
-                    <div className="text-white/80 text-xs">شاهد 5 منشورات واحصل على نقاط</div>
+                    <span className="text-white font-semibold text-sm">الأكثر رواجاً الآن: </span>
+                    <span className="text-white/90 text-sm">
+                      {typedStreams.length > 0 
+                        ? `بث "${typedStreams[0].title}" يشاهده ${typedStreams[0].viewerCount || 1} شخص`
+                        : typedMemories.length > 0 
+                          ? `منشور "${typedMemories[0].caption?.substring(0, 20)}..." حصل على إعجاب`
+                          : "لا يوجد محتوى رائج حالياً"
+                      }
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center">
-                  <div className="bg-white/20 rounded-full px-3 py-1 text-white text-xs font-medium">
-                    3/5 ⭐
-                  </div>
+                <div className="text-white/70 text-xs">
+                  الآن
                 </div>
-              </div>
-              <div className="mt-2 bg-white/20 rounded-full h-1">
-                <div className="bg-white rounded-full h-1 w-3/5 transition-all duration-500"></div>
               </div>
             </div>
           </div>
