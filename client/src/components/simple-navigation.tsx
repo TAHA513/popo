@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function SimpleNavigation() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
 
   return (
@@ -143,7 +143,7 @@ export default function SimpleNavigation() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => window.location.href = '/api/logout'}
+              onClick={logout}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
               title="خروج"
             >

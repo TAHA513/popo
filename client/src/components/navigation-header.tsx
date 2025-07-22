@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function NavigationHeader() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
 
   return (
@@ -146,7 +146,7 @@ export default function NavigationHeader() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => window.location.href = '/api/logout'}
+              onClick={logout}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <LogOut className="w-4 h-4" />
