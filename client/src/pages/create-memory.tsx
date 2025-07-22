@@ -386,7 +386,7 @@ export default function CreateMemoryPage() {
                 <Button
                   variant="outline"
                   onClick={resetUpload}
-                  className="border-white/30 text-[#08339e] hover:bg-white/10 rounded-2xl flex-1 tiktok-button"
+                  className="border-white/30 text-[#3b82f6] hover:bg-white/10 rounded-2xl flex-1 tiktok-button"
                 >
                   <X className="h-4 w-4 ml-2" />
                   إلغاء
@@ -553,7 +553,7 @@ export default function CreateMemoryPage() {
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep('filter')}
-                  className="border-white/30 text-white hover:bg-white/10 rounded-2xl flex-1 tiktok-button"
+                  className="border-white/30 text-[#3b82f6] hover:bg-white/10 rounded-2xl flex-1 tiktok-button"
                 >
                   <ArrowLeft className="h-4 w-4 ml-2" />
                   رجوع
