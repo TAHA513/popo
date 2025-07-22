@@ -19,7 +19,8 @@ import {
   Plus,
   Image,
   PlayCircle,
-  Radio
+  Radio,
+  Maximize2
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -329,9 +330,9 @@ export default function Home() {
             {typedMemories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
                 {typedMemories.map((memory) => (
-                  <Card key={`memory-${memory.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group">
+                  <Card key={`memory-${memory.id}`} className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group ${memory.type === 'video' ? 'col-span-2 row-span-2' : ''}`}>
                     {/* Media Display */}
-                    <div className="relative h-48 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden">
+                    <div className={`relative ${memory.type === 'video' ? 'h-96' : 'h-48'} bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden`}>
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
                         memory.type === 'video' ? (
                           <div className="premium-video relative w-full h-full bg-black rounded-lg overflow-hidden group">
@@ -414,9 +415,27 @@ export default function Home() {
                                       <Gift className="w-4 h-4" />
                                     </Button>
                                   </div>
-                                  <div className="flex items-center space-x-1 rtl:space-x-reverse text-xs text-white">
-                                    <Eye className="w-3 h-3" />
-                                    <span>{memory.viewCount || 0}</span>
+                                  <div className="flex items-center space-x-3 rtl:space-x-reverse text-xs text-white">
+                                    <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                                      <Eye className="w-3 h-3" />
+                                      <span>{memory.viewCount || 0}</span>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Open fullscreen video viewer
+                                        const video = e.currentTarget.closest('.premium-video')?.querySelector('video') as HTMLVideoElement;
+                                        if (video && video.requestFullscreen) {
+                                          video.requestFullscreen();
+                                        }
+                                      }}
+                                      className="p-1 text-white hover:text-yellow-400"
+                                      title="مشاهدة كاملة"
+                                    >
+                                      <Maximize2 className="w-4 h-4" />
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
@@ -455,16 +474,16 @@ export default function Home() {
                       )}
                     </div>
 
-                    <CardContent className="p-4">
+                    <CardContent className={`${memory.type === 'video' ? 'p-6' : 'p-4'}`}>
                       {/* Title */}
                       {memory.title && (
-                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">
+                        <h3 className={`font-bold text-gray-900 mb-2 line-clamp-1 ${memory.type === 'video' ? 'text-lg' : ''}`}>
                           {memory.title}
                         </h3>
                       )}
                       
                       {/* Caption */}
-                      <p className="text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed text-sm">
+                      <p className={`text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed ${memory.type === 'video' ? 'text-base' : 'text-sm'}`}>
                         {memory.caption || "منشور جديد"}
                       </p>
 
@@ -475,21 +494,21 @@ export default function Home() {
                             <img
                               src={memory.author.profileImageUrl}
                               alt="صورة الكاتب"
-                              className="w-8 h-8 rounded-full object-cover border-2 border-purple-300"
+                              className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} rounded-full object-cover border-2 border-purple-300`}
                             />
                           ) : (
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-white" />
+                            <div className={`${memory.type === 'video' ? 'w-10 h-10' : 'w-8 h-8'} bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center`}>
+                              <User className={`${memory.type === 'video' ? 'w-5 h-5' : 'w-4 h-4'} text-white`} />
                             </div>
                           )}
                           <div className="mr-2">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className={`${memory.type === 'video' ? 'text-base' : 'text-sm'} font-medium text-gray-700`}>
                               {memory.author?.firstName || memory.author?.username || memory.authorId}
                             </span>
                             {memory.type === 'video' && (
                               <div className="flex items-center mt-1">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                                <span className="text-xs text-green-600 font-medium">فيديو</span>
+                                <div className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse"></div>
+                                <span className="text-xs text-red-600 font-medium">LIVE</span>
                               </div>
                             )}
                           </div>
