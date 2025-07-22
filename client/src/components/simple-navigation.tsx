@@ -140,15 +140,16 @@ export default function SimpleNavigation() {
             </Link>
 
             {/* Logout Button */}
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={logout}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              title="خروج"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
+            <Link href="/login">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                title="خروج"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </Link>
           </div>
         </div>
 
