@@ -32,6 +32,7 @@ export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
+  const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
   
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
@@ -76,6 +77,22 @@ export default function Home() {
       title: `تم ${action}`,
       description: `تم تنفيذ ${action} بنجاح`,
     });
+  };
+
+  const handleVideoToggle = (videoId: string, videoElement: HTMLVideoElement) => {
+    const isPlaying = playingVideos.has(videoId);
+    
+    if (isPlaying) {
+      videoElement.pause();
+      setPlayingVideos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(videoId);
+        return newSet;
+      });
+    } else {
+      videoElement.play();
+      setPlayingVideos(prev => new Set(prev).add(videoId));
+    }
   };
 
   const getMemoryTypeIcon = (type: string) => {
@@ -354,16 +371,46 @@ export default function Home() {
                                 const video = e.currentTarget;
                                 video.muted = true;
                               }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const video = e.currentTarget;
-                                if (video.paused) {
-                                  video.play();
-                                } else {
-                                  video.pause();
-                                }
+                              onPlay={() => {
+                                setPlayingVideos(prev => new Set(prev).add(`video-${memory.id}`));
+                              }}
+                              onPause={() => {
+                                setPlayingVideos(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(`video-${memory.id}`);
+                                  return newSet;
+                                });
                               }}
                             />
+                            
+                            {/* Center Play/Pause Button */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Button
+                                variant="ghost"
+                                size="lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const video = e.currentTarget.parentElement?.parentElement?.querySelector('video') as HTMLVideoElement;
+                                  if (video) {
+                                    handleVideoToggle(`video-${memory.id}`, video);
+                                  }
+                                }}
+                                className={`
+                                  video-play-button w-16 h-16 rounded-full text-white
+                                  hover:scale-110 transition-all duration-300
+                                  ${playingVideos.has(`video-${memory.id}`) ? 'opacity-0 group-hover:opacity-100' : 'opacity-80 hover:opacity-100'}
+                                `}
+                              >
+                                {playingVideos.has(`video-${memory.id}`) ? (
+                                  <div className="w-4 h-4 flex items-center justify-center">
+                                    <div className="w-1.5 h-4 bg-white rounded mr-1"></div>
+                                    <div className="w-1.5 h-4 bg-white rounded"></div>
+                                  </div>
+                                ) : (
+                                  <Play className="w-6 h-6 ml-1" fill="white" />
+                                )}
+                              </Button>
+                            </div>
                             
                             {/* Video Overlay with Interaction */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
