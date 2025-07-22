@@ -313,7 +313,7 @@ export default function Register() {
             </p>
             <Button
               variant="outline"
-              className="w-full h-10 border-white/50 text-white hover:bg-white/20 hover:text-white rounded-xl font-bold backdrop-blur-sm shadow-lg"
+              className="w-full h-10 border-white/50 text-black hover:bg-white/20 hover:text-white rounded-xl font-black backdrop-blur-sm shadow-lg bg-white/80"
               onClick={() => navigate("/login")}
               disabled={registerMutation.isPending}
             >

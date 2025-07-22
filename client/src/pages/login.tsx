@@ -181,7 +181,7 @@ export default function Login() {
             </p>
             <Button
               variant="outline"
-              className="w-full h-12 border-white/50 text-white hover:bg-white/20 hover:text-white rounded-2xl font-bold backdrop-blur-sm shadow-lg"
+              className="w-full h-12 border-white/50 text-black hover:bg-white/20 hover:text-white rounded-2xl font-black backdrop-blur-sm shadow-lg bg-white/80"
               onClick={() => navigate("/register")}
               disabled={loginMutation.isPending}
             >
