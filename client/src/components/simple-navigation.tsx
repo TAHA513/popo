@@ -22,7 +22,7 @@ export default function SimpleNavigation() {
   const [location] = useLocation();
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+    <header className="bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 shadow-sm border-b border-purple-200 sticky top-0 z-50">
       <div className="w-full px-2 py-2">
         <div className="flex items-center justify-between">
           {/* Logo */}

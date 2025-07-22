@@ -139,8 +139,8 @@ export default function Home() {
       <SimpleNavigation />
       
       {/* Live Activity Banner - Direct under navigation */}
-      <div className="pt-16">
-        <div className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 px-3 py-2 shadow-lg relative overflow-hidden">
+      <div className="pt-16 -mt-16 bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
+        <div className="mt-16 bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 px-3 py-2 shadow-lg relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute top-1 right-2 w-6 h-6 border border-white/20 rounded-full animate-pulse"></div>
