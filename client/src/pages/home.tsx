@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import SimpleNavigation from "@/components/simple-navigation";
+import FlipCard from "@/components/flip-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -245,101 +246,44 @@ export default function Home() {
                   مباشر
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
                 {typedStreams.map((stream) => (
-                  <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white border border-gray-200 hover:border-purple-300 group rounded-xl">
-                    <div 
-                      className="relative h-44 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 overflow-hidden"
-                      onClick={() => handleJoinStream(stream.id)}
-                    >
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform duration-300">
-                          <PlayCircle className="w-8 h-8 text-white" />
-                        </div>
-                      </div>
-                      
-                      {/* Live Badge */}
-                      <Badge className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full shadow-lg">
-                        <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
-                        <span className="text-xs font-bold">مباشر</span>
-                      </Badge>
-                      
-                      {/* Viewers */}
-                      <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center backdrop-blur-sm">
-                        <Eye className="w-3 h-3 mr-1" />
-                        <span className="font-medium">{stream.viewerCount || 0}</span>
-                      </div>
-                    </div>
-
-                    <CardContent className="p-4">
-                      <h3 className="font-bold text-gray-900 text-base mb-2 line-clamp-1">
-                        {stream.title}
-                      </h3>
-                      
-                      <div className="flex items-center mb-3">
-                        <div className="flex items-center flex-1">
-                          {(stream as any).hostProfileImage ? (
-                            <img
-                              src={(stream as any).hostProfileImage}
-                              alt="صورة المضيف"
-                              className="w-7 h-7 rounded-full object-cover border-2 border-purple-200"
-                            />
-                          ) : (
-                            <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                              <User className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          <span className="mr-2 text-sm font-medium text-gray-700 truncate">{(stream as any).hostName || stream.hostId}</span>
-                        </div>
-                      </div>
-
-                      {/* Stream Actions - مرتبة في صف واحد */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleLike(`stream-${stream.id}`)}
-                            className={`p-2 rounded-full ${likedItems.has(`stream-${stream.id}`) ? 'text-red-500 bg-red-50' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'} transition-colors`}
-                          >
-                            <Heart className={`w-4 h-4 ${likedItems.has(`stream-${stream.id}`) ? 'fill-current' : ''}`} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleInteraction('التعليق')}
-                            className="p-2 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleInteraction('المشاركة')}
-                            className="p-2 rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50 transition-colors"
-                          >
-                            <Share2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleInteraction('الهدية')}
-                            className="p-2 rounded-full text-gray-500 hover:text-purple-500 hover:bg-purple-50 transition-colors"
-                          >
-                            <Gift className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        
-                        <Button
-                          size="sm"
-                          onClick={() => handleJoinStream(stream.id)}
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full font-medium shadow-lg transition-all duration-300 hover:scale-105"
-                        >
-                          انضم
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <FlipCard
+                    key={`stream-${stream.id}`}
+                    content={{
+                      ...stream,
+                      mediaUrls: stream.thumbnailUrl ? [stream.thumbnailUrl] : [],
+                      author: {
+                        firstName: (stream as any).hostName,
+                        username: stream.hostId,
+                        profileImageUrl: (stream as any).hostProfileImage
+                      },
+                      viewCount: stream.viewerCount,
+                      currentViewers: stream.viewerCount,
+                      type: 'video',
+                      isLive: true,
+                      caption: stream.description
+                    }}
+                    type="live"
+                    isLiked={likedItems.has(`stream-${stream.id}`)}
+                    onLike={(id) => handleLike(id)}
+                    onAction={(action) => {
+                      switch (action) {
+                        case 'join':
+                          handleJoinStream(stream.id);
+                          break;
+                        case 'comment':
+                          handleInteraction('التعليق');
+                          break;
+                        case 'share':
+                          handleInteraction('المشاركة');
+                          break;
+                        case 'gift':
+                          handleInteraction('الهدية');
+                          break;
+                      }
+                    }}
+                  />
                 ))}
               </div>
             </div>
@@ -364,148 +308,51 @@ export default function Home() {
             </div>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {typedMemories.map((memory) => (
-                  <Card 
-                    key={`memory-${memory.id}`} 
-                    className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white border border-gray-200 hover:border-purple-300 group cursor-pointer rounded-xl"
-                    onClick={() => {
-                      if (memory.type === 'video') {
-                        setLocation(`/video/${memory.id}`);
-                      }
-                    }}
-                  >
-                    {/* Media Display */}
-                    <div className="relative h-44 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 overflow-hidden">
-                      {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
-                        memory.type === 'video' ? (
-                          <div className="relative w-full h-full overflow-hidden">
-                            <video
-                              src={memory.mediaUrls[0]}
-                              className="w-full h-full object-cover"
-                              muted
-                              loop
-                              playsInline
-                              poster={memory.thumbnailUrl}
-                            />
-                            
-                            {/* Center Play Button */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 hover:scale-110 transition-transform duration-300">
-                                <PlayCircle className="w-8 h-8 text-white" />
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <img
-                            src={memory.mediaUrls[0]}
-                            alt="منشور"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder-image.jpg';
-                            }}
-                          />
-                        )
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30">
-                            <Image className="w-8 h-8 text-white" />
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Memory Type Badge */}
-                      <Badge className={`absolute top-3 left-3 ${getMemoryTypeColor(memory.memoryType)} text-white px-2 py-1 rounded-full shadow-lg`}>
-                        <div className="flex items-center">
-                          {getMemoryTypeIcon(memory.memoryType)}
-                          <span className="mr-1 text-xs font-medium">{memory.memoryType}</span>
-                        </div>
-                      </Badge>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+                {typedMemories.map((memory) => {
+                  // تحديد نوع البطاقة بناءً على المحتوى
+                  const cardType = memory.type === 'video' 
+                    ? (memory.isLive ? 'live' : 'video')
+                    : memory.memoryType === 'مميز' || memory.memoryType === 'legend'
+                    ? 'featured'
+                    : 'image';
 
-                      {/* Views Count */}
-                      <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center backdrop-blur-sm">
-                        <Eye className="w-3 h-3 mr-1" />
-                        <span className="font-medium">{memory.viewCount || 0}</span>
-                      </div>
-                    </div>
-
-                    <CardContent className="p-4">
-                      {/* Title */}
-                      {memory.title && (
-                        <h3 className="font-bold text-gray-900 text-base mb-2 line-clamp-1">
-                          {memory.title}
-                        </h3>
-                      )}
-                      
-                      {/* Caption */}
-                      <p className="text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed text-sm">
-                        {memory.caption || "منشور جديد"}
-                      </p>
-
-                      {/* Author Info */}
-                      <div className="flex items-center mb-3">
-                        <div className="flex items-center flex-1">
-                          {memory.author?.profileImageUrl ? (
-                            <img
-                              src={memory.author.profileImageUrl}
-                              alt="صورة الكاتب"
-                              className="w-7 h-7 rounded-full object-cover border-2 border-purple-200"
-                            />
-                          ) : (
-                            <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                              <User className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          <span className="mr-2 text-sm font-medium text-gray-700 truncate">
-                            {memory.author?.firstName || memory.author?.username || memory.authorId}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Post Actions - مرتبة في صف واحد */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleLike(`memory-${memory.id}`)}
-                            className={`p-2 rounded-full ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500 bg-red-50' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'} transition-colors`}
-                          >
-                            <Heart className={`w-4 h-4 ${likedItems.has(`memory-${memory.id}`) ? 'fill-current' : ''}`} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleInteraction('التعليق')}
-                            className="p-2 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleInteraction('المشاركة')}
-                            className="p-2 rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50 transition-colors"
-                          >
-                            <Share2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleInteraction('الهدية')}
-                            className="p-2 rounded-full text-gray-500 hover:text-purple-500 hover:bg-purple-50 transition-colors"
-                          >
-                            <Gift className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        
-                        <div className="text-xs text-gray-500 font-medium">
-                          منذ يوم
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                  return (
+                    <FlipCard
+                      key={`memory-${memory.id}`}
+                      content={memory}
+                      type={cardType}
+                      isLiked={likedItems.has(`memory-${memory.id}`)}
+                      onLike={(id) => handleLike(id)}
+                      onAction={(action) => {
+                        switch (action) {
+                          case 'join':
+                            if (memory.streamId) {
+                              handleJoinStream(memory.streamId);
+                            }
+                            break;
+                          case 'watch':
+                            if (memory.type === 'video') {
+                              setLocation(`/video/${memory.id}`);
+                            }
+                            break;
+                          case 'view':
+                            // عرض المحتوى كاملاً
+                            break;
+                          case 'comment':
+                            handleInteraction('التعليق');
+                            break;
+                          case 'share':
+                            handleInteraction('المشاركة');
+                            break;
+                          case 'gift':
+                            handleInteraction('الهدية');
+                            break;
+                        }
+                      }}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-lg shadow">
