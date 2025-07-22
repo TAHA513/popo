@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function SimpleNavigation() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [location] = useLocation();
 
   return (
@@ -28,10 +28,10 @@ export default function SimpleNavigation() {
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                <Crown className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-lg font-bold">🚀</span>
               </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
+              <span className="text-lg font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent hidden sm:block">
                 LaaBoBo Live
               </span>
             </div>
