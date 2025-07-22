@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import SimpleNavigation from "@/components/simple-navigation";
 import {
   Play,
@@ -57,6 +58,7 @@ export default function VideoPage() {
   const { videoId } = useParams<{ videoId: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
@@ -123,19 +125,14 @@ export default function VideoPage() {
       const newSet = new Set(prev);
       if (newSet.has(videoKey)) {
         newSet.delete(videoKey);
-        toast({
-          title: "تم إلغاء الإعجاب",
-          description: "تم إلغاء إعجابك بالفيديو"
-        });
       } else {
         newSet.add(videoKey);
-        toast({
-          title: "أعجبك هذا!",
-          description: "تم إضافة إعجابك للفيديو"
-        });
       }
       return newSet;
     });
+    
+    // Call API for like interaction
+    interactionMutation.mutate({ videoId: currentVideo.id, type: 'like' });
   };
 
   const goToNextVideo = () => {
@@ -245,11 +242,75 @@ export default function VideoPage() {
     }
   }, [currentVideoIndex, allVideos]);
 
-  const handleInteraction = (action: string) => {
-    toast({
-      title: `${action}`,
-      description: `تم تنفيذ ${action} بنجاح`,
-    });
+  // Follow/Unfollow mutation
+  const followMutation = useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      return await apiRequest('POST', `/api/users/${userId}/follow`);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: data.following ? "تمت المتابعة!" : "تم إلغاء المتابعة",
+        description: data.following ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ في المتابعة",
+        description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Video interaction mutation
+  const interactionMutation = useMutation({
+    mutationFn: async ({ videoId, type }: { videoId: number; type: string }) => {
+      return await apiRequest('POST', `/api/memories/${videoId}/interact`, { type });
+    },
+    onSuccess: (_, { type }) => {
+      const messages = {
+        like: "تم الإعجاب! ❤️",
+        comment: "تم فتح التعليقات",
+        share: "تم نسخ الرابط للمشاركة",
+        gift: "تم إرسال الهدية! 🎁"
+      };
+      
+      toast({
+        title: messages[type as keyof typeof messages] || "تم التفاعل",
+        description: "شكراً لتفاعلك مع المحتوى",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ في التفاعل",
+        description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleFollow = () => {
+    if (!currentVideo || !currentVideo.author) return;
+    followMutation.mutate({ userId: currentVideo.author.id });
+  };
+
+  const handleComment = () => {
+    if (!currentVideo) return;
+    interactionMutation.mutate({ videoId: currentVideo.id, type: 'comment' });
+  };
+
+  const handleShare = () => {
+    if (!currentVideo) return;
+    navigator.clipboard?.writeText(`${window.location.origin}/video/${currentVideo.id}`);
+    interactionMutation.mutate({ videoId: currentVideo.id, type: 'share' });
+  };
+
+  const handleGift = () => {
+    if (!currentVideo) return;
+    interactionMutation.mutate({ videoId: currentVideo.id, type: 'gift' });
   };
 
   const getMemoryTypeColor = (type: string) => {
@@ -417,7 +478,7 @@ export default function VideoPage() {
               <Button 
                 size="sm"
                 className="w-6 h-6 md:w-8 md:h-8 p-0 rounded-full bg-red-600 text-white border-2 border-white hover:bg-red-700"
-                onClick={() => handleInteraction('المتابعة')}
+                onClick={handleFollow}
               >
                 <Plus className="w-3 h-3 md:w-4 md:h-4" />
               </Button>
@@ -439,7 +500,7 @@ export default function VideoPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={() => handleInteraction('التعليق')}
+              onClick={handleComment}
               className="flex flex-col items-center text-white hover:text-blue-400 bg-transparent p-2 md:p-3"
             >
               <MessageCircle className="w-6 h-6 md:w-8 md:h-8" />
@@ -449,7 +510,7 @@ export default function VideoPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={() => handleInteraction('المشاركة')}
+              onClick={handleShare}
               className="flex flex-col items-center text-white hover:text-green-400 bg-transparent p-2 md:p-3"
             >
               <Share2 className="w-6 h-6 md:w-8 md:h-8" />
@@ -459,7 +520,7 @@ export default function VideoPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={() => handleInteraction('إرسال هدية')}
+              onClick={handleGift}
               className="flex flex-col items-center text-white hover:text-yellow-400 bg-transparent p-2 md:p-3"
             >
               <Gift className="w-6 h-6 md:w-8 md:h-8" />

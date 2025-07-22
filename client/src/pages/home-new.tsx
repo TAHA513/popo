@@ -23,14 +23,16 @@ import {
   MoreHorizontal
 } from "lucide-react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Stream } from "@/types";
 import { Link } from "wouter";
 
 export default function HomeNew() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('all');
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Set<number>>(new Set());
@@ -54,6 +56,36 @@ export default function HomeNew() {
     window.location.href = `/stream/${streamId}`;
   };
 
+  // Memory interaction mutation
+  const interactionMutation = useMutation({
+    mutationFn: async ({ memoryId, type }: { memoryId: number; type: string }) => {
+      return await apiRequest('POST', `/api/memories/${memoryId}/interact`, { type });
+    },
+    onSuccess: (_, { type }) => {
+      const messages = {
+        like: "تم الإعجاب! ❤️",
+        comment: "تم فتح التعليقات",
+        share: "تم نسخ الرابط للمشاركة",
+        gift: "تم إرسال الهدية! 🎁",
+        bookmark: "تم حفظ المنشور! 📚"
+      };
+      
+      toast({
+        title: messages[type as keyof typeof messages] || "تم التفاعل",
+        description: "شكراً لتفاعلك مع المحتوى",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ في التفاعل",
+        description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleLike = (postId: number) => {
     setLikedPosts(prev => {
       const newLiked = new Set(prev);
@@ -65,10 +97,16 @@ export default function HomeNew() {
       return newLiked;
     });
     
-    toast({
-      title: likedPosts.has(postId) ? "تم إلغاء الإعجاب" : "تم الإعجاب!",
-      description: likedPosts.has(postId) ? "تم إزالة الإعجاب من المنشور" : "تم إضافة إعجاب للمنشور",
-    });
+    interactionMutation.mutate({ memoryId: postId, type: 'like' });
+  };
+
+  const handleComment = (postId: number) => {
+    interactionMutation.mutate({ memoryId: postId, type: 'comment' });
+  };
+
+  const handleShare = (postId: number) => {
+    navigator.clipboard?.writeText(`${window.location.origin}/memory/${postId}`);
+    interactionMutation.mutate({ memoryId: postId, type: 'share' });
   };
 
   const handleBookmark = (postId: number) => {
@@ -82,17 +120,11 @@ export default function HomeNew() {
       return newBookmarked;
     });
     
-    toast({
-      title: bookmarkedPosts.has(postId) ? "تم إلغاء الحفظ" : "تم الحفظ!",
-      description: bookmarkedPosts.has(postId) ? "تم إزالة المنشور من المحفوظات" : "تم حفظ المنشور",
-    });
+    interactionMutation.mutate({ memoryId: postId, type: 'bookmark' });
   };
 
   const handleSendGift = (postId: number) => {
-    toast({
-      title: "إرسال هدية",
-      description: "سيتم فتح متجر الهدايا قريباً",
-    });
+    interactionMutation.mutate({ memoryId: postId, type: 'gift' });
   };
 
   const getMemoryTypeIcon = (type: string) => {
@@ -311,14 +343,14 @@ export default function HomeNew() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="p-2 text-gray-500 hover:text-blue-500"
+                            onClick={() => handleComment(memory.id)} className="p-2 text-gray-500 hover:text-blue-500"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="p-2 text-gray-500 hover:text-green-500"
+                            onClick={() => handleShare(memory.id)} className="p-2 text-gray-500 hover:text-green-500"
                           >
                             <Share2 className="w-4 h-4" />
                           </Button>
@@ -478,14 +510,14 @@ export default function HomeNew() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="p-2 text-gray-500 hover:text-blue-500"
+                            onClick={() => handleComment(memory.id)} className="p-2 text-gray-500 hover:text-blue-500"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="p-2 text-gray-500 hover:text-green-500"
+                            onClick={() => handleShare(memory.id)} className="p-2 text-gray-500 hover:text-green-500"
                           >
                             <Share2 className="w-4 h-4" />
                           </Button>

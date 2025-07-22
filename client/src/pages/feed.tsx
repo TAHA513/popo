@@ -1,5 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +13,8 @@ import { Link } from "wouter";
 
 export default function Feed() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
@@ -29,6 +33,72 @@ export default function Feed() {
 
   const handleJoinStream = (streamId: number) => {
     window.location.href = `/stream/${streamId}`;
+  };
+
+  // Follow/Unfollow mutation
+  const followMutation = useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      return await apiRequest('POST', `/api/users/${userId}/follow`);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: data.following ? "تمت المتابعة!" : "تم إلغاء المتابعة",
+        description: data.following ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ في المتابعة",
+        description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Memory interaction mutation
+  const interactionMutation = useMutation({
+    mutationFn: async ({ memoryId, type }: { memoryId: number; type: string }) => {
+      return await apiRequest('POST', `/api/memories/${memoryId}/interact`, { type });
+    },
+    onSuccess: (_, { type }) => {
+      const messages = {
+        like: "تم الإعجاب! ❤️",
+        comment: "تم فتح التعليقات",
+        share: "تم نسخ الرابط للمشاركة",
+      };
+      
+      toast({
+        title: messages[type as keyof typeof messages] || "تم التفاعل",
+        description: "شكراً لتفاعلك مع المحتوى",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ في التفاعل",
+        description: "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleFollow = (userId: string) => {
+    followMutation.mutate({ userId });
+  };
+
+  const handleLike = (memoryId: number) => {
+    interactionMutation.mutate({ memoryId, type: 'like' });
+  };
+
+  const handleComment = (memoryId: number) => {
+    interactionMutation.mutate({ memoryId, type: 'comment' });
+  };
+
+  const handleShare = (memoryId: number) => {
+    navigator.clipboard?.writeText(`${window.location.origin}/memory/${memoryId}`);
+    interactionMutation.mutate({ memoryId, type: 'share' });
   };
 
   const isLoading = streamsLoading || memoriesLoading;
@@ -179,7 +249,7 @@ export default function Feed() {
                             className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4 py-1 text-xs font-medium"
                             onClick={(e) => {
                               e.preventDefault();
-                              console.log('Follow user:', memory.authorId);
+                              handleFollow(memory.authorId);
                             }}
                           >
                             متابعة
@@ -237,19 +307,28 @@ export default function Feed() {
                     {/* Interaction Buttons - Instagram/TikTok Style */}
                     <div className="flex items-center justify-between py-2">
                       <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
-                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group">
+                        <button 
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
+                          onClick={() => handleLike(memory.id)}
+                        >
                           <Heart className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-red-500 group-active:scale-125 transition-all duration-200" />
                           <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-red-500">
                             {memory.likeCount || 0}
                           </span>
                         </button>
                         
-                        <button className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group">
+                        <button 
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
+                          onClick={() => handleComment(memory.id)}
+                        >
                           <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
                           <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
                         </button>
                         
-                        <button className="p-1.5 md:p-2 -m-2 group">
+                        <button 
+                          className="p-1.5 md:p-2 -m-2 group"
+                          onClick={() => handleShare(memory.id)}
+                        >
                           <Share2 className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-green-500 transition-colors duration-200" />
                         </button>
                       </div>
