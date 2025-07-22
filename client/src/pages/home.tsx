@@ -138,12 +138,12 @@ export default function Home() {
       <SimpleNavigation />
       
       {/* Hero Section */}
-      <div className="pt-16 pb-4">
+      <div className="pt-16">
         <div className="w-full">
           
           {/* Live Activity Banner */}
-          <div className="mb-4 px-4">
-            <div className="bg-white/80 backdrop-blur-lg border border-gray-200 rounded-lg p-3 shadow-lg">
+          <div className="mb-2">
+            <div className="bg-white/80 backdrop-blur-lg border border-gray-200 p-3 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-3 animate-pulse">
@@ -173,28 +173,28 @@ export default function Home() {
         </div>
       </div>
       
-      <main className="pb-16">
+      <main className="pb-0">
         <div className="w-full">
 
           {/* Live Streams Section */}
           {typedStreams.length > 0 && (
-            <div className="mb-8 px-4">
-              <div className="flex items-center justify-between mb-4">
+            <div className="mb-1">
+              <div className="flex items-center justify-between mb-1 px-1">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                    <Video className="w-4 h-4 text-white" />
+                  <div className="w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-2">
+                    <Video className="w-3 h-3 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">البث المباشر</h2>
+                    <h2 className="text-lg font-bold text-gray-900">البث المباشر</h2>
                     <p className="text-gray-600 text-xs">{typedStreams.length} بث نشط الآن</p>
                   </div>
                 </div>
-                <div className="flex items-center bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1 animate-ping"></div>
+                <div className="flex items-center bg-red-100 text-red-600 px-1 py-0.5 rounded-full text-xs font-medium">
+                  <div className="w-1 h-1 bg-red-500 rounded-full mr-1 animate-ping"></div>
                   مباشر
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
                 {typedStreams.map((stream) => (
                   <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-red-300 group">
                     <div 
@@ -288,25 +288,25 @@ export default function Home() {
           )}
 
           {/* Posts/Memories Section */}
-          <div className="px-4">
-            <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="flex items-center justify-between mb-1 px-1">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                  <Sparkles className="w-4 h-4 text-white" />
+                <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-2">
+                  <Sparkles className="w-3 h-3 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">المنشورات المميزة</h2>
+                  <h2 className="text-lg font-bold text-gray-900">المنشورات المميزة</h2>
                   <p className="text-gray-600 text-xs">{typedMemories.length} منشور جديد</p>
                 </div>
               </div>
-              <div className="flex items-center bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs font-medium">
+              <div className="flex items-center bg-purple-100 text-purple-600 px-1 py-0.5 rounded-full text-xs font-medium">
                 <Sparkles className="w-3 h-3 mr-1" />
                 مميز
               </div>
             </div>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
                 {typedMemories.map((memory) => (
                   <Card key={`memory-${memory.id}`} className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group">
                     {/* Media Display */}

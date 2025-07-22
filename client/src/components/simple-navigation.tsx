@@ -23,7 +23,7 @@ export default function SimpleNavigation() {
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-2">
+      <div className="w-full px-2 py-2">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/">
