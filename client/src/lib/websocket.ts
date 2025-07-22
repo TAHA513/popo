@@ -5,7 +5,7 @@ export class WebSocketManager {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectTimeout: number | null = null;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
   private messageHandlers = new Map<string, (data: any) => void>();
 
   connect() {
@@ -47,7 +47,7 @@ export class WebSocketManager {
 
   disconnect() {
     if (this.reconnectTimeout) {
-      window.clearTimeout(this.reconnectTimeout);
+      clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
     
@@ -66,7 +66,7 @@ export class WebSocketManager {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     
-    this.reconnectTimeout = window.setTimeout(() => {
+    this.reconnectTimeout = setTimeout(() => {
       console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
       this.connect();
     }, delay);

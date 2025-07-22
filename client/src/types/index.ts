@@ -24,13 +24,11 @@ export interface AdminStats {
 }
 
 export interface WebSocketMessage {
-  type: 'chat' | 'gift' | 'viewer_count' | 'stream_status' | 'join_stream' | 'leave_stream' | 'chat_message';
-  data?: any;
-  streamId?: string | number;
+  type: 'chat' | 'gift' | 'viewer_count' | 'stream_status';
+  data: any;
+  streamId?: string;
   userId?: string;
-  timestamp?: string;
-  text?: string;
-  user?: any;
+  timestamp: string;
 }
 
 export interface StreamCategory {

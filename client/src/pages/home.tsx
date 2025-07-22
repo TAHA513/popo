@@ -18,11 +18,7 @@ import {
   User,
   Plus,
   Image,
-  PlayCircle,
-  Star,
-  TrendingUp,
-  Users,
-  Fire
+  PlayCircle
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -128,139 +124,102 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      <div className="min-h-screen bg-gray-100">
         <SimpleNavigation />
         <div className="flex items-center justify-center h-screen">
-          <div className="text-lg text-white">جاري التحميل المحتوى...</div>
+          <div className="text-lg text-gray-600">جاري التحميل المحتوى...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-100">
       <SimpleNavigation />
       
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-purple-400/10 rounded-full animate-pulse"></div>
-        <div className="absolute top-40 right-16 w-24 h-24 bg-pink-400/10 rounded-full animate-pulse delay-300"></div>
-        <div className="absolute bottom-32 left-20 w-40 h-40 bg-indigo-400/10 rounded-full animate-pulse delay-700"></div>
-        <div className="absolute bottom-20 right-10 w-28 h-28 bg-purple-400/10 rounded-full animate-pulse delay-1000"></div>
-      </div>
-      
-      <main className="pt-20 pb-20 px-4 relative z-10">
+      <main className="pt-20 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
-          
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <div className="relative">
-              <h1 className="text-6xl font-bold bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
-                منصة الإبداع
-              </h1>
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                <Star className="w-8 h-8 text-yellow-400 animate-spin" />
-              </div>
-            </div>
-            <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
-              اكتشف عالماً من الإبداع والمواهب، شاهد البثوث المباشرة وتفاعل مع المحتوى الأكثر إثارة
-            </p>
-            
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 max-w-4xl mx-auto">
-              <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-4 text-white transform hover:scale-105 transition-all">
-                <div className="flex items-center justify-center mb-2">
-                  <Fire className="w-6 h-6 mr-2" />
-                  <span className="font-bold text-xl">{typedStreams.length}</span>
+          {/* Trending Now Bar */}
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg p-3 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-2 animate-pulse">🔥</span>
+                  <div>
+                    <span className="text-white font-semibold text-sm">الأكثر رواجاً الآن: </span>
+                    <span className="text-white/90 text-sm">
+                      {typedStreams.length > 0 
+                        ? `بث "${typedStreams[0].title}" يشاهده ${typedStreams[0].viewerCount || 1} شخص`
+                        : typedMemories.length > 0 
+                          ? `منشور "${typedMemories[0].caption?.substring(0, 20)}..." حصل على إعجاب`
+                          : "لا يوجد محتوى رائج حالياً"
+                      }
+                    </span>
+                  </div>
                 </div>
-                <p className="text-sm opacity-90">بث مباشر</p>
-              </div>
-              
-              <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-4 text-white transform hover:scale-105 transition-all">
-                <div className="flex items-center justify-center mb-2">
-                  <Sparkles className="w-6 h-6 mr-2" />
-                  <span className="font-bold text-xl">{typedMemories.length}</span>
+                <div className="text-white/70 text-xs">
+                  الآن
                 </div>
-                <p className="text-sm opacity-90">منشور مميز</p>
-              </div>
-              
-              <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl p-4 text-white transform hover:scale-105 transition-all">
-                <div className="flex items-center justify-center mb-2">
-                  <Users className="w-6 h-6 mr-2" />
-                  <span className="font-bold text-xl">{Math.floor(Math.random() * 100) + 50}</span>
-                </div>
-                <p className="text-sm opacity-90">مستخدم نشط</p>
-              </div>
-              
-              <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-4 text-white transform hover:scale-105 transition-all">
-                <div className="flex items-center justify-center mb-2">
-                  <TrendingUp className="w-6 h-6 mr-2" />
-                  <span className="font-bold text-xl">{(Math.floor(Math.random() * 50) + 10)}k</span>
-                </div>
-                <p className="text-sm opacity-90">مشاهدة</p>
               </div>
             </div>
           </div>
 
           {/* Live Streams Section */}
           {typedStreams.length > 0 && (
-            <div className="mb-16">
-              <div className="flex items-center justify-center mb-8">
-                <div className="bg-gradient-to-r from-red-500 to-pink-600 rounded-full px-6 py-3 flex items-center shadow-xl">
-                  <div className="w-3 h-3 bg-white rounded-full mr-3 animate-ping"></div>
-                  <h2 className="text-xl font-bold text-white">البث المباشر الآن</h2>
-                  <Badge className="bg-white/20 text-white mr-3 px-2 py-1">
-                    {typedStreams.length}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
+                البث المباشر ({typedStreams.length})
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {typedStreams.map((stream) => (
-                  <Card key={`stream-${stream.id}`} className="overflow-hidden bg-black/40 backdrop-blur-lg border-2 border-purple-500/30 hover:border-pink-500/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl group">
+                  <Card key={`stream-${stream.id}`} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-red-200">
                     <div 
-                      className="relative h-48 bg-gradient-to-br from-red-600 via-pink-600 to-purple-600 cursor-pointer"
+                      className="relative h-48 bg-gradient-to-br from-red-500 to-pink-600"
                       onClick={() => handleJoinStream(stream.id)}
                     >
-                      <div className="absolute inset-0 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <PlayCircle className="w-20 h-20 text-white opacity-80 group-hover:opacity-100" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <PlayCircle className="w-16 h-16 text-white opacity-90" />
                       </div>
                       
-                      <div className="absolute top-4 left-4">
-                        <Badge className="bg-red-600 text-white px-3 py-1 animate-pulse">
-                          <div className="w-2 h-2 bg-white rounded-full mr-1"></div>
-                          مباشر
-                        </Badge>
-                      </div>
+                      {/* Live Badge */}
+                      <Badge className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1">
+                        <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
+                        مباشر
+                      </Badge>
                       
-                      <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
+                      {/* Viewers */}
+                      <div className="absolute top-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-sm flex items-center">
+                        <Eye className="w-3 h-3 mr-1" />
                         {stream.viewerCount || 0}
-                      </div>
-                      
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                        <h3 className="text-white font-bold text-lg">{stream.title}</h3>
-                        <p className="text-gray-200 text-sm">{stream.description}</p>
                       </div>
                     </div>
 
-                    <CardContent className="p-4 bg-gradient-to-b from-purple-900/50 to-black/50">
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-1">
+                        {stream.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {stream.description}
+                      </p>
+                      
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-white" />
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <User className="w-4 h-4 text-white" />
                           </div>
-                          <span className="mr-3 text-white font-medium">{stream.hostId}</span>
+                          <span className="mr-2 text-sm font-medium text-gray-700">{stream.hostId}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between">
+                      {/* Stream Actions */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                         <div className="flex items-center space-x-3 rtl:space-x-reverse">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleLike(`stream-${stream.id}`)}
-                            className={`p-2 rounded-full ${likedItems.has(`stream-${stream.id}`) ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-red-500'} transition-all`}
+                            className={`p-1 ${likedItems.has(`stream-${stream.id}`) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
                           >
                             <Heart className={`w-4 h-4 ${likedItems.has(`stream-${stream.id}`) ? 'fill-current' : ''}`} />
                           </Button>
@@ -268,25 +227,34 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('التعليق')}
-                            className="p-2 rounded-full bg-white/20 text-white hover:bg-blue-500 transition-all"
+                            className="p-1 text-gray-500 hover:text-blue-500"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleInteraction('المشاركة')}
+                            className="p-1 text-gray-500 hover:text-green-500"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleInteraction('الهدية')}
-                            className="p-2 rounded-full bg-white/20 text-white hover:bg-purple-500 transition-all"
+                            className="p-1 text-gray-500 hover:text-purple-500"
                           >
                             <Gift className="w-4 h-4" />
                           </Button>
                         </div>
                         
                         <Button
+                          size="sm"
                           onClick={() => handleJoinStream(stream.id)}
-                          className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6 py-2 rounded-full font-bold transition-all hover:scale-105"
+                          className="bg-red-600 hover:bg-red-700 text-white px-4"
                         >
-                          انضم الآن
+                          انضم
                         </Button>
                       </div>
                     </CardContent>
@@ -298,26 +266,22 @@ export default function Home() {
 
           {/* Posts/Memories Section */}
           <div>
-            <div className="flex items-center justify-center mb-8">
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full px-6 py-3 flex items-center shadow-xl">
-                <Sparkles className="w-6 h-6 mr-3 text-yellow-300" />
-                <h2 className="text-xl font-bold text-white">المحتوى المميز</h2>
-                <Badge className="bg-white/20 text-white mr-3 px-2 py-1">
-                  {typedMemories.length}
-                </Badge>
-              </div>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <Sparkles className="w-5 h-5 mr-3 text-purple-600" />
+              المنشورات ({typedMemories.length})
+            </h2>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {typedMemories.map((memory) => (
-                  <Card key={`memory-${memory.id}`} className="overflow-hidden bg-black/40 backdrop-blur-lg border-2 border-purple-500/30 hover:border-pink-500/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl group">
-                    <div className="relative h-48">
+                  <Card key={`memory-${memory.id}`} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                    {/* Media Display */}
+                    <div className="relative h-48 bg-gray-200">
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (
                         memory.type === 'video' ? (
                           <video
                             src={memory.mediaUrls[0]}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                            className="w-full h-full object-cover"
                             muted
                             poster={memory.thumbnailUrl}
                           />
@@ -325,84 +289,78 @@ export default function Home() {
                           <img
                             src={memory.mediaUrls[0]}
                             alt="منشور"
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-image.jpg';
                             }}
                           />
                         )
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                          <Image className="w-16 h-16 text-white opacity-60" />
+                        <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                          <Image className="w-12 h-12 text-gray-400" />
                         </div>
                       )}
                       
-                      <div className="absolute top-4 left-4">
-                        <Badge className={`${getMemoryTypeColor(memory.memoryType)} text-white px-3 py-1`}>
-                          <div className="flex items-center">
-                            {getMemoryTypeIcon(memory.memoryType)}
-                            <span className="mr-1 text-xs">{memory.memoryType}</span>
-                          </div>
-                        </Badge>
-                      </div>
+                      {/* Memory Type Badge */}
+                      <Badge className={`absolute top-3 left-3 ${getMemoryTypeColor(memory.memoryType)} text-white`}>
+                        <div className="flex items-center">
+                          {getMemoryTypeIcon(memory.memoryType)}
+                          <span className="mr-1 text-xs">{memory.memoryType}</span>
+                        </div>
+                      </Badge>
 
+                      {/* Video Indicator */}
                       {memory.type === 'video' && (
-                        <div className="absolute bottom-4 right-4 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center">
+                        <div className="absolute bottom-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center">
                           <PlayCircle className="w-3 h-3 mr-1" />
                           فيديو
                         </div>
                       )}
-                      
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     </div>
 
-                    <CardContent className="p-4 bg-gradient-to-b from-purple-900/50 to-black/50">
+                    <CardContent className="p-4">
+                      {/* Title */}
                       {memory.title && (
-                        <h3 className="text-white font-bold mb-2 line-clamp-1">
+                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">
                           {memory.title}
                         </h3>
                       )}
                       
-                      <p className="text-gray-300 mb-3 line-clamp-2 text-right leading-relaxed text-sm">
+                      {/* Caption */}
+                      <p className="text-gray-700 mb-3 line-clamp-2 text-right leading-relaxed">
                         {memory.caption || "منشور جديد"}
                       </p>
 
+                      {/* Author Info */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                             <User className="w-4 h-4 text-white" />
                           </div>
                           <div className="mr-2">
-                            <span className="text-white font-medium text-sm">
+                            <span className="text-sm font-medium text-gray-700">
                               {memory.author?.firstName || memory.author?.username || memory.authorId}
                             </span>
                           </div>
                         </div>
-                        <span className="text-gray-400 text-xs">منذ يوم</span>
+                        <span className="text-xs text-gray-400">منذ يوم</span>
                       </div>
 
-                      <div className="flex items-center text-xs text-gray-400 mb-3 space-x-4 rtl:space-x-reverse">
-                        <span className="flex items-center">
-                          <Eye className="w-3 h-3 mr-1" />
-                          {memory.viewCount || 0}
-                        </span>
-                        <span className="flex items-center">
-                          <Heart className="w-3 h-3 mr-1" />
-                          {memory.likeCount || 0}
-                        </span>
-                        <span className="flex items-center">
-                          <Gift className="w-3 h-3 mr-1" />
-                          {memory.giftCount || 0}
-                        </span>
+                      {/* Engagement Stats */}
+                      <div className="flex items-center text-xs text-gray-500 mb-3 space-x-4 rtl:space-x-reverse">
+                        <span>👁 {memory.viewCount || 0} مشاهدة</span>
+                        <span>❤️ {memory.likeCount || 0} إعجاب</span>
+                        <span>🎁 {memory.giftCount || 0} هدية</span>
                       </div>
 
-                      <div className="flex items-center justify-between">
+                      {/* Post Actions */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                         <div className="flex items-center space-x-3 rtl:space-x-reverse">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleLike(`memory-${memory.id}`)}
-                            className={`p-2 rounded-full ${likedItems.has(`memory-${memory.id}`) ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-red-500'} transition-all`}
+                            className={`p-1 ${likedItems.has(`memory-${memory.id}`) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
                           >
                             <Heart className={`w-4 h-4 ${likedItems.has(`memory-${memory.id}`) ? 'fill-current' : ''}`} />
                           </Button>
@@ -410,7 +368,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('التعليق')}
-                            className="p-2 rounded-full bg-white/20 text-white hover:bg-blue-500 transition-all"
+                            className="p-1 text-gray-500 hover:text-blue-500"
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
@@ -418,7 +376,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('المشاركة')}
-                            className="p-2 rounded-full bg-white/20 text-white hover:bg-green-500 transition-all"
+                            className="p-1 text-gray-500 hover:text-green-500"
                           >
                             <Share2 className="w-4 h-4" />
                           </Button>
@@ -426,7 +384,7 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleInteraction('الهدية')}
-                            className="p-2 rounded-full bg-white/20 text-white hover:bg-purple-500 transition-all"
+                            className="p-1 text-gray-500 hover:text-purple-500"
                           >
                             <Gift className="w-4 h-4" />
                           </Button>
@@ -437,36 +395,25 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full flex items-center justify-center mx-auto mb-8 backdrop-blur-sm">
-                  <Sparkles className="w-16 h-16 text-purple-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  لا توجد منشورات حالياً
-                </h3>
-                <p className="text-gray-300 max-w-md mx-auto">
-                  كن أول من يضيف محتوى مميز إلى المنصة
-                </p>
+              <div className="text-center py-12 bg-white rounded-lg shadow">
+                <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">لا توجد منشورات حالياً</h3>
+                <p className="text-gray-500">تحقق مرة أخرى قريباً للاطلاع على المحتوى الجديد</p>
               </div>
             )}
           </div>
 
           {/* Empty State for No Content */}
           {typedStreams.length === 0 && typedMemories.length === 0 && (
-            <div className="text-center py-24">
-              <div className="relative">
-                <div className="w-40 h-40 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full flex items-center justify-center mx-auto mb-12 backdrop-blur-sm">
-                  <Sparkles className="w-20 h-20 text-purple-400 animate-pulse" />
-                </div>
-                <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
-                  <Star className="w-6 h-6 text-yellow-400 animate-spin" />
-                </div>
+            <div className="text-center py-20">
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                <Sparkles className="w-12 h-12 text-purple-600" />
               </div>
-              <h3 className="text-4xl font-bold text-white mb-6">
-                مرحباً بك في منصة الإبداع
+              <h3 className="text-3xl font-bold text-gray-800 mb-4">
+                لا يوجد محتوى متاح حالياً
               </h3>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                استعد لاكتشاف عالم مليء بالمحتوى المذهل والمواهب الاستثنائية
+              <p className="text-gray-600 text-lg max-w-md mx-auto">
+                تحقق مرة أخرى قريباً لاستكشاف المحتوى الجديد والمثير
               </p>
             </div>
           )}
