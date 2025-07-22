@@ -569,13 +569,7 @@ export default function Home() {
                         </div>
                       </Badge>
 
-                      {/* Premium Video Indicator */}
-                      {memory.type === 'video' && (
-                        <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center shadow-lg">
-                          <span className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
-                          HD LIVE
-                        </div>
-                      )}
+
                     </div>
 
                     <CardContent className={`${memory.type === 'video' ? 'p-6' : 'p-4'}`}>
