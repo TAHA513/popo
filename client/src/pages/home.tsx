@@ -28,11 +28,12 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Stream } from "@/types";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
   const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
@@ -371,7 +372,7 @@ export default function Home() {
                     className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group cursor-pointer ${memory.type === 'video' ? 'col-span-3 row-span-3' : ''}`}
                     onClick={() => {
                       if (memory.type === 'video') {
-                        window.location.href = `/video/${memory.id}`;
+                        setLocation(`/video/${memory.id}`);
                       }
                     }}
                   >

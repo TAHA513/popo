@@ -142,7 +142,8 @@ export default function VideoPage() {
     if (currentVideoIndex < allVideos.length - 1) {
       const nextIndex = currentVideoIndex + 1;
       setCurrentVideoIndex(nextIndex);
-      window.history.pushState(null, '', `/video/${allVideos[nextIndex].id}`);
+      // Update URL without page reload
+      window.history.replaceState(null, '', `/video/${allVideos[nextIndex].id}`);
     }
   };
 
@@ -150,9 +151,29 @@ export default function VideoPage() {
     if (currentVideoIndex > 0) {
       const prevIndex = currentVideoIndex - 1;
       setCurrentVideoIndex(prevIndex);
-      window.history.pushState(null, '', `/video/${allVideos[prevIndex].id}`);
+      // Update URL without page reload
+      window.history.replaceState(null, '', `/video/${allVideos[prevIndex].id}`);
     }
   };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPrevVideo();
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextVideo();
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        handleVideoToggle();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentVideoIndex, allVideos]);
 
   // Handle swipe gestures
   useEffect(() => {
@@ -200,6 +221,30 @@ export default function VideoPage() {
     }
   }, [currentVideoIndex, allVideos]);
 
+  // Preload next and previous videos for faster navigation
+  useEffect(() => {
+    if (allVideos.length > 1) {
+      const nextIndex = currentVideoIndex + 1;
+      const prevIndex = currentVideoIndex - 1;
+      
+      // Preload next video
+      if (nextIndex < allVideos.length) {
+        const nextVideo = allVideos[nextIndex];
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.src = nextVideo.mediaUrls[0];
+      }
+      
+      // Preload previous video
+      if (prevIndex >= 0) {
+        const prevVideo = allVideos[prevIndex];
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.src = prevVideo.mediaUrls[0];
+      }
+    }
+  }, [currentVideoIndex, allVideos]);
+
   const handleInteraction = (action: string) => {
     toast({
       title: `${action}`,
@@ -229,8 +274,12 @@ export default function VideoPage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-white">جاري تحميل الفيديوهات...</p>
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+          </div>
+          <p className="mt-6 text-white/90 text-lg font-medium">جاري تحضير الفيديوهات...</p>
+          <p className="mt-2 text-white/60 text-sm">التحميل السريع جارٍ</p>
         </div>
       </div>
     );
@@ -287,6 +336,7 @@ export default function VideoPage() {
       {/* Video Container */}
       <div className="relative w-full h-screen flex items-center justify-center group">
         <video
+          key={currentVideo.id}
           id={`video-${currentVideo.id}`}
           src={currentVideo.mediaUrls[0]}
           className="w-full h-full object-cover"
@@ -298,6 +348,8 @@ export default function VideoPage() {
           poster={currentVideo.thumbnailUrl}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
+          onLoadStart={() => setIsVideoPlaying(false)}
+          onCanPlay={() => setIsVideoPlaying(true)}
         />
 
         {/* Video Controls Overlay */}
