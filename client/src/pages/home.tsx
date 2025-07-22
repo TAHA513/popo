@@ -139,11 +139,11 @@ export default function Home() {
       <SimpleNavigation />
       
       {/* Hero Section */}
-      <div className="pt-16 -mb-1">
+      <div className="pt-16">
         <div className="w-full">
           
           {/* Live Activity Banner */}
-          <div className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 px-3 py-2 shadow-lg relative overflow-hidden">
+          <div className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 px-3 py-2 shadow-lg relative overflow-hidden -mb-2">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute top-1 right-2 w-6 h-6 border border-white/20 rounded-full animate-pulse"></div>
@@ -190,12 +190,12 @@ export default function Home() {
         </div>
       </div>
       
-      <main className="pb-0 -mt-1">
+      <main className="pb-0 -mt-2">
         <div className="w-full">
 
           {/* Live Streams Section */}
           {typedStreams.length > 0 && (
-            <div className="mb-1">
+            <div className="mb-0">
               <div className="flex items-center justify-between mb-1 px-1">
                 <div className="flex items-center">
                   <div className="w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mr-2">
