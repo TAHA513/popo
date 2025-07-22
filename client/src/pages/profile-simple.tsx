@@ -39,16 +39,12 @@ export default function ProfileSimplePage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
-  // Enhanced debug logging
-  console.log("🔧 ProfileSimplePage Debug Info:");
-  console.log("📍 URL params:", params);
-  console.log("👤 userId from params:", userId);
-  console.log("🎯 Final profileUserId:", profileUserId);
-  console.log("🔑 currentUser:", currentUser);
-  console.log("🔒 isAuthenticated:", isAuthenticated);
-  console.log("⏳ authLoading:", authLoading);
-  console.log("🌐 Current URL:", window.location.pathname);
-  console.log("📦 All URL search params:", new URLSearchParams(window.location.search).toString());
+  // Enhanced debug logging (reduced for production)
+  if (process.env.NODE_ENV === 'development') {
+    console.log("🔧 ProfileSimplePage Debug Info:");
+    console.log("👤 userId from params:", userId);
+    console.log("🎯 Final profileUserId:", profileUserId);
+  }
   
   // Early return if auth is still loading
   if (authLoading) {
@@ -97,7 +93,9 @@ export default function ProfileSimplePage() {
     staleTime: 30000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
     queryFn: async () => {
-      console.log('🔍 Fetching user profile for:', profileUserId);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 Fetching user profile for:', profileUserId);
+      }
       
       // Add timeout to fetch request
       const controller = new AbortController();
@@ -114,8 +112,9 @@ export default function ProfileSimplePage() {
         
         clearTimeout(timeoutId);
         
-        console.log('📡 Response status:', response.status);
-        console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📡 Response status:', response.status);
+        }
         
         if (!response.ok) {
           console.error('❌ Error fetching user:', response.status, response.statusText);
@@ -241,7 +240,9 @@ export default function ProfileSimplePage() {
         credentials: 'include'
       });
       if (!response.ok) return [];
-      return response.json();
+      const data = await response.json();
+      // Ensure we always return an array
+      return Array.isArray(data) ? data : [];
     }
   });
   
@@ -254,7 +255,9 @@ export default function ProfileSimplePage() {
         credentials: 'include'
       });
       if (!response.ok) return [];
-      return response.json();
+      const data = await response.json();
+      // Ensure we always return an array
+      return Array.isArray(data) ? data : [];
     }
   });
 
@@ -338,12 +341,13 @@ export default function ProfileSimplePage() {
   const isOwnProfile = currentUser?.id === profileUserId;
   const user = profileUser;
   
-  // More debug logs
-  console.log("profileUser:", profileUser);
-  console.log("isOwnProfile:", isOwnProfile);
-  console.log("user data:", user);
-  console.log("userLoading:", userLoading);
-  console.log("userError:", userError);
+  // More debug logs (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log("profileUser:", profileUser);
+    console.log("isOwnProfile:", isOwnProfile);
+    console.log("userLoading:", userLoading);
+    console.log("userError:", userError);
+  }
   
   // Check if still loading user data - AFTER all hooks
   if (userLoading) {
@@ -695,8 +699,8 @@ export default function ProfileSimplePage() {
           
           {/* Followers Section */}
           <div style={{display: activeTab === "followers" ? "block" : "none"}}>
-            <h2 className="text-xl font-bold mb-4">المتابعون ({followers.length})</h2>
-            {followers.length === 0 ? (
+            <h2 className="text-xl font-bold mb-4">المتابعون ({Array.isArray(followers) ? followers.length : 0})</h2>
+            {!Array.isArray(followers) || followers.length === 0 ? (
               <Card className="p-8 text-center">
                 <p className="text-gray-600">لا يوجد متابعون بعد</p>
               </Card>
@@ -735,8 +739,8 @@ export default function ProfileSimplePage() {
           
           {/* Following Section */}
           <div style={{display: activeTab === "following" ? "block" : "none"}}>
-            <h2 className="text-xl font-bold mb-4">يتابع ({following.length})</h2>
-            {following.length === 0 ? (
+            <h2 className="text-xl font-bold mb-4">يتابع ({Array.isArray(following) ? following.length : 0})</h2>
+            {!Array.isArray(following) || following.length === 0 ? (
               <Card className="p-8 text-center">
                 <p className="text-gray-600">لا يتابع أحد بعد</p>
               </Card>

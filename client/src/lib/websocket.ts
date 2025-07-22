@@ -37,7 +37,7 @@ export class WebSocketManager {
       };
       
       this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.warn('WebSocket connection issue - will retry if needed');
       };
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
@@ -72,7 +72,7 @@ export class WebSocketManager {
     }, delay);
   }
 
-  send(message: WebSocketMessage) {
+  send(message: any) {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
