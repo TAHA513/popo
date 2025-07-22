@@ -515,11 +515,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMemoryFragmentById(id: number): Promise<MemoryFragment | undefined> {
-    const [fragment] = await db
-      .select()
+    const fragments = await db
+      .select({
+        id: memoryFragments.id,
+        authorId: memoryFragments.authorId,
+        type: memoryFragments.type,
+        title: memoryFragments.title,
+        caption: memoryFragments.caption,
+        mediaUrls: memoryFragments.mediaUrls,
+        thumbnailUrl: memoryFragments.thumbnailUrl,
+        currentEnergy: memoryFragments.currentEnergy,
+        initialEnergy: memoryFragments.initialEnergy,
+        memoryType: memoryFragments.memoryType,
+        viewCount: memoryFragments.viewCount,
+        likeCount: memoryFragments.likeCount,
+        shareCount: memoryFragments.shareCount,
+        giftCount: memoryFragments.giftCount,
+        visibilityLevel: memoryFragments.visibilityLevel,
+        allowComments: memoryFragments.allowComments,
+        allowSharing: memoryFragments.allowSharing,
+        allowGifts: memoryFragments.allowGifts,
+        expiresAt: memoryFragments.expiresAt,
+        createdAt: memoryFragments.createdAt,
+        updatedAt: memoryFragments.updatedAt,
+        isActive: memoryFragments.isActive,
+        author: {
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          points: users.points,
+          isStreamer: users.isStreamer,
+        },
+      })
       .from(memoryFragments)
+      .leftJoin(users, eq(memoryFragments.authorId, users.id))
       .where(eq(memoryFragments.id, id));
-    return fragment;
+    
+    return fragments.length > 0 ? fragments[0] as MemoryFragment : undefined;
   }
 
   async addMemoryInteraction(interactionData: InsertMemoryInteraction): Promise<MemoryInteraction> {

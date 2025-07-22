@@ -366,7 +366,15 @@ export default function Home() {
             {typedMemories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
                 {typedMemories.map((memory) => (
-                  <Card key={`memory-${memory.id}`} className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group ${memory.type === 'video' ? 'col-span-3 row-span-3' : ''}`}>
+                  <Card 
+                    key={`memory-${memory.id}`} 
+                    className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group cursor-pointer ${memory.type === 'video' ? 'col-span-3 row-span-3' : ''}`}
+                    onClick={() => {
+                      if (memory.type === 'video') {
+                        window.location.href = `/video/${memory.id}`;
+                      }
+                    }}
+                  >
                     {/* Media Display */}
                     <div className={`relative ${memory.type === 'video' ? 'h-[32rem]' : 'h-48'} bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 overflow-hidden`}>
                       {memory.mediaUrls && memory.mediaUrls.length > 0 ? (

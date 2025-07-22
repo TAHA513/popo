@@ -321,6 +321,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single memory fragment by ID
+  app.get('/api/memories/:memoryId', async (req, res) => {
+    try {
+      const memoryId = parseInt(req.params.memoryId);
+      if (isNaN(memoryId)) {
+        return res.status(400).json({ message: "Invalid memory ID" });
+      }
+      
+      const memory = await storage.getMemoryFragmentById(memoryId);
+      if (!memory) {
+        return res.status(404).json({ message: "Memory not found" });
+      }
+      
+      res.json(memory);
+    } catch (error) {
+      console.error("Error fetching memory:", error);
+      res.status(500).json({ message: "Failed to fetch memory" });
+    }
+  });
+
   // Get suggested users to follow
   app.get('/api/users/suggested', async (req, res) => {
     try {
