@@ -48,15 +48,24 @@ export default function ProfileSimplePage() {
   // All hooks must be called before any conditional returns
   
   // Fetch profile user data
-  const { data: profileUser, isLoading: userLoading } = useQuery({
+  const { data: profileUser, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ['/api/users', profileUserId],
     enabled: !!profileUserId,
+    retry: 3,
     queryFn: async () => {
+      console.log('Fetching user profile for:', profileUserId);
       const response = await fetch(`/api/users/${profileUserId}`, {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch user');
-      return response.json();
+      
+      if (!response.ok) {
+        console.error('Error fetching user:', response.status, response.statusText);
+        throw new Error(`Failed to fetch user: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('User profile fetched:', data);
+      return data;
     }
   });
 
@@ -221,9 +230,11 @@ export default function ProfileSimplePage() {
   console.log("profileUser:", profileUser);
   console.log("isOwnProfile:", isOwnProfile);
   console.log("user data:", user);
+  console.log("userLoading:", userLoading);
+  console.log("userError:", userError);
   
   // Check if still loading user data - AFTER all hooks
-  if (userLoading || !user) {
+  if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
@@ -231,6 +242,58 @@ export default function ProfileSimplePage() {
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">جاري تحميل الملف الشخصي...</p>
+            <p className="text-sm text-gray-400 mt-2">ID: {profileUserId}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If there's an error fetching user
+  if (userError) {
+    console.error('User error:', userError);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <SimpleNavigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">خطأ في تحميل الملف الشخصي</h2>
+            <p className="text-gray-600 mb-4">{userError.message || 'حدث خطأ غير متوقع'}</p>
+            <div className="space-x-4">
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                إعادة المحاولة
+              </Button>
+              <Link href="/explore">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  استكشاف المستخدمين
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user not found after loading complete
+  if (!user && !userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <SimpleNavigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">😞</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">المستخدم غير موجود</h2>
+            <p className="text-gray-600 mb-4">عذراً، لم نتمكن من العثور على هذا المستخدم</p>
+            <Link href="/explore">
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                استكشاف المستخدمين
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
