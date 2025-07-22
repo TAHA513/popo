@@ -5,11 +5,12 @@ import {
   Search,
   Plus,
   MessageCircle,
-  User
+  User,
+  LogOut
 } from "lucide-react";
 
 export default function BottomNavigation() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
 
   const navItems = [
@@ -17,13 +18,14 @@ export default function BottomNavigation() {
     { href: "/explore", icon: Search, label: "استكشف" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
-    { href: "/profile", icon: User, label: "الملف" }
+    { href: "/profile", icon: User, label: "الملف" },
+    { action: "logout", icon: LogOut, label: "خروج", isLogout: true }
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
       <div className="flex items-center justify-around py-1 px-2">
-        {navItems.map((item) => {
+        {navItems.map((item, index) => {
           const isActive = location === item.href;
           const Icon = item.icon;
           
@@ -37,6 +39,19 @@ export default function BottomNavigation() {
                   <span className="text-xs mt-1 text-purple-600 font-medium">{item.label}</span>
                 </div>
               </Link>
+            );
+          }
+          
+          if (item.isLogout) {
+            return (
+              <button 
+                key={index}
+                onClick={() => logout()}
+                className="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 text-red-500 hover:text-red-600 hover:bg-red-50"
+              >
+                <Icon className="w-6 h-6" />
+                <span className="text-xs mt-1 font-medium">{item.label}</span>
+              </button>
             );
           }
           
