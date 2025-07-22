@@ -139,7 +139,7 @@ export default function Home() {
       <SimpleNavigation />
       
       {/* Hero Section */}
-      <div className="pt-16">
+      <div className="pt-16 -mb-1">
         <div className="w-full">
           
           {/* Live Activity Banner */}
@@ -190,7 +190,7 @@ export default function Home() {
         </div>
       </div>
       
-      <main className="pb-0">
+      <main className="pb-0 -mt-1">
         <div className="w-full">
 
           {/* Live Streams Section */}
