@@ -7,6 +7,8 @@ LaaBoBo Live is a full-stack live streaming application with a focus on interact
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+UI Design Preference: TikTok-inspired modern interface with dark themes and animated backgrounds.
+Brand Elements: Rabbit emoji (🐰) as the primary brand icon for LaaBoBo Live.
 
 ## System Architecture
 
@@ -127,3 +129,15 @@ The application uses a comprehensive PostgreSQL schema with the following main e
 - **Temporary Promotion Route**: `/make-admin` for initial super_admin setup
 
 The application is designed for deployment on Replit's platform but can be adapted for other hosting environments with minimal configuration changes.
+
+## Recent Changes
+
+### July 22, 2025 - TikTok-Inspired Authentication UI Redesign
+- ✓ Redesigned login page with TikTok-inspired modern interface
+- ✓ Redesigned register page with matching dark theme design
+- ✓ Added rabbit emoji (🐰) as prominent brand logo in authentication pages
+- ✓ Implemented dark background with animated gradient effects
+- ✓ Added glassmorphism design with backdrop blur effects
+- ✓ Enhanced form inputs with improved styling and user experience
+- ✓ Added hover and focus animations for better interactivity
+- ✓ Improved mobile-first responsive design for authentication flows

@@ -77,94 +77,126 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-purple-600">
-            مرحباً بعودتك
-          </CardTitle>
-          <p className="text-gray-600">سجل دخولك إلى LaaBoBo Live</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">اسم المستخدم</Label>
-              <Input
-                id="username"
-                {...register("username")}
-                placeholder="أدخل اسم المستخدم"
-                disabled={loginMutation.isPending}
-              />
-              {errors.username && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.username.message}</AlertDescription>
-                </Alert>
-              )}
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-blue-900/50"></div>
+      <div className="absolute inset-0">
+        <div className="absolute top-10 left-10 w-32 h-32 bg-pink-500/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-1/3 right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
+      </div>
+      
+      <div className="relative min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          {/* Logo and Brand */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl mb-4 shadow-2xl">
+              <span className="text-3xl">🐰</span>
             </div>
+            <h1 className="text-3xl font-bold text-white mb-2">LaaBoBo Live</h1>
+            <p className="text-gray-300 text-sm">مرحباً بعودتك</p>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
-              <div className="relative">
+          {/* Login Form */}
+          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 shadow-2xl">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Username Field */}
+              <div className="space-y-2">
                 <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  placeholder="أدخل كلمة المرور"
+                  id="username"
+                  {...register("username")}
+                  placeholder="اسم المستخدم"
                   disabled={loginMutation.isPending}
+                  className="h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-2xl text-lg backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 h-auto p-1"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loginMutation.isPending}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+                {errors.username && (
+                  <p className="text-red-400 text-sm px-2">{errors.username.message}</p>
+                )}
               </div>
-              {errors.password && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.password.message}</AlertDescription>
-                </Alert>
-              )}
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? (
-                <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري تسجيل الدخول...
-                </>
-              ) : (
-                "تسجيل الدخول"
-              )}
-            </Button>
+              {/* Password Field */}
+              <div className="space-y-2">
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    placeholder="كلمة المرور"
+                    disabled={loginMutation.isPending}
+                    className="h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-2xl text-lg backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all pl-14"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loginMutation.isPending}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </Button>
+                </div>
+                {errors.password && (
+                  <p className="text-red-400 text-sm px-2">{errors.password.message}</p>
+                )}
+              </div>
 
-            <div className="text-center pt-4">
-              <p className="text-sm text-gray-600">
-                ليس لديك حساب؟{" "}
+              {/* Login Button */}
+              <Button
+                type="submit"
+                className="w-full h-14 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold rounded-2xl text-lg shadow-xl transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:scale-100"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>جاري تسجيل الدخول...</span>
+                  </div>
+                ) : (
+                  "تسجيل الدخول"
+                )}
+              </Button>
+
+              {/* Forgot Password */}
+              <div className="text-center">
                 <Button
                   variant="link"
-                  className="p-0 h-auto text-purple-600 hover:text-purple-700"
-                  onClick={() => navigate("/register")}
-                  disabled={loginMutation.isPending}
+                  className="text-gray-300 hover:text-white text-sm p-0 h-auto"
+                  type="button"
                 >
-                  إنشاء حساب جديد
+                  نسيت كلمة المرور؟
                 </Button>
-              </p>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              </div>
+            </form>
+          </div>
+
+          {/* Sign Up Link */}
+          <div className="text-center mt-8">
+            <p className="text-gray-300 text-sm mb-4">
+              ليس لديك حساب؟
+            </p>
+            <Button
+              variant="outline"
+              className="w-full h-12 border-white/30 text-white hover:bg-white/10 hover:text-white rounded-2xl font-medium backdrop-blur-sm"
+              onClick={() => navigate("/register")}
+              disabled={loginMutation.isPending}
+            >
+              إنشاء حساب جديد
+            </Button>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center mt-8">
+            <p className="text-gray-400 text-xs">
+              بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

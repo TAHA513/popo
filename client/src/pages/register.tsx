@@ -123,201 +123,212 @@ export default function Register() {
   const usernameStatus = getUsernameStatus();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-purple-600">
-            إنشاء حساب جديد
-          </CardTitle>
-          <p className="text-gray-600">انضم إلى LaaBoBo Live اليوم</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">الاسم الأول</Label>
-                <Input
-                  id="firstName"
-                  {...register("firstName")}
-                  placeholder="الاسم الأول"
-                  disabled={registerMutation.isPending}
-                />
-                {errors.firstName && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{errors.firstName.message}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lastName">الاسم الأخير</Label>
-                <Input
-                  id="lastName"
-                  {...register("lastName")}
-                  placeholder="الاسم الأخير"
-                  disabled={registerMutation.isPending}
-                />
-                {errors.lastName && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{errors.lastName.message}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-blue-900/50"></div>
+      <div className="absolute inset-0">
+        <div className="absolute top-10 right-10 w-32 h-32 bg-pink-500/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-1/4 left-10 w-40 h-40 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-32 right-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
+      </div>
+      
+      <div className="relative min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Logo and Brand */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl mb-3 shadow-2xl">
+              <span className="text-2xl">🐰</span>
             </div>
+            <h1 className="text-2xl font-bold text-white mb-1">انضم إلى LaaBoBo Live</h1>
+            <p className="text-gray-300 text-sm">إنشاء حساب جديد</p>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="username">اسم المستخدم</Label>
-              <div className="relative">
+          {/* Register Form */}
+          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 shadow-2xl">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* First Name and Last Name */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Input
+                    id="firstName"
+                    {...register("firstName")}
+                    placeholder="الاسم الأول"
+                    disabled={registerMutation.isPending}
+                    className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all"
+                  />
+                  {errors.firstName && (
+                    <p className="text-red-400 text-xs px-2">{errors.firstName.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <Input
+                    id="lastName"
+                    {...register("lastName")}
+                    placeholder="الاسم الأخير"
+                    disabled={registerMutation.isPending}
+                    className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all"
+                  />
+                  {errors.lastName && (
+                    <p className="text-red-400 text-xs px-2">{errors.lastName.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Username Field */}
+              <div className="space-y-1">
+                <div className="relative">
+                  <Input
+                    id="username"
+                    {...register("username")}
+                    placeholder="اسم المستخدم"
+                    disabled={registerMutation.isPending}
+                    className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all pl-12"
+                  />
+                  {usernameStatus && (
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                      {usernameStatus === "checking" && (
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-300" />
+                      )}
+                      {usernameStatus === "available" && (
+                        <Check className="h-4 w-4 text-green-400" />
+                      )}
+                      {usernameStatus === "unavailable" && (
+                        <X className="h-4 w-4 text-red-400" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {errors.username && (
+                  <p className="text-red-400 text-xs px-2">{errors.username.message}</p>
+                )}
+                {usernameStatus === "unavailable" && !errors.username && (
+                  <p className="text-red-400 text-xs px-2">اسم المستخدم غير متاح</p>
+                )}
+                {usernameStatus === "available" && (
+                  <p className="text-green-400 text-xs px-2">اسم المستخدم متاح</p>
+                )}
+              </div>
+
+              {/* Email Field */}
+              <div className="space-y-1">
                 <Input
-                  id="username"
-                  {...register("username")}
-                  placeholder="اسم المستخدم (مطلوب وفريد)"
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  placeholder="البريد الإلكتروني"
                   disabled={registerMutation.isPending}
+                  className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all"
                 />
-                {usernameStatus && (
-                  <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
-                    {usernameStatus === "checking" && (
-                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                    )}
-                    {usernameStatus === "available" && (
-                      <Check className="h-4 w-4 text-green-500" />
-                    )}
-                    {usernameStatus === "unavailable" && (
-                      <X className="h-4 w-4 text-red-500" />
-                    )}
+                {errors.email && (
+                  <p className="text-red-400 text-xs px-2">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Password Fields */}
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-1">
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      {...register("password")}
+                      placeholder="كلمة المرور"
+                      disabled={registerMutation.isPending}
+                      className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all pl-12"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={registerMutation.isPending}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
+                  {errors.password && (
+                    <p className="text-red-400 text-xs px-2">{errors.password.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      {...register("confirmPassword")}
+                      placeholder="تأكيد كلمة المرور"
+                      disabled={registerMutation.isPending}
+                      className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all pl-12"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      disabled={registerMutation.isPending}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="text-red-400 text-xs px-2">{errors.confirmPassword.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Register Button */}
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-xl transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:scale-100 mt-6"
+                disabled={registerMutation.isPending || usernameStatus === "unavailable"}
+              >
+                {registerMutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>جاري إنشاء الحساب...</span>
+                  </div>
+                ) : (
+                  "إنشاء حساب"
                 )}
-              </div>
-              {errors.username && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.username.message}</AlertDescription>
-                </Alert>
-              )}
-              {usernameStatus === "unavailable" && (
-                <Alert variant="destructive">
-                  <AlertDescription>اسم المستخدم غير متاح</AlertDescription>
-                </Alert>
-              )}
-              {usernameStatus === "available" && (
-                <Alert>
-                  <AlertDescription className="text-green-600">
-                    اسم المستخدم متاح
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
+              </Button>
+            </form>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email")}
-                placeholder="البريد الإلكتروني"
-                disabled={registerMutation.isPending}
-              />
-              {errors.email && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.email.message}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  placeholder="كلمة المرور (6 أحرف على الأقل)"
-                  disabled={registerMutation.isPending}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 h-auto p-1"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={registerMutation.isPending}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {errors.password && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.password.message}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  {...register("confirmPassword")}
-                  placeholder="تأكيد كلمة المرور"
-                  disabled={registerMutation.isPending}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 h-auto p-1"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={registerMutation.isPending}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {errors.confirmPassword && (
-                <Alert variant="destructive">
-                  <AlertDescription>{errors.confirmPassword.message}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-
+          {/* Login Link */}
+          <div className="text-center mt-6">
+            <p className="text-gray-300 text-sm mb-3">
+              لديك حساب بالفعل؟
+            </p>
             <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              disabled={registerMutation.isPending || usernameStatus === "unavailable"}
+              variant="outline"
+              className="w-full h-10 border-white/30 text-white hover:bg-white/10 hover:text-white rounded-xl font-medium backdrop-blur-sm"
+              onClick={() => navigate("/login")}
+              disabled={registerMutation.isPending}
             >
-              {registerMutation.isPending ? (
-                <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري إنشاء الحساب...
-                </>
-              ) : (
-                "إنشاء حساب"
-              )}
+              تسجيل الدخول
             </Button>
+          </div>
 
-            <div className="text-center pt-4">
-              <p className="text-sm text-gray-600">
-                لديك حساب بالفعل؟{" "}
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-purple-600 hover:text-purple-700"
-                  onClick={() => navigate("/login")}
-                  disabled={registerMutation.isPending}
-                >
-                  تسجيل الدخول
-                </Button>
-              </p>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          {/* Footer */}
+          <div className="text-center mt-6">
+            <p className="text-gray-400 text-xs">
+              بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
