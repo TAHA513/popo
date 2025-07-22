@@ -345,7 +345,7 @@ export default function Home() {
             </div>
             
             {typedMemories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-0.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 auto-rows-max">
                 {typedMemories.map((memory) => (
                   <Card key={`memory-${memory.id}`} className={`overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white/70 backdrop-blur-sm border-2 border-transparent hover:border-purple-300 group ${memory.type === 'video' ? 'col-span-2 row-span-2' : ''}`}>
                     {/* Media Display */}
