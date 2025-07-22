@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import LastSeenToggle from "@/components/last-seen-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -252,6 +253,10 @@ export default function AccountPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">إدارة إعدادات الخصوصية</p>
                   </div>
                   <Button variant="outline" size="sm">إدارة</Button>
+                </div>
+                
+                <div className="col-span-full">
+                  <LastSeenToggle />
                 </div>
               </CardContent>
             </Card>

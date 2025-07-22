@@ -43,6 +43,9 @@ export const users = pgTable("users", {
   isPrivateAccount: boolean("is_private_account").default(false),
   allowDirectMessages: boolean("allow_direct_messages").default(true),
   allowGiftsFromStrangers: boolean("allow_gifts_from_strangers").default(true),
+  showLastSeen: boolean("show_last_seen").default(true), // Show last seen to others
+  lastSeenAt: timestamp("last_seen_at").defaultNow(), // Track last activity
+  isOnline: boolean("is_online").default(false), // Current online status
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
