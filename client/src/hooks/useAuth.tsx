@@ -51,10 +51,13 @@ export function useAuth() {
       // Clear all cached data
       queryClient.clear();
       
-      // Redirect to landing page
-      window.location.href = "/";
+      // Redirect to login page after logout
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout error:", error);
+      // Even if logout fails on server, clear local data and redirect
+      queryClient.clear();
+      window.location.href = "/login";
     }
   };
 

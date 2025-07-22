@@ -150,6 +150,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Also support GET logout for direct URL access
+  app.get('/api/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
+      }
+      res.json({ message: "تم تسجيل الخروج بنجاح" });
+    });
+  });
+
   app.get('/api/check-username', async (req, res) => {
     try {
       const { username } = req.query;

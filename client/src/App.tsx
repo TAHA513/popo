@@ -67,6 +67,8 @@ function Router() {
         <>
           <Route path="/" component={LoginPage} />
           <Route path="/landing" component={Landing} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/register" component={RegisterPage} />
           <Route component={LoginPage} />
         </>
       )}
