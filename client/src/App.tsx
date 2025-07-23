@@ -36,8 +36,12 @@ function Router() {
           });
           if (response.ok) {
             const memories = await response.json();
-            // Filter only videos
-            const videos = memories.filter((item: any) => item.type === 'video');
+            // Filter ONLY videos - exclude images completely
+            const videos = memories.filter((item: any) => 
+              item.type === 'video' && 
+              item.mediaUrls && 
+              item.mediaUrls.length > 0
+            );
             
             if (videos.length > 0) {
               // Pick random video
@@ -45,15 +49,22 @@ function Router() {
               console.log('Opening random video:', randomVideo.id);
               setLocation(`/video/${randomVideo.id}`);
               setHasAutoNavigated(true);
+            } else {
+              // No videos available, go to home
+              setLocation('/home');
+              setHasAutoNavigated(true);
             }
           }
         } catch (error) {
           console.error('Error loading random video:', error);
+          // On error, go to home
+          setLocation('/home');
+          setHasAutoNavigated(true);
         }
       };
 
       // Small delay to ensure smooth transition
-      setTimeout(openRandomVideo, 500);
+      setTimeout(openRandomVideo, 300);
     }
   }, [isAuthenticated, hasAutoNavigated, setLocation]);
 

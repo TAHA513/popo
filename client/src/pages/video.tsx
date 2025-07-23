@@ -79,8 +79,12 @@ export default function VideoPage() {
       });
       if (!response.ok) throw new Error('فشل في تحميل الفيديوهات');
       const data = await response.json();
-      // Filter only videos
-      return data.filter((item: any) => item.type === 'video');
+      // Filter ONLY videos with proper media URLs
+      return data.filter((item: any) => 
+        item.type === 'video' && 
+        item.mediaUrls && 
+        item.mediaUrls.length > 0
+      );
     },
     refetchInterval: 10000, // كل 10 ثواني - أكثر عقلانية
     staleTime: 5000, // 5 ثواني

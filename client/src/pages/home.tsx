@@ -60,14 +60,19 @@ export default function Home() {
         fetch('/api/memories/public', { credentials: 'include' })
           .then(res => res.json())
           .then(memories => {
-            const videos = memories.filter((item: any) => item.type === 'video');
+            // Filter ONLY videos with proper media URLs
+            const videos = memories.filter((item: any) => 
+              item.type === 'video' && 
+              item.mediaUrls && 
+              item.mediaUrls.length > 0
+            );
             if (videos.length > 0) {
               const randomVideo = videos[Math.floor(Math.random() * videos.length)];
               setLocation(`/video/${randomVideo.id}`);
             }
           })
           .catch(err => console.error('Auto-redirect error:', err));
-      }, 1000);
+      }, 800);
     }
   }, [user, setLocation]);
   
