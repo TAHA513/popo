@@ -567,10 +567,10 @@ export default function VideoPage() {
       className="min-h-screen bg-black relative overflow-hidden"
       style={{ touchAction: 'pan-y' }}
     >
-      {/* Back Button */}
+      {/* Back Button - Returns to home interface */}
       <Button 
         variant="ghost" 
-        onClick={() => window.history.back()}
+        onClick={() => window.location.href = '/home'}
         className="absolute top-4 left-4 z-20 text-white bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 p-0"
       >
         <ArrowLeft className="w-6 h-6" />

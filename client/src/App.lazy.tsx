@@ -12,3 +12,4 @@ export const ConversationPage = lazy(() => import('@/pages/conversation'));
 export const VideoPage = lazy(() => import('@/pages/video'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));
+export const RandomVideoRedirect = lazy(() => import('@/pages/random-video-redirect'));

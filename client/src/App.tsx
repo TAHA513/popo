@@ -37,10 +37,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? <Home /> : <LoginPage />}
+        {isAuthenticated ? <LazyComponents.RandomVideoRedirect /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isAuthenticated ? <Home /> : <RegisterPage />}
+        {isAuthenticated ? <LazyComponents.RandomVideoRedirect /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
         <Suspense fallback={
@@ -48,7 +48,7 @@ function Router() {
             <div className="text-white text-lg">جاري التحميل...</div>
           </div>
         }>
-          <Route path="/" component={Home} />
+          <Route path="/" component={LazyComponents.RandomVideoRedirect} />
           <Route path="/home" component={Home} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
