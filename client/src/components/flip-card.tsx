@@ -210,7 +210,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
         </div>
 
         {/* Main content */}
-        <div className="relative z-10 h-full flex flex-col p-6 text-white">
+        <div className="relative z-10 h-full flex flex-col p-6 text-white" dir="rtl">
           {/* Header with profile */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -337,19 +337,15 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
   };
 
   const handleCardClick = () => {
-    // تحقق من نوع المحتوى بدقة أكبر
-    const hasVideo = content.mediaUrls && content.mediaUrls.length > 0 && 
-                     (content.mediaUrls[0].includes('.mp4') || content.mediaUrls[0].includes('.webm') || content.mediaUrls[0].includes('.mov'));
-    
-    // إذا كان فيديو أو بث مباشر، انتقل مباشرة
-    if (type === 'live' || (type === 'video' && hasVideo)) {
+    // إذا كان فيديو أو بث مباشر، انتقل مباشرة بدون إعادة تحميل
+    if (type === 'video' || type === 'live') {
       if (type === 'video' && content.id) {
         setLocation(`/video/${content.id}`);
       } else if (type === 'live' && content.id) {
         setLocation(`/stream/${content.id}`);
       }
     } else {
-      // للصور والمنشورات الأخرى، اقلب البطاقة
+      // للمنشورات الأخرى، اقلب البطاقة
       setIsFlipped(!isFlipped);
     }
   };
@@ -359,19 +355,17 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
       className="relative w-full h-full cursor-pointer group"
       onClick={handleCardClick}
     >
-      <div className={`w-full h-full transition-all duration-700 ${isFlipped ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`}>
         {/* Front side */}
         {!isFlipped && (
           <div className="w-full h-full">
             {renderFrontContent()}
           </div>
         )}
-      </div>
-      
-      {/* Back side - separate container */}
-      <div className={`absolute inset-0 w-full h-full transition-all duration-700 ${isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        
+        {/* Back side */}
         {isFlipped && (
-          <div className="w-full h-full" dir="rtl">
+          <div className="w-full h-full">
             {renderBackContent()}
           </div>
         )}

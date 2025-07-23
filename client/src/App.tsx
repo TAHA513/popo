@@ -95,10 +95,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-        <Toaster />
-        <Router />
-      </div>
+      <TooltipProvider>
+        <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
+          <Toaster />
+          <Router />
+        </div>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
