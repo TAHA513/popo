@@ -82,10 +82,10 @@ export default function VideoPage() {
       // Filter only videos
       return data.filter((item: any) => item.type === 'video');
     },
-    refetchInterval: 10000, // كل 10 ثواني - أكثر عقلانية
-    staleTime: 5000, // 5 ثواني
-    refetchOnMount: true,
-    refetchOnWindowFocus: false, // تجنب التحديث المستمر
+    refetchInterval: false, // إيقاف التحديث التلقائي
+    staleTime: 300000, // 5 دقائق cache
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
   });
 
   // Initialize video with improved loading strategy

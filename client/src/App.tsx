@@ -17,7 +17,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// import { TooltipProvider } from "@/components/ui/tooltip";
 
 type Language = 'en' | 'ar';
 
@@ -93,45 +93,27 @@ function App() {
     // Initialize performance optimizations
     initPerformanceOptimizations();
     
-    // Performance monitoring
-    if ('PerformanceObserver' in window) {
-      const observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        entries.forEach(entry => {
-          if (entry.entryType === 'navigation') {
-            console.log('Navigation timing:', entry.toJSON());
-          }
-        });
-      });
-      observer.observe({ entryTypes: ['navigation'] });
-    }
-    
-    // Memory usage monitoring (for development)
+    // Simplified performance monitoring only in development
     if (process.env.NODE_ENV === 'development') {
+      // Reduced frequency memory monitoring
       const checkMemory = () => {
         if ('memory' in performance) {
           const memory = (performance as any).memory;
-          console.log('Memory usage:', {
-            used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
-            total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
-            limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
-          });
+          console.log('Memory:', Math.round(memory.usedJSHeapSize / 1048576) + 'MB');
         }
       };
       
-      const memoryInterval = setInterval(checkMemory, 30000); // كل 30 ثانية
+      const memoryInterval = setInterval(checkMemory, 60000); // كل دقيقة
       return () => clearInterval(memoryInterval);
     }
   }, [language]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-          <Toaster />
-          <Router />
-        </div>
-      </TooltipProvider>
+      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
+        <Toaster />
+        <Router />
+      </div>
     </QueryClientProvider>
   );
 }

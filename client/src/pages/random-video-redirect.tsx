@@ -14,7 +14,8 @@ export default function RandomVideoRedirect() {
   const { data: videos = [], isLoading } = useQuery<Memory[]>({
     queryKey: ['/api/memories/public'],
     retry: 1,
-    staleTime: 0,
+    staleTime: 30000, // 30 seconds cache
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {

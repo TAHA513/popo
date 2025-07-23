@@ -51,20 +51,21 @@ export default function Home() {
     postType: 'memory'
   });
   
-  // Fetch live streams
+  // Fetch live streams with reduced frequency
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
     queryKey: ['/api/streams'],
-    refetchInterval: 30000,
+    refetchInterval: 60000, // كل دقيقة بدلاً من 30 ثانية
+    staleTime: 30000,
   });
 
-  // Fetch public memories/posts
+  // Fetch public memories/posts with reduced frequency
   const { data: publicMemories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 30000,
+    refetchInterval: false, // إيقاف التحديث التلقائي
     retry: 1,
-    staleTime: 0, // Always refresh when returning to page
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5 دقائق cache
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const typedStreams = (streams as Stream[]);
