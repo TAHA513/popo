@@ -291,6 +291,11 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <Button 
               size="sm" 
               className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Add follow functionality here
+                console.log('Follow clicked for user:', content.author?.id || content.authorId);
+              }}
             >
               <Users className="w-4 h-4 ml-1" />
               متابعة
@@ -339,7 +344,10 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <Button 
               size="sm" 
               className="flex-1 bg-red-500/80 hover:bg-red-500 text-white border-0"
-              onClick={() => onLike(content.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onLike(content.id);
+              }}
             >
               <Heart className={`w-4 h-4 ml-1 ${isLiked ? 'fill-white' : ''}`} />
               إعجاب
@@ -347,16 +355,25 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <Button 
               size="sm" 
               className="flex-1 bg-blue-500/80 hover:bg-blue-500 text-white border-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocation(`/user/${content.author?.id || content.authorId}`);
+              }}
             >
-              <MessageCircle className="w-4 h-4 ml-1" />
-              رسالة
+              <User className="w-4 h-4 ml-1" />
+              الملف
             </Button>
             <Button 
               size="sm" 
               className="flex-1 bg-yellow-500/80 hover:bg-yellow-500 text-white border-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Add comment/message functionality
+                console.log('Comments/Messages clicked for post:', content.id);
+              }}
             >
-              <Gift className="w-4 h-4 ml-1" />
-              هدية
+              <MessageCircle className="w-4 h-4 ml-1" />
+              رسائل
             </Button>
           </div>
 
@@ -365,7 +382,10 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             variant="ghost" 
             size="sm" 
             className="w-full mt-3 text-white/80 hover:text-white hover:bg-white/10"
-            onClick={() => setIsFlipped(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsFlipped(false);
+            }}
           >
             العودة للعرض
           </Button>
