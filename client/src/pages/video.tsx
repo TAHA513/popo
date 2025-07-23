@@ -133,50 +133,29 @@ export default function VideoPage() {
       setIsVideoLoading(true);
       setVideoError(false);
       
-      // Add delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
-        if (videoElement) {
-          videoElement.muted = isMuted;
-          
-          // Force load the video
-          videoElement.load();
-          
-          // Auto-play attempt with retry
-          const attemptPlay = () => {
-            if (isVideoPlaying) {
-              const playPromise = videoElement.play();
-              if (playPromise !== undefined) {
-                playPromise.then(() => {
-                  setIsVideoLoading(false);
-                  setIsVideoPlaying(true);
-                }).catch((error) => {
-                  console.log('Play failed, retrying...', error);
-                  // Retry after a short delay
-                  setTimeout(() => {
-                    videoElement.play().then(() => {
-                      setIsVideoLoading(false);
-                      setIsVideoPlaying(true);
-                    }).catch(() => {
-                      setIsVideoPlaying(false);
-                      setIsVideoLoading(false);
-                    });
-                  }, 100);
-                });
-              }
-            }
-          };
-          
-          // Wait for video to be ready
-          if (videoElement.readyState >= 2) {
-            attemptPlay();
-          } else {
-            videoElement.addEventListener('canplay', attemptPlay, { once: true });
+      // Immediate video setup
+      const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+      if (videoElement) {
+        videoElement.muted = isMuted;
+        
+        // Force load the video immediately
+        videoElement.load();
+        
+        // Immediate play attempt
+        if (isVideoPlaying) {
+          const playPromise = videoElement.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              setIsVideoLoading(false);
+              setIsVideoPlaying(true);
+            }).catch(() => {
+              // Auto-play failed, but don't retry immediately
+              setIsVideoPlaying(false);
+              setIsVideoLoading(false);
+            });
           }
         }
-      }, 100);
-
-      return () => clearTimeout(timer);
+      }
     }
   }, [currentVideo, isVideoPlaying, isMuted]);
 
@@ -387,11 +366,28 @@ export default function VideoPage() {
     }
   }, [currentVideoIndex, allVideos]);
 
-  // Hide instructions after 3 seconds
+  // Hide instructions after 3 seconds and setup video optimization
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowInstructions(false);
     }, 3000);
+
+    // Pre-load current video for faster playback
+    if (currentVideo) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'video';
+      link.href = currentVideo.mediaUrls[0];
+      document.head.appendChild(link);
+      
+      // Cleanup preload link
+      return () => {
+        clearTimeout(timer);
+        if (document.head.contains(link)) {
+          document.head.removeChild(link);
+        }
+      };
+    }
 
     return () => clearTimeout(timer);
   }, [currentVideo]);
@@ -605,7 +601,7 @@ export default function VideoPage() {
           muted={isMuted}
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           poster={currentVideo.thumbnailUrl}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
@@ -615,7 +611,7 @@ export default function VideoPage() {
           }}
           onCanPlay={() => {
             console.log('Video can play');
-            setTimeout(() => setIsVideoLoading(false), 500);
+            setIsVideoLoading(false);
           }}
           onCanPlayThrough={() => {
             // Video has buffered enough to play through
@@ -639,15 +635,8 @@ export default function VideoPage() {
             setIsVideoLoading(false);
             setIsVideoPlaying(false);
             setVideoError(true);
-            // Try to reload the video after a short delay
-            setTimeout(() => {
-              const video = e.currentTarget as HTMLVideoElement;
-              video.load();
-              setVideoError(false);
-              setIsVideoLoading(true);
-            }, 2000);
           }}
-          onTimeUpdate={() => {
+          onTimeUpdate={(e) => {
             // Hide loading once video starts playing and has time
             const video = e.currentTarget as HTMLVideoElement;
             if (isVideoLoading && video.currentTime > 0.1) {
