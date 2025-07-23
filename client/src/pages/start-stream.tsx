@@ -86,11 +86,22 @@ export default function StartStreamPage() {
       })
       .catch((error) => {
         console.error('Error accessing camera:', error);
+        let errorMessage = "لا يمكن الوصول للكاميرا. يرجى التحقق من الصلاحيات.";
+        
+        if (error.name === 'NotAllowedError') {
+          errorMessage = "تم رفض الإذن للكاميرا. يرجى السماح بالوصول في إعدادات المتصفح.";
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = "لم يتم العثور على كاميرا. يرجى التأكد من توصيل الكاميرا.";
+        } else if (error.name === 'NotReadableError') {
+          errorMessage = "الكاميرا مستخدمة من تطبيق آخر. يرجى إغلاق التطبيقات الأخرى.";
+        }
+        
         toast({
-          title: "Camera Access Error",
-          description: "Unable to access your camera. Please check permissions.",
+          title: "خطأ في الكاميرا",
+          description: errorMessage,
           variant: "destructive",
         });
+        setCameraEnabled(false);
       });
     }
     
@@ -123,10 +134,21 @@ export default function StartStreamPage() {
       // Redirect to the stream page
       setLocation(`/stream/${data.id}`);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Stream start error:', error);
+      let errorMessage = "حدث خطأ أثناء بدء البث";
+      
+      if (error.message?.includes('401')) {
+        errorMessage = "يجب تسجيل الدخول أولاً";
+      } else if (error.message?.includes('403')) {
+        errorMessage = "ليس لديك صلاحية لبدء البث";
+      } else if (error.message?.includes('400')) {
+        errorMessage = "بيانات البث غير صحيحة";
+      }
+      
       toast({
-        title: isRTL ? "خطأ في بدء البث" : "Stream Start Error",
-        description: isRTL ? "حدث خطأ أثناء بدء البث" : "Failed to start stream",
+        title: "خطأ في بدء البث",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -151,14 +173,34 @@ export default function StartStreamPage() {
   });
 
   const handleStartStream = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "يجب تسجيل الدخول",
+        description: "يرجى تسجيل الدخول أولاً لبدء البث",
+        variant: "destructive",
+      });
+      setLocation('/login');
+      return;
+    }
+    
     if (!streamTitle.trim() || !selectedCategory) {
       toast({
-        title: isRTL ? "معلومات مطلوبة" : "Required Information",
-        description: isRTL ? "يرجى إدخال عنوان البث واختيار فئة" : "Please enter stream title and select category",
+        title: "معلومات مطلوبة",
+        description: "يرجى إدخال عنوان البث واختيار فئة",
         variant: "destructive",
       });
       return;
     }
+    
+    if (!streamRef.current && cameraEnabled) {
+      toast({
+        title: "خطأ في الكاميرا",
+        description: "يرجى السماح بالوصول للكاميرا أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     startStreamMutation.mutate();
   };
 
