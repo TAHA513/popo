@@ -12,13 +12,17 @@ export class WebSocketManager {
     if (this.ws?.readyState === WebSocket.OPEN) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
-    const host = window.location.hostname === 'localhost' 
-      ? 'localhost:5000' 
-      : window.location.port 
-        ? `${window.location.hostname}:${window.location.port}`
-        : window.location.hostname;
-    const wsUrl = `${protocol}//${host}/ws`;
+    const isDev = window.location.hostname === 'localhost';
+    
+    let wsUrl;
+    if (isDev) {
+      wsUrl = 'ws://localhost:5000/ws';
+    } else {
+      // For production Replit environment
+      wsUrl = `${protocol}//${window.location.host}/ws`;
+    }
+    
+    console.log('WebSocket connecting to:', wsUrl);
     
     try {
       this.ws = new WebSocket(wsUrl);

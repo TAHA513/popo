@@ -19,15 +19,16 @@ class WebSocketManager {
       // تحسين اتصال WebSocket لتجنب الأخطاء
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const isDev = window.location.hostname === 'localhost';
-      const port = isDev ? '5000' : window.location.port;
-      const host = isDev 
-        ? 'localhost:5000' 
-        : port 
-          ? `${window.location.hostname}:${port}`
-          : window.location.hostname;
       
-      const wsUrl = `${protocol}//${host}/ws`;
-      console.log('Connecting to WebSocket:', wsUrl);
+      let wsUrl;
+      if (isDev) {
+        wsUrl = 'ws://localhost:5000/ws';
+      } else {
+        // For production Replit environment - use the same host and port as the main app
+        wsUrl = `${protocol}//${window.location.host}/ws`;
+      }
+      
+      console.log('WebSocket connecting to:', wsUrl);
       
       this.ws = new WebSocket(wsUrl);
       

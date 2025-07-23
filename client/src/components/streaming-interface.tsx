@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { useWebSocket } from "@/hooks/useWebSocketFixed";
+import { useWebSocket } from "@/lib/websocket";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
