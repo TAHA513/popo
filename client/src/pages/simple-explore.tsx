@@ -38,9 +38,9 @@ export default function SimpleExplore() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto">
+      <div className="max-w-sm mx-auto">
         {/* المنشورات مع البطاقات التفاعلية */}
-        <div className="p-4">
+        <div className="p-2">
           {memories.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📱</div>
@@ -58,7 +58,7 @@ export default function SimpleExplore() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-4">
               {memories.map((memory: any) => {
                 const cardType = memory.imageUrl && (memory.imageUrl.includes('.mp4') || memory.imageUrl.includes('.webm'))
                   ? 'video'

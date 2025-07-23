@@ -410,7 +410,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
 
   return (
     <div 
-      className="relative w-full h-full cursor-pointer group"
+      className="relative w-full aspect-[4/5] cursor-pointer group"
       onClick={handleCardClick}
     >
       <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`} style={{ transformStyle: 'preserve-3d' }}>
