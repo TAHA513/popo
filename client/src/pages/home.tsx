@@ -407,13 +407,31 @@ export default function Home() {
             )}
           </div>
 
-          {/* End of Content Indicator */}
+          {/* App Advertisement */}
           {(typedStreams.length > 0 || typedMemories.length > 0) && (
             <div className="text-center py-12">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mx-4">
-                <div className="text-3xl mb-2">🎉</div>
-                <p className="text-gray-600 font-medium">تم عرض جميع المنشورات المتاحة</p>
-                <p className="text-gray-500 text-sm mt-1">تابعونا لرؤية المزيد من المحتوى الرائع</p>
+              <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 rounded-xl p-8 mx-4 border border-purple-200 shadow-lg">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl">
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">اكتشف عالم LaaBoBo Live</h3>
+                <p className="text-gray-600 text-sm mb-4">منصة البث المباشر والتواصل الاجتماعي الأولى عربياً</p>
+                <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Video className="w-4 h-4" />
+                    <span>بث مباشر</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Heart className="w-4 h-4" />
+                    <span>تفاعل حقيقي</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Gift className="w-4 h-4" />
+                    <span>هدايا رقمية</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
