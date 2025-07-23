@@ -67,13 +67,7 @@ function Router() {
           <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route>
-            {(params) => {
-              // إذا لم تطابق أي route، لا تعرض 404 تلقائياً - فقط التنقل للصفحة الرئيسية
-              window.location.href = '/';
-              return null;
-            }}
-          </Route>
+          <Route component={NotFound} />
         </Suspense>
       ) : (
         <>
@@ -132,10 +126,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-        <Toaster />
-        <Router />
-      </div>
+      <TooltipProvider>
+        <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
+          <Toaster />
+          <Router />
+        </div>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

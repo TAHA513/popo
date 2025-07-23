@@ -58,10 +58,11 @@ export default function Login() {
         description: data.message,
       });
       
-      // Wait a bit for the session to be properly set, then go to home
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
+      // Invalidate auth query to refresh user state
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Navigate to home using wouter instead of window.location
+      navigate("/");
     },
     onError: (error: Error) => {
       toast({
