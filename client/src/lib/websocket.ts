@@ -12,7 +12,8 @@ export class WebSocketManager {
     if (this.ws?.readyState === WebSocket.OPEN) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const host = window.location.hostname === 'localhost' ? 'localhost:5000' : window.location.host;
+    const wsUrl = `${protocol}//${host}/ws`;
     
     try {
       this.ws = new WebSocket(wsUrl);
