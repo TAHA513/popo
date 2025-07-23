@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
@@ -8,39 +8,43 @@
   </defs>
   
   <!-- Background circle -->
-  <circle cx="100" cy="100" r="90" fill="url(#gradient)" />
+  <circle cx="70" cy="100" r="60" fill="url(#gradient)" />
   
   <!-- Rabbit ears -->
-  <ellipse cx="75" cy="65" rx="8" ry="25" fill="white" transform="rotate(-20 75 65)" />
-  <ellipse cx="125" cy="65" rx="8" ry="25" fill="white" transform="rotate(20 125 65)" />
+  <ellipse cx="55" cy="75" rx="6" ry="18" fill="white" transform="rotate(-20 55 75)" />
+  <ellipse cx="85" cy="75" rx="6" ry="18" fill="white" transform="rotate(20 85 75)" />
   
   <!-- Inner ears -->
-  <ellipse cx="75" cy="65" rx="4" ry="15" fill="#fbb6ce" transform="rotate(-20 75 65)" />
-  <ellipse cx="125" cy="65" rx="4" ry="15" fill="#fbb6ce" transform="rotate(20 125 65)" />
+  <ellipse cx="55" cy="75" rx="3" ry="12" fill="#fbb6ce" transform="rotate(-20 55 75)" />
+  <ellipse cx="85" cy="75" rx="3" ry="12" fill="#fbb6ce" transform="rotate(20 85 75)" />
   
   <!-- Head -->
-  <circle cx="100" cy="100" r="35" fill="white" />
+  <circle cx="70" cy="100" r="25" fill="white" />
   
   <!-- Eyes -->
-  <circle cx="88" cy="92" r="4" fill="black" />
-  <circle cx="112" cy="92" r="4" fill="black" />
-  <circle cx="89" cy="90" r="1.5" fill="white" />
-  <circle cx="113" cy="90" r="1.5" fill="white" />
+  <circle cx="62" cy="95" r="3" fill="black" />
+  <circle cx="78" cy="95" r="3" fill="black" />
+  <circle cx="63" cy="93" r="1" fill="white" />
+  <circle cx="79" cy="93" r="1" fill="white" />
   
   <!-- Nose -->
-  <ellipse cx="100" cy="105" rx="3" ry="2" fill="#ec4899" />
+  <ellipse cx="70" cy="105" rx="2" ry="1.5" fill="#ec4899" />
   
   <!-- Mouth -->
-  <path d="M 100 108 Q 95 112 92 108" stroke="black" stroke-width="1.5" fill="none" stroke-linecap="round" />
-  <path d="M 100 108 Q 105 112 108 108" stroke="black" stroke-width="1.5" fill="none" stroke-linecap="round" />
+  <path d="M 70 107 Q 66 110 64 107" stroke="black" stroke-width="1" fill="none" stroke-linecap="round" />
+  <path d="M 70 107 Q 74 110 76 107" stroke="black" stroke-width="1" fill="none" stroke-linecap="round" />
   
   <!-- Whiskers -->
-  <line x1="70" y1="100" x2="85" y2="98" stroke="black" stroke-width="1" stroke-linecap="round" />
-  <line x1="70" y1="105" x2="85" y2="105" stroke="black" stroke-width="1" stroke-linecap="round" />
-  <line x1="115" y1="98" x2="130" y2="100" stroke="black" stroke-width="1" stroke-linecap="round" />
-  <line x1="115" y1="105" x2="130" y2="105" stroke="black" stroke-width="1" stroke-linecap="round" />
+  <line x1="45" y1="100" x2="55" y2="99" stroke="black" stroke-width="0.8" stroke-linecap="round" />
+  <line x1="45" y1="104" x2="55" y2="104" stroke="black" stroke-width="0.8" stroke-linecap="round" />
+  <line x1="85" y1="99" x2="95" y2="100" stroke="black" stroke-width="0.8" stroke-linecap="round" />
+  <line x1="85" y1="104" x2="95" y2="104" stroke="black" stroke-width="0.8" stroke-linecap="round" />
   
   <!-- Cheeks -->
-  <circle cx="72" cy="108" r="8" fill="#fbb6ce" opacity="0.6" />
-  <circle cx="128" cy="108" r="8" fill="#fbb6ce" opacity="0.6" />
+  <circle cx="50" cy="108" r="6" fill="#fbb6ce" opacity="0.6" />
+  <circle cx="90" cy="108" r="6" fill="#fbb6ce" opacity="0.6" />
+  
+  <!-- Text: LaaBoBo Live -->
+  <text x="150" y="90" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="url(#gradient)">LaaBoBo</text>
+  <text x="170" y="115" font-family="Arial, sans-serif" font-size="16" font-weight="normal" fill="#666">Live</text>
 </svg>
