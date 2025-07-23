@@ -88,7 +88,7 @@ export default function VideoPage() {
     refetchOnWindowFocus: false, // تجنب التحديث المستمر
   });
 
-  // Find current video index and stop previous video
+  // Find current video index and stop previous video - with better initialization
   useEffect(() => {
     if (videoId && allVideos.length > 0) {
       // Stop all videos first
@@ -104,6 +104,33 @@ export default function VideoPage() {
         setCurrentVideoIndex(index);
         setIsVideoPlaying(true);
         setIsMuted(true);
+        setIsVideoLoading(true);
+        setVideoError(false);
+        
+        // Force immediate video load attempt
+        const targetVideo = allVideos[index];
+        if (targetVideo) {
+          // Use a slight delay to ensure the component renders first
+          setTimeout(() => {
+            const videoElement = document.querySelector(`#video-${targetVideo.id}`) as HTMLVideoElement;
+            if (videoElement) {
+              videoElement.muted = true;
+              videoElement.load();
+              
+              // Attempt immediate play
+              const playPromise = videoElement.play();
+              if (playPromise) {
+                playPromise.then(() => {
+                  setIsVideoLoading(false);
+                  setIsVideoPlaying(true);
+                }).catch(() => {
+                  console.log('Autoplay blocked, waiting for user interaction');
+                  setIsVideoLoading(false);
+                });
+              }
+            }
+          }, 100);
+        }
       }
     }
   }, [videoId, allVideos]);
@@ -126,36 +153,55 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Auto-play and handle video changes
+  // Enhanced video setup when current video changes
   useEffect(() => {
     if (currentVideo) {
-      // Reset loading state when video changes
+      // Reset states
       setIsVideoLoading(true);
       setVideoError(false);
       
-      // Immediate video setup
-      const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
-      if (videoElement) {
-        videoElement.muted = isMuted;
-        
-        // Force load the video immediately
-        videoElement.load();
-        
-        // Immediate play attempt
-        if (isVideoPlaying) {
-          const playPromise = videoElement.play();
-          if (playPromise !== undefined) {
-            playPromise.then(() => {
-              setIsVideoLoading(false);
-              setIsVideoPlaying(true);
-            }).catch(() => {
-              // Auto-play failed, but don't retry immediately
-              setIsVideoPlaying(false);
-              setIsVideoLoading(false);
-            });
-          }
+      // Wait for DOM to be ready, then setup video
+      const setupVideo = () => {
+        const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+        if (videoElement) {
+          // Setup video properties
+          videoElement.muted = isMuted;
+          videoElement.currentTime = 0;
+          
+          // Add event listeners for better control
+          const handleCanPlay = () => {
+            setIsVideoLoading(false);
+            if (isVideoPlaying) {
+              videoElement.play().catch(console.warn);
+            }
+          };
+          
+          const handleError = () => {
+            setIsVideoLoading(false);
+            setVideoError(true);
+          };
+          
+          // Remove existing listeners first
+          videoElement.removeEventListener('canplay', handleCanPlay);
+          videoElement.removeEventListener('error', handleError);
+          
+          // Add new listeners
+          videoElement.addEventListener('canplay', handleCanPlay, { once: true });
+          videoElement.addEventListener('error', handleError, { once: true });
+          
+          // Force load
+          videoElement.load();
+          
+          return () => {
+            videoElement.removeEventListener('canplay', handleCanPlay);
+            videoElement.removeEventListener('error', handleError);
+          };
         }
-      }
+      };
+      
+      // Use requestAnimationFrame for better timing
+      const frameId = requestAnimationFrame(setupVideo);
+      return () => cancelAnimationFrame(frameId);
     }
   }, [currentVideo, isVideoPlaying, isMuted]);
 
@@ -513,7 +559,7 @@ export default function VideoPage() {
     }
   };
 
-  if (videosLoading) {
+  if (videosLoading || !currentVideo) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
