@@ -209,10 +209,10 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
         </div>
 
         {/* Main content */}
-        <div className="relative z-10 h-full flex flex-col p-6 text-white">
+        <div className="relative z-10 h-full flex flex-col p-6 text-white" dir="rtl">
           {/* Header with profile */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
               <div className="relative">
                 <Avatar className="w-16 h-16 border-3 border-white/50">
                   <AvatarImage src={author.profileImageUrl} />
@@ -224,9 +224,9 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
                 )}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 rtl:mr-3 ltr:ml-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold text-lg text-white">
+                  <h3 className="font-bold text-lg text-white text-right">
                     {author.username || 'مستخدم LaaBoBo'}
                   </h3>
                   {author.supporterLevel > 0 && (
@@ -244,7 +244,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
                     </Badge>
                   )}
                 </div>
-                <p className="text-white/80 text-sm">{author.bio || 'عضو في مجتمع LaaBoBo'}</p>
+                <p className="text-white/80 text-sm text-right">{author.bio || 'عضو في مجتمع LaaBoBo'}</p>
               </div>
             </div>
             
@@ -253,7 +253,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               size="sm" 
               className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
             >
-              <Users className="w-4 h-4 mr-1" />
+              <Users className="w-4 h-4 ml-1" />
               متابعة
             </Button>
           </div>
@@ -281,42 +281,42 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           {/* Content description */}
           <div className="flex-1 mb-4">
             <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-              <h4 className="font-bold text-white mb-2 flex items-center">
-                <Star className="w-4 h-4 mr-2 text-yellow-300" />
+              <h4 className="font-bold text-white mb-2 flex items-center text-right">
+                <Star className="w-4 h-4 ml-2 text-yellow-300" />
                 {content.title || 'ذكرى جميلة'}
               </h4>
-              <p className="text-white/90 text-sm leading-relaxed">
+              <p className="text-white/90 text-sm leading-relaxed text-right">
                 {content.caption || 'لحظة رائعة تم توثيقها في LaaBoBo - منصة الذكريات والمشاركة الاجتماعية'}
               </p>
-              <div className="flex items-center mt-2 text-white/60 text-xs">
-                <Clock className="w-3 h-3 mr-1" />
+              <div className="flex items-center mt-2 text-white/60 text-xs justify-end">
                 <RealTimeTimestamp timestamp={content.createdAt} />
+                <Clock className="w-3 h-3 ml-1" />
               </div>
             </div>
           </div>
 
           {/* Interactive action buttons */}
-          <div className="flex justify-around space-x-2">
+          <div className="flex justify-around space-x-2 rtl:space-x-reverse">
             <Button 
               size="sm" 
               className="flex-1 bg-red-500/80 hover:bg-red-500 text-white border-0"
               onClick={() => onLike(content.id)}
             >
-              <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-white' : ''}`} />
+              <Heart className={`w-4 h-4 ml-1 ${isLiked ? 'fill-white' : ''}`} />
               إعجاب
             </Button>
             <Button 
               size="sm" 
               className="flex-1 bg-blue-500/80 hover:bg-blue-500 text-white border-0"
             >
-              <MessageCircle className="w-4 h-4 mr-1" />
+              <MessageCircle className="w-4 h-4 ml-1" />
               رسالة
             </Button>
             <Button 
               size="sm" 
               className="flex-1 bg-yellow-500/80 hover:bg-yellow-500 text-white border-0"
             >
-              <Gift className="w-4 h-4 mr-1" />
+              <Gift className="w-4 h-4 ml-1" />
               هدية
             </Button>
           </div>
