@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { 
   Gift, 
   Heart, 
@@ -55,6 +56,7 @@ const quickGifts = [
 
 export default function MobileGiftPanel({ isOpen, onClose, onSendGift, userPoints }: MobileGiftPanelProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const handleGiftSend = (gift: any) => {
     if (userPoints < gift.price) {
@@ -165,7 +167,7 @@ export default function MobileGiftPanel({ isOpen, onClose, onSendGift, userPoint
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl"
                 onClick={() => {
                   onClose();
-                  window.location.href = '/gifts';
+                  setLocation('/gifts');
                 }}
               >
                 <Gift className="w-5 h-5 mr-2" />

@@ -5,22 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, Gift, Heart, Play } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Stream } from "@/types";
+import LazyImage from "@/components/lazy-image";
 
 export default function LiveStreamsGrid() {
+  const [, setLocation] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: streams = [], isLoading } = useQuery<Stream[]>({
     queryKey: ['/api/streams'],
     refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 10000, // Consider data fresh for 10 seconds
+    gcTime: 300000, // Keep in cache for 5 minutes (replaces cacheTime in v5)
   });
 
-  const filteredStreams = streams.filter((stream: Stream) => 
+  const filteredStreams = (streams || []).filter((stream: Stream) => 
     selectedCategory === "all" || stream.category.toLowerCase() === selectedCategory.toLowerCase()
   );
 
   const handleJoinStream = (streamId: number) => {
-    window.location.href = `/stream/${streamId}`;
+    setLocation(`/stream/${streamId}`);
   };
 
   if (isLoading) {
@@ -84,7 +89,7 @@ export default function LiveStreamsGrid() {
                 onClick={() => handleJoinStream(stream.id)}
               >
                 <div className="relative">
-                  <img 
+                  <LazyImage 
                     src={stream.thumbnailUrl || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250"} 
                     alt={stream.title}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"

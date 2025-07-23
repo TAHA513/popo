@@ -27,12 +27,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Stream } from "@/types";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export default function HomeNew() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('all');
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Set<number>>(new Set());
@@ -385,7 +386,7 @@ export default function HomeNew() {
                 <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد بثوث مباشرة حالياً</h3>
                 <p className="text-gray-500 mb-6">كن أول من يبدأ بثاً مباشراً!</p>
-                <Button onClick={() => window.location.href = '/start-stream'}>
+                <Button onClick={() => setLocation('/start-stream')}>
                   ابدأ البث الآن
                 </Button>
               </Card>

@@ -2,9 +2,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Gift, Users, Settings } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function HomeSimple() {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
 
   // Show loading while checking auth
   if (isLoading) {
@@ -99,7 +101,7 @@ export default function HomeSimple() {
           <Button onClick={() => window.location.href = '/explore'}>
             تصفح البث المباشر
           </Button>
-          <Button variant="outline" onClick={() => window.location.href = '/start-stream'}>
+          <Button variant="outline" onClick={() => setLocation('/start-stream')}>
             ابدأ بث مباشر
           </Button>
           <Button variant="outline" onClick={() => window.location.href = '/gifts'}>

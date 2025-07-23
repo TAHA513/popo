@@ -247,7 +247,7 @@ export default function Home() {
                 
                 {/* Start Stream Button */}
                 <Button
-                  onClick={() => window.location.href = '/start-stream'}
+                  onClick={() => setLocation('/start-stream')}
                   className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-xl font-bold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">

@@ -71,10 +71,14 @@ export default function BottomNavigation() {
                       method: "POST",
                       credentials: "include",
                     });
-                    window.location.href = "/login";
+                    if (window.location.pathname !== "/login") {
+                      window.location.replace("/login");
+                    }
                   } catch (error) {
                     console.error("Logout error:", error);
-                    window.location.href = "/login";
+                    if (window.location.pathname !== "/login") {
+                      window.location.replace("/login");
+                    }
                   }
                 }}
                 className="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 text-red-500 hover:text-red-600 hover:bg-red-50"

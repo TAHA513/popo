@@ -6,24 +6,17 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
+import { Suspense } from "react";
+import { initPerformanceOptimizations } from "@/lib/performance";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
-import StreamPage from "@/pages/stream";
-import AdminPage from "@/pages/admin";
-import StartStreamPage from "@/pages/start-stream";
 import AccountPage from "@/pages/account";
-import CreateMemoryPage from "@/pages/create-memory";
-import ProfileSimplePage from "@/pages/profile-simple";
-import ExplorePage from "@/pages/explore";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
-import GiftsPage from "@/pages/gifts";
 import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
-import ConversationPage from "@/pages/conversation";
-import MessageRequestsPage from "@/pages/message-requests";
-import VideoPage from "@/pages/video";
+import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -50,27 +43,32 @@ function Router() {
         {isAuthenticated ? <Home /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
-        <>
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
+            <div className="text-white text-lg">جاري التحميل...</div>
+          </div>
+        }>
           <Route path="/" component={Home} />
           <Route path="/home" component={Home} />
           <Route path="/feed" component={FeedPage} />
-          <Route path="/stream/:id" component={StreamPage} />
-          <Route path="/admin" component={AdminPage} />
-          <Route path="/panel-9bd2f2-control" component={AdminPage} />
-          <Route path="/start-stream" component={StartStreamPage} />
+          <Route path="/stream/:id" component={LazyComponents.StreamPage} />
+          <Route path="/admin" component={LazyComponents.AdminPage} />
+          <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
+          <Route path="/start-stream" component={LazyComponents.StartStreamPage} />
           <Route path="/account" component={AccountPage} />
-          <Route path="/create-memory" component={CreateMemoryPage} />
-          <Route path="/profile" component={ProfileSimplePage} />
-          <Route path="/profile/:userId" component={ProfileSimplePage} />
-          <Route path="/user/:userId" component={ProfileSimplePage} />
-          <Route path="/explore" component={ExplorePage} />
-          <Route path="/gifts" component={GiftsPage} />
+          <Route path="/create-memory" component={LazyComponents.CreateMemoryPage} />
+          <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
+          <Route path="/profile/:userId" component={LazyComponents.ProfileSimplePage} />
+          <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
+          <Route path="/explore" component={LazyComponents.ExplorePage} />
+          <Route path="/gifts" component={LazyComponents.GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
-          <Route path="/messages/requests" component={MessageRequestsPage} />
-          <Route path="/messages/:userId" component={ConversationPage} />
-          <Route path="/video/:videoId" component={VideoPage} />
+          <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
+          <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
+          <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
+          <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
           <Route component={NotFound} />
-        </>
+        </Suspense>
       ) : (
         <>
           <Route path="/" component={LoginPage} />
@@ -91,16 +89,17 @@ function App() {
     // Set document direction and language
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
+    
+    // Initialize performance optimizations
+    initPerformanceOptimizations();
   }, [language]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-          <Toaster />
-          <Router />
-        </div>
-      </TooltipProvider>
+      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
+        <Toaster />
+        <Router />
+      </div>
     </QueryClientProvider>
   );
 }
