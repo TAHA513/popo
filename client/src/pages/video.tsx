@@ -129,32 +129,51 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Fast video setup like TikTok - immediate playback
+  // Simple and reliable video setup
   useEffect(() => {
-    if (currentVideo) {
-      // Reset states immediately
-      setIsVideoLoading(false);
-      setVideoError(false);
-      setIsVideoPlaying(true);
-      
-      // Find and setup video element instantly
-      const timer = setTimeout(() => {
-        const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
-        if (videoElement) {
-          videoElement.muted = isMuted;
-          videoElement.currentTime = 0;
-          
-          // Fast play attempt
-          videoElement.play().catch(() => {
-            console.log('Autoplay prevented, will show play button');
-            setIsVideoPlaying(false);
-          });
+    if (!currentVideo) return;
+    
+    setIsVideoLoading(true);
+    setVideoError(false);
+    
+    const setupVideo = async () => {
+      try {
+        // Wait for video element to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const videoElement = document.getElementById(`video-${currentVideo.id}`) as HTMLVideoElement;
+        if (!videoElement) {
+          throw new Error('Video element not found');
         }
-      }, 10); // Much faster timeout
-      
-      return () => clearTimeout(timer);
-    }
-  }, [currentVideo, isMuted]);
+
+        // Setup video properties
+        videoElement.muted = isMuted;
+        videoElement.currentTime = 0;
+        
+        // Wait for video to be ready
+        if (videoElement.readyState >= 2) {
+          setIsVideoLoading(false);
+          if (isVideoPlaying) {
+            await videoElement.play();
+          }
+        } else {
+          videoElement.addEventListener('canplay', () => {
+            setIsVideoLoading(false);
+            if (isVideoPlaying) {
+              videoElement.play().catch(console.error);
+            }
+          }, { once: true });
+        }
+        
+      } catch (error) {
+        console.error('Video setup error:', error);
+        setIsVideoLoading(false);
+        setVideoError(true);
+      }
+    };
+    
+    setupVideo();
+  }, [currentVideo, isMuted, isVideoPlaying]);
 
   // Cleanup function to refresh home page cache when leaving
   useEffect(() => {
@@ -164,22 +183,38 @@ export default function VideoPage() {
     };
   }, [queryClient]);
 
-  const handleVideoToggle = () => {
-    const videoElement = document.querySelector(`#video-${currentVideo?.id}`) as HTMLVideoElement;
+  const handleVideoToggle = async () => {
+    if (!currentVideo) return;
+    
+    const videoElement = document.getElementById(`video-${currentVideo.id}`) as HTMLVideoElement;
     if (!videoElement) return;
 
-    if (isVideoPlaying) {
-      videoElement.pause();
-      setIsVideoPlaying(false);
-    } else {
-      videoElement.play().catch(() => {
-        console.log('Play failed, retrying...');
-        // Retry once
-        setTimeout(() => {
-          videoElement.play().catch(() => console.log('Play retry failed'));
-        }, 100);
-      });
-      setIsVideoPlaying(true);
+    try {
+      if (isVideoPlaying) {
+        videoElement.pause();
+        setIsVideoPlaying(false);
+      } else {
+        // Ensure video is ready before playing
+        if (videoElement.readyState >= 2) {
+          await videoElement.play();
+          setIsVideoPlaying(true);
+        } else {
+          setIsVideoLoading(true);
+          videoElement.addEventListener('canplay', async () => {
+            try {
+              await videoElement.play();
+              setIsVideoPlaying(true);
+              setIsVideoLoading(false);
+            } catch (error) {
+              console.error('Play failed:', error);
+              setIsVideoLoading(false);
+            }
+          }, { once: true });
+        }
+      }
+    } catch (error) {
+      console.error('Video toggle error:', error);
+      setIsVideoLoading(false);
     }
   };
 
@@ -216,7 +251,7 @@ export default function VideoPage() {
 
   const stopCurrentVideo = () => {
     if (currentVideo) {
-      const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+      const videoElement = document.getElementById(`video-${currentVideo.id}`) as HTMLVideoElement;
       if (videoElement) {
         videoElement.pause();
         videoElement.currentTime = 0;
@@ -226,39 +261,29 @@ export default function VideoPage() {
 
   const goToNextVideo = () => {
     if (currentVideoIndex < allVideos.length - 1) {
-      // Stop and cleanup current video
       stopCurrentVideo();
       
       const nextIndex = currentVideoIndex + 1;
       setCurrentVideoIndex(nextIndex);
-      setIsVideoPlaying(false); // Reset playing state
+      setIsVideoPlaying(true);
+      setIsVideoLoading(false);
       
-      // Update URL without page reload
+      // Update URL
       window.history.replaceState(null, '', `/video/${allVideos[nextIndex].id}`);
-      
-      // Start new video immediately
-      setTimeout(() => {
-        setIsVideoPlaying(true);
-      }, 10);
     }
   };
 
   const goToPrevVideo = () => {
     if (currentVideoIndex > 0) {
-      // Stop and cleanup current video
       stopCurrentVideo();
       
       const prevIndex = currentVideoIndex - 1;
       setCurrentVideoIndex(prevIndex);
-      setIsVideoPlaying(false); // Reset playing state
+      setIsVideoPlaying(true);
+      setIsVideoLoading(false);
       
-      // Update URL without page reload
+      // Update URL
       window.history.replaceState(null, '', `/video/${allVideos[prevIndex].id}`);
-      
-      // Start new video immediately
-      setTimeout(() => {
-        setIsVideoPlaying(true);
-      }, 10);
     }
   };
 
@@ -327,47 +352,19 @@ export default function VideoPage() {
     }
   }, [currentVideoIndex, allVideos]);
 
-  // TikTok-style smart preloading for instant playback
+  // Simple preloading - just next video
   useEffect(() => {
-    if (allVideos.length > 1) {
-      const nextIndex = currentVideoIndex + 1;
-      const prevIndex = currentVideoIndex - 1;
+    if (allVideos.length > 1 && currentVideoIndex < allVideos.length - 1) {
+      const nextVideo = allVideos[currentVideoIndex + 1];
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = nextVideo.mediaUrls[0];
+      document.head.appendChild(link);
       
-      // Create invisible video elements for preloading
-      const elementsToCleanup: HTMLVideoElement[] = [];
-      
-      // Preload next video (high priority)
-      if (nextIndex < allVideos.length) {
-        const nextVideo = allVideos[nextIndex];
-        const nextVideoElement = document.createElement('video');
-        nextVideoElement.src = nextVideo.mediaUrls[0];
-        nextVideoElement.preload = 'auto';
-        nextVideoElement.muted = true;
-        nextVideoElement.style.display = 'none';
-        nextVideoElement.load();
-        document.body.appendChild(nextVideoElement);
-        elementsToCleanup.push(nextVideoElement);
-      }
-      
-      // Preload previous video (lower priority)
-      if (prevIndex >= 0) {
-        const prevVideo = allVideos[prevIndex];
-        const prevVideoElement = document.createElement('video');
-        prevVideoElement.src = prevVideo.mediaUrls[0];
-        prevVideoElement.preload = 'metadata';
-        prevVideoElement.muted = true;
-        prevVideoElement.style.display = 'none';
-        document.body.appendChild(prevVideoElement);
-        elementsToCleanup.push(prevVideoElement);
-      }
-      
-      // Cleanup
       return () => {
-        elementsToCleanup.forEach(element => {
-          if (document.body.contains(element)) {
-            document.body.removeChild(element);
-          }
-        });
+        if (document.head.contains(link)) {
+          document.head.removeChild(link);
+        }
       };
     }
   }, [currentVideoIndex, allVideos]);
@@ -586,30 +583,19 @@ export default function VideoPage() {
           id={`video-${currentVideo.id}`}
           src={currentVideo.mediaUrls[0]}
           className="w-full h-full object-cover"
-          autoPlay
           muted={isMuted}
           loop
           playsInline
-          preload="auto"
-          crossOrigin="anonymous"
-          webkit-playsinline="true"
-          x5-video-player-type="h5"
-          x5-video-player-fullscreen="true"
-          x5-video-orientation="portrait"
+          preload="metadata"
+          controls={false}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
-          onLoadedMetadata={() => {
-            setIsVideoLoading(false);
-          }}
-          onCanPlayThrough={() => {
-            setIsVideoLoading(false);
-          }}
-          onWaiting={() => {
+          onLoadStart={() => {
             setIsVideoLoading(true);
+            setVideoError(false);
           }}
-          onPlaying={() => {
+          onCanPlay={() => {
             setIsVideoLoading(false);
-            setIsVideoPlaying(true);
           }}
           onError={(e) => {
             console.error('Video error:', e);
@@ -626,7 +612,7 @@ export default function VideoPage() {
           </div>
         )}
 
-        {/* Error Indicator */}
+        {/* Error Indicator with Retry */}
         {videoError && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30">
             <div className="text-center text-white">
@@ -635,8 +621,20 @@ export default function VideoPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
-              <p className="text-sm mb-2">مشكلة في تحميل الفيديو</p>
-              <p className="text-xs text-gray-300">جاري المحاولة مرة أخرى...</p>
+              <p className="text-sm mb-3">مشكلة في تحميل الفيديو</p>
+              <Button
+                onClick={() => {
+                  setVideoError(false);
+                  setIsVideoLoading(true);
+                  const videoElement = document.getElementById(`video-${currentVideo.id}`) as HTMLVideoElement;
+                  if (videoElement) {
+                    videoElement.load();
+                  }
+                }}
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2"
+              >
+                إعادة المحاولة
+              </Button>
             </div>
           </div>
         )}
