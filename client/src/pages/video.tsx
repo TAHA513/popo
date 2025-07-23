@@ -65,6 +65,7 @@ export default function VideoPage() {
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch all public videos for TikTok-style browsing
@@ -125,16 +126,25 @@ export default function VideoPage() {
 
   // Auto-play and handle video changes
   useEffect(() => {
-    if (currentVideo && isVideoPlaying) {
-      setTimeout(() => {
-        const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
-        if (videoElement) {
-          videoElement.muted = isMuted;
-          videoElement.play().catch(() => {
-            // Auto-play failed, user needs to interact first
-          });
+    if (currentVideo) {
+      const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+      if (videoElement) {
+        videoElement.muted = isMuted;
+        
+        // Force load the video
+        videoElement.load();
+        
+        if (isVideoPlaying) {
+          // Try to play, with fallback for autoplay restrictions
+          const playPromise = videoElement.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              // Auto-play failed, user needs to interact first
+              setIsVideoPlaying(false);
+            });
+          }
         }
-      }, 100);
+      }
     }
   }, [currentVideo, isVideoPlaying, isMuted]);
 
@@ -202,27 +212,39 @@ export default function VideoPage() {
 
   const goToNextVideo = () => {
     if (currentVideoIndex < allVideos.length - 1) {
-      // Stop current video first
+      // Stop and cleanup current video
       stopCurrentVideo();
       
       const nextIndex = currentVideoIndex + 1;
       setCurrentVideoIndex(nextIndex);
-      setIsVideoPlaying(true); // Start new video
+      setIsVideoPlaying(false); // Reset playing state
+      
       // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[nextIndex].id}`);
+      
+      // Start new video after a short delay
+      setTimeout(() => {
+        setIsVideoPlaying(true);
+      }, 100);
     }
   };
 
   const goToPrevVideo = () => {
     if (currentVideoIndex > 0) {
-      // Stop current video first
+      // Stop and cleanup current video
       stopCurrentVideo();
       
       const prevIndex = currentVideoIndex - 1;
       setCurrentVideoIndex(prevIndex);
-      setIsVideoPlaying(true); // Start new video
+      setIsVideoPlaying(false); // Reset playing state
+      
       // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[prevIndex].id}`);
+      
+      // Start new video after a short delay
+      setTimeout(() => {
+        setIsVideoPlaying(true);
+      }, 100);
     }
   };
 
@@ -297,21 +319,39 @@ export default function VideoPage() {
       const nextIndex = currentVideoIndex + 1;
       const prevIndex = currentVideoIndex - 1;
       
+      // Create preload links for better performance
+      const links: HTMLLinkElement[] = [];
+      
       // Preload next video
       if (nextIndex < allVideos.length) {
         const nextVideo = allVideos[nextIndex];
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.src = nextVideo.mediaUrls[0];
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'video';
+        link.href = nextVideo.mediaUrls[0];
+        document.head.appendChild(link);
+        links.push(link);
       }
       
       // Preload previous video
       if (prevIndex >= 0) {
         const prevVideo = allVideos[prevIndex];
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.src = prevVideo.mediaUrls[0];
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'video';
+        link.href = prevVideo.mediaUrls[0];
+        document.head.appendChild(link);
+        links.push(link);
       }
+      
+      // Cleanup
+      return () => {
+        links.forEach(link => {
+          if (document.head.contains(link)) {
+            document.head.removeChild(link);
+          }
+        });
+      };
     }
   }, [currentVideoIndex, allVideos]);
 
@@ -510,15 +550,46 @@ export default function VideoPage() {
           muted={isMuted}
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           poster={currentVideo.thumbnailUrl}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
-          onLoadStart={() => setIsVideoPlaying(false)}
-          onCanPlay={() => setIsVideoPlaying(true)}
-          onWaiting={() => setIsVideoPlaying(false)}
-          onLoadedData={() => setIsVideoPlaying(true)}
+          onLoadStart={() => {
+            console.log('Video loading started');
+            setIsVideoLoading(true);
+          }}
+          onCanPlay={() => {
+            console.log('Video can play');
+            setIsVideoLoading(false);
+            setIsVideoPlaying(true);
+          }}
+          onWaiting={() => {
+            console.log('Video waiting for data');
+            setIsVideoLoading(true);
+          }}
+          onLoadedData={() => {
+            console.log('Video data loaded');
+            setIsVideoLoading(false);
+          }}
+          onError={(e) => {
+            console.error('Video error:', e);
+            setIsVideoLoading(false);
+            setIsVideoPlaying(false);
+          }}
         />
+
+        {/* Loading Indicator */}
+        {isVideoLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-30">
+            <div className="text-center">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+              </div>
+              <p className="text-white mt-4 text-sm">جاري تحميل الفيديو...</p>
+            </div>
+          </div>
+        )}
 
         {/* Video Controls Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 opacity-100 transition-opacity duration-300">
@@ -529,8 +600,11 @@ export default function VideoPage() {
               size="lg"
               onClick={handleVideoToggle}
               className={`w-16 h-16 md:w-20 md:h-20 rounded-full text-white bg-black/40 hover:bg-black/60 transition-all duration-300 ${isVideoPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-90 hover:opacity-100'}`}
+              disabled={isVideoLoading}
             >
-              {isVideoPlaying ? (
+              {isVideoLoading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : isVideoPlaying ? (
                 <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
                   <div className="w-1.5 h-5 md:w-2 md:h-6 bg-white rounded mr-1"></div>
                   <div className="w-1.5 h-5 md:w-2 md:h-6 bg-white rounded"></div>
