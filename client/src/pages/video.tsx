@@ -68,6 +68,7 @@ export default function VideoPage() {
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [showInstructions, setShowInstructions] = useState(true);
   const [videoError, setVideoError] = useState(false);
+  const [needsManualPlay, setNeedsManualPlay] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch all public videos for TikTok-style browsing
@@ -126,59 +127,35 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Auto-play and handle video changes
+  // Auto-play and handle video changes - simplified
   useEffect(() => {
     if (currentVideo) {
-      // Reset loading state when video changes
       setIsVideoLoading(true);
       setVideoError(false);
+      setNeedsManualPlay(false);
       
-      // Add delay to ensure DOM is ready
       const timer = setTimeout(() => {
         const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
         if (videoElement) {
-          videoElement.muted = isMuted;
+          videoElement.muted = true; // Always start muted
+          videoElement.currentTime = 0; // Reset to beginning
           
-          // Force load the video
-          videoElement.load();
-          
-          // Auto-play attempt with retry
-          const attemptPlay = () => {
-            if (isVideoPlaying) {
-              const playPromise = videoElement.play();
-              if (playPromise !== undefined) {
-                playPromise.then(() => {
-                  setIsVideoLoading(false);
-                  setIsVideoPlaying(true);
-                }).catch((error) => {
-                  console.log('Play failed, retrying...', error);
-                  // Retry after a short delay
-                  setTimeout(() => {
-                    videoElement.play().then(() => {
-                      setIsVideoLoading(false);
-                      setIsVideoPlaying(true);
-                    }).catch(() => {
-                      setIsVideoPlaying(false);
-                      setIsVideoLoading(false);
-                    });
-                  }, 100);
-                });
-              }
-            }
-          };
-          
-          // Wait for video to be ready
-          if (videoElement.readyState >= 2) {
-            attemptPlay();
-          } else {
-            videoElement.addEventListener('canplay', attemptPlay, { once: true });
-          }
+          // Simple auto-play
+          videoElement.play().then(() => {
+            setIsVideoLoading(false);
+            setIsVideoPlaying(true);
+          }).catch(() => {
+            // If autoplay fails, show manual play button
+            setIsVideoLoading(false);
+            setIsVideoPlaying(false);
+            setNeedsManualPlay(true);
+          });
         }
-      }, 100);
+      }, 200);
 
       return () => clearTimeout(timer);
     }
-  }, [currentVideo, isVideoPlaying, isMuted]);
+  }, [currentVideo]);
 
   // Cleanup function to refresh home page cache when leaving
   useEffect(() => {
@@ -602,57 +579,22 @@ export default function VideoPage() {
           src={currentVideo.mediaUrls[0]}
           className="w-full h-full object-cover"
           autoPlay
-          muted={isMuted}
+          muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           poster={currentVideo.thumbnailUrl}
-          onPlay={() => setIsVideoPlaying(true)}
-          onPause={() => setIsVideoPlaying(false)}
-          onLoadStart={() => {
-            console.log('Video loading started');
-            setIsVideoLoading(true);
-          }}
-          onCanPlay={() => {
-            console.log('Video can play');
-            setTimeout(() => setIsVideoLoading(false), 500);
-          }}
-          onCanPlayThrough={() => {
-            // Video has buffered enough to play through
-            setIsVideoLoading(false);
-          }}
-          onPlaying={() => {
-            // Video is actually playing
-            setIsVideoLoading(false);
+          onPlay={() => {
             setIsVideoPlaying(true);
+            setIsVideoLoading(false);
           }}
-          onWaiting={() => {
-            console.log('Video waiting for data');
-            setIsVideoLoading(true);
-          }}
-          onLoadedData={() => {
-            console.log('Video data loaded');
-            // Don't hide loading here, wait for canplay
-          }}
-          onError={(e) => {
-            console.error('Video error:', e);
+          onPause={() => setIsVideoPlaying(false)}
+          onLoadStart={() => setIsVideoLoading(true)}
+          onCanPlay={() => setIsVideoLoading(false)}
+          onError={() => {
             setIsVideoLoading(false);
             setIsVideoPlaying(false);
             setVideoError(true);
-            // Try to reload the video after a short delay
-            setTimeout(() => {
-              const video = e.currentTarget as HTMLVideoElement;
-              video.load();
-              setVideoError(false);
-              setIsVideoLoading(true);
-            }, 2000);
-          }}
-          onTimeUpdate={() => {
-            // Hide loading once video starts playing and has time
-            const video = e.currentTarget as HTMLVideoElement;
-            if (isVideoLoading && video.currentTime > 0.1) {
-              setIsVideoLoading(false);
-            }
           }}
         />
 
@@ -684,6 +626,28 @@ export default function VideoPage() {
               <p className="text-sm mb-2">مشكلة في تحميل الفيديو</p>
               <p className="text-xs text-gray-300">جاري المحاولة مرة أخرى...</p>
             </div>
+          </div>
+        )}
+
+        {/* Manual Play Button */}
+        {needsManualPlay && !isVideoLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-30">
+            <Button
+              onClick={() => {
+                const videoElement = document.querySelector(`#video-${currentVideo?.id}`) as HTMLVideoElement;
+                if (videoElement) {
+                  videoElement.play().then(() => {
+                    setIsVideoPlaying(true);
+                    setNeedsManualPlay(false);
+                  }).catch((error) => {
+                    console.error('Manual play failed:', error);
+                  });
+                }
+              }}
+              className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 transition-all duration-300"
+            >
+              <Play className="w-8 h-8 text-white fill-white ml-1" />
+            </Button>
           </div>
         )}
 
