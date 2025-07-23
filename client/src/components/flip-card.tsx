@@ -210,7 +210,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
         </div>
 
         {/* Main content */}
-        <div className="relative z-10 h-full flex flex-col p-6 text-white" dir="rtl">
+        <div className="relative z-10 h-full flex flex-col p-6 text-white">
           {/* Header with profile */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -355,17 +355,19 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
       className="relative w-full h-full cursor-pointer group"
       onClick={handleCardClick}
     >
-      <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`}>
+      <div className={`w-full h-full transition-all duration-700 ${isFlipped ? 'opacity-0' : 'opacity-100'}`}>
         {/* Front side */}
         {!isFlipped && (
           <div className="w-full h-full">
             {renderFrontContent()}
           </div>
         )}
-        
-        {/* Back side */}
+      </div>
+      
+      {/* Back side - separate container */}
+      <div className={`absolute inset-0 w-full h-full transition-all duration-700 ${isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         {isFlipped && (
-          <div className="w-full h-full">
+          <div className="w-full h-full" dir="rtl">
             {renderBackContent()}
           </div>
         )}
