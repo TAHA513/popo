@@ -129,21 +129,28 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Simplified video setup - let native video element handle loading
+  // Fast video setup like TikTok - immediate playback
   useEffect(() => {
     if (currentVideo) {
-      setIsVideoLoading(true);
+      // Reset states immediately
+      setIsVideoLoading(false);
       setVideoError(false);
+      setIsVideoPlaying(true);
       
-      // Simple timeout to ensure video element exists before setting initial state
+      // Find and setup video element instantly
       const timer = setTimeout(() => {
         const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
         if (videoElement) {
           videoElement.muted = isMuted;
           videoElement.currentTime = 0;
-          // Don't force load - let the video element's native events handle it
+          
+          // Fast play attempt
+          videoElement.play().catch(() => {
+            console.log('Autoplay prevented, will show play button');
+            setIsVideoPlaying(false);
+          });
         }
-      }, 50);
+      }, 10); // Much faster timeout
       
       return () => clearTimeout(timer);
     }
@@ -165,7 +172,13 @@ export default function VideoPage() {
       videoElement.pause();
       setIsVideoPlaying(false);
     } else {
-      videoElement.play();
+      videoElement.play().catch(() => {
+        console.log('Play failed, retrying...');
+        // Retry once
+        setTimeout(() => {
+          videoElement.play().catch(() => console.log('Play retry failed'));
+        }, 100);
+      });
       setIsVideoPlaying(true);
     }
   };
@@ -223,10 +236,10 @@ export default function VideoPage() {
       // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[nextIndex].id}`);
       
-      // Start new video after a short delay
+      // Start new video immediately
       setTimeout(() => {
         setIsVideoPlaying(true);
-      }, 100);
+      }, 10);
     }
   };
 
@@ -242,10 +255,10 @@ export default function VideoPage() {
       // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[prevIndex].id}`);
       
-      // Start new video after a short delay
+      // Start new video immediately
       setTimeout(() => {
         setIsVideoPlaying(true);
-      }, 100);
+      }, 10);
     }
   };
 
@@ -314,26 +327,48 @@ export default function VideoPage() {
     }
   }, [currentVideoIndex, allVideos]);
 
-  // Lightweight preload for next video only to avoid conflicts
+  // TikTok-style smart preloading for instant playback
   useEffect(() => {
     if (allVideos.length > 1) {
       const nextIndex = currentVideoIndex + 1;
+      const prevIndex = currentVideoIndex - 1;
       
-      // Only preload next video to reduce loading conflicts
+      // Create invisible video elements for preloading
+      const elementsToCleanup: HTMLVideoElement[] = [];
+      
+      // Preload next video (high priority)
       if (nextIndex < allVideos.length) {
         const nextVideo = allVideos[nextIndex];
-        const link = document.createElement('link');
-        link.rel = 'prefetch'; // Use prefetch instead of preload for lighter approach
-        link.href = nextVideo.mediaUrls[0];
-        document.head.appendChild(link);
-        
-        // Cleanup
-        return () => {
-          if (document.head.contains(link)) {
-            document.head.removeChild(link);
-          }
-        };
+        const nextVideoElement = document.createElement('video');
+        nextVideoElement.src = nextVideo.mediaUrls[0];
+        nextVideoElement.preload = 'auto';
+        nextVideoElement.muted = true;
+        nextVideoElement.style.display = 'none';
+        nextVideoElement.load();
+        document.body.appendChild(nextVideoElement);
+        elementsToCleanup.push(nextVideoElement);
       }
+      
+      // Preload previous video (lower priority)
+      if (prevIndex >= 0) {
+        const prevVideo = allVideos[prevIndex];
+        const prevVideoElement = document.createElement('video');
+        prevVideoElement.src = prevVideo.mediaUrls[0];
+        prevVideoElement.preload = 'metadata';
+        prevVideoElement.muted = true;
+        prevVideoElement.style.display = 'none';
+        document.body.appendChild(prevVideoElement);
+        elementsToCleanup.push(prevVideoElement);
+      }
+      
+      // Cleanup
+      return () => {
+        elementsToCleanup.forEach(element => {
+          if (document.body.contains(element)) {
+            document.body.removeChild(element);
+          }
+        });
+      };
     }
   }, [currentVideoIndex, allVideos]);
 
@@ -555,16 +590,26 @@ export default function VideoPage() {
           muted={isMuted}
           loop
           playsInline
-          preload="metadata"
-          poster={currentVideo.thumbnailUrl}
+          preload="auto"
+          crossOrigin="anonymous"
+          webkit-playsinline="true"
+          x5-video-player-type="h5"
+          x5-video-player-fullscreen="true"
+          x5-video-orientation="portrait"
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
-          onLoadStart={() => {
-            setIsVideoLoading(true);
-            setVideoError(false);
-          }}
-          onCanPlay={() => {
+          onLoadedMetadata={() => {
             setIsVideoLoading(false);
+          }}
+          onCanPlayThrough={() => {
+            setIsVideoLoading(false);
+          }}
+          onWaiting={() => {
+            setIsVideoLoading(true);
+          }}
+          onPlaying={() => {
+            setIsVideoLoading(false);
+            setIsVideoPlaying(true);
           }}
           onError={(e) => {
             console.error('Video error:', e);
@@ -574,20 +619,10 @@ export default function VideoPage() {
           }}
         />
 
-        {/* Loading Indicator */}
+        {/* Minimal Loading Indicator - TikTok style */}
         {isVideoLoading && !videoError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-30">
-            <div className="text-center">
-              <div className="relative mb-4">
-                <div className="w-20 h-20 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
-                <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.6s' }}></div>
-              </div>
-              <p className="text-white text-lg font-medium mb-2">تحضير الفيديو...</p>
-              <div className="w-40 h-2 bg-gray-700 rounded-full mx-auto overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-full animate-pulse"></div>
-              </div>
-              <p className="text-gray-300 mt-2 text-sm">لحظة واحدة من فضلك</p>
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center z-30">
+            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
           </div>
         )}
 
