@@ -521,7 +521,7 @@ export default function VideoPage() {
         />
 
         {/* Video Controls Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 opacity-100 transition-opacity duration-300">
           {/* Play/Pause Button - Center */}
           <div className="absolute inset-0 flex items-center justify-center">
             <Button
@@ -541,15 +541,23 @@ export default function VideoPage() {
             </Button>
           </div>
 
-          {/* Volume Control - Top Right */}
-          <div className="absolute top-4 right-4">
+          {/* Volume Control - Top Right - Always Visible */}
+          <div className="absolute top-4 right-4 z-20">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleVolumeToggle}
-              className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white/40 hover:border-white/70 transition-all duration-300 ${isMuted ? 'text-red-500' : 'text-green-500'} bg-black/50 hover:bg-black/70`}
+              className={`w-12 h-12 md:w-14 md:h-14 rounded-full border-2 transition-all duration-300 shadow-lg ${
+                isMuted 
+                  ? 'text-red-500 border-red-400/60 bg-red-900/40 hover:bg-red-800/60' 
+                  : 'text-green-500 border-green-400/60 bg-green-900/40 hover:bg-green-800/60'
+              }`}
             >
-              {isMuted ? <VolumeX className="w-4 h-4 md:w-5 md:h-5" /> : <Volume2 className="w-4 h-4 md:w-5 md:h-5" />}
+              {isMuted ? (
+                <VolumeX className="w-5 h-5 md:w-6 md:h-6" />
+              ) : (
+                <Volume2 className="w-5 h-5 md:w-6 md:h-6" />
+              )}
             </Button>
           </div>
 
