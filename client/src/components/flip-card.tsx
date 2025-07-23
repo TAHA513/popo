@@ -69,9 +69,16 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               src={content.mediaUrls[0]}
               className="w-full h-full object-cover"
               muted
+              autoPlay
               loop
               playsInline
               poster={content.thumbnailUrl}
+              onMouseEnter={(e) => {
+                e.currentTarget.play();
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.pause();
+              }}
             />
           ) : (
             <img
@@ -145,7 +152,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
         </div>
 
         {/* Center Play Button */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
           {type === 'video' || type === 'live' ? (
             <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 hover:scale-110 transition-transform duration-300">
               <PlayCircle className="w-10 h-10 text-white" />
