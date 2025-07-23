@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RealTimeTimestamp } from "./real-time-timestamp";
 import { OnlineStatus } from "./online-status";
+import SupporterBadge from "./SupporterBadge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Play, 
   Heart, 
@@ -182,151 +184,176 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
   };
 
   const renderBackContent = () => {
+    const author = content.author || {};
+    
     return (
-      <div className="w-full h-full bg-white rounded-xl shadow-xl p-6 flex flex-col justify-between">
-        {/* User Info */}
-        <div className="flex items-center mb-4">
-          <Link href={`/user/${content.author?.id || content.authorId}`}>
-            {content.author?.profileImageUrl ? (
-              <img
-                src={content.author.profileImageUrl}
-                alt="صورة الكاتب"
-                className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 shadow-md cursor-pointer hover:scale-105 transition-transform"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (nextElement) {
-                    nextElement.style.display = 'flex';
-                  }
-                }}
-              />
-            ) : (
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-105 transition-transform">
-                <User className="w-6 h-6 text-white" />
+      <div className="w-full h-full relative overflow-hidden rounded-xl">
+        {/* Beautiful gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-400 via-pink-400 to-indigo-500 opacity-90"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+        
+        {/* Animated particles */}
+        <div className="absolute inset-0">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-white/30 rounded-full animate-pulse"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${10 + i * 10}%`,
+                animationDelay: `${i * 0.5}s`,
+                animationDuration: '2s'
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Main content */}
+        <div className="relative z-10 h-full flex flex-col p-6 text-white">
+          {/* Header with profile */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Avatar className="w-16 h-16 border-3 border-white/50">
+                  <AvatarImage src={author.profileImageUrl} />
+                  <AvatarFallback className="bg-white/20 text-white font-bold">
+                    {author.username?.[0]?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                {author.isOnline && (
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
+                )}
               </div>
-            )}
-          </Link>
-          <div className="mr-3 flex-1">
-            <Link href={`/user/${content.author?.id || content.authorId}`} className="hover:text-purple-600 transition-colors">
-              <h4 className="font-bold text-gray-900 text-lg cursor-pointer">
-                {content.author?.firstName || content.author?.username || content.authorId || 'مستخدم'}
-              </h4>
-            </Link>
-            <p className="text-gray-600 text-sm flex items-center">
-              <Clock className="w-3 h-3 mr-1" />
-              منذ يوم
-            </p>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="space-y-3 mb-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">المشاهدات:</span>
-            <span className="font-bold text-purple-600">{content.viewCount || 0}</span>
-          </div>
-          {type === 'live' && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">المشاهدون الآن:</span>
-              <span className="font-bold text-red-600 flex items-center">
-                <Users className="w-3 h-3 mr-1" />
-                {content.currentViewers || 0}
-              </span>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-lg text-white">
+                    {author.username || 'مستخدم LaaBoBo'}
+                  </h3>
+                  {author.supporterLevel > 0 && (
+                    <SupporterBadge 
+                      level={author.supporterLevel}
+                      totalGiftsSent={author.totalGiftsSent || 0}
+                      showText={false}
+                      className="scale-90"
+                    />
+                  )}
+                  {author.isStreamer && (
+                    <Badge className="bg-red-500 text-white text-xs">
+                      <Radio className="w-3 h-3 mr-1" />
+                      مذيع
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-white/80 text-sm">{author.bio || 'عضو في مجتمع LaaBoBo'}</p>
+              </div>
             </div>
-          )}
-        </div>
+            
+            {/* Follow button */}
+            <Button 
+              size="sm" 
+              className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
+            >
+              <Users className="w-4 h-4 mr-1" />
+              متابعة
+            </Button>
+          </div>
 
-        {/* Quick Actions */}
-        <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onLike(`${type}-${content.id}`);
-            }}
-            className={`p-3 rounded-full ${isLiked ? 'text-red-500 bg-red-50' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'} transition-colors`}
+          {/* Stats row */}
+          <div className="flex justify-around bg-white/10 rounded-lg p-4 mb-4 backdrop-blur-sm">
+            <div className="text-center">
+              <div className="font-bold text-xl text-white">{content.viewCount || 0}</div>
+              <div className="text-white/70 text-xs">مشاهدة</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-xl text-white">{content.likeCount || 0}</div>
+              <div className="text-white/70 text-xs">إعجاب</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-xl text-white">{author.followersCount || 0}</div>
+              <div className="text-white/70 text-xs">متابع</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-xl text-white">{author.postsCount || 0}</div>
+              <div className="text-white/70 text-xs">منشور</div>
+            </div>
+          </div>
+
+          {/* Content description */}
+          <div className="flex-1 mb-4">
+            <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+              <h4 className="font-bold text-white mb-2 flex items-center">
+                <Star className="w-4 h-4 mr-2 text-yellow-300" />
+                {content.title || 'ذكرى جميلة'}
+              </h4>
+              <p className="text-white/90 text-sm leading-relaxed">
+                {content.caption || 'لحظة رائعة تم توثيقها في LaaBoBo - منصة الذكريات والمشاركة الاجتماعية'}
+              </p>
+              <div className="flex items-center mt-2 text-white/60 text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                <RealTimeTimestamp timestamp={content.createdAt} />
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive action buttons */}
+          <div className="flex justify-around space-x-2">
+            <Button 
+              size="sm" 
+              className="flex-1 bg-red-500/80 hover:bg-red-500 text-white border-0"
+              onClick={() => onLike(content.id)}
+            >
+              <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-white' : ''}`} />
+              إعجاب
+            </Button>
+            <Button 
+              size="sm" 
+              className="flex-1 bg-blue-500/80 hover:bg-blue-500 text-white border-0"
+            >
+              <MessageCircle className="w-4 h-4 mr-1" />
+              رسالة
+            </Button>
+            <Button 
+              size="sm" 
+              className="flex-1 bg-yellow-500/80 hover:bg-yellow-500 text-white border-0"
+            >
+              <Gift className="w-4 h-4 mr-1" />
+              هدية
+            </Button>
+          </div>
+
+          {/* Flip back button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full mt-3 text-white/80 hover:text-white hover:bg-white/10"
+            onClick={() => setIsFlipped(false)}
           >
-            <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAction('comment');
-            }}
-            className="p-3 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-          >
-            <MessageCircle className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAction('share');
-            }}
-            className="p-3 rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50 transition-colors"
-          >
-            <Share2 className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAction('gift');
-            }}
-            className="p-3 rounded-full text-gray-500 hover:text-purple-500 hover:bg-purple-50 transition-colors"
-          >
-            <Gift className="w-5 h-5" />
+            العودة للعرض
           </Button>
         </div>
-
-        {/* Action Button */}
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (type === 'live') {
-              onAction('join');
-            } else if (type === 'video') {
-              onAction('watch');
-            } else {
-              onAction('view');
-            }
-          }}
-          className={`w-full py-3 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 ${
-            type === 'live' 
-              ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600' 
-              : type === 'featured'
-              ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600'
-              : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-          } text-white shadow-lg`}
-        >
-          {type === 'live' ? 'انضم للبث' : type === 'video' ? 'شاهد الفيديو' : 'عرض كامل'}
-        </Button>
       </div>
     );
   };
 
   return (
     <div 
-      className="flip-card group cursor-pointer h-64 perspective-1000"
-      onMouseEnter={() => setIsFlipped(true)}
-      onMouseLeave={() => setIsFlipped(false)}
+      className="relative w-full h-full cursor-pointer group"
       onClick={() => setIsFlipped(!isFlipped)}
     >
-      <div className={`flip-card-inner relative w-full h-full transition-transform duration-600 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-        {/* Front Side */}
-        <div className="flip-card-front absolute inset-0 backface-hidden">
-          {renderFrontContent()}
-        </div>
+      <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`}>
+        {/* Front side */}
+        {!isFlipped && (
+          <div className="w-full h-full">
+            {renderFrontContent()}
+          </div>
+        )}
         
-        {/* Back Side */}
-        <div className="flip-card-back absolute inset-0 backface-hidden rotate-y-180">
-          {renderBackContent()}
-        </div>
+        {/* Back side */}
+        {isFlipped && (
+          <div className="w-full h-full">
+            {renderBackContent()}
+          </div>
+        )}
       </div>
     </div>
   );
