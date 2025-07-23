@@ -410,31 +410,10 @@ export default function Home() {
           {/* End of Content Indicator */}
           {(typedStreams.length > 0 || typedMemories.length > 0) && (
             <div className="text-center py-12">
-              <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 rounded-2xl p-8 mx-4 shadow-lg border border-purple-200">
-                <div className="text-5xl mb-4">🐰✨</div>
-                <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
-                  مرحباً بك في LaaBoBo Live!
-                </h3>
-                <p className="text-gray-700 font-medium mb-3">
-                  منصة البث المباشر الأولى عربياً 
-                </p>
-                <p className="text-gray-600 text-sm mb-4">
-                  شارك لحظاتك المميزة • أرسل الهدايا الرائعة • تفاعل مع أصدقائك
-                </p>
-                <div className="flex justify-center space-x-2 space-x-reverse">
-                  <Button 
-                    onClick={() => setLocation('/start-stream')}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-full text-sm shadow-md"
-                  >
-                    ابدأ البث المباشر
-                  </Button>
-                  <Button 
-                    onClick={() => setLocation('/create-memory')}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-full text-sm shadow-md"
-                  >
-                    أنشئ منشوراً
-                  </Button>
-                </div>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mx-4">
+                <div className="text-3xl mb-2">🎉</div>
+                <p className="text-gray-600 font-medium">تم عرض جميع المنشورات المتاحة</p>
+                <p className="text-gray-500 text-sm mt-1">تابعونا لرؤية المزيد من المحتوى الرائع</p>
               </div>
             </div>
           )}
@@ -445,29 +424,18 @@ export default function Home() {
               <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-8">
                 <Sparkles className="w-12 h-12 text-purple-600" />
               </div>
-              <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
-                انضم إلى مجتمع LaaBoBo Live!
+              <h3 className="text-3xl font-bold text-gray-800 mb-4">
+                لا يوجد محتوى متاح حالياً
               </h3>
-              <p className="text-gray-600 text-lg max-w-md mx-auto mb-2">
-                كن أول من يشارك محتوى رائع في منصة البث العربية الأولى
+              <p className="text-gray-600 text-lg max-w-md mx-auto mb-6">
+                كن أول من ينشر ذكرى جميلة!
               </p>
-              <p className="text-gray-500 text-sm max-w-sm mx-auto mb-6">
-                شارك لحظاتك • اربح الهدايا • كون صداقات جديدة
-              </p>
-              <div className="flex justify-center space-x-3 space-x-reverse">
-                <Button 
-                  onClick={() => setLocation('/start-stream')}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full shadow-lg"
-                >
-                  🎥 ابدأ البث المباشر
-                </Button>
-                <Button 
-                  onClick={() => setLocation('/create-memory')}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2 rounded-full shadow-lg"
-                >
-                  📸 أنشئ منشوراً
-                </Button>
-              </div>
+              <Button 
+                onClick={() => setLocation('/create-memory')}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full"
+              >
+                إنشاء منشور جديد
+              </Button>
             </div>
           )}
         </div>
