@@ -29,10 +29,8 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
           // For now, we'll show a "live stream" placeholder
           console.log('👁️ Viewer connected to stream:', stream.id);
           
-          // Simulate loading time
-          setTimeout(() => {
-            setStreamStatus('connected');
-          }, 2000);
+          // Show connected immediately for viewers
+          setStreamStatus('connected');
         }
       } catch (error) {
         console.error('❌ Error initializing stream player:', error);
@@ -55,7 +53,7 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
       <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
         <div className="text-center text-white">
           <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl font-bold mb-2">🔴 جاري تحضير البث</p>
+          <p className="text-xl font-bold mb-2">🔴 جاري الاتصال بالبث</p>
           <p className="text-lg font-semibold">{stream.title}</p>
           <p className="text-sm opacity-75 mt-2">انتظر قليلاً...</p>
         </div>

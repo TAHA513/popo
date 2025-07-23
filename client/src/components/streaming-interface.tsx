@@ -76,7 +76,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
   
     return () => {
       if (user && isConnected) {
-        leaveStream(stream.id, user.id);
+        leaveStream();
       }
     };
   }, [user, isConnected, stream.id, joinStream, leaveStream]);
