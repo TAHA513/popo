@@ -67,7 +67,7 @@ export default function SimpleHome() {
           </div>
         </div>
         {/* Colored Line */}
-        <div className="h-2 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 shadow-sm"></div>
+        <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
       <div className="max-w-md mx-auto">
