@@ -28,14 +28,22 @@ function Router() {
 
   // Auto-navigate to random video when user logs in (TikTok style)
   useEffect(() => {
-    if (isAuthenticated && !hasAutoNavigated) {
+    console.log('App.tsx useEffect triggered:', { isAuthenticated, hasAutoNavigated, user });
+    
+    if (isAuthenticated && !hasAutoNavigated && user) {
+      console.log('Attempting to open random video...');
+      
       const openRandomVideo = async () => {
         try {
+          console.log('Fetching memories from API...');
           const response = await fetch('/api/memories/public', {
             credentials: 'include'
           });
+          
           if (response.ok) {
             const memories = await response.json();
+            console.log('All memories:', memories);
+            
             // Filter ONLY videos - exclude images completely
             const videos = memories.filter((item: any) => 
               item.type === 'video' && 
@@ -43,30 +51,37 @@ function Router() {
               item.mediaUrls.length > 0
             );
             
+            console.log('Filtered videos:', videos);
+            
             if (videos.length > 0) {
               // Pick random video
-              const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-              console.log('Opening random video:', randomVideo.id);
+              const randomIndex = Math.floor(Math.random() * videos.length);
+              const randomVideo = videos[randomIndex];
+              console.log('Opening random video:', randomVideo.id, 'from index:', randomIndex);
               setLocation(`/video/${randomVideo.id}`);
               setHasAutoNavigated(true);
             } else {
-              // No videos available, go to home
-              setLocation('/home');
+              console.log('No videos found, going to home');
+              setLocation('/');
               setHasAutoNavigated(true);
             }
+          } else {
+            console.log('API response not ok:', response.status);
+            setLocation('/');
+            setHasAutoNavigated(true);
           }
         } catch (error) {
           console.error('Error loading random video:', error);
-          // On error, go to home
-          setLocation('/home');
+          setLocation('/');
           setHasAutoNavigated(true);
         }
       };
 
       // Small delay to ensure smooth transition
+      console.log('Setting timeout for random video...');
       setTimeout(openRandomVideo, 300);
     }
-  }, [isAuthenticated, hasAutoNavigated, setLocation]);
+  }, [isAuthenticated, hasAutoNavigated, user, setLocation]);
 
   // Always show loading screen while checking auth
   if (isLoading) {
