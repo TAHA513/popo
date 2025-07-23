@@ -67,6 +67,7 @@ export default function VideoPage() {
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [videoError, setVideoError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch all public videos for TikTok-style browsing
@@ -130,28 +131,52 @@ export default function VideoPage() {
     if (currentVideo) {
       // Reset loading state when video changes
       setIsVideoLoading(true);
+      setVideoError(false);
       
-      const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
-      if (videoElement) {
-        videoElement.muted = isMuted;
-        
-        // Force load the video
-        videoElement.load();
-        
-        if (isVideoPlaying) {
-          // Try to play, with fallback for autoplay restrictions
-          const playPromise = videoElement.play();
-          if (playPromise !== undefined) {
-            playPromise.then(() => {
-              setIsVideoLoading(false);
-            }).catch(() => {
-              // Auto-play failed, user needs to interact first
-              setIsVideoPlaying(false);
-              setIsVideoLoading(false);
-            });
+      // Add delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.muted = isMuted;
+          
+          // Force load the video
+          videoElement.load();
+          
+          // Auto-play attempt with retry
+          const attemptPlay = () => {
+            if (isVideoPlaying) {
+              const playPromise = videoElement.play();
+              if (playPromise !== undefined) {
+                playPromise.then(() => {
+                  setIsVideoLoading(false);
+                  setIsVideoPlaying(true);
+                }).catch((error) => {
+                  console.log('Play failed, retrying...', error);
+                  // Retry after a short delay
+                  setTimeout(() => {
+                    videoElement.play().then(() => {
+                      setIsVideoLoading(false);
+                      setIsVideoPlaying(true);
+                    }).catch(() => {
+                      setIsVideoPlaying(false);
+                      setIsVideoLoading(false);
+                    });
+                  }, 100);
+                });
+              }
+            }
+          };
+          
+          // Wait for video to be ready
+          if (videoElement.readyState >= 2) {
+            attemptPlay();
+          } else {
+            videoElement.addEventListener('canplay', attemptPlay, { once: true });
           }
         }
-      }
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
   }, [currentVideo, isVideoPlaying, isMuted]);
 
@@ -590,12 +615,16 @@ export default function VideoPage() {
           }}
           onCanPlay={() => {
             console.log('Video can play');
-            setIsVideoLoading(false);
-            setIsVideoPlaying(true);
+            setTimeout(() => setIsVideoLoading(false), 500);
           }}
           onCanPlayThrough={() => {
             // Video has buffered enough to play through
             setIsVideoLoading(false);
+          }}
+          onPlaying={() => {
+            // Video is actually playing
+            setIsVideoLoading(false);
+            setIsVideoPlaying(true);
           }}
           onWaiting={() => {
             console.log('Video waiting for data');
@@ -603,30 +632,57 @@ export default function VideoPage() {
           }}
           onLoadedData={() => {
             console.log('Video data loaded');
-            setIsVideoLoading(false);
+            // Don't hide loading here, wait for canplay
           }}
           onError={(e) => {
             console.error('Video error:', e);
             setIsVideoLoading(false);
             setIsVideoPlaying(false);
+            setVideoError(true);
+            // Try to reload the video after a short delay
+            setTimeout(() => {
+              const video = e.currentTarget as HTMLVideoElement;
+              video.load();
+              setVideoError(false);
+              setIsVideoLoading(true);
+            }, 2000);
           }}
           onTimeUpdate={() => {
-            // Hide loading once video starts playing
-            if (isVideoLoading) {
+            // Hide loading once video starts playing and has time
+            const video = e.currentTarget as HTMLVideoElement;
+            if (isVideoLoading && video.currentTime > 0.1) {
               setIsVideoLoading(false);
             }
           }}
         />
 
         {/* Loading Indicator */}
-        {isVideoLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-30">
+        {isVideoLoading && !videoError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
             <div className="text-center">
               <div className="relative">
                 <div className="w-16 h-16 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
                 <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
               </div>
               <p className="text-white mt-4 text-sm">جاري تحميل الفيديو...</p>
+              <div className="w-32 h-1 bg-gray-700 rounded-full mt-3 mx-auto overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Indicator */}
+        {videoError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30">
+            <div className="text-center text-white">
+              <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <p className="text-sm mb-2">مشكلة في تحميل الفيديو</p>
+              <p className="text-xs text-gray-300">جاري المحاولة مرة أخرى...</p>
             </div>
           </div>
         )}
