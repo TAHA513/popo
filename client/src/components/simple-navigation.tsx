@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Home, 
   User, 
@@ -20,6 +21,24 @@ import {
 export default function SimpleNavigation() {
   const { user } = useAuth();
   const [location] = useLocation();
+
+  // Fetch conversations to get unread count
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['/api/messages/conversations'],
+    queryFn: async () => {
+      const response = await fetch('/api/messages/conversations', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch conversations');
+      return response.json();
+    },
+    enabled: !!user
+  });
+
+  // Calculate total unread messages
+  const totalUnreadCount = conversations.reduce((total: number, conv: any) => 
+    total + (conv.unreadCount || 0), 0
+  );
 
   return (
     <header className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 shadow-lg sticky top-0 z-50">
@@ -43,12 +62,16 @@ export default function SimpleNavigation() {
               </div>
             </Link>
             
-            <button className="relative p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
-              <MessageCircle className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                3
-              </span>
-            </button>
+            <Link href="/messages">
+              <button className="relative p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
+                <MessageCircle className="w-5 h-5" />
+                {totalUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                  </span>
+                )}
+              </button>
+            </Link>
           </div>
 
           {/* Center - App Name with Rabbit */}
