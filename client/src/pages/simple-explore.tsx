@@ -1,18 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  User,
-  Heart,
-  MessageCircle,
-  Share2,
-  Gift
-} from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import BottomNavigation from "@/components/bottom-navigation";
-import MemoryCard from "@/components/memory-card";
+import FlipCard from "@/components/flip-card";
 
 export default function SimpleExplore() {
   const { user } = useAuth();
@@ -68,39 +60,29 @@ export default function SimpleExplore() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {memories.map((memory: any) => {
-                // تحويل البيانات لتناسب MemoryCard
-                const formattedMemory = {
-                  id: memory.id.toString(),
-                  type: memory.type || 'post',
-                  title: memory.title,
-                  caption: memory.content,
-                  mediaUrls: memory.imageUrl ? [memory.imageUrl] : [],
-                  thumbnailUrl: memory.imageUrl,
-                  currentEnergy: 100,
-                  initialEnergy: 100,
-                  memoryType: 'precious' as const,
-                  viewCount: 0,
-                  likeCount: 0,
-                  shareCount: 0,
-                  giftCount: 0,
-                  visibilityLevel: 'public' as const,
-                  allowComments: true,
-                  allowSharing: true,
-                  allowGifts: true,
-                  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                  createdAt: memory.createdAt || new Date().toISOString(),
-                  author: {
-                    id: memory.authorId,
-                    username: memory.authorId,
-                    firstName: memory.authorId
-                  }
-                };
+                const cardType = memory.imageUrl && (memory.imageUrl.includes('.mp4') || memory.imageUrl.includes('.webm'))
+                  ? 'video'
+                  : 'image';
                 
                 return (
-                  <MemoryCard 
-                    key={`memory-${memory.id}`} 
-                    memory={formattedMemory}
-                    onLike={() => handleLike(memory.id.toString())}
+                  <FlipCard
+                    key={`memory-${memory.id}`}
+                    content={{
+                      ...memory,
+                      mediaUrls: memory.imageUrl ? [memory.imageUrl] : [],
+                      author: {
+                        id: memory.authorId,
+                        firstName: memory.authorId,
+                        username: memory.authorId,
+                        profileImageUrl: null
+                      }
+                    }}
+                    type={cardType}
+                    isLiked={likedItems.has(memory.id.toString())}
+                    onLike={(id) => handleLike(memory.id.toString())}
+                    onAction={(action) => {
+                      // يمكن إضافة إجراءات هنا إذا لزم الأمر
+                    }}
                   />
                 );
               })}
