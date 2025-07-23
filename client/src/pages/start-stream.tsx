@@ -119,6 +119,7 @@ export default function StartStreamPage() {
 
   const startStreamMutation = useMutation({
     mutationFn: async () => {
+      console.log('🚀 Starting stream...');
       const streamData = {
         title: streamTitle,
         description: streamDescription,
@@ -126,33 +127,43 @@ export default function StartStreamPage() {
         isActive: true,
         language: language
       };
-      return await apiRequest('/api/streams', 'POST', streamData);
+      
+      const result = await apiRequest('/api/streams', 'POST', streamData);
+      console.log('✅ Stream created:', result);
+      return result;
     },
     onSuccess: (data) => {
+      console.log('✅ Stream success, redirecting to:', `/stream/${data.id}`);
       setIsStreaming(true);
       setCurrentStreamId(data.id);
+      
       toast({
-        title: "تم بدء البث!",
-        description: "بثك المباشر يعمل الآن",
+        title: "تم بدء البث بنجاح!",
+        description: "البث المباشر يعمل الآن مع واجهة TikTok",
       });
+      
       queryClient.invalidateQueries({ queryKey: ['/api/streams'] });
-      // Redirect to the stream page
-      setLocation(`/stream/${data.id}`);
+      
+      // Direct navigation to stream
+      window.location.href = `/stream/${data.id}`;
     },
     onError: (error: any) => {
-      console.error('Stream start error:', error);
-      let errorMessage = "حدث خطأ أثناء بدء البث";
+      console.error('❌ Stream start error:', error);
+      let errorMessage = "حدث خطأ أثناء بدء البث المباشر";
       
-      if (error.message?.includes('401')) {
+      if (error.message?.includes('401') || error.status === 401) {
         errorMessage = "يجب تسجيل الدخول أولاً";
-      } else if (error.message?.includes('403')) {
+        setTimeout(() => window.location.href = '/api/login', 1000);
+      } else if (error.message?.includes('403') || error.status === 403) {
         errorMessage = "ليس لديك صلاحية لبدء البث";
-      } else if (error.message?.includes('400')) {
-        errorMessage = "بيانات البث غير صحيحة";
+      } else if (error.message?.includes('400') || error.status === 400) {
+        errorMessage = "بيانات البث غير صحيحة - يرجى التأكد من العنوان والفئة";
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = "مشكلة في الاتصال - يرجى المحاولة مرة أخرى";
       }
       
       toast({
-        title: "خطأ في بدء البث",
+        title: "فشل في بدء البث",
         description: errorMessage,
         variant: "destructive",
       });

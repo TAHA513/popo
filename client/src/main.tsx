@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Register service worker for PWA
+// Register service worker for PWA - silent mode
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
         console.log('SW registered: ', registration);
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        console.warn('SW registration failed (continuing without): ', registrationError);
       });
   });
 }

@@ -48,6 +48,7 @@ export class WebSocketManager {
       
       this.ws.onerror = (error) => {
         console.warn('WebSocket connection issue - will retry if needed');
+        // Continue without breaking the application
       };
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
@@ -69,7 +70,7 @@ export class WebSocketManager {
 
   private attemptReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnect attempts reached');
+      console.warn('Max WebSocket reconnect attempts reached - continuing without real-time features');
       return;
     }
 
@@ -77,7 +78,7 @@ export class WebSocketManager {
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     
     this.reconnectTimeout = setTimeout(() => {
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      console.log(`WebSocket reconnect attempt (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
       this.connect();
     }, delay);
   }
@@ -85,8 +86,10 @@ export class WebSocketManager {
   send(message: any) {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
+      return true;
     } else {
-      console.error('WebSocket not connected');
+      console.warn('WebSocket not connected, message not sent');
+      return false;
     }
   }
 

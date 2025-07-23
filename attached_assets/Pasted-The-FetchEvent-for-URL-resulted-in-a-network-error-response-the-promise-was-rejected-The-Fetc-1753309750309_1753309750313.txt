@@ -1,0 +1,83 @@
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+The FetchEvent for "<URL>" resulted in a network error response: the promise was rejected.
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+sw.js:24  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:24:16
+(anonymous) @ sw.js:24
+Promise.then
+(anonymous) @ sw.js:19
+client:536 WebSocket connection to 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/?token=PbiwfXoz9ZQG' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=PbiwfXoz9ZQG' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+chunk-WERSD76P.js?v=b0ffb8a2:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+App.tsx:104 Navigation timing: Object
+main.tsx:10 SW registered:  ServiceWorkerRegistration
+performance.ts:259 تم تحميل جميع الخطوط بنجاح
+/start-stream:1 Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)
+App.tsx:116 Memory usage: Object
+streaming-interface.tsx:48 🎬 StreamingInterface loaded with TikTok style!
+websocket.ts:25 WebSocket connecting to: wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/ws
+streaming-interface.tsx:48 🎬 StreamingInterface loaded with TikTok style!
+streaming-interface.tsx:48 🎬 StreamingInterface loaded with TikTok style!
+websocket.ts:31 WebSocket connected
+streaming-interface.tsx:48 🎬 StreamingInterface loaded with TikTok style!
+streaming-interface.tsx:76 🚀 Joining stream: 20 as user: tgEdqzdzvCGHpzO8jp7hS
+streaming-interface.tsx:48 🎬 StreamingInterface loaded with TikTok style!
+streaming-interface.tsx:48 🎬 StreamingInterface loaded with TikTok style!
+streaming-interface.tsx:48 🎬 StreamingInterface loaded with TikTok style!
+App.tsx:116 Memory usage: Object
