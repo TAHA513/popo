@@ -166,6 +166,16 @@ export default function SimpleNavigation() {
                 <Video className="w-4 h-4" />
               </Button>
             </Link>
+            <Link href="/single-video">
+              <Button 
+                variant={location === "/single-video" ? "secondary" : "ghost"} 
+                size="sm"
+                className={`rounded-full ${location === "/single-video" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                title="مشغل الفيديو المفرد"
+              >
+                <Camera className="w-4 h-4" />
+              </Button>
+            </Link>
             <Link href="/gifts">
               <Button 
                 variant={location === "/gifts" ? "secondary" : "ghost"} 

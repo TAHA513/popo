@@ -10,5 +10,6 @@ export const ExplorePage = lazy(() => import('@/pages/explore'));
 export const GiftsPage = lazy(() => import('@/pages/gifts'));
 export const ConversationPage = lazy(() => import('@/pages/conversation'));
 export const VideoPage = lazy(() => import('@/pages/video'));
+export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));
