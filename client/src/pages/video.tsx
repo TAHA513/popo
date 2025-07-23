@@ -79,10 +79,10 @@ export default function VideoPage() {
       // Filter only videos
       return data.filter((item: any) => item.type === 'video');
     },
-    refetchInterval: 1000, // كل ثانية واحدة - سرعة الصاروخ! 🚀
-    staleTime: 0,
+    refetchInterval: 10000, // كل 10 ثواني - أكثر عقلانية
+    staleTime: 5000, // 5 ثواني
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // تجنب التحديث المستمر
   });
 
   // Find current video index and stop previous video
@@ -137,6 +137,14 @@ export default function VideoPage() {
       }, 100);
     }
   }, [currentVideo, isVideoPlaying, isMuted]);
+
+  // Cleanup function to refresh home page cache when leaving
+  useEffect(() => {
+    return () => {
+      // Force refresh home page data when user leaves video page
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    };
+  }, [queryClient]);
 
   const handleVideoToggle = () => {
     const videoElement = document.querySelector(`#video-${currentVideo?.id}`) as HTMLVideoElement;

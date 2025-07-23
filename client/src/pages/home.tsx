@@ -52,7 +52,9 @@ export default function Home() {
     queryKey: ['/api/memories/public'],
     refetchInterval: 30000,
     retry: 1,
-    staleTime: 5000,
+    staleTime: 0, // Always refresh when returning to page
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const typedStreams = (streams as Stream[]);

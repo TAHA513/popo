@@ -26,7 +26,7 @@ export default function Feed() {
   // Fetch public memories/posts
   const { data: memories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 2000, // كل ثانيتين - سرعة البرق!
+    refetchInterval: 15000, // كل 15 ثانية - متوازن
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
