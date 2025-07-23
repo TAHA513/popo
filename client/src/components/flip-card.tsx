@@ -336,12 +336,12 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
   };
 
   const handleCardClick = () => {
-    // إذا كان فيديو أو بث مباشر، افتح صفحة المشاهدة
+    // إذا كان فيديو أو بث مباشر، انتقل مباشرة في نفس النافذة
     if (type === 'video' || type === 'live') {
       if (type === 'video' && content.id) {
-        window.open(`/video/${content.id}`, '_blank');
+        window.location.href = `/video/${content.id}`;
       } else if (type === 'live' && content.id) {
-        window.open(`/stream/${content.id}`, '_blank');
+        window.location.href = `/stream/${content.id}`;
       }
     } else {
       // للمنشورات الأخرى، اقلب البطاقة
