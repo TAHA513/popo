@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuthFixed";
 import { useQuery } from "@tanstack/react-query";
+
 import { 
   Home, 
   Search,
@@ -13,6 +14,7 @@ import {
 export default function BottomNavigation() {
   const { user } = useAuth();
   const [location] = useLocation();
+
 
   // Fetch conversations to get unread count
   const { data: conversations = [] } = useQuery({
@@ -71,16 +73,10 @@ export default function BottomNavigation() {
                       method: "POST",
                       credentials: "include",
                     });
-                    // استخدام SPA navigation بدلاً من window.location
-                    const currentPath = window.location.pathname;
-                    if (currentPath !== "/login") {
-                      // إعادة تحميل الصفحة لضمان مسح الحالة
-                      window.location.href = "/login";
-                    }
+                    window.location.replace("/login");
                   } catch (error) {
                     console.error("Logout error:", error);
-                    // في حالة الخطأ، انتقل للصفحة الرئيسية
-                    window.location.href = "/login";
+                    window.location.replace("/login");
                   }
                 }}
                 className="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 text-red-500 hover:text-red-600 hover:bg-red-50"

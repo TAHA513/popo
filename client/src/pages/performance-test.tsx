@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LazyImage from '@/components/lazy-image';
 import { initPerformanceOptimizations, cache } from '@/lib/performance';
+import PerformanceSummary from '@/components/performance-summary';
 
 export default function PerformanceTest() {
   const [, setLocation] = useLocation();
@@ -41,23 +42,9 @@ export default function PerformanceTest() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-2xl text-purple-600">
-              🚀 تقرير تحسينات الأداء
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold mb-4">حالة التحسينات:</h3>
-              {testResults.map((result, index) => (
-                <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  {result}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mb-6">
+          <PerformanceSummary />
+        </div>
 
         <Card className="mb-6">
           <CardHeader>
