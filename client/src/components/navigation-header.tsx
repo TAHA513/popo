@@ -146,7 +146,15 @@ export default function NavigationHeader() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={logout}
+              onClick={async () => {
+                try {
+                  await fetch("/api/logout", { method: "POST", credentials: "include" });
+                  window.location.href = "/login";
+                } catch (error) {
+                  console.error("Logout error:", error);
+                  window.location.href = "/login";
+                }
+              }}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <LogOut className="w-4 h-4" />
