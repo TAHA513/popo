@@ -83,7 +83,7 @@ function Router() {
 }
 
 function App() {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar');
 
   useEffect(() => {
     // Set document direction and language
@@ -96,10 +96,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-        <Toaster />
-        <Router />
-      </div>
+      <TooltipProvider>
+        <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
+          <Toaster />
+          <Router />
+        </div>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

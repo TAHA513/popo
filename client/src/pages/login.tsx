@@ -22,7 +22,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -60,7 +60,7 @@ export default function Login() {
       
       // Wait a bit for the session to be properly set, then go to home
       setTimeout(() => {
-        window.location.href = '/';
+        setLocation('/');
       }, 100);
     },
     onError: (error: Error) => {
@@ -182,7 +182,7 @@ export default function Login() {
             <Button
               variant="outline"
               className="w-full h-12 border-white/50 text-black hover:bg-white/20 hover:text-white rounded-2xl font-black backdrop-blur-sm shadow-lg bg-white/80"
-              onClick={() => navigate("/register")}
+              onClick={() => setLocation("/register")}
               disabled={loginMutation.isPending}
             >
               إنشاء حساب جديد
