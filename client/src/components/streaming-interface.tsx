@@ -23,6 +23,7 @@ import {
 import { Stream, ChatMessage, Gift, GiftCharacter } from "@/types";
 import GiftCharacters from "./gift-characters";
 import BeautyFilters from "./beauty-filters";
+import LoveGiftEffect from "./LoveGiftEffect";
 
 interface StreamingInterfaceProps {
   stream: Stream;
@@ -43,6 +44,8 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
   const [viewerCount, setViewerCount] = useState(stream.viewerCount);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showLoveEffect, setShowLoveEffect] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<'ar' | 'en'>('ar');
   const [isStreamer, setIsStreamer] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   
@@ -132,6 +135,14 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
         pointCost: character.pointCost,
         streamId: stream.id,
       });
+      
+      // Check if this is the special Love Heart gift
+      if (character.name === 'Love Heart' || character.emoji === '💝') {
+        // Detect user's language preference
+        const userLang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+        setCurrentLanguage(userLang);
+        setShowLoveEffect(true);
+      }
     }
   };
 
@@ -365,6 +376,13 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
           </div>
         </div>
       </div>
+      
+      {/* Love Gift Effect Overlay */}
+      <LoveGiftEffect 
+        isActive={showLoveEffect}
+        language={currentLanguage}
+        onComplete={() => setShowLoveEffect(false)}
+      />
     </div>
   );
 }

@@ -77,6 +77,12 @@ export const giftCharacters = pgTable("gift_characters", {
   pointCost: integer("point_cost").notNull(),
   animationType: varchar("animation_type"),
   isActive: boolean("is_active").default(true),
+  // Special features for premium gifts
+  hasSound: boolean("has_sound").default(false),
+  soundFileUrl: text("sound_file_url"),
+  hasSpecialEffects: boolean("has_special_effects").default(false),
+  effectDuration: integer("effect_duration").default(3), // Duration in seconds
+  isMultiLanguage: boolean("is_multi_language").default(false), // Support different languages
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -244,7 +250,7 @@ export const comments = pgTable("comments", {
   authorId: varchar("author_id").notNull().references(() => users.id),
   postId: integer("post_id").notNull(), // Can reference memory or stream
   postType: varchar("post_type").notNull(), // 'memory' or 'stream'
-  parentId: integer("parent_id").references(() => comments.id), // For nested replies
+  parentId: integer("parent_id"), // For nested replies
   likeCount: integer("like_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

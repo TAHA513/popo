@@ -43,11 +43,12 @@ export default function GiftCharacters({
 
   // Fallback characters if API doesn't return any
   const fallbackCharacters: GiftCharacter[] = [
-    { id: 1, name: 'BoBo Love', emoji: '🐰💕', description: 'Rabbit with flying hearts', pointCost: 100, animationType: 'hearts', isActive: true },
-    { id: 2, name: 'BoFire', emoji: '🐲🔥', description: 'Dragon with neon fire', pointCost: 500, animationType: 'fire', isActive: true },
-    { id: 3, name: 'Nunu Magic', emoji: '🦄🌟', description: 'Flying horse with stars', pointCost: 1000, animationType: 'rainbow', isActive: true },
-    { id: 4, name: 'Dodo Splash', emoji: '🦆💦', description: 'Duck with bubbles', pointCost: 250, animationType: 'bubbles', isActive: true },
-    { id: 5, name: 'Meemo Wink', emoji: '🐱🌈', description: 'Cat with rainbow', pointCost: 750, animationType: 'rainbow_wave', isActive: true },
+    { id: 1, name: 'BoBo Love', emoji: '🐰💕', description: 'Rabbit with flying hearts', pointCost: 100, animationType: 'hearts', isActive: true, hasSound: false, soundFileUrl: null, hasSpecialEffects: false, effectDuration: 3, isMultiLanguage: false, createdAt: new Date() },
+    { id: 2, name: 'BoFire', emoji: '🐲🔥', description: 'Dragon with neon fire', pointCost: 500, animationType: 'fire', isActive: true, hasSound: false, soundFileUrl: null, hasSpecialEffects: false, effectDuration: 3, isMultiLanguage: false, createdAt: new Date() },
+    { id: 3, name: 'Nunu Magic', emoji: '🦄🌟', description: 'Flying horse with stars', pointCost: 1000, animationType: 'rainbow', isActive: true, hasSound: false, soundFileUrl: null, hasSpecialEffects: false, effectDuration: 3, isMultiLanguage: false, createdAt: new Date() },
+    { id: 4, name: 'Dodo Splash', emoji: '🦆💦', description: 'Duck with bubbles', pointCost: 250, animationType: 'bubbles', isActive: true, hasSound: false, soundFileUrl: null, hasSpecialEffects: false, effectDuration: 3, isMultiLanguage: false, createdAt: new Date() },
+    { id: 5, name: 'Meemo Wink', emoji: '🐱🌈', description: 'Cat with rainbow', pointCost: 750, animationType: 'rainbow_wave', isActive: true, hasSound: false, soundFileUrl: null, hasSpecialEffects: false, effectDuration: 3, isMultiLanguage: false, createdAt: new Date() },
+    { id: 6, name: 'Love Heart', emoji: '💝', description: 'Premium love gift with voice and special effects', pointCost: 500, animationType: 'love_explosion', isActive: true, hasSound: true, soundFileUrl: null, hasSpecialEffects: true, effectDuration: 5, isMultiLanguage: true, createdAt: new Date() },
   ];
 
   const displayCharacters = characters.length > 0 ? characters : fallbackCharacters;
@@ -69,7 +70,11 @@ export default function GiftCharacters({
           {displayCharacters.map((character) => (
             <Card 
               key={character.id}
-              className="hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer group"
+              className={`hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer group ${
+                character.name === 'Love Heart' 
+                  ? 'relative overflow-hidden border-2 border-pink-500 bg-gradient-to-br from-pink-50 to-red-50 hover:shadow-pink-500/50' 
+                  : ''
+              }`}
               onClick={() => handleSelectGift(character)}
             >
               <CardContent className="p-6 text-center">
@@ -92,6 +97,21 @@ export default function GiftCharacters({
                       {character.pointCost} Points
                     </span>
                   </div>
+                  
+                  {/* Special badges for Love Heart gift */}
+                  {character.name === 'Love Heart' && (
+                    <div className="flex flex-wrap gap-1 justify-center mb-3">
+                      <Badge className="bg-pink-500 text-white text-xs px-2 py-1">
+                        🔊 صوت
+                      </Badge>
+                      <Badge className="bg-red-500 text-white text-xs px-2 py-1">
+                        ✨ تأثيرات
+                      </Badge>
+                      <Badge className="bg-purple-500 text-white text-xs px-2 py-1">
+                        🌍 متعدد اللغات
+                      </Badge>
+                    </div>
+                  )}
 
                   {showPurchaseButton && (
                     <Button 
