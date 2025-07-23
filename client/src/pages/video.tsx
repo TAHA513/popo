@@ -129,57 +129,25 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Simplified and improved video setup
+  // Simplified video setup - let native video element handle loading
   useEffect(() => {
     if (currentVideo) {
       setIsVideoLoading(true);
       setVideoError(false);
       
-      // Multiple attempts to find and setup video element
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      const setupVideo = () => {
-        attempts++;
+      // Simple timeout to ensure video element exists before setting initial state
+      const timer = setTimeout(() => {
         const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
-        
         if (videoElement) {
-          // Video element found, set it up
           videoElement.muted = isMuted;
           videoElement.currentTime = 0;
-          
-          // Simple event handlers
-          const handleLoadedData = () => {
-            setIsVideoLoading(false);
-            if (isVideoPlaying) {
-              videoElement.play().catch(() => {
-                console.log('Autoplay prevented');
-                setIsVideoLoading(false);
-              });
-            }
-          };
-          
-          // Clean up old listeners
-          videoElement.removeEventListener('loadeddata', handleLoadedData);
-          videoElement.addEventListener('loadeddata', handleLoadedData, { once: true });
-          
-          // Force load the video
-          videoElement.load();
-          
-        } else if (attempts < maxAttempts) {
-          // Video element not ready yet, try again
-          setTimeout(setupVideo, 100);
-        } else {
-          // Give up after max attempts
-          setIsVideoLoading(false);
-          setVideoError(true);
+          // Don't force load - let the video element's native events handle it
         }
-      };
+      }, 50);
       
-      // Start setup process
-      setupVideo();
+      return () => clearTimeout(timer);
     }
-  }, [currentVideo, isVideoPlaying, isMuted]);
+  }, [currentVideo, isMuted]);
 
   // Cleanup function to refresh home page cache when leaving
   useEffect(() => {
@@ -346,73 +314,37 @@ export default function VideoPage() {
     }
   }, [currentVideoIndex, allVideos]);
 
-  // Preload next and previous videos for faster navigation
+  // Lightweight preload for next video only to avoid conflicts
   useEffect(() => {
     if (allVideos.length > 1) {
       const nextIndex = currentVideoIndex + 1;
-      const prevIndex = currentVideoIndex - 1;
       
-      // Create preload links for better performance
-      const links: HTMLLinkElement[] = [];
-      
-      // Preload next video
+      // Only preload next video to reduce loading conflicts
       if (nextIndex < allVideos.length) {
         const nextVideo = allVideos[nextIndex];
         const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'video';
+        link.rel = 'prefetch'; // Use prefetch instead of preload for lighter approach
         link.href = nextVideo.mediaUrls[0];
         document.head.appendChild(link);
-        links.push(link);
-      }
-      
-      // Preload previous video
-      if (prevIndex >= 0) {
-        const prevVideo = allVideos[prevIndex];
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'video';
-        link.href = prevVideo.mediaUrls[0];
-        document.head.appendChild(link);
-        links.push(link);
-      }
-      
-      // Cleanup
-      return () => {
-        links.forEach(link => {
+        
+        // Cleanup
+        return () => {
           if (document.head.contains(link)) {
             document.head.removeChild(link);
           }
-        });
-      };
+        };
+      }
     }
   }, [currentVideoIndex, allVideos]);
 
-  // Hide instructions after 3 seconds and setup video optimization
+  // Hide instructions after 3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowInstructions(false);
     }, 3000);
 
-    // Pre-load current video for faster playback
-    if (currentVideo) {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'video';
-      link.href = currentVideo.mediaUrls[0];
-      document.head.appendChild(link);
-      
-      // Cleanup preload link
-      return () => {
-        clearTimeout(timer);
-        if (document.head.contains(link)) {
-          document.head.removeChild(link);
-        }
-      };
-    }
-
     return () => clearTimeout(timer);
-  }, [currentVideo]);
+  }, []);
 
   // Follow/Unfollow mutation
   const followMutation = useMutation({
@@ -615,7 +547,7 @@ export default function VideoPage() {
       {/* Video Container */}
       <div className="relative w-full h-screen flex items-center justify-center group">
         <video
-          key={`video-${currentVideo.id}-${Date.now()}`}
+          key={`video-${currentVideo.id}`}
           id={`video-${currentVideo.id}`}
           src={currentVideo.mediaUrls[0]}
           className="w-full h-full object-cover"
@@ -623,27 +555,16 @@ export default function VideoPage() {
           muted={isMuted}
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           poster={currentVideo.thumbnailUrl}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
           onLoadStart={() => {
-            console.log('Video loading started');
             setIsVideoLoading(true);
             setVideoError(false);
           }}
-          onLoadedData={() => {
-            console.log('Video data loaded');
-            setIsVideoLoading(false);
-          }}
           onCanPlay={() => {
-            console.log('Video can play');
             setIsVideoLoading(false);
-          }}
-          onPlaying={() => {
-            console.log('Video is playing');
-            setIsVideoLoading(false);
-            setIsVideoPlaying(true);
           }}
           onError={(e) => {
             console.error('Video error:', e);
