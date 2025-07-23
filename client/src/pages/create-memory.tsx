@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -98,7 +97,6 @@ const PRIVACY_OPTIONS = [
 export default function CreateMemoryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -220,7 +218,7 @@ export default function CreateMemoryPage() {
         
         // Navigate to feed
         setTimeout(() => {
-          setLocation('/');
+          window.location.href = '/';
         }, 500);
       }, 1000);
 

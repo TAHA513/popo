@@ -57,21 +57,21 @@ export default function Home() {
     refetchInterval: 30000,
   });
 
-  // Fetch public memories/posts with performance optimization
+  // Fetch public memories/posts
   const { data: publicMemories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 60000, // كل دقيقة لتحسين الأداء
-    staleTime: 30000, // البيانات طازجة لمدة 30 ثانية
-    gcTime: 300000, // الاحتفاظ بالذاكرة لمدة 5 دقائق
-    refetchOnWindowFocus: false, // تجنب التحديث المستمر
+    refetchInterval: 30000,
     retry: 1,
+    staleTime: 0, // Always refresh when returning to page
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const typedStreams = (streams as Stream[]);
   const typedMemories = (publicMemories as any[]);
 
   const handleJoinStream = (streamId: number) => {
-    setLocation(`/stream/${streamId}`);
+    window.location.href = `/stream/${streamId}`;
   };
 
   const handleLike = (itemId: string) => {

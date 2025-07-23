@@ -79,11 +79,10 @@ export default function VideoPage() {
       // Filter only videos
       return data.filter((item: any) => item.type === 'video');
     },
-    refetchInterval: 60000, // كل دقيقة لتحسين الأداء
-    staleTime: 30000, // البيانات طازجة لمدة 30 ثانية
-    gcTime: 300000, // الاحتفاظ بالذاكرة لمدة 5 دقائق
-    refetchOnMount: false, // تجنب إعادة التحميل عند العودة
-    refetchOnWindowFocus: false // تجنب التحديث المستمر
+    refetchInterval: 10000, // كل 10 ثواني - أكثر عقلانية
+    staleTime: 5000, // 5 ثواني
+    refetchOnMount: true,
+    refetchOnWindowFocus: false, // تجنب التحديث المستمر
   });
 
   // Find current video index and stop previous video
@@ -124,20 +123,18 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Auto-play and handle video changes with faster loading
+  // Auto-play and handle video changes
   useEffect(() => {
     if (currentVideo && isVideoPlaying) {
-      // Use requestAnimationFrame for smoother performance
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
         if (videoElement) {
           videoElement.muted = isMuted;
-          videoElement.currentTime = 0; // Start from beginning
           videoElement.play().catch(() => {
             // Auto-play failed, user needs to interact first
           });
         }
-      });
+      }, 100);
     }
   }, [currentVideo, isVideoPlaying, isMuted]);
 
@@ -203,58 +200,35 @@ export default function VideoPage() {
     }
   };
 
-  // Optimized navigation with reduced delays
   const goToNextVideo = () => {
     if (currentVideoIndex < allVideos.length - 1) {
-      // Immediate state update for faster response
-      const nextIndex = currentVideoIndex + 1;
-      setCurrentVideoIndex(nextIndex);
-      
-      // Stop current video without delay
+      // Stop current video first
       stopCurrentVideo();
       
-      // Update URL instantly
+      const nextIndex = currentVideoIndex + 1;
+      setCurrentVideoIndex(nextIndex);
+      setIsVideoPlaying(true); // Start new video
+      // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[nextIndex].id}`);
-      setIsVideoPlaying(true);
-      
-      // Preload next video for smoother experience
-      setTimeout(() => {
-        const upcomingIndex = nextIndex + 1;
-        if (upcomingIndex < allVideos.length && allVideos[upcomingIndex].mediaUrls?.[0]) {
-          const preloadVideo = document.createElement('video');
-          preloadVideo.preload = 'metadata';
-          preloadVideo.src = allVideos[upcomingIndex].mediaUrls[0];
-          preloadVideo.muted = true;
-        }
-      }, 100);
     }
   };
 
   const goToPrevVideo = () => {
     if (currentVideoIndex > 0) {
-      // Immediate state update for faster response
-      const prevIndex = currentVideoIndex - 1;
-      setCurrentVideoIndex(prevIndex);
-      
-      // Stop current video without delay
+      // Stop current video first
       stopCurrentVideo();
       
-      // Update URL instantly
+      const prevIndex = currentVideoIndex - 1;
+      setCurrentVideoIndex(prevIndex);
+      setIsVideoPlaying(true); // Start new video
+      // Update URL without page reload
       window.history.replaceState(null, '', `/video/${allVideos[prevIndex].id}`);
-      setIsVideoPlaying(true);
     }
   };
 
-  // Handle keyboard navigation with debouncing for better performance
+  // Handle keyboard navigation
   useEffect(() => {
-    let lastKeyTime = 0;
-    const DEBOUNCE_DELAY = 100; // Faster response for better UX
-    
     const handleKeyDown = (e: KeyboardEvent) => {
-      const now = Date.now();
-      if (now - lastKeyTime < DEBOUNCE_DELAY) return;
-      lastKeyTime = now;
-      
       if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
         e.preventDefault();
         goToPrevVideo();
@@ -282,12 +256,7 @@ export default function VideoPage() {
     };
     
     const handleTouchMove = (e: TouchEvent) => {
-      // Only prevent default for vertical swipes to avoid interfering with side controls
-      const currentY = e.touches[0].clientY;
-      const deltaY = Math.abs(startY - currentY);
-      if (deltaY > 30) {
-        e.preventDefault(); // Prevent scrolling only for significant vertical movement
-      }
+      e.preventDefault(); // Prevent scrolling
     };
     
     const handleTouchEnd = (e: TouchEvent) => {
@@ -296,14 +265,14 @@ export default function VideoPage() {
       const deltaY = startY - endY;
       const deltaX = Math.abs(startX - endX);
       
-      // Handle vertical swipes with optimized thresholds
-      if (deltaX < 75 && Math.abs(deltaY) > 80) {
-        if (deltaY > 80) {
-          // Swipe up - next video (faster response)
-          requestAnimationFrame(() => goToNextVideo());
-        } else if (deltaY < -80) {
-          // Swipe down - previous video (faster response)
-          requestAnimationFrame(() => goToPrevVideo());
+      // Only handle vertical swipes (ignore horizontal)
+      if (deltaX < 50 && Math.abs(deltaY) > 50) {
+        if (deltaY > 50) {
+          // Swipe up - next video
+          goToNextVideo();
+        } else if (deltaY < -50) {
+          // Swipe down - previous video
+          goToPrevVideo();
         }
       }
     };

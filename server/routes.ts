@@ -1142,78 +1142,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create HTTP server
   const httpServer = createServer(app);
-  
-  // Setup WebSocket server with proper configuration
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws',
-    perMessageDeflate: false,
-    maxPayload: 16 * 1024
-  });
+
+  // WebSocket setup
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
   wss.on('connection', (ws, req) => {
-    const clientId = Date.now().toString();
+    const clientId = generateClientId();
     connectedClients.set(clientId, { ws });
-    
-    console.log(`WebSocket client connected: ${clientId}`);
-
-    ws.send(JSON.stringify({
-      type: 'connected',
-      clientId: clientId,
-      timestamp: new Date().toISOString()
-    }));
 
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
         await handleWebSocketMessage(clientId, message);
       } catch (error) {
-        console.error('Error handling WebSocket message:', error);
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Failed to process message',
-            timestamp: new Date().toISOString()
-          }));
-        }
+        console.error('WebSocket message error:', error);
       }
     });
 
     ws.on('close', () => {
-      const client = connectedClients.get(clientId);
-      if (client && client.streamId) {
-        broadcastToStream(client.streamId, {
-          type: 'viewer_left',
-          userId: client.userId,
-          viewerCount: Array.from(connectedClients.values()).filter(c => c.streamId === client.streamId).length - 1
-        });
-      }
       connectedClients.delete(clientId);
-      console.log(`WebSocket client disconnected: ${clientId}`);
-    });
-
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-      connectedClients.delete(clientId);
-    });
-    
-    ws.on('pong', () => {
-      console.log(`Pong received from client: ${clientId}`);
     });
   });
-
-  // Keep connections alive
-  setInterval(() => {
-    connectedClients.forEach((client, clientId) => {
-      if (client.ws.readyState === WebSocket.OPEN) {
-        client.ws.ping();
-      } else {
-        connectedClients.delete(clientId);
-      }
-    });
-  }, 30000);
 
   return httpServer;
 }

@@ -1,7 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import SimpleNavigation from "@/components/simple-navigation";
@@ -14,7 +13,6 @@ import { AdminStats } from "@/types";
 export default function AdminPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
 
   const { data: stats, isLoading: statsLoading, error } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
@@ -30,7 +28,7 @@ export default function AdminPage() {
         variant: "destructive",
       });
       setTimeout(() => {
-        setLocation("/login");
+        window.location.href = "/api/login";
       }, 500);
       return;
     }
@@ -42,7 +40,7 @@ export default function AdminPage() {
         variant: "destructive",
       });
       setTimeout(() => {
-        setLocation("/");
+        window.location.href = "/";
       }, 1500);
       return;
     }
@@ -51,7 +49,7 @@ export default function AdminPage() {
   if (isLoading || statsLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <SimpleNavigation />
+        <NavigationHeader />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -72,7 +70,7 @@ export default function AdminPage() {
         variant: "destructive",
       });
       setTimeout(() => {
-        setLocation("/login");
+        window.location.href = "/api/login";
       }, 500);
       return null;
     }
