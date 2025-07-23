@@ -30,11 +30,7 @@ export default function SimpleHome() {
     refetchInterval: 10000,
   });
 
-  // المنشورات العامة
-  const { data: memories = [] } = useQuery<any[]>({
-    queryKey: ['/api/memories/public'], 
-    refetchInterval: 10000,
-  });
+
 
   const handleLike = (id: string) => {
     setLikedItems(prev => {
