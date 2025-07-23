@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function NavigationHeader() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [location] = useLocation();
 
   return (
