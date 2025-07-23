@@ -58,14 +58,15 @@ export default function Home() {
     staleTime: 30000,
   });
 
-  // Fetch public memories/posts with reduced frequency
+  // Fetch public memories/posts - single request only
   const { data: publicMemories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: false, // إيقاف التحديث التلقائي
+    refetchInterval: false,
     retry: 1,
-    staleTime: 300000, // 5 دقائق cache
+    staleTime: 600000, // 10 minutes cache
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const typedStreams = (streams as Stream[]);

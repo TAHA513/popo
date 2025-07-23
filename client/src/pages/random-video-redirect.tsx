@@ -20,22 +20,22 @@ export default function RandomVideoRedirect() {
 
   useEffect(() => {
     if (!isLoading && videos.length > 0) {
-      // Select a random video
+      // Select a random video (only once)
       const randomIndex = Math.floor(Math.random() * videos.length);
       const randomVideo = videos[randomIndex];
       
       if (randomVideo && randomVideo.id) {
-        // Redirect to the random video
-        setLocation(`/video/${randomVideo.id}`);
+        // Single redirect to the random video
+        window.location.href = `/video/${randomVideo.id}`;
       } else {
         // Fallback to home if no valid video found
-        setLocation('/home');
+        window.location.href = '/home';
       }
     } else if (!isLoading && videos.length === 0) {
       // No videos available, go to home
-      setLocation('/home');
+      window.location.href = '/home';
     }
-  }, [videos, isLoading, setLocation]);
+  }, [videos, isLoading]);
 
   // Show loading screen while fetching videos
   return (

@@ -504,24 +504,9 @@ export default function VideoPage() {
     }
   };
 
-  // Skip loading screen completely - show video immediately
-  if (!currentVideo && allVideos.length === 0) {
-    return null; // Don't show anything if no videos
-  }
-  
+  // Simple check - show video or nothing
   if (!currentVideo) {
-    return null; // Don't show loading, just wait
-  }
-
-  if (!currentVideo || allVideos.length === 0) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">لا توجد فيديوهات</h2>
-          <Button onClick={() => window.history.back()} className="bg-purple-600 text-white">العودة</Button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
