@@ -226,6 +226,18 @@ input:checked + .slider:before {
   transform: translateX(24px);
 }
 
+/* Fix for Arabic text in flipped cards */
+.flip-card-back {
+  transform: rotateY(180deg);
+  direction: rtl;
+  text-align: right;
+}
+
+.flip-card-back * {
+  direction: rtl;
+  text-align: right;
+}
+
 /* Mobile-first responsive design */
 @layer base {
   * {

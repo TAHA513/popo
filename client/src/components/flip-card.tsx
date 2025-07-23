@@ -188,7 +188,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
     const author = content.author || {};
     
     return (
-      <div className="w-full h-full relative overflow-hidden rounded-xl">
+      <div className="w-full h-full relative overflow-hidden rounded-xl flip-card-back">
         {/* Beautiful gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-400 via-pink-400 to-indigo-500 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -355,7 +355,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
       className="relative w-full h-full cursor-pointer group"
       onClick={handleCardClick}
     >
-      <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`}>
+      <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`} style={{ transformStyle: 'preserve-3d' }}>
         {/* Front side */}
         {!isFlipped && (
           <div className="w-full h-full">
