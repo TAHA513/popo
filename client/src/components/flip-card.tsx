@@ -395,7 +395,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
   };
 
   const handleCardClick = () => {
-    // إذا كان فيديو أو بث مباشر، انتقل مباشرة بدون إعادة تحميل
+    // فتح الفيديوهات والبث المباشر فقط - تجاهل الصور والمحتوى الآخر
     if (type === 'video' || type === 'live') {
       if (type === 'video' && content.id) {
         setLocation(`/video/${content.id}`);
@@ -403,7 +403,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
         setLocation(`/stream/${content.id}`);
       }
     } else {
-      // للمنشورات الأخرى، اقلب البطاقة
+      // للصور والمحتوى الآخر، فقط اقلب البطاقة لعرض التفاصيل
       setIsFlipped(!isFlipped);
     }
   };

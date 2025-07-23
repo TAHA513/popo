@@ -376,12 +376,22 @@ export default function Home() {
                             }
                             break;
                           case 'watch':
+                            // فتح الفيديوهات فقط - تجاهل الصور
                             if (memory.type === 'video') {
                               setLocation(`/video/${memory.id}`);
+                            } else {
+                              // إظهار رسالة للصور
+                              toast({
+                                title: "عرض الصور",
+                                description: "الصور تُعرض في البطاقة مباشرة",
+                              });
                             }
                             break;
                           case 'view':
-                            // عرض المحتوى كاملاً
+                            // عرض الفيديوهات فقط
+                            if (memory.type === 'video') {
+                              setLocation(`/video/${memory.id}`);
+                            }
                             break;
                           case 'comment':
                             handleInteraction('comment', `memory-${memory.id}`);

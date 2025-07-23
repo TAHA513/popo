@@ -88,7 +88,7 @@ export default function VideoPage() {
     refetchOnWindowFocus: false, // تجنب التحديث المستمر
   });
 
-  // Initialize video with improved loading strategy
+  // Initialize video with improved loading strategy - videos only
   useEffect(() => {
     if (videoId && allVideos.length > 0) {
       // Stop all videos first
@@ -101,15 +101,28 @@ export default function VideoPage() {
       
       const index = allVideos.findIndex(v => v.id === parseInt(videoId));
       if (index !== -1) {
-        // Set initial states immediately
-        setCurrentVideoIndex(index);
-        setIsVideoPlaying(true);
-        setIsMuted(true);
-        setIsVideoLoading(true);
-        setVideoError(false);
+        const video = allVideos[index];
+        // تأكد من أن هذا فيديو وليس صورة
+        if (video.type === 'video') {
+          setCurrentVideoIndex(index);
+          setIsVideoPlaying(true);
+          setIsMuted(true);
+          setIsVideoLoading(true);
+          setVideoError(false);
+        } else {
+          // إذا لم يكن فيديو، توجه للرئيسية
+          toast({
+            title: "محتوى غير مدعوم",
+            description: "هذه الصفحة مخصصة للفيديوهات فقط",
+            variant: "destructive"
+          });
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+        }
       }
     }
-  }, [videoId, allVideos]);
+  }, [videoId, allVideos, toast]);
 
   const currentVideo = allVideos[currentVideoIndex];
 
