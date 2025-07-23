@@ -95,31 +95,24 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
         )}
 
-        {/* Author Circle - Top Right */}
-        <div className="absolute top-3 right-3 z-10">
+        {/* Author Circle - Bottom Left (Small) */}
+        <div className="absolute bottom-3 left-3 z-10">
           <Link 
             href={`/user/${content.author?.id || content.authorId}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors cursor-pointer group/author">
-              {/* Profile Image */}
-              <div className="w-8 h-8 rounded-full overflow-hidden ml-2">
-                {content.author?.profileImageUrl ? (
-                  <img
-                    src={content.author.profileImageUrl}
-                    alt={content.author?.firstName || content.author?.username || 'مستخدم'}
-                    className="w-full h-full object-cover group-hover/author:scale-110 transition-transform"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                )}
-              </div>
-              {/* Name */}
-              <span className="text-sm font-medium text-gray-800 pl-2 max-w-[80px] truncate">
-                {content.author?.firstName || content.author?.username || 'مستخدم'}
-              </span>
+            <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg hover:scale-105 transition-transform cursor-pointer border-2 border-white/80">
+              {content.author?.profileImageUrl ? (
+                <img
+                  src={content.author.profileImageUrl}
+                  alt={content.author?.firstName || content.author?.username || 'مستخدم'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
             </div>
           </Link>
         </div>
@@ -145,8 +138,8 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           )}
         </div>
 
-        {/* Views Count - Moved to bottom right */}
-        <div className="absolute bottom-16 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center backdrop-blur-sm">
+        {/* Views Count - Back to top right */}
+        <div className="absolute top-16 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center backdrop-blur-sm">
           <Eye className="w-3 h-3 mr-1" />
           <span className="font-medium">{content.viewCount || 0}</span>
         </div>
