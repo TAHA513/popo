@@ -25,7 +25,9 @@ import {
   Radio,
   Maximize2,
   Volume2,
-  VolumeX
+  VolumeX,
+  TrendingUp,
+  Star
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -51,30 +53,8 @@ export default function Home() {
     postType: 'memory'
   });
   
-  // Auto-redirect to random video if user visits home directly (TikTok style)
-  useEffect(() => {
-    const shouldAutoRedirect = window.location.pathname === '/' || window.location.pathname === '/home';
-    if (shouldAutoRedirect && user) {
-      // Small delay then redirect to random video
-      setTimeout(() => {
-        fetch('/api/memories/public', { credentials: 'include' })
-          .then(res => res.json())
-          .then(memories => {
-            // Filter ONLY videos with proper media URLs
-            const videos = memories.filter((item: any) => 
-              item.type === 'video' && 
-              item.mediaUrls && 
-              item.mediaUrls.length > 0
-            );
-            if (videos.length > 0) {
-              const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-              setLocation(`/video/${randomVideo.id}`);
-            }
-          })
-          .catch(err => console.error('Auto-redirect error:', err));
-      }, 800);
-    }
-  }, [user, setLocation]);
+  // Smart content sections for better user experience
+  const [activeSection, setActiveSection] = useState<'trending' | 'videos' | 'images' | 'all'>('trending');
   
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
@@ -94,6 +74,21 @@ export default function Home() {
 
   const typedStreams = (streams as Stream[]);
   const typedMemories = (publicMemories as any[]);
+
+  // Filter content based on active section
+  const filteredMemories = typedMemories.filter(memory => {
+    switch (activeSection) {
+      case 'trending':
+        return memory.likeCount > 0 || memory.giftCount > 0 || memory.shareCount > 0;
+      case 'videos':
+        return memory.type === 'video';
+      case 'images':
+        return memory.type === 'image';
+      case 'all':
+      default:
+        return true;
+    }
+  });
 
   const handleJoinStream = (streamId: number) => {
     setLocation(`/stream/${streamId}`);
@@ -349,6 +344,67 @@ export default function Home() {
             </div>
           )}
 
+          {/* Smart Content Filter Tabs */}
+          <div className="bg-white rounded-xl shadow-sm border mb-6 overflow-hidden">
+            <div className="flex overflow-x-auto scrollbar-hide p-4 space-x-2 rtl:space-x-reverse">
+              <Button
+                variant={activeSection === 'trending' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveSection('trending')}
+                className={`flex items-center space-x-2 rtl:space-x-reverse whitespace-nowrap ${
+                  activeSection === 'trending' 
+                    ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                    : 'border-purple-200 text-purple-600 hover:bg-purple-50'
+                }`}
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>🔥 الأكثر تفاعلاً</span>
+              </Button>
+              
+              <Button
+                variant={activeSection === 'videos' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveSection('videos')}
+                className={`flex items-center space-x-2 rtl:space-x-reverse whitespace-nowrap ${
+                  activeSection === 'videos' 
+                    ? 'bg-pink-600 text-white hover:bg-pink-700' 
+                    : 'border-pink-200 text-pink-600 hover:bg-pink-50'
+                }`}
+              >
+                <Video className="w-4 h-4" />
+                <span>🎥 الفيديوهات فقط</span>
+              </Button>
+              
+              <Button
+                variant={activeSection === 'images' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveSection('images')}
+                className={`flex items-center space-x-2 rtl:space-x-reverse whitespace-nowrap ${
+                  activeSection === 'images' 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'border-blue-200 text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                <Image className="w-4 h-4" />
+                <span>🖼️ الصور فقط</span>
+              </Button>
+              
+              <Button
+                variant={activeSection === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveSection('all')}
+                className={`flex items-center space-x-2 rtl:space-x-reverse whitespace-nowrap ${
+                  activeSection === 'all' 
+                    ? 'bg-gray-800 text-white hover:bg-gray-900' 
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Star className="w-4 h-4" />
+                <span>⭐ جميع المنشورات</span>
+              </Button>
+            </div>
+          </div>
+
           {/* Posts/Memories Section */}
           <div>
             <div className="flex items-center justify-between mb-4 px-2">
@@ -357,19 +413,27 @@ export default function Home() {
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">المنشورات المميزة</h2>
-                  <p className="text-gray-600 text-sm">{typedMemories.length} منشور جديد</p>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    {activeSection === 'trending' && '🔥 الأكثر تفاعلاً'}
+                    {activeSection === 'videos' && '🎥 الفيديوهات'}  
+                    {activeSection === 'images' && '🖼️ الصور'}
+                    {activeSection === 'all' && '⭐ جميع المنشورات'}
+                  </h2>
+                  <p className="text-gray-600 text-sm">{filteredMemories.length} منشور</p>
                 </div>
               </div>
               <div className="flex items-center bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium shadow-sm">
                 <Sparkles className="w-3 h-3 mr-2" />
-                مميز
+                {activeSection === 'trending' && 'متفاعل'}
+                {activeSection === 'videos' && 'فيديو'}  
+                {activeSection === 'images' && 'صورة'}
+                {activeSection === 'all' && 'مميز'}
               </div>
             </div>
             
-            {typedMemories.length > 0 ? (
+            {filteredMemories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
-                {typedMemories.map((memory) => {
+                {filteredMemories.map((memory) => {
                   // تحديد نوع البطاقة بناءً على المحتوى
                   const cardType = memory.type === 'video' 
                     ? (memory.isLive ? 'live' : 'video')

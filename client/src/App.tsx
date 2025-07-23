@@ -26,62 +26,12 @@ function Router() {
   const [, setLocation] = useLocation();
   const [hasAutoNavigated, setHasAutoNavigated] = useState(false);
 
-  // Auto-navigate to random video when user logs in (TikTok style)
+  // Reset navigation state when user logs in
   useEffect(() => {
-    console.log('🎬 App.tsx useEffect triggered:', { isAuthenticated, hasAutoNavigated, user });
-    
     if (isAuthenticated && !hasAutoNavigated && user) {
-      console.log('🎯 Attempting to open random video...');
-      
-      const openRandomVideo = async () => {
-        try {
-          console.log('📡 Fetching memories from API...');
-          const response = await fetch('/api/memories/public', {
-            credentials: 'include'
-          });
-          
-          if (response.ok) {
-            const memories = await response.json();
-            console.log('📦 All memories received:', memories.length, 'items');
-            
-            // Filter ONLY videos - exclude images completely
-            const videos = memories.filter((item: any) => 
-              item.type === 'video' && 
-              item.mediaUrls && 
-              item.mediaUrls.length > 0
-            );
-            
-            console.log('🎥 Filtered videos:', videos.length, 'videos found');
-            console.log('🎥 Video details:', videos.map((v: any) => ({ id: v.id, url: v.mediaUrls[0] })));
-            
-            if (videos.length > 0) {
-              // Pick random video
-              const randomIndex = Math.floor(Math.random() * videos.length);
-              const randomVideo = videos[randomIndex];
-              console.log('🎲 Opening random video:', randomVideo.id, 'from index:', randomIndex);
-              console.log('🚀 Navigating to /video/' + randomVideo.id);
-              setLocation(`/video/${randomVideo.id}`);
-              setHasAutoNavigated(true);
-            } else {
-              console.log('❌ No videos found, staying on home');
-              // Don't redirect if no videos, let user see home page
-              setHasAutoNavigated(true);
-            }
-          } else {
-            console.log('❌ API response not ok:', response.status);
-            setHasAutoNavigated(true);
-          }
-        } catch (error) {
-          console.error('💥 Error loading random video:', error);
-          setHasAutoNavigated(true);
-        }
-      };
-
-      // Small delay to ensure smooth transition
-      console.log('⏰ Setting timeout for random video...');
-      setTimeout(openRandomVideo, 500);
+      setHasAutoNavigated(true);
     }
-  }, [isAuthenticated, hasAutoNavigated, user, setLocation]);
+  }, [isAuthenticated, hasAutoNavigated, user]);
 
   // Always show loading screen while checking auth
   if (isLoading) {
