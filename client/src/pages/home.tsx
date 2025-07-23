@@ -27,7 +27,7 @@ import {
   Volume2,
   VolumeX
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Stream } from "@/types";
@@ -50,6 +50,26 @@ export default function Home() {
     postId: '',
     postType: 'memory'
   });
+  
+  // Auto-redirect to random video if user visits home directly (TikTok style)
+  useEffect(() => {
+    const shouldAutoRedirect = window.location.pathname === '/' || window.location.pathname === '/home';
+    if (shouldAutoRedirect && user) {
+      // Small delay then redirect to random video
+      setTimeout(() => {
+        fetch('/api/memories/public', { credentials: 'include' })
+          .then(res => res.json())
+          .then(memories => {
+            const videos = memories.filter((item: any) => item.type === 'video');
+            if (videos.length > 0) {
+              const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+              setLocation(`/video/${randomVideo.id}`);
+            }
+          })
+          .catch(err => console.error('Auto-redirect error:', err));
+      }, 1000);
+    }
+  }, [user, setLocation]);
   
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({

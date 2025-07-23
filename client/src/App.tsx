@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -23,6 +23,39 @@ type Language = 'en' | 'ar';
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [, setLocation] = useLocation();
+  const [hasAutoNavigated, setHasAutoNavigated] = useState(false);
+
+  // Auto-navigate to random video when user logs in (TikTok style)
+  useEffect(() => {
+    if (isAuthenticated && !hasAutoNavigated) {
+      const openRandomVideo = async () => {
+        try {
+          const response = await fetch('/api/memories/public', {
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const memories = await response.json();
+            // Filter only videos
+            const videos = memories.filter((item: any) => item.type === 'video');
+            
+            if (videos.length > 0) {
+              // Pick random video
+              const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+              console.log('Opening random video:', randomVideo.id);
+              setLocation(`/video/${randomVideo.id}`);
+              setHasAutoNavigated(true);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading random video:', error);
+        }
+      };
+
+      // Small delay to ensure smooth transition
+      setTimeout(openRandomVideo, 500);
+    }
+  }, [isAuthenticated, hasAutoNavigated, setLocation]);
 
   // Always show loading screen while checking auth
   if (isLoading) {
