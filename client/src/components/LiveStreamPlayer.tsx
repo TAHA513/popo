@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, CameraOff, Mic, MicOff, Settings, Wifi, WifiOff } from 'lucide-react';
+import { Camera, CameraOff, Mic, MicOff, Settings, Wifi, WifiOff, Play } from 'lucide-react';
 import { Stream } from '@/types';
+import { useRealTimeStream } from '@/hooks/useRealTimeStream';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LiveStreamPlayerProps {
   stream: Stream;
@@ -10,39 +12,39 @@ interface LiveStreamPlayerProps {
 
 export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('connected');
+  const { user } = useAuth();
+  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('loading');
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  
+  const {
+    localVideoRef,
+    localStream,
+    isStreamingVideo,
+    startStreaming,
+    stopStreaming,
+    joinStreamAsViewer,
+    leaveStreamAsViewer,
+    viewerStreams,
+    isConnected
+  } = useRealTimeStream();
 
   useEffect(() => {
     const initializePlayer = async () => {
-      if (!videoRef.current) return;
-
       try {
         if (isStreamer) {
-          // For streamers, show their own camera feed
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-              width: { ideal: 1280 }, 
-              height: { ideal: 720 },
-              facingMode: 'user'
-            }, 
-            audio: true 
-          });
-          
-          videoRef.current.srcObject = stream;
-          videoRef.current.autoplay = true;
-          videoRef.current.playsInline = true;
-          videoRef.current.muted = true; // Avoid feedback
-          setMediaStream(stream);
+          // بدء البث للصاميمر
+          await startStreaming(stream.id);
           setStreamStatus('connected');
         } else {
-          // For viewers - immediately show connected state
-          setStreamStatus('connected');
+          // انضمام كمشاهد
+          if (user) {
+            joinStreamAsViewer(stream.id, user.id);
+            setStreamStatus('connected');
+          }
         }
       } catch (error) {
-        console.error('❌ Error initializing stream player:', error);
+        console.error('❌ خطأ في تهيئة البث:', error);
         setStreamStatus('error');
       }
     };
@@ -50,15 +52,17 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
     initializePlayer();
 
     return () => {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
+      if (isStreamer) {
+        stopStreaming();
+      } else {
+        leaveStreamAsViewer();
       }
     };
-  }, [stream.id, isStreamer]);
+  }, [stream.id, isStreamer, user, startStreaming, stopStreaming, joinStreamAsViewer, leaveStreamAsViewer]);
 
   const toggleVideo = () => {
-    if (mediaStream) {
-      const videoTrack = mediaStream.getVideoTracks()[0];
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !isVideoEnabled;
         setIsVideoEnabled(!isVideoEnabled);
@@ -67,8 +71,8 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
   };
 
   const toggleAudio = () => {
-    if (mediaStream) {
-      const audioTrack = mediaStream.getAudioTracks()[0];
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !isAudioEnabled;
         setIsAudioEnabled(!isAudioEnabled);
@@ -104,7 +108,7 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
       {isStreamer ? (
         <>
           <video
-            ref={videoRef}
+            ref={localVideoRef}
             autoPlay
             muted
             playsInline

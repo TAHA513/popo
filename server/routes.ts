@@ -1241,6 +1241,63 @@ async function handleWebSocketMessage(clientId: string, message: any) {
         client.streamId = undefined;
         break;
 
+    case 'start_live_stream':
+        console.log("🎥 Starting live stream:", {
+          streamId: message.streamId,
+          userId: client.userId,
+          streamerData: message.streamerData
+        });
+        
+        // إشعار جميع المشاهدين ببدء البث
+        broadcastToStream(message.streamId, {
+          type: 'stream_started',
+          streamId: message.streamId,
+          streamerData: message.streamerData
+        });
+        break;
+
+    case 'stop_live_stream':
+        console.log("🛑 Stopping live stream:", {
+          userId: client.userId,
+          streamId: client.streamId
+        });
+        
+        if (client.streamId) {
+          broadcastToStream(client.streamId, {
+            type: 'stream_ended',
+            streamId: client.streamId
+          });
+        }
+        break;
+
+    case 'join_live_stream':
+        console.log("🎬 Joining live stream as viewer:", {
+          streamId: message.streamId,
+          userId: message.userId,
+          role: message.role
+        });
+        
+        client.streamId = message.streamId;
+        client.userId = message.userId;
+        
+        // إرسال بيانات البث للمشاهد الجديد
+        client.ws.send(JSON.stringify({
+          type: 'live_stream_data',
+          streamId: message.streamId,
+          data: 'stream_ready'
+        }));
+        break;
+
+    case 'leave_live_stream':
+        console.log("🚪 Leaving live stream:", {
+          userId: client.userId,
+          streamId: client.streamId
+        });
+        
+        client.streamId = undefined;
+        client.userId = undefined;
+        break;
+
     case 'chat_message':
         console.log("💬 New chat message:", {
           streamId: client.streamId,

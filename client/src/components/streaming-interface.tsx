@@ -28,7 +28,7 @@ import LoveGiftEffect from "./LoveGiftEffect";
 import SupporterBadge from "./SupporterBadge";
 import SupporterLevelUpNotification from "./SupporterLevelUpNotification";
 import LiveStreamPlayer from "./LiveStreamPlayer";
-import SimpleStreamViewer from "./SimpleStreamViewer";
+import RealStreamViewer from "./RealStreamViewer";
 
 interface StreamingInterfaceProps {
   stream: Stream;
@@ -188,7 +188,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
           />
         ) : (
           <div className="absolute inset-0">
-            <SimpleStreamViewer stream={stream} />
+            <RealStreamViewer stream={stream} />
           </div>
         )}
 
