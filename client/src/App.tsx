@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { Suspense } from "react";
 import { initPerformanceOptimizations } from "@/lib/performance";
-
+import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import AccountPage from "@/pages/account";
@@ -67,7 +67,7 @@ function Router() {
           <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route component={Home} />
+          <Route component={NotFound} />
         </Suspense>
       ) : (
         <>
