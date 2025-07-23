@@ -187,7 +187,9 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
             isStreamer={true}
           />
         ) : (
-          <SimpleStreamViewer stream={stream} />
+          <div className="absolute inset-0">
+            <SimpleStreamViewer stream={stream} />
+          </div>
         )}
 
         {/* Top Header - TikTok Style */}

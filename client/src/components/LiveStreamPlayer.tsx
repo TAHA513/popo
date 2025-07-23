@@ -8,7 +8,7 @@ interface LiveStreamPlayerProps {
 
 export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('connected');
+  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('loading');
 
   useEffect(() => {
     const initializePlayer = async () => {
