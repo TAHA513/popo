@@ -1,9 +1,7 @@
 import * as React from "react"
 
 // Simple tooltip components without Radix UI dependency
-const TooltipProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return <div>{children}</div>;
-};
+// Removed TooltipProvider to prevent React hooks issues
 
 const Tooltip: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <div>{children}</div>;
@@ -17,4 +15,4 @@ const TooltipContent: React.FC<{ children: React.ReactNode; className?: string }
   return <div className={className}>{children}</div>;
 };
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+export { Tooltip, TooltipTrigger, TooltipContent }
