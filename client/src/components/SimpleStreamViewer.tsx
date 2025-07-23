@@ -58,13 +58,19 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
           ctx.lineWidth = 3;
           ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100);
           
-          // نص البث المباشر
+          // نص البث المباشر - أكثر حيوية
           ctx.fillStyle = 'white';
           ctx.font = 'bold 120px Arial';
           ctx.textAlign = 'center';
           ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
           ctx.shadowBlur = 10;
-          ctx.fillText('🔴 بث مباشر', canvas.width / 2, canvas.height / 2 - 200);
+          
+          // تأثير نبضات للنص
+          const pulseFactor = 1 + Math.sin(frameCount * 0.1) * 0.1;
+          ctx.save();
+          ctx.scale(pulseFactor, pulseFactor);
+          ctx.fillText('🔴 بث مباشر نشط', canvas.width / 2 / pulseFactor, (canvas.height / 2 - 200) / pulseFactor);
+          ctx.restore();
           
           // عنوان البث
           ctx.font = 'bold 80px Arial';
@@ -74,14 +80,33 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
           ctx.font = '60px Arial';
           ctx.fillText(`👥 ${streamData.viewerCount || 0} مشاهد`, canvas.width / 2, canvas.height / 2 + 150);
           
-          // الوقت مع أيقونة متحركة
+          // الوقت مع أيقونة متحركة وإحصائيات البث
           const now = new Date();
           const timeIcon = frameCount % 60 < 30 ? '🕐' : '🕑';
           ctx.fillText(`${timeIcon} ${now.toLocaleTimeString('ar-SA')}`, canvas.width / 2, canvas.height / 2 + 250);
           
-          // شعار LaaBoBo
-          ctx.font = 'bold 50px Arial';
-          ctx.fillText('🐰 LaaBoBo Live', canvas.width / 2, canvas.height - 100);
+          // إضافة عداد المشاهدات المتحرك
+          const viewerCount = (streamData.viewerCount || 0) + Math.floor(Math.sin(frameCount * 0.01) * 5);
+          ctx.font = '80px Arial';
+          ctx.fillText(`👁️ ${Math.max(1, viewerCount)} مشاهد نشط`, canvas.width / 2, canvas.height / 2 + 350);
+          
+          // إضافة نبضات القلب للدلالة على النشاط
+          if (frameCount % 120 < 10) {
+            ctx.font = '100px Arial';
+            ctx.fillStyle = '#ff0066';
+            ctx.fillText('💓', canvas.width / 2 + 300, canvas.height / 2 + 100);
+          }
+          
+          // شعار LaaBoBo مع تأثير
+          ctx.font = 'bold 60px Arial';
+          ctx.fillStyle = '#ec4899'; // LaaBoBo pink
+          ctx.fillText('🐰 LaaBoBo Live', canvas.width / 2, canvas.height - 150);
+          
+          // رسالة للمستخدم
+          ctx.font = '40px Arial';
+          ctx.fillStyle = 'white';
+          ctx.fillText('هذا محتوى تجريبي للبث المباشر', canvas.width / 2, canvas.height - 80);
+          ctx.fillText('البث الحقيقي يتطلب كاميرا واتصال إنترنت', canvas.width / 2, canvas.height - 40);
           
           ctx.shadowBlur = 0;
         }
@@ -113,7 +138,7 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
     return () => {
       setIsPlaying(false);
     };
-  }, [streamData.title, streamData.viewerCount]);
+  }, [streamData.title, streamData.viewerCount, isPlaying]);
 
   const togglePlay = () => {
     if (videoRef.current) {
