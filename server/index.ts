@@ -10,12 +10,6 @@ app.set('trust proxy', 1); // Trust first proxy for proper session handling
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static files (icons, manifest) before authentication
-app.use('/icon-192x192.png', express.static('public/icon-192x192.png'));
-app.use('/icon-512x512.png', express.static('public/icon-512x512.png'));
-app.use('/manifest.json', express.static('public/manifest.json'));
-app.use('/uploads', express.static('uploads'));
-
 // Setup session and passport
 app.use(getSession());
 app.use(passport.initialize());

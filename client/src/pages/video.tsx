@@ -79,12 +79,8 @@ export default function VideoPage() {
       });
       if (!response.ok) throw new Error('فشل في تحميل الفيديوهات');
       const data = await response.json();
-      // Filter ONLY videos with proper media URLs
-      return data.filter((item: any) => 
-        item.type === 'video' && 
-        item.mediaUrls && 
-        item.mediaUrls.length > 0
-      );
+      // Filter only videos
+      return data.filter((item: any) => item.type === 'video');
     },
     refetchInterval: 10000, // كل 10 ثواني - أكثر عقلانية
     staleTime: 5000, // 5 ثواني
@@ -146,7 +142,7 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Enhanced video setup with better error handling
+  // Simple and reliable video setup
   useEffect(() => {
     if (!currentVideo) return;
     
@@ -155,64 +151,31 @@ export default function VideoPage() {
     
     const setupVideo = async () => {
       try {
-        // Wait longer for DOM to be ready
-        let attempts = 0;
-        let videoElement: HTMLVideoElement | null = null;
+        // Wait for video element to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Try finding video element multiple times
-        while (!videoElement && attempts < 10) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-          videoElement = document.getElementById(`video-${currentVideo.id}`) as HTMLVideoElement;
-          attempts++;
-        }
-        
+        const videoElement = document.getElementById(`video-${currentVideo.id}`) as HTMLVideoElement;
         if (!videoElement) {
-          console.error('Video element still not found after 10 attempts for video:', currentVideo.id);
-          setVideoError(true);
-          setIsVideoLoading(false);
-          return;
+          throw new Error('Video element not found');
         }
 
-        console.log('Video element found:', videoElement);
-        
         // Setup video properties
         videoElement.muted = isMuted;
         videoElement.currentTime = 0;
-        
-        // Add error handling for video element
-        videoElement.addEventListener('error', (e) => {
-          console.error('Video element error:', e);
-          setVideoError(true);
-          setIsVideoLoading(false);
-        });
         
         // Wait for video to be ready
         if (videoElement.readyState >= 2) {
           setIsVideoLoading(false);
           if (isVideoPlaying) {
-            await videoElement.play().catch(err => {
-              console.error('Play error:', err);
-              setVideoError(true);
-            });
+            await videoElement.play();
           }
         } else {
           videoElement.addEventListener('canplay', () => {
             setIsVideoLoading(false);
             if (isVideoPlaying) {
-              videoElement.play().catch(err => {
-                console.error('Play error:', err);
-                setVideoError(true);
-              });
+              videoElement.play().catch(console.error);
             }
           }, { once: true });
-          
-          // Fallback timeout
-          setTimeout(() => {
-            if (isVideoLoading) {
-              console.log('Video loading timeout, setting loading to false');
-              setIsVideoLoading(false);
-            }
-          }, 5000);
         }
         
       } catch (error) {

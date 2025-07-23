@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -17,21 +17,12 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 type Language = 'en' | 'ar';
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const [, setLocation] = useLocation();
-  const [hasAutoNavigated, setHasAutoNavigated] = useState(false);
-
-  // Reset navigation state when user logs in
-  useEffect(() => {
-    if (isAuthenticated && !hasAutoNavigated && user) {
-      setHasAutoNavigated(true);
-    }
-  }, [isAuthenticated, hasAutoNavigated, user]);
 
   // Always show loading screen while checking auth
   if (isLoading) {
@@ -135,12 +126,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipPrimitive.Provider>
+      <TooltipProvider>
         <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
           <Toaster />
           <Router />
         </div>
-      </TooltipPrimitive.Provider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
