@@ -1,24 +1,37 @@
-import React, { useState, useRef, useEffect } from 'react';
 
-interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+import { useState, useRef, useEffect } from 'react';
+
+interface LazyImageProps {
   src: string;
   alt: string;
-  placeholder?: string;
   className?: string;
+  placeholder?: string;
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
-export function LazyImage({ src, alt, placeholder, className = '', ...props }: LazyImageProps) {
+export default function LazyImage({ 
+  src, 
+  alt, 
+  className = '', 
+  placeholder,
+  onLoad,
+  onError 
+}: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(placeholder || '');
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && src && !isLoaded && !hasError) {
+            setImageSrc(src);
+            observer.unobserve(entry.target);
+          }
+        });
       },
       { threshold: 0.1 }
     );
@@ -28,26 +41,30 @@ export function LazyImage({ src, alt, placeholder, className = '', ...props }: L
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [src, isLoaded, hasError]);
+
+  const handleLoad = () => {
+    setIsLoaded(true);
+    if (onLoad) onLoad();
+  };
+
+  const handleError = () => {
+    setHasError(true);
+    // استخدام صورة بديلة عند الخطأ
+    setImageSrc('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAyOEMxNi42ODYzIDI4IDEzLjkzNzMgMjUuMjUxIDEzLjkzNzMgMjEuOTM3M0MxMy45MzczIDE4LjYyMzUgMTYuNjg2MyAxNS44NzQ2IDIwIDE1Ljg3NDZDMjMuMzEzNyAxNS44NzQ2IDI2LjA2MjcgMTguNjIzNSAyNi4wNjI3IDIxLjkzNzNDMjYuMDYyNyAyNS4yNTEgMjMuMzEzNyAyOCAyMCAyOFoiIGZpbGw9IiM5Q0E0QUIiLz4KPHN2Zz4K');
+    if (onError) onError();
+  };
 
   return (
-    <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
-      {!isLoaded && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-        </div>
-      )}
-      {isInView && (
-        <img
-          src={src}
-          alt={alt}
-          onLoad={() => setIsLoaded(true)}
-          className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
-          {...props}
-        />
-      )}
-    </div>
+    <img
+      ref={imgRef}
+      src={imageSrc}
+      alt={alt}
+      className={`${className} ${!isLoaded && !hasError ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+      onLoad={handleLoad}
+      onError={handleError}
+      loading="lazy"
+      decoding="async"
+    />
   );
 }
-
-export default LazyImage;

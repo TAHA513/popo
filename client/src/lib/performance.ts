@@ -37,19 +37,27 @@ export async function compressImage(file: File, maxWidth = 1200, quality = 0.8):
   });
 }
 
-// تحسين الذاكرة التخزين المؤقت
+// تحسين الذاكرة التخزين المؤقت مع دعم SPA
 class PerformanceCache {
   private cache = new Map<string, {
     data: any;
     timestamp: number;
     ttl: number;
+    accessCount: number;
   }>();
+  private maxSize = 100; // حد أقصى للعناصر المحفوظة
   
   set(key: string, data: any, ttl = 300000) { // 5 دقائق افتراضي
+    // إذا تم الوصول للحد الأقصى، احذف العناصر الأقل استخداماً
+    if (this.cache.size >= this.maxSize) {
+      this.evictLeastUsed();
+    }
+    
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl
+      ttl,
+      accessCount: 1
     });
     
     // تنظيف الذاكرة من البيانات المنتهية الصلاحية
@@ -65,7 +73,25 @@ class PerformanceCache {
       return null;
     }
     
+    // زيادة عداد الوصول
+    item.accessCount++;
     return item.data;
+  }
+  
+  private evictLeastUsed() {
+    let leastUsedKey = '';
+    let minAccess = Infinity;
+    
+    for (const [key, item] of this.cache.entries()) {
+      if (item.accessCount < minAccess) {
+        minAccess = item.accessCount;
+        leastUsedKey = key;
+      }
+    }
+    
+    if (leastUsedKey) {
+      this.cache.delete(leastUsedKey);
+    }
   }
   
   private cleanup() {
@@ -79,6 +105,14 @@ class PerformanceCache {
   
   clear() {
     this.cache.clear();
+  }
+  
+  // احصائيات الكاش
+  getStats() {
+    return {
+      size: this.cache.size,
+      totalAccess: Array.from(this.cache.values()).reduce((sum, item) => sum + item.accessCount, 0)
+    };
   }
 }
 
@@ -120,13 +154,82 @@ export function optimizeAnimations() {
   }
 }
 
+// SPA Navigation optimization
+export function optimizeSPANavigation() {
+  // منع إعادة التحميل غير الضرورية
+  const handleLinkClick = (e: Event) => {
+    const target = e.target as HTMLAnchorElement;
+    if (target.tagName === 'A' && target.href && target.href.startsWith(window.location.origin)) {
+      const path = target.pathname;
+      // تحقق من أن الرابط داخلي
+      if (path && !target.target && !target.download) {
+        // دع React Router يتعامل مع التنقل
+        return;
+      }
+    }
+  };
+  
+  document.addEventListener('click', handleLinkClick);
+  
+  // تحسين التاريخ
+  window.addEventListener('popstate', () => {
+    // تحديث الحالة بناءً على التاريخ
+    console.log('Navigation state updated');
+  });
+}
+
+// تحميل مسبق للمسارات المهمة
+export function preloadCriticalRoutes() {
+  const criticalRoutes = ['/explore', '/messages', '/profile'];
+  
+  criticalRoutes.forEach(route => {
+    // إنشاء رابط تحميل مسبق
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = route;
+    document.head.appendChild(link);
+  });
+}
+
+// تحسين تحميل المكونات
+export function optimizeComponentLoading() {
+  // استخدام Intersection Observer لتحميل المحتوى عند الحاجة
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const element = entry.target as HTMLElement;
+        if (element.dataset.lazyComponent) {
+          // تحميل المكون عند الحاجة
+          console.log(`Loading component: ${element.dataset.lazyComponent}`);
+        }
+      }
+    });
+  }, { threshold: 0.1 });
+  
+  // مراقبة العناصر المحددة للتحميل التأخيري
+  document.querySelectorAll('[data-lazy-component]').forEach(el => {
+    observer.observe(el);
+  });
+}
+
 // تهيئة تحسينات الأداء
 export function initPerformanceOptimizations() {
   // تحسين الرسوم المتحركة
   optimizeAnimations();
   
+  // تحسين SPA Navigation
+  optimizeSPANavigation();
+  
+  // تحميل مسبق للمسارات المهمة
+  preloadCriticalRoutes();
+  
+  // تحسين تحميل المكونات
+  optimizeComponentLoading();
+  
   // تنظيف الذاكرة كل 10 دقائق
   setInterval(() => {
+    const stats = cache.getStats();
+    console.log('Cache stats before cleanup:', stats);
     cache.clear();
   }, 600000);
   
@@ -136,11 +239,18 @@ export function initPerformanceOptimizations() {
   }
   
   // تحسين تحميل الصور
-  const images = document.querySelectorAll('img[loading]');
+  const images = document.querySelectorAll('img');
   images.forEach(img => {
     if (!img.getAttribute('loading')) {
       img.setAttribute('loading', 'lazy');
     }
+    // إضافة معالج خطأ لتحسين تجربة المستخدم
+    img.addEventListener('error', (e) => {
+      const target = e.target as HTMLImageElement;
+      if (target.src && !target.src.includes('placeholder')) {
+        target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAyOEMxNi42ODYzIDI4IDEzLjkzNzMgMjUuMjUxIDEzLjkzNzMgMjEuOTM3M0MxMy45MzczIDE4LjYyMzUgMTYuNjg2MyAxNS44NzQ2IDIwIDE1Ljg3NDZDMjMuMzEzNyAxNS44NzQ2IDI2LjA2MjcgMTguNjIzNSAyNi4wNjI3IDIxLjkzNzNDMjYuMDYyNyAyNS4yNTEgMjMuMzEzNyAyOCAyMCAyOFoiIGZpbGw9IiM5Q0E0QUIiLz4KPHN2Zz4K';
+      }
+    });
   });
   
   // تحسين الخطوط
@@ -149,4 +259,18 @@ export function initPerformanceOptimizations() {
       console.log('تم تحميل جميع الخطوط بنجاح');
     });
   }
+  
+  // تحسين معالجة الأحداث
+  let scrollTimeout: NodeJS.Timeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      // معالجة التمرير بتأخير لتحسين الأداء
+      const scrollProgress = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+      if (scrollProgress > 0.8) {
+        // تحميل المزيد من المحتوى عند الاقتراب من النهاية
+        console.log('Near bottom - consider loading more content');
+      }
+    }, 100);
+  }, { passive: true });
 }

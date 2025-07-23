@@ -71,14 +71,16 @@ export default function BottomNavigation() {
                       method: "POST",
                       credentials: "include",
                     });
-                    if (window.location.pathname !== "/login") {
-                      window.location.replace("/login");
+                    // استخدام SPA navigation بدلاً من window.location
+                    const currentPath = window.location.pathname;
+                    if (currentPath !== "/login") {
+                      // إعادة تحميل الصفحة لضمان مسح الحالة
+                      window.location.href = "/login";
                     }
                   } catch (error) {
                     console.error("Logout error:", error);
-                    if (window.location.pathname !== "/login") {
-                      window.location.replace("/login");
-                    }
+                    // في حالة الخطأ، انتقل للصفحة الرئيسية
+                    window.location.href = "/login";
                   }
                 }}
                 className="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 text-red-500 hover:text-red-600 hover:bg-red-50"

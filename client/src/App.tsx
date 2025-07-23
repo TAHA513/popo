@@ -2,7 +2,6 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -92,6 +91,36 @@ function App() {
     
     // Initialize performance optimizations
     initPerformanceOptimizations();
+    
+    // Performance monitoring
+    if ('PerformanceObserver' in window) {
+      const observer = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        entries.forEach(entry => {
+          if (entry.entryType === 'navigation') {
+            console.log('Navigation timing:', entry.toJSON());
+          }
+        });
+      });
+      observer.observe({ entryTypes: ['navigation'] });
+    }
+    
+    // Memory usage monitoring (for development)
+    if (process.env.NODE_ENV === 'development') {
+      const checkMemory = () => {
+        if ('memory' in performance) {
+          const memory = (performance as any).memory;
+          console.log('Memory usage:', {
+            used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
+            total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
+            limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
+          });
+        }
+      };
+      
+      const memoryInterval = setInterval(checkMemory, 30000); // كل 30 ثانية
+      return () => clearInterval(memoryInterval);
+    }
   }, [language]);
 
   return (

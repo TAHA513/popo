@@ -71,7 +71,7 @@ export default function Home() {
   const typedMemories = (publicMemories as any[]);
 
   const handleJoinStream = (streamId: number) => {
-    window.location.href = `/stream/${streamId}`;
+    setLocation(`/stream/${streamId}`);
   };
 
   const handleLike = (itemId: string) => {
