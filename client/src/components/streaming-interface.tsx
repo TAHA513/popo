@@ -169,7 +169,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-50">
+    <div className="fixed inset-0 bg-black z-50 streaming-interface">
       {/* TikTok-Style Full Screen Stream */}
       <div className="relative w-full h-full">
         {/* Video Background */}
@@ -195,11 +195,11 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
               <X className="w-5 h-5" />
             </Button>
             
-            <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-full">
+            <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-full live-indicator">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               <span className="text-white text-sm font-semibold">مباشر</span>
               <Eye className="w-4 h-4 text-white" />
-              <span className="text-white text-sm">{viewerCount}</span>
+              <span className="text-white text-sm font-bold">{viewerCount}</span>
             </div>
           </div>
         </div>
@@ -237,33 +237,33 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
             <div className="flex flex-col items-center">
               <Button 
                 size="lg"
-                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-laa-pink hover:bg-pink-600 border-2 border-white shadow-lg"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-laa-pink hover:bg-pink-600 border-2 border-white shadow-lg tiktok-button"
               >
                 <UserPlus className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </Button>
-              <span className="text-white text-xs mt-1">متابعة</span>
+              <span className="text-white text-xs mt-1 font-semibold">متابعة</span>
             </div>
             
             {/* Heart/Like Button */}
             <div className="flex flex-col items-center">
               <Button 
                 size="lg"
-                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-red-600 hover:bg-red-700 border-2 border-white shadow-lg"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-red-600 hover:bg-red-700 border-2 border-white shadow-lg tiktok-button"
               >
                 <Heart className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </Button>
-              <span className="text-white text-xs mt-1">إعجاب</span>
+              <span className="text-white text-xs mt-1 font-semibold">إعجاب</span>
             </div>
             
             {/* Share Button */}
             <div className="flex flex-col items-center">
               <Button 
                 size="lg"
-                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-600 hover:bg-blue-700 border-2 border-white shadow-lg"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-600 hover:bg-blue-700 border-2 border-white shadow-lg tiktok-button"
               >
                 <Share2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </Button>
-              <span className="text-white text-xs mt-1">مشاركة</span>
+              <span className="text-white text-xs mt-1 font-semibold">مشاركة</span>
             </div>
             
             {/* Gift Button */}
@@ -271,11 +271,11 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
               <Button 
                 size="lg"
                 onClick={() => setShowGiftPanel(!showGiftPanel)}
-                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-500 hover:bg-yellow-600 border-2 border-white shadow-lg"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-500 hover:bg-yellow-600 border-2 border-white shadow-lg tiktok-button"
               >
                 <GiftIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </Button>
-              <span className="text-white text-xs mt-1">هدية</span>
+              <span className="text-white text-xs mt-1 font-semibold">هدية</span>
             </div>
             
             {/* Beauty Filters Button - Only for streamers */}
@@ -284,13 +284,13 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
                 <Button 
                   size="lg"
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`w-12 h-12 md:w-14 md:h-14 rounded-full bg-purple-600 hover:bg-purple-700 border-2 border-white shadow-lg ${
+                  className={`w-12 h-12 md:w-14 md:h-14 rounded-full bg-purple-600 hover:bg-purple-700 border-2 border-white shadow-lg tiktok-button ${
                     showFilters ? 'ring-2 ring-pink-400' : ''
                   }`}
                 >
                   <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </Button>
-                <span className="text-white text-xs mt-1">فلاتر</span>
+                <span className="text-white text-xs mt-1 font-semibold">فلاتر</span>
               </div>
             )}
             
@@ -312,7 +312,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
 
         {/* Bottom Chat Panel - Floating */}
         <div className="absolute bottom-4 left-4 right-24 z-30">
-          <div className="bg-black/60 backdrop-blur-sm rounded-lg p-3 max-h-40 overflow-y-auto">
+          <div className="streaming-chat rounded-lg p-3 max-h-40 overflow-y-auto">
             {/* Recent Chat Messages */}
             <div className="space-y-2 mb-3">
               {chatMessages.slice(-3).map((message) => (
@@ -350,7 +350,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
         {/* Gift Panel */}
         {showGiftPanel && (
           <div className="absolute bottom-20 right-4 z-40">
-            <div className="bg-black/80 backdrop-blur-sm rounded-lg p-4 max-w-sm">
+            <div className="gift-panel rounded-lg p-4 max-w-sm">
               <GiftCharacters 
                 onSelectGift={handleSendGift}
                 showPurchaseButton={true}
@@ -362,7 +362,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
         {/* Beauty Filters Panel */}
         {isStreamer && showFilters && (
           <div className="absolute bottom-20 right-4 z-40">
-            <div className="bg-black/80 backdrop-blur-sm rounded-lg p-4 max-w-sm">
+            <div className="gift-panel rounded-lg p-4 max-w-sm">
               <BeautyFilters
                 isStreaming={true}
                 onFilterChange={(filterId, intensity) => {
