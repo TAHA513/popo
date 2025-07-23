@@ -30,39 +30,55 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
   } = useRealTimeStream();
 
   useEffect(() => {
+    let mounted = true;
+    
     const initializePlayer = async () => {
       try {
-        if (isStreamer) {
-          // بدء البث للصاميمر
-          await startStreaming(stream.id);
-          setStreamStatus('connected');
-        } else {
-          // انضمام كمشاهد
-          if (user) {
-            joinStreamAsViewer(stream.id, user.id);
+        if (!mounted) return;
+        
+        if (isStreamer && user) {
+          // للصاميمر - استخدام النظام القديم المباشر
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              width: { ideal: 1280 }, 
+              height: { ideal: 720 },
+              facingMode: 'user'
+            }, 
+            audio: true 
+          });
+          
+          if (localVideoRef.current && mounted) {
+            localVideoRef.current.srcObject = stream;
+            localVideoRef.current.autoplay = true;
+            localVideoRef.current.playsInline = true;
+            localVideoRef.current.muted = true;
             setStreamStatus('connected');
+            console.log('✅ تم تشغيل الكاميرا للصاميمر');
           }
+        } else if (!isStreamer) {
+          // للمشاهدين - عرض البث
+          setStreamStatus('connected');
+          console.log('✅ تم تحضير عارض البث للمشاهد');
         }
       } catch (error) {
         console.error('❌ خطأ في تهيئة البث:', error);
-        setStreamStatus('error');
+        if (mounted) {
+          setStreamStatus('error');
+        }
       }
     };
 
     initializePlayer();
 
     return () => {
-      if (isStreamer) {
-        stopStreaming();
-      } else {
-        leaveStreamAsViewer();
-      }
+      mounted = false;
     };
-  }, [stream.id, isStreamer, user, startStreaming, stopStreaming, joinStreamAsViewer, leaveStreamAsViewer]);
+  }, [stream.id, isStreamer, user]);
 
   const toggleVideo = () => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !isVideoEnabled;
         setIsVideoEnabled(!isVideoEnabled);
@@ -71,8 +87,9 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
   };
 
   const toggleAudio = () => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      const audioTrack = stream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !isAudioEnabled;
         setIsAudioEnabled(!isAudioEnabled);

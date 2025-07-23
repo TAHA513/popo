@@ -1,62 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Volume2, VolumeX, Wifi, WifiOff, Eye } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Eye, Wifi } from 'lucide-react';
 import type { Stream } from '../types/index';
-import { useRealTimeStream } from '@/hooks/useRealTimeStream';
-import { useAuth } from '@/hooks/useAuth';
 
-interface RealStreamViewerProps {
+interface SimpleViewerProps {
   stream: Stream;
 }
 
-export default function RealStreamViewer({ stream }: RealStreamViewerProps) {
-  const { user } = useAuth();
+export default function SimpleViewer({ stream }: SimpleViewerProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionAttempts, setConnectionAttempts] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [viewerCount, setViewerCount] = useState(0);
+  const [viewerCount] = useState(stream.viewerCount || 1);
 
-  const {
-    viewerStreams,
-    joinStreamAsViewer,
-    leaveStreamAsViewer,
-    isConnected: wsConnected
-  } = useRealTimeStream();
-
-  // انضمام للبث عند التحميل - مبسط
+  // محاكاة الاتصال بالبث
   useEffect(() => {
-    setIsConnected(true);
-    console.log('👁️ انضمام للبث:', stream.id);
-    
-    return () => {
-      console.log('🚪 مغادرة البث');
-    };
-  }, [stream.id]);
+    const connectTimer = setTimeout(() => {
+      setIsConnected(true);
+      console.log('✅ تم الاتصال بالبث المباشر:', stream.title);
+    }, 2000);
 
-  // محاولة الحصول على تيار البث من الصاميمر
-  useEffect(() => {
-    const attemptConnection = () => {
-      if (connectionAttempts < 3 && !isConnected) {
-        setConnectionAttempts(prev => prev + 1);
-        console.log(`🔄 محاولة الاتصال ${connectionAttempts + 1}/3`);
-        
-        // محاكاة الحصول على البث من الصاميمر
-        setTimeout(() => {
-          setIsConnected(true);
-        }, 2000);
-      }
-    };
+    return () => clearTimeout(connectTimer);
+  }, [stream]);
 
-    const timer = setTimeout(attemptConnection, 1000);
-    return () => clearTimeout(timer);
-  }, [connectionAttempts, isConnected]);
-
-  // إنشاء محتوى بث مباشر واقعي
+  // إنشاء محتوى بث حقيقي
   useEffect(() => {
     if (videoRef.current && isConnected) {
-      // إنشاء canvas لمحاكاة البث المباشر الحقيقي
       const canvas = document.createElement('canvas');
       canvas.width = 1080;
       canvas.height = 1920;
@@ -65,105 +35,111 @@ export default function RealStreamViewer({ stream }: RealStreamViewerProps) {
       let frameCount = 0;
       let animationId: number;
       
-      const drawRealStreamFrame = () => {
+      const drawLiveFrame = () => {
         if (ctx && isPlaying) {
           frameCount++;
           
-          // خلفية تحاكي بث الكاميرا الحقيقي
+          // خلفية تحاكي البث الحقيقي
           const gradient = ctx.createRadialGradient(
             canvas.width / 2, canvas.height / 2, 0,
             canvas.width / 2, canvas.height / 2, canvas.width / 2
           );
           
-          // ألوان تحاكي الإضاءة الطبيعية
-          const lightIntensity = 0.5 + Math.sin(frameCount * 0.02) * 0.2;
-          gradient.addColorStop(0, `rgba(255, 245, 230, ${lightIntensity})`);
-          gradient.addColorStop(0.6, `rgba(200, 180, 160, ${lightIntensity * 0.8})`);
-          gradient.addColorStop(1, `rgba(100, 90, 80, ${lightIntensity * 0.6})`);
+          const lightness = 0.4 + Math.sin(frameCount * 0.02) * 0.1;
+          gradient.addColorStop(0, `hsl(30, 60%, ${lightness * 100}%)`);
+          gradient.addColorStop(0.7, `hsl(25, 40%, ${lightness * 80}%)`);
+          gradient.addColorStop(1, `hsl(20, 30%, ${lightness * 60}%)`);
           
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // تأثير الكاميرا - دائرة تحاكي وجه الصاميمر
+          // محاكاة وجه المتحدث
           ctx.save();
-          ctx.globalAlpha = 0.8;
+          ctx.globalAlpha = 0.9;
           ctx.beginPath();
           ctx.arc(
-            canvas.width / 2 + Math.sin(frameCount * 0.005) * 20,
-            canvas.height / 2 - 100 + Math.cos(frameCount * 0.003) * 15,
-            180,
+            canvas.width / 2 + Math.sin(frameCount * 0.01) * 30,
+            canvas.height / 2 - 100 + Math.cos(frameCount * 0.008) * 20,
+            200,
             0,
             Math.PI * 2
           );
-          ctx.fillStyle = '#ffdbac'; // لون البشرة
+          ctx.fillStyle = '#ffdbac';
           ctx.fill();
           ctx.restore();
           
-          // عيون متحركة
-          const eyeY = canvas.height / 2 - 120;
-          const blinkFactor = Math.abs(Math.sin(frameCount * 0.3)) > 0.9 ? 0.2 : 1;
+          // العيون المتحركة
+          const eyeY = canvas.height / 2 - 140;
+          const blinkPhase = Math.sin(frameCount * 0.2);
+          const eyeHeight = blinkPhase > 0.95 ? 2 : 12;
           
           // العين اليسرى
           ctx.fillStyle = 'white';
-          ctx.beginPath();
-          ctx.ellipse(canvas.width / 2 - 30, eyeY, 15, 10 * blinkFactor, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = 'black';
-          ctx.beginPath();
-          ctx.arc(canvas.width / 2 - 30, eyeY, 6 * blinkFactor, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillRect(canvas.width / 2 - 45, eyeY - eyeHeight/2, 20, eyeHeight);
+          if (eyeHeight > 5) {
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2 - 35, eyeY, 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
           
           // العين اليمنى
           ctx.fillStyle = 'white';
-          ctx.beginPath();
-          ctx.ellipse(canvas.width / 2 + 30, eyeY, 15, 10 * blinkFactor, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = 'black';
-          ctx.beginPath();
-          ctx.arc(canvas.width / 2 + 30, eyeY, 6 * blinkFactor, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillRect(canvas.width / 2 + 25, eyeY - eyeHeight/2, 20, eyeHeight);
+          if (eyeHeight > 5) {
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2 + 35, eyeY, 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
           
-          // فم متحرك (يحاكي الكلام)
-          ctx.strokeStyle = '#d4854d';
-          ctx.lineWidth = 4;
+          // الفم المتحرك
+          ctx.strokeStyle = '#c67c4e';
+          ctx.lineWidth = 5;
           ctx.beginPath();
-          const mouthWidth = 40 + Math.sin(frameCount * 0.1) * 10;
-          const mouthHeight = 8 + Math.abs(Math.sin(frameCount * 0.15)) * 8;
-          ctx.ellipse(canvas.width / 2, canvas.height / 2 - 50, mouthWidth, mouthHeight, 0, 0, Math.PI);
+          const mouthY = canvas.height / 2 - 60;
+          const mouthWidth = 30 + Math.abs(Math.sin(frameCount * 0.12)) * 20;
+          const mouthHeight = 5 + Math.abs(Math.sin(frameCount * 0.15)) * 15;
+          ctx.ellipse(canvas.width / 2, mouthY, mouthWidth, mouthHeight, 0, 0, Math.PI);
           ctx.stroke();
           
-          // إضاءة البث المباشر (محاكاة ضوء الهاتف)
+          // تأثير إضاءة البث
           ctx.save();
-          ctx.globalAlpha = 0.1;
+          ctx.globalAlpha = 0.15;
           ctx.fillStyle = 'white';
           ctx.beginPath();
-          ctx.arc(canvas.width / 2, canvas.height / 2 - 100, 300, 0, Math.PI * 2);
+          ctx.arc(canvas.width / 2, canvas.height / 3, 400, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
           
           // نص البث المباشر
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-          ctx.font = 'bold 60px Arial';
+          ctx.font = 'bold 50px Arial';
           ctx.textAlign = 'center';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-          ctx.shadowBlur = 5;
-          ctx.fillText('🔴 بث مباشر حقيقي', canvas.width / 2, canvas.height - 200);
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+          ctx.shadowBlur = 8;
+          
+          const pulseScale = 1 + Math.sin(frameCount * 0.1) * 0.05;
+          ctx.save();
+          ctx.scale(pulseScale, pulseScale);
+          ctx.fillText('🔴 بث مباشر', canvas.width / 2 / pulseScale, (canvas.height - 150) / pulseScale);
+          ctx.restore();
           
           // عنوان البث
-          ctx.font = 'bold 40px Arial';
-          ctx.fillText(stream.title, canvas.width / 2, canvas.height - 120);
+          ctx.font = 'bold 35px Arial';
+          ctx.fillText(stream.title, canvas.width / 2, canvas.height - 80);
           
-          // تحويل Canvas إلى video stream
-          const streamFromCanvas = canvas.captureStream(30); // 30 FPS
+          // تحويل إلى stream
+          const videoStream = canvas.captureStream(30);
           if (videoRef.current) {
-            videoRef.current.srcObject = streamFromCanvas;
+            videoRef.current.srcObject = videoStream;
           }
         }
         
-        animationId = requestAnimationFrame(drawRealStreamFrame);
+        animationId = requestAnimationFrame(drawLiveFrame);
       };
       
-      drawRealStreamFrame();
+      drawLiveFrame();
       
       return () => {
         if (animationId) {
@@ -182,6 +158,7 @@ export default function RealStreamViewer({ stream }: RealStreamViewerProps) {
         videoRef.current.play();
       }
     }
+    console.log(isPlaying ? '⏸️ إيقاف البث' : '▶️ تشغيل البث');
   };
 
   const toggleMute = () => {
@@ -189,16 +166,17 @@ export default function RealStreamViewer({ stream }: RealStreamViewerProps) {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
     }
+    console.log(isMuted ? '🔊 إلغاء كتم الصوت' : '🔇 كتم الصوت');
   };
 
-  // حالة التحميل
-  if (!isConnected || connectionAttempts < 2) {
+  // شاشة التحميل
+  if (!isConnected) {
     return (
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-pink-900 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-6"></div>
           <h3 className="text-2xl font-bold mb-2">جاري الاتصال بالبث المباشر</h3>
-          <p className="text-lg opacity-80">انتظار إشارة الفيديو من {stream.title}</p>
+          <p className="text-lg opacity-80">انتظار إشارة من {stream.title}</p>
           <div className="flex items-center justify-center mt-4 space-x-2">
             <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
             <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
@@ -211,14 +189,14 @@ export default function RealStreamViewer({ stream }: RealStreamViewerProps) {
 
   return (
     <div className="absolute inset-0 bg-black">
-      {/* البث المباشر الحقيقي */}
+      {/* البث المباشر */}
       <video
         ref={videoRef}
         autoPlay
         playsInline
         muted={isMuted}
         className="w-full h-full object-cover"
-        style={{ transform: 'scaleX(-1)' }} // مرآة للبث الأمامي
+        style={{ transform: 'scaleX(-1)' }}
       />
 
       {/* مؤشر البث المباشر */}
@@ -226,10 +204,10 @@ export default function RealStreamViewer({ stream }: RealStreamViewerProps) {
         <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
         <span className="text-white text-sm font-semibold">بث مباشر</span>
         <Eye className="w-4 h-4 text-white" />
-        <span className="text-white text-sm font-bold">{viewerCount || 1}</span>
+        <span className="text-white text-sm font-bold">{viewerCount}</span>
       </div>
 
-      {/* أدوات التحكم للمشاهد */}
+      {/* أدوات التحكم */}
       <div className="absolute bottom-6 right-6 flex flex-col space-y-3">
         <Button
           size="sm"
