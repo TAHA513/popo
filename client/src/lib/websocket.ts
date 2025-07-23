@@ -12,7 +12,12 @@ export class WebSocketManager {
     if (this.ws?.readyState === WebSocket.OPEN) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.hostname === 'localhost' ? 'localhost:5000' : window.location.host;
+    const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
+    const host = window.location.hostname === 'localhost' 
+      ? 'localhost:5000' 
+      : window.location.port 
+        ? `${window.location.hostname}:${window.location.port}`
+        : window.location.hostname;
     const wsUrl = `${protocol}//${host}/ws`;
     
     try {

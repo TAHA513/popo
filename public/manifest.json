@@ -1,0 +1,16 @@
+{
+  "name": "LaaBoBo Live",
+  "short_name": "LaaBoBo",
+  "description": "Live streaming and social platform with Arabic support",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FF7ACA",
+  "theme_color": "#BF68FF",
+  "icons": [
+    {
+      "src": "/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

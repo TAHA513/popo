@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { useWebSocket } from "@/lib/websocket";
+import { useWebSocket } from "@/hooks/useWebSocketFixed";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -80,15 +80,15 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
 
   // Set up WebSocket listeners
   useEffect(() => {
-    onViewerCountUpdate((count) => {
+    onViewerCountUpdate((count: number) => {
       setViewerCount(count);
     });
 
-    onChatMessage((message, messageUser) => {
+    onChatMessage((message: any, messageUser: any) => {
       setChatMessages(prev => [...prev, { ...message, user: messageUser }]);
     });
 
-    onGiftSent((gift, sender) => {
+    onGiftSent((gift: any, sender: any) => {
       // Add gift notification to chat
       const giftMessage: ExtendedChatMessage = {
         id: Date.now(),
