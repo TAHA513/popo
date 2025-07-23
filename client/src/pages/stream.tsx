@@ -45,10 +45,12 @@ export default function StreamPage() {
   }
 
   if (error) {
+    console.error("❌ Stream error details:", error);
+    
     if (isUnauthorizedError(error as Error)) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "غير مخول",
+        description: "تم تسجيل خروجك. جاري إعادة التوجيه لتسجيل الدخول...",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -57,17 +59,38 @@ export default function StreamPage() {
       return null;
     }
 
+    // Check if it's a 404 error
+    const is404 = (error as any)?.status === 404 || (error as any)?.message?.includes('404');
+    
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <h1 className="text-2xl font-bold mb-4">Stream Not Found</h1>
-          <p className="text-gray-400 mb-6">The stream you're looking for doesn't exist or has ended.</p>
-          <button
-            onClick={() => window.history.back()}
-            className="bg-laa-pink hover:bg-pink-600 px-6 py-3 rounded-lg font-semibold transition-colors"
-          >
-            Go Back
-          </button>
+        <div className="text-white text-center max-w-md mx-4">
+          <div className="mb-6">
+            <div className="text-6xl mb-4">🔴</div>
+            <h1 className="text-2xl font-bold mb-4">
+              {is404 ? "البث غير موجود" : "خطأ في تحميل البث"}
+            </h1>
+            <p className="text-gray-400 mb-6">
+              {is404 
+                ? "البث المباشر الذي تبحث عنه غير موجود أو انتهى بالفعل."
+                : "حدث خطأ أثناء تحميل البث المباشر. يرجى المحاولة مرة أخرى."
+              }
+            </p>
+          </div>
+          <div className="space-x-4 rtl:space-x-reverse">
+            <button
+              onClick={() => window.history.back()}
+              className="bg-laa-pink hover:bg-pink-600 px-6 py-3 rounded-lg font-semibold transition-colors mr-3"
+            >
+              العودة
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg font-semibold transition-colors"
+            >
+              إعادة المحاولة
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -76,9 +99,18 @@ export default function StreamPage() {
   if (!stream) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <h1 className="text-2xl font-bold mb-4">Stream Not Available</h1>
-          <p className="text-gray-400">This stream is currently unavailable.</p>
+        <div className="text-white text-center max-w-md mx-4">
+          <div className="mb-6">
+            <div className="text-6xl mb-4">📡</div>
+            <h1 className="text-2xl font-bold mb-4">البث غير متاح</h1>
+            <p className="text-gray-400 mb-6">هذا البث المباشر غير متاح حالياً أو انتهى.</p>
+          </div>
+          <button
+            onClick={() => window.history.back()}
+            className="bg-laa-pink hover:bg-pink-600 px-6 py-3 rounded-lg font-semibold transition-colors"
+          >
+            العودة للصفحة الرئيسية
+          </button>
         </div>
       </div>
     );

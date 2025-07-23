@@ -416,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // If user has privacy settings to hide last seen, only show online status
-      if (!user[0].showLastSeen && req.user && req.user.id !== userId) {
+      if (!user[0].showLastSeen && req.user && (req.user as any).id !== userId) {
         res.json({
           isOnline: user[0].isOnline,
           lastSeenAt: null,
@@ -593,29 +593,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
+      console.log("🎥 Creating new stream for user:", req.user.id);
+      console.log("📊 Stream data:", req.body);
+      
       const streamData = insertStreamSchema.parse({
         ...req.body,
         hostId: req.user.id,
       });
+      
       const stream = await storage.createStream(streamData);
+      console.log("✅ Stream created successfully with ID:", stream.id);
+      
       res.json(stream);
     } catch (error) {
-      console.error("Error creating stream:", error);
-      res.status(500).json({ message: "Failed to create stream" });
+      console.error("❌ Error creating stream:", error);
+      if ((error as any).name === 'ZodError') {
+        console.error("🚫 Validation errors:", (error as any).errors);
+        res.status(400).json({ 
+          message: "بيانات البث غير صحيحة", 
+          errors: (error as any).errors 
+        });
+      } else {
+        res.status(500).json({ message: "فشل في إنشاء البث المباشر" });
+      }
     }
   });
 
   app.get('/api/streams/:id', async (req, res) => {
     try {
       const streamId = parseInt(req.params.id);
+      console.log("🔍 Fetching stream with ID:", streamId);
+      
+      if (isNaN(streamId)) {
+        console.error("❌ Invalid stream ID:", req.params.id);
+        return res.status(400).json({ message: "معرف البث غير صحيح" });
+      }
+      
       const stream = await storage.getStreamById(streamId);
       if (!stream) {
-        return res.status(404).json({ message: "Stream not found" });
+        console.log("⚠️ Stream not found:", streamId);
+        return res.status(404).json({ message: "البث المباشر غير موجود" });
       }
+      
+      console.log("✅ Stream found:", {
+        id: stream.id,
+        title: stream.title,
+        isLive: stream.isLive,
+        hostId: stream.hostId
+      });
+      
       res.json(stream);
     } catch (error) {
-      console.error("Error fetching stream:", error);
-      res.status(500).json({ message: "Failed to fetch stream" });
+      console.error("❌ Error fetching stream:", error);
+      res.status(500).json({ message: "فشل في جلب بيانات البث" });
     }
   });
 
@@ -1144,55 +1174,109 @@ function generateClientId(): string {
 
 async function handleWebSocketMessage(clientId: string, message: any) {
   const client = connectedClients.get(clientId);
-  if (!client) return;
+  if (!client) {
+    console.error("❌ Client not found for ID:", clientId);
+    return;
+  }
 
-  switch (message.type) {
-    case 'join_stream':
-      client.streamId = message.streamId;
-      client.userId = message.userId;
-      
-      // Update viewer count
-      if (message.streamId) {
-        const currentCount = Array.from(connectedClients.values())
-          .filter(c => c.streamId === message.streamId).length;
-        await storage.updateStreamViewerCount(message.streamId, currentCount);
-        
-        broadcastToStream(message.streamId, {
-          type: 'viewer_count_update',
-          count: currentCount,
+  try {
+    switch (message.type) {
+      case 'join_stream':
+        console.log("🚀 User joining stream:", {
+          userId: message.userId,
+          streamId: message.streamId,
+          clientId: clientId
         });
-      }
-      break;
+        
+        client.streamId = message.streamId;
+        client.userId = message.userId;
+        
+        // Update viewer count
+        if (message.streamId) {
+          const currentCount = Array.from(connectedClients.values())
+            .filter(c => c.streamId === message.streamId).length;
+          
+          console.log("👥 Updating viewer count:", {
+            streamId: message.streamId,
+            newCount: currentCount
+          });
+          
+          await storage.updateStreamViewerCount(message.streamId, currentCount);
+          
+          broadcastToStream(message.streamId, {
+            type: 'viewer_count_update',
+            count: currentCount,
+          });
+        }
+        break;
 
     case 'leave_stream':
-      if (client.streamId) {
-        const currentCount = Array.from(connectedClients.values())
-          .filter(c => c.streamId === client.streamId).length - 1;
-        await storage.updateStreamViewerCount(client.streamId, Math.max(0, currentCount));
-        
-        broadcastToStream(client.streamId, {
-          type: 'viewer_count_update',
-          count: Math.max(0, currentCount),
+        console.log("🚪 User leaving stream:", {
+          userId: client.userId,
+          streamId: client.streamId,
+          clientId: clientId
         });
-      }
-      client.streamId = undefined;
-      break;
+        
+        if (client.streamId) {
+          const currentCount = Array.from(connectedClients.values())
+            .filter(c => c.streamId === client.streamId).length - 1;
+            
+          console.log("👥 Updating viewer count after leave:", {
+            streamId: client.streamId,
+            newCount: Math.max(0, currentCount)
+          });
+          
+          await storage.updateStreamViewerCount(client.streamId, Math.max(0, currentCount));
+          
+          broadcastToStream(client.streamId, {
+            type: 'viewer_count_update',
+            count: Math.max(0, currentCount),
+          });
+        }
+        client.streamId = undefined;
+        break;
 
     case 'chat_message':
-      if (client.streamId && client.userId && message.text) {
-        const chatMessage = await storage.addChatMessage({
+        console.log("💬 New chat message:", {
           streamId: client.streamId,
           userId: client.userId,
-          message: message.text,
+          messageLength: message.text?.length,
+          hasUser: !!message.user
         });
         
-        broadcastToStream(client.streamId, {
-          type: 'chat_message',
-          message: chatMessage,
-          user: message.user,
-        });
-      }
-      break;
+        if (client.streamId && client.userId && message.text) {
+          const chatMessage = await storage.addChatMessage({
+            streamId: client.streamId,
+            userId: client.userId,
+            message: message.text,
+          });
+          
+          broadcastToStream(client.streamId, {
+            type: 'chat_message',
+            message: chatMessage,
+            user: message.user,
+          });
+        } else {
+          console.warn("⚠️ Invalid chat message data:", {
+            hasStreamId: !!client.streamId,
+            hasUserId: !!client.userId,
+            hasText: !!message.text
+          });
+        }
+        break;
+        
+      default:
+        console.warn("⚠️ Unknown WebSocket message type:", message.type);
+        break;
+    }
+  } catch (error) {
+    console.error("❌ Error handling WebSocket message:", error);
+    console.error("📝 Message details:", {
+      type: message.type,
+      clientId: clientId,
+      streamId: client.streamId,
+      userId: client.userId
+    });
   }
 }
 

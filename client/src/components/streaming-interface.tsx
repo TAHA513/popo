@@ -36,6 +36,8 @@ interface ExtendedChatMessage extends Omit<ChatMessage, 'user'> {
     id: string;
     username?: string;
     profileImageUrl?: string;
+    supporterLevel?: number;
+    totalGiftsSent?: number;
   };
 }
 
