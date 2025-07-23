@@ -21,6 +21,7 @@ import LoginPage from "@/pages/login";
 import GiftsPage from "@/pages/gifts";
 import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
+import ConversationPage from "@/pages/conversation";
 import VideoPage from "@/pages/video";
 import { LanguageOption } from "@/types";
 
@@ -64,6 +65,7 @@ function Router() {
           <Route path="/explore" component={ExplorePage} />
           <Route path="/gifts" component={GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
+          <Route path="/messages/:userId" component={ConversationPage} />
           <Route path="/video/:videoId" component={VideoPage} />
           <Route component={NotFound} />
         </>
