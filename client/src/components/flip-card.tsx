@@ -335,10 +335,24 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
     );
   };
 
+  const handleCardClick = () => {
+    // إذا كان فيديو أو بث مباشر، افتح صفحة المشاهدة
+    if (type === 'video' || type === 'live') {
+      if (type === 'video' && content.id) {
+        window.open(`/video/${content.id}`, '_blank');
+      } else if (type === 'live' && content.id) {
+        window.open(`/stream/${content.id}`, '_blank');
+      }
+    } else {
+      // للمنشورات الأخرى، اقلب البطاقة
+      setIsFlipped(!isFlipped);
+    }
+  };
+
   return (
     <div 
       className="relative w-full h-full cursor-pointer group"
-      onClick={() => setIsFlipped(!isFlipped)}
+      onClick={handleCardClick}
     >
       <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`}>
         {/* Front side */}
