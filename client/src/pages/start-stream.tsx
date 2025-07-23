@@ -182,51 +182,6 @@ export default function StartStreamPage() {
     }
   });
 
-  const requestCameraPermission = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 }, 
-          height: { ideal: 720 },
-          facingMode: 'user'
-        }, 
-        audio: micEnabled 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.autoplay = true;
-        videoRef.current.playsInline = true;
-        videoRef.current.muted = false;
-        videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
-        streamRef.current = stream;
-      }
-      
-      toast({
-        title: "تم السماح بالوصول",
-        description: "تم السماح بالوصول للكاميرا والمايكروفون بنجاح",
-      });
-    } catch (error: any) {
-      console.error('Error accessing camera:', error);
-      let errorMessage = "لا يمكن الوصول للكاميرا. يرجى التحقق من الصلاحيات.";
-      
-      if (error.name === 'NotAllowedError') {
-        errorMessage = "تم رفض الإذن للكاميرا. يرجى الضغط على 'السماح' عند ظهور الطلب في المتصفح.";
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = "لم يتم العثور على كاميرا. يرجى التأكد من توصيل الكاميرا.";
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = "الكاميرا مستخدمة من تطبيق آخر. يرجى إغلاق التطبيقات الأخرى.";
-      }
-      
-      toast({
-        title: "خطأ في الكاميرا",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      setCameraEnabled(false);
-    }
-  };
-
   const handleStartStream = () => {
     if (!isAuthenticated) {
       toast({
@@ -242,6 +197,15 @@ export default function StartStreamPage() {
       toast({
         title: "معلومات مطلوبة",
         description: "يرجى إدخال عنوان البث واختيار فئة",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!streamRef.current && cameraEnabled) {
+      toast({
+        title: "خطأ في الكاميرا",
+        description: "يرجى السماح بالوصول للكاميرا أولاً",
         variant: "destructive",
       });
       return;
@@ -413,33 +377,6 @@ export default function StartStreamPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Camera Permission Panel */}
-                {!streamRef.current && cameraEnabled && (
-                  <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-lg p-4 mb-4">
-                    <div className={`flex items-center gap-3 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                        <Camera className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white text-sm">
-                          {isRTL ? 'يتطلب إذن الوصول للكاميرا' : 'Camera Access Required'}
-                        </h3>
-                        <p className="text-orange-200 text-xs">
-                          {isRTL ? 'اضغط على "طلب الإذن" للسماح بالوصول للكاميرا والمايكروفون' : 'Click "Request Permission" to allow camera and microphone access'}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={requestCameraPermission}
-                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold"
-                      size="sm"
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      {isRTL ? 'طلب إذن الكاميرا' : 'Request Camera Permission'}
-                    </Button>
-                  </div>
-                )}
-
                 <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Button
                     variant={cameraEnabled ? "default" : "outline"}
@@ -549,31 +486,6 @@ export default function StartStreamPage() {
                         <p className="text-sm text-gray-300 mt-2">
                           {isRTL ? 'شغل الكاميرا لبدء البث' : 'Turn on camera to start streaming'}
                         </p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {cameraEnabled && !streamRef.current && (
-                    <div className="absolute inset-0 bg-gradient-to-b from-orange-900/90 to-red-900/90 flex items-center justify-center backdrop-blur-sm">
-                      <div className="text-center text-white max-w-xs px-6">
-                        <div className="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                          <Camera className="w-10 h-10 text-white" />
-                        </div>
-                        <p className="text-lg font-bold mb-2">
-                          {isRTL ? 'يرجى السماح بالوصول للكاميرا' : 'Please Allow Camera Access'}
-                        </p>
-                        <p className="text-sm text-orange-200 mb-4">
-                          {isRTL ? 
-                            'انقر على "طلب إذن الكاميرا" في قسم التحكم بالبث' : 
-                            'Click "Request Camera Permission" in the Stream Controls section'
-                          }
-                        </p>
-                        <div className="text-xs text-orange-300 bg-orange-500/20 rounded-lg p-3 border border-orange-500/30">
-                          💡 {isRTL ? 
-                            'نصيحة: اضغط "السماح" عند ظهور طلب الإذن من المتصفح' : 
-                            'Tip: Click "Allow" when the browser permission request appears'
-                          }
-                        </div>
                       </div>
                     </div>
                   )}
