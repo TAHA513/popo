@@ -170,237 +170,210 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
 
   return (
     <div className="fixed inset-0 bg-black z-50">
-      <div className="flex flex-col h-full">
-        {/* Stream Header */}
-        <div className="bg-white p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      {/* TikTok-Style Full Screen Stream */}
+      <div className="relative w-full h-full">
+        {/* Video Background */}
+        <div className="absolute inset-0">
+          <img 
+            src={stream.thumbnailUrl || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800"}
+            alt="Live Stream" 
+            className="w-full h-full object-cover"
+          />
+          {/* Dark overlay for better visibility */}
+          <div className="absolute inset-0 bg-black/20"></div>
+        </div>
+
+        {/* Top Header - TikTok Style */}
+        <div className="absolute top-0 left-0 right-0 z-30 p-4">
+          <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="text-gray-600 hover:text-gray-800"
+              className="text-white bg-black/30 hover:bg-black/50 rounded-full w-10 h-10 p-0"
             >
               <X className="w-5 h-5" />
             </Button>
             
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full pulse-ring"></div>
-              <span className="font-semibold text-red-500">LIVE</span>
-              <span className="text-gray-600">|</span>
-              <div className="flex items-center space-x-1">
-                <Eye className="w-4 h-4 text-gray-600" />
-                <span className="font-semibold">{viewerCount} viewers</span>
-              </div>
+            <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-full">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <span className="text-white text-sm font-semibold">مباشر</span>
+              <Eye className="w-4 h-4 text-white" />
+              <span className="text-white text-sm">{viewerCount}</span>
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <Button size="sm" className="bg-laa-pink hover:bg-pink-600">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Follow
-            </Button>
-            <Button variant="outline" size="sm">
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
           </div>
         </div>
 
-        {/* Main Stream Area */}
-        <div className="flex-1 flex">
-          {/* Video Stream */}
-          <div className="flex-1 relative bg-black">
-            <img 
-              src={stream.thumbnailUrl || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800"}
-              alt="Live Stream" 
-              className="w-full h-full object-cover"
-            />
-            
-            {/* Gift Animations Overlay */}
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-20 right-20 gift-animation">
-                <div className="text-4xl">🐰💕</div>
+        {/* Main Content Area */}
+        <div className="absolute inset-0 flex z-20">
+          
+          {/* Left Side - Stream Info (Bottom) */}
+          <div className="flex-1 flex flex-col justify-end p-4 pb-20">
+            {/* Stream and Host Info */}
+            <div className="text-white max-w-sm">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold mb-2 text-right leading-tight">{stream.title}</h2>
+                <p className="text-gray-200 text-sm text-right">{stream.description || 'بث مباشر تفاعلي مع المشاهدين'}</p>
               </div>
-              <div className="absolute top-40 left-32 gift-animation" style={{animationDelay: '0.5s'}}>
-                <div className="text-3xl">🌟</div>
-              </div>
-              <div className="absolute bottom-32 right-40 gift-animation" style={{animationDelay: '1s'}}>
-                <div className="text-4xl">🔥</div>
+              
+              {/* Host Profile */}
+              <div className="flex items-center justify-end space-x-3 rtl:space-x-reverse">
+                <div className="text-right">
+                  <p className="font-semibold text-sm">{stream.hostId}</p>
+                  <p className="text-xs text-gray-300">{stream.category}</p>
+                </div>
+                <Avatar className="w-10 h-10 border-2 border-white">
+                  <AvatarImage src={`https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=50&h=50`} />
+                  <AvatarFallback className="text-xs">H</AvatarFallback>
+                </Avatar>
               </div>
             </div>
+          </div>
 
-            {/* Stream Controls */}
-            <div className="absolute bottom-4 left-4 flex space-x-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-black bg-opacity-50 text-white hover:bg-opacity-70"
+          {/* Right Side - TikTok Style Action Panel */}
+          <div className="w-20 md:w-24 flex flex-col justify-end items-center pb-4 space-y-4">
+            
+            {/* Follow Button */}
+            <div className="flex flex-col items-center">
+              <Button 
+                size="lg"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-laa-pink hover:bg-pink-600 border-2 border-white shadow-lg"
               >
-                <Volume2 className="w-4 h-4" />
+                <UserPlus className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-black bg-opacity-50 text-white hover:bg-opacity-70"
+              <span className="text-white text-xs mt-1">متابعة</span>
+            </div>
+            
+            {/* Heart/Like Button */}
+            <div className="flex flex-col items-center">
+              <Button 
+                size="lg"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-red-600 hover:bg-red-700 border-2 border-white shadow-lg"
               >
-                <Maximize className="w-4 h-4" />
+                <Heart className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </Button>
-              {/* Beauty Filters Button - Only for streamers */}
-              {isStreamer && (
-                <Button
-                  variant="secondary"
-                  size="sm"
+              <span className="text-white text-xs mt-1">إعجاب</span>
+            </div>
+            
+            {/* Share Button */}
+            <div className="flex flex-col items-center">
+              <Button 
+                size="lg"
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-600 hover:bg-blue-700 border-2 border-white shadow-lg"
+              >
+                <Share2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </Button>
+              <span className="text-white text-xs mt-1">مشاركة</span>
+            </div>
+            
+            {/* Gift Button */}
+            <div className="flex flex-col items-center">
+              <Button 
+                size="lg"
+                onClick={() => setShowGiftPanel(!showGiftPanel)}
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-500 hover:bg-yellow-600 border-2 border-white shadow-lg"
+              >
+                <GiftIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </Button>
+              <span className="text-white text-xs mt-1">هدية</span>
+            </div>
+            
+            {/* Beauty Filters Button - Only for streamers */}
+            {isStreamer && (
+              <div className="flex flex-col items-center">
+                <Button 
+                  size="lg"
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`bg-black bg-opacity-50 text-white hover:bg-opacity-70 ${
-                    showFilters ? 'ring-2 ring-pink-500' : ''
+                  className={`w-12 h-12 md:w-14 md:h-14 rounded-full bg-purple-600 hover:bg-purple-700 border-2 border-white shadow-lg ${
+                    showFilters ? 'ring-2 ring-pink-400' : ''
                   }`}
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </Button>
-              )}
-            </div>
-
-            {/* Beauty Filters Panel */}
-            {isStreamer && showFilters && (
-              <div className="absolute bottom-16 left-4 max-w-sm">
-                <BeautyFilters
-                  isStreaming={true}
-                  onFilterChange={(filterId, intensity) => {
-                    console.log(`Filter ${filterId} applied with intensity ${intensity}%`);
-                  }}
-                  language="en"
-                />
+                <span className="text-white text-xs mt-1">فلاتر</span>
               </div>
             )}
-          </div>
-
-          {/* Chat & Gifts Sidebar */}
-          <div className="w-80 bg-white flex flex-col">
-            {/* Stream Info */}
-            <div className="p-4 border-b">
-              <div className="flex items-center space-x-3 mb-3">
-                <Avatar className="w-12 h-12">
-                  <AvatarImage src={`https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=50&h=50`} />
-                  <AvatarFallback>H</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-semibold">{stream.hostId}</h3>
-                  <p className="text-sm text-gray-600">{stream.category}</p>
-                </div>
-              </div>
-              
-              <h4 className="font-semibold mb-2">{stream.title}</h4>
-              
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Started 23 minutes ago</span>
-                <div className="flex items-center space-x-4">
-                  <Badge variant="secondary" className="bg-laa-pink/10 text-laa-pink">
-                    <GiftIcon className="w-3 h-3 mr-1" />
-                    {stream.totalGifts}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-red-100 text-red-600">
-                    <Heart className="w-3 h-3 mr-1" />
-                    1.2K
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Chat */}
-            <div className="flex-1 flex flex-col">
-              <div className="p-3 border-b">
-                <h4 className="font-semibold text-sm">Live Chat</h4>
-              </div>
-              
-              {/* Chat Messages */}
-              <div 
-                ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-3 space-y-3"
-              >
-                {chatMessages.map((message) => (
-                  <div key={message.id} className="flex items-start space-x-2">
-                    <Link href={`/user/${message.user?.id}`}>
-                      <Avatar className="w-6 h-6 cursor-pointer hover:scale-105 transition-transform">
-                        <AvatarImage src={message.user?.profileImageUrl} />
-                        <AvatarFallback className="text-xs">
-                          {message.user?.username?.[0]?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Link>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <Link href={`/user/${message.user?.id}`} className="hover:text-purple-600 transition-colors">
-                          <span className="font-semibold text-xs text-laa-pink cursor-pointer">
-                            {message.user?.username || 'Anonymous'}
-                          </span>
-                        </Link>
-                        {message.user && (
-                          <SupporterBadge 
-                            level={message.user.supporterLevel || 0}
-                            totalGiftsSent={message.user.totalGiftsSent || 0}
-                            showText={false}
-                            className="scale-75"
-                          />
-                        )}
-                        <span className="text-xs text-gray-500">
-                          {message.sentAt ? new Date(message.sentAt).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          }) : ''}
-                        </span>
-                      </div>
-                      <p className="text-sm">{message.message}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chat Input */}
-              <div className="p-3 border-t">
-                <form onSubmit={handleSendMessage} className="flex space-x-2">
-                  <Input
-                    type="text" 
-                    placeholder="Type a message..." 
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    className="flex-1 text-sm"
-                    disabled={sendChatMutation.isPending}
-                  />
-                  <Button 
-                    type="submit"
-                    size="sm"
-                    disabled={!chatMessage.trim() || sendChatMutation.isPending}
-                    className="bg-laa-pink hover:bg-pink-600"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </form>
-              </div>
-            </div>
-
-            {/* Gift Panel */}
-            <div className="border-t">
-              <div className="p-3">
-                <Button
-                  onClick={() => setShowGiftPanel(!showGiftPanel)}
-                  className="w-full bg-laa-purple hover:bg-purple-600"
-                >
-                  <GiftIcon className="w-4 h-4 mr-2" />
-                  Send Gift
-                </Button>
-              </div>
-              
-              {showGiftPanel && (
-                <div className="p-3 border-t bg-gray-50">
-                  <GiftCharacters 
-                    onSelectGift={handleSendGift}
-                    showPurchaseButton={true}
-                  />
-                </div>
-              )}
-            </div>
+            
           </div>
         </div>
+
+        {/* Gift Animations Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-10">
+          <div className="absolute top-20 right-20 gift-animation">
+            <div className="text-4xl">🐰💕</div>
+          </div>
+          <div className="absolute top-40 left-32 gift-animation" style={{animationDelay: '0.5s'}}>
+            <div className="text-3xl">🌟</div>
+          </div>
+          <div className="absolute bottom-32 right-40 gift-animation" style={{animationDelay: '1s'}}>
+            <div className="text-4xl">🔥</div>
+          </div>
+        </div>
+
+        {/* Bottom Chat Panel - Floating */}
+        <div className="absolute bottom-4 left-4 right-24 z-30">
+          <div className="bg-black/60 backdrop-blur-sm rounded-lg p-3 max-h-40 overflow-y-auto">
+            {/* Recent Chat Messages */}
+            <div className="space-y-2 mb-3">
+              {chatMessages.slice(-3).map((message) => (
+                <div key={message.id} className="flex items-start space-x-2 text-white text-sm">
+                  <span className="font-semibold text-laa-pink">
+                    {message.user?.username || 'مجهول'}:
+                  </span>
+                  <span className="flex-1">{message.message}</span>
+                </div>
+              ))}
+            </div>
+            
+            {/* Chat Input */}
+            <form onSubmit={handleSendMessage} className="flex space-x-2">
+              <Input
+                type="text" 
+                placeholder="اكتب رسالة..." 
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                className="flex-1 text-sm bg-white/10 border-white/20 text-white placeholder-white/70"
+                disabled={sendChatMutation.isPending}
+              />
+              <Button 
+                type="submit"
+                size="sm"
+                disabled={!chatMessage.trim() || sendChatMutation.isPending}
+                className="bg-laa-pink hover:bg-pink-600 px-3"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </form>
+          </div>
+        </div>
+
+        {/* Gift Panel */}
+        {showGiftPanel && (
+          <div className="absolute bottom-20 right-4 z-40">
+            <div className="bg-black/80 backdrop-blur-sm rounded-lg p-4 max-w-sm">
+              <GiftCharacters 
+                onSelectGift={handleSendGift}
+                showPurchaseButton={true}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Beauty Filters Panel */}
+        {isStreamer && showFilters && (
+          <div className="absolute bottom-20 right-4 z-40">
+            <div className="bg-black/80 backdrop-blur-sm rounded-lg p-4 max-w-sm">
+              <BeautyFilters
+                isStreaming={true}
+                onFilterChange={(filterId, intensity) => {
+                  console.log(`Filter ${filterId} applied with intensity ${intensity}%`);
+                }}
+                language="ar"
+              />
+            </div>
+          </div>
+        )}
+
       </div>
       
       {/* Love Gift Effect Overlay */}
