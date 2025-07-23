@@ -47,7 +47,7 @@ export default function ConversationPage() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
-      return apiRequest('/api/messages/send', "POST", { 
+      return apiRequest('/api/messages/send', 'POST', { 
         recipientId: userId, 
         content 
       });

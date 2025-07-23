@@ -121,8 +121,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
 
   const sendGiftMutation = useMutation({
     mutationFn: async (giftData: { receiverId: string; characterId: number; pointCost: number; streamId: number }) => {
-      const response = await apiRequest('POST', '/api/gifts/send', giftData);
-      return response.json();
+      return await apiRequest('/api/gifts/send', 'POST', giftData);
     },
   });
 

@@ -63,7 +63,7 @@ export default function HomeNew() {
   // Memory interaction mutation
   const interactionMutation = useMutation({
     mutationFn: async ({ memoryId, type }: { memoryId: number; type: string }) => {
-      return await apiRequest('POST', `/api/memories/${memoryId}/interact`, { type });
+      return await apiRequest(`/api/memories/${memoryId}/interact`, 'POST', { type });
     },
     onSuccess: (_, { type }) => {
       const messages = {

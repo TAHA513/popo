@@ -42,7 +42,7 @@ export default function Feed() {
   // Follow/Unfollow mutation
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      return await apiRequest('POST', `/api/users/${userId}/follow`);
+      return await apiRequest(`/api/users/${userId}/follow`, 'POST');
     },
     onSuccess: (data) => {
       toast({

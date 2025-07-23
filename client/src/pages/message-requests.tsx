@@ -29,7 +29,7 @@ export default function MessageRequestsPage() {
   // Respond to request mutation
   const respondMutation = useMutation({
     mutationFn: async ({ requestId, action }: { requestId: number, action: string }) => {
-      return apiRequest(`/api/messages/requests/${requestId}/respond`, "POST", { action });
+      return apiRequest(`/api/messages/requests/${requestId}/respond`, 'POST', { action });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages/requests'] });

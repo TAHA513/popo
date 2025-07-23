@@ -62,7 +62,7 @@ export default function Explore() {
   // Follow/Unfollow mutation
   const followMutation = useMutation({
     mutationFn: async ({ userId, action }: { userId: string; action: 'follow' | 'unfollow' }) => {
-      return await apiRequest('POST', `/api/users/${userId}/${action}`);
+      return await apiRequest(`/api/users/${userId}/${action}`, 'POST');
     },
     onSuccess: (_, { action, userId }) => {
       toast({
@@ -82,7 +82,7 @@ export default function Explore() {
 
   const handleMemoryInteraction = async (memoryId: number, type: string) => {
     try {
-      await apiRequest('POST', `/api/memories/${memoryId}/interact`, { type });
+      await apiRequest(`/api/memories/${memoryId}/interact`, 'POST', { type });
       
       const messages = {
         like: "تم الإعجاب! ❤️",

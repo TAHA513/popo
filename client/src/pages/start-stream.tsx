@@ -121,8 +121,7 @@ export default function StartStreamPage() {
         isActive: true,
         language: language
       };
-      const response = await apiRequest('POST', '/api/streams', streamData);
-      return response.json();
+      return await apiRequest('/api/streams', 'POST', streamData);
     },
     onSuccess: (data) => {
       setIsStreaming(true);
@@ -156,7 +155,7 @@ export default function StartStreamPage() {
 
   const stopStreamMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('POST', '/api/streams/stop');
+      await apiRequest('/api/streams/stop', 'POST');
     },
     onSuccess: () => {
       setIsStreaming(false);

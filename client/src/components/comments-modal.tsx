@@ -64,7 +64,7 @@ export default function CommentsModal({ postId, postType, isOpen, onClose }: Com
   // Add comment mutation
   const addCommentMutation = useMutation({
     mutationFn: async ({ content, parentId }: { content: string; parentId?: number }) => {
-      return await apiRequest('POST', `/api/${postType}s/${postId}/comments`, {
+      return await apiRequest(`/api/${postType}s/${postId}/comments`, 'POST', {
         content,
         parentId
       });
@@ -99,7 +99,7 @@ export default function CommentsModal({ postId, postType, isOpen, onClose }: Com
   // Like comment mutation
   const likeCommentMutation = useMutation({
     mutationFn: async (commentId: number) => {
-      return await apiRequest('POST', `/api/comments/${commentId}/like`);
+      return await apiRequest(`/api/comments/${commentId}/like`, 'POST');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${postType}s/${postId}/comments`] });
