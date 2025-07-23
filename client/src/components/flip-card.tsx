@@ -337,15 +337,19 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
   };
 
   const handleCardClick = () => {
-    // إذا كان فيديو أو بث مباشر، انتقل مباشرة بدون إعادة تحميل
-    if (type === 'video' || type === 'live') {
+    // تحقق من نوع المحتوى بدقة أكبر
+    const hasVideo = content.mediaUrls && content.mediaUrls.length > 0 && 
+                     (content.mediaUrls[0].includes('.mp4') || content.mediaUrls[0].includes('.webm') || content.mediaUrls[0].includes('.mov'));
+    
+    // إذا كان فيديو أو بث مباشر، انتقل مباشرة
+    if (type === 'live' || (type === 'video' && hasVideo)) {
       if (type === 'video' && content.id) {
         setLocation(`/video/${content.id}`);
       } else if (type === 'live' && content.id) {
         setLocation(`/stream/${content.id}`);
       }
     } else {
-      // للمنشورات الأخرى، اقلب البطاقة
+      // للصور والمنشورات الأخرى، اقلب البطاقة
       setIsFlipped(!isFlipped);
     }
   };
