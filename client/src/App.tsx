@@ -9,7 +9,7 @@ import { Suspense } from "react";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
 import Landing from "@/pages/landing";
-import SuperLiveHome from "@/pages/superlive-home";
+import Home from "@/pages/home";
 import AccountPage from "@/pages/account";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
@@ -37,10 +37,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? <SuperLiveHome /> : <LoginPage />}
+        {isAuthenticated ? <Home /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isAuthenticated ? <SuperLiveHome /> : <RegisterPage />}
+        {isAuthenticated ? <Home /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
         <Suspense fallback={
@@ -48,8 +48,8 @@ function Router() {
             <div className="text-white text-lg">جاري التحميل...</div>
           </div>
         }>
-          <Route path="/" component={SuperLiveHome} />
-          <Route path="/home" component={SuperLiveHome} />
+          <Route path="/" component={Home} />
+          <Route path="/home" component={Home} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
@@ -68,7 +68,7 @@ function Router() {
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route path="/:rest*" component={SuperLiveHome} />
+          <Route path="/:rest*" component={Home} />
         </Suspense>
       ) : (
         <>
