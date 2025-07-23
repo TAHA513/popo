@@ -10,7 +10,7 @@ interface LiveStreamPlayerProps {
 
 export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('loading');
+  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('connected');
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
@@ -76,17 +76,9 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
     }
   };
 
-  if (streamStatus === 'loading') {
-    return (
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
-        <div className="text-center text-white">
-          <div className="w-16 h-16 border-4 border-laa-pink border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl font-bold mb-2">🔴 جاري تحضير البث المباشر</p>
-          <p className="text-lg font-semibold">{stream.title}</p>
-          <p className="text-sm opacity-75 mt-2">انتظر قليلاً...</p>
-        </div>
-      </div>
-    );
+  // Remove loading screen - show stream immediately
+  if (false) {
+    return null;
   }
 
   if (streamStatus === 'error') {

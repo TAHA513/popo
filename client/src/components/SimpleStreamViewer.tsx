@@ -13,7 +13,7 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
   const [isConnected, setIsConnected] = useState(true);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // محاولة محاكاة تيار البث المباشر
   useEffect(() => {
@@ -133,6 +133,7 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
       
       setIsLoading(false);
       setIsConnected(true);
+      setIsPlaying(true);
     }
     
     return () => {
@@ -166,16 +167,9 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
-        <div className="text-center text-white max-w-md mx-auto px-8">
-          <div className="w-16 h-16 border-4 border-laa-pink border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl font-bold mb-2">جاري الاتصال بالبث المباشر...</p>
-          <p className="text-gray-400">يرجى الانتظار</p>
-        </div>
-      </div>
-    );
+  // Remove loading screen - show stream immediately
+  if (false) {
+    return null;
   }
 
   return (
