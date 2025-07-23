@@ -95,8 +95,8 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
         )}
 
-        {/* Author Circle - Bottom Left (Small) */}
-        <div className="absolute bottom-3 left-3 z-10">
+        {/* Author Circle - Top Left (Small) */}
+        <div className="absolute top-3 left-3 z-10">
           <Link 
             href={`/user/${content.author?.id || content.authorId}`}
             onClick={(e) => e.stopPropagation()}
@@ -117,8 +117,8 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           </Link>
         </div>
 
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 flex items-center space-x-2 rtl:space-x-reverse">
+        {/* Top Badges - Moved to avoid overlap with profile */}
+        <div className="absolute top-16 left-3 flex items-center space-x-2 rtl:space-x-reverse">
           {type === 'live' && (
             <Badge className="bg-red-500 text-white px-3 py-1 rounded-full animate-pulse border-2 border-white/50">
               <Radio className="w-3 h-3 mr-1" />
@@ -138,8 +138,8 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           )}
         </div>
 
-        {/* Views Count - Back to top right */}
-        <div className="absolute top-16 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center backdrop-blur-sm">
+        {/* Views Count - Back to original position */}
+        <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center backdrop-blur-sm">
           <Eye className="w-3 h-3 mr-1" />
           <span className="font-medium">{content.viewCount || 0}</span>
         </div>
