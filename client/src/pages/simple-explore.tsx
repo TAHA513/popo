@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { Radio } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 
@@ -33,8 +34,21 @@ export default function SimpleExplore() {
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <div className="bg-white shadow-sm p-4 sticky top-0 z-40">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-gray-800">استكشاف</h1>
+        <div className="flex items-center justify-between">
+          {/* Logo - Left Side */}
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <div className="text-2xl animate-bounce">🐰</div>
+            <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
+          </div>
+          
+          {/* Live Stream Button - Right Side */}
+          <Button 
+            onClick={() => setLocation('/start-stream')}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+          >
+            <Radio className="w-4 h-4" />
+            <span className="text-sm font-bold">بث مباشر</span>
+          </Button>
         </div>
       </div>
 
