@@ -65,7 +65,7 @@ export default function VideoPage() {
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
-  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -586,7 +586,7 @@ export default function VideoPage() {
           onPause={() => setIsVideoPlaying(false)}
           onLoadStart={() => {
             console.log('Video loading started');
-            setIsVideoLoading(true);
+            // Don't show loading immediately
           }}
           onCanPlay={() => {
             console.log('Video can play');
@@ -599,7 +599,7 @@ export default function VideoPage() {
           }}
           onWaiting={() => {
             console.log('Video waiting for data');
-            setIsVideoLoading(true);
+            // Minimal loading state
           }}
           onLoadedData={() => {
             console.log('Video data loaded');
@@ -618,16 +618,10 @@ export default function VideoPage() {
           }}
         />
 
-        {/* Loading Indicator */}
+        {/* Loading Indicator - Smaller, Non-Blocking */}
         {isVideoLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-30">
-            <div className="text-center">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
-                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
-              </div>
-              <p className="text-white mt-4 text-sm">جاري تحميل الفيديو...</p>
-            </div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
           </div>
         )}
 
