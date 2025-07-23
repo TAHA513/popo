@@ -17,81 +17,89 @@ export default function SimpleStreamViewer({ stream }: SimpleStreamViewerProps) 
 
   // محاولة محاكاة تيار البث المباشر
   useEffect(() => {
-    if (videoRef.current) {
-      // محاولة الحصول على تيار الكاميرا أو عرض مصدر تجريبي
-      navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 }, 
-          height: { ideal: 720 },
-          facingMode: 'user' 
-        }, 
-        audio: false 
-      })
-      .then((stream) => {
-        if (videoRef.current) {
+    const setupViewer = async () => {
+      console.log('👁️ Setting up stream viewer for:', stream.title);
+      
+      // For viewers, immediately show a connected state without waiting for camera
+      setIsLoading(false);
+      setIsConnected(true);
+      setIsPlaying(true);
+      
+      if (videoRef.current) {
+        // Create a canvas-based stream simulation
+        const canvas = document.createElement('canvas');
+        canvas.width = 1280;
+        canvas.height = 720;
+        const ctx = canvas.getContext('2d');
+        
+        let animationFrame = 0;
+        const drawFrame = () => {
+          if (ctx && isPlaying) {
+            animationFrame++;
+            
+            // خلفية متحركة
+            const time = animationFrame * 0.02;
+            const gradient = ctx.createLinearGradient(
+              Math.sin(time) * 200 + canvas.width / 2, 
+              Math.cos(time) * 200 + canvas.height / 2,
+              canvas.width / 2, 
+              canvas.height / 2
+            );
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(0.5, '#764ba2');
+            gradient.addColorStop(1, '#f093fb');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // نص البث المباشر مع تأثير النبضة
+            const pulseScale = 1 + Math.sin(time * 3) * 0.1;
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.9 + Math.sin(time * 2) * 0.1})`;
+            ctx.font = `bold ${80 * pulseScale}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText('🔴 بث مباشر', canvas.width / 2, canvas.height / 2 - 100);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 40px Arial';
+            ctx.fillText(stream.title, canvas.width / 2, canvas.height / 2);
+            
+            ctx.font = '30px Arial';
+            ctx.fillText(`المشاهدون: ${stream.viewerCount || 0}`, canvas.width / 2, canvas.height / 2 + 60);
+            
+            // الوقت الحالي
+            const now = new Date();
+            ctx.font = '25px Arial';
+            ctx.fillText(now.toLocaleTimeString('ar-SA'), canvas.width / 2, canvas.height / 2 + 120);
+            
+            // نبضات على الحواف
+            const pulseOpacity = Math.sin(time * 4) * 0.3 + 0.2;
+            ctx.strokeStyle = `rgba(255, 0, 0, ${pulseOpacity})`;
+            ctx.lineWidth = 8;
+            ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+          }
+          
+          if (isPlaying) {
+            requestAnimationFrame(drawFrame);
+          }
+        };
+        
+        try {
+          const stream = canvas.captureStream(30);
           videoRef.current.srcObject = stream;
           videoRef.current.autoplay = true;
           videoRef.current.playsInline = true;
-          videoRef.current.muted = true;
-          setIsLoading(false);
-          setIsConnected(true);
-        }
-      })
-      .catch((error) => {
-        console.warn('لا يمكن الوصول للكاميرا، جاري عرض مصدر تجريبي:', error);
-        // استخدام مصدر فيديو تجريبي إذا لم تكن الكاميرا متاحة
-        if (videoRef.current) {
-          // إنشاء كانفاس لعرض محتوى تجريبي
-          const canvas = document.createElement('canvas');
-          canvas.width = 1280;
-          canvas.height = 720;
-          const ctx = canvas.getContext('2d');
-          
-          const drawFrame = () => {
-            if (ctx) {
-              // خلفية متدرجة
-              const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-              gradient.addColorStop(0, '#667eea');
-              gradient.addColorStop(1, '#764ba2');
-              ctx.fillStyle = gradient;
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              
-              // نص البث المباشر
-              ctx.fillStyle = 'white';
-              ctx.font = 'bold 80px Arial';
-              ctx.textAlign = 'center';
-              ctx.fillText('🔴 بث مباشر', canvas.width / 2, canvas.height / 2 - 100);
-              
-              ctx.font = 'bold 40px Arial';
-              ctx.fillText(stream.title, canvas.width / 2, canvas.height / 2);
-              
-              ctx.font = '30px Arial';
-              ctx.fillText(`المشاهدون: ${stream.viewerCount || 0}`, canvas.width / 2, canvas.height / 2 + 60);
-              
-              // الوقت الحالي
-              const now = new Date();
-              ctx.fillText(now.toLocaleTimeString('ar-SA'), canvas.width / 2, canvas.height / 2 + 120);
-            }
-            
-            if (isPlaying) {
-              requestAnimationFrame(drawFrame);
-            }
-          };
-          
-          canvas.captureStream(30).getTracks().forEach(track => {
-            const stream = new MediaStream([track]);
-            videoRef.current!.srcObject = stream;
-            videoRef.current!.autoplay = true;
-            videoRef.current!.playsInline = true;
-            videoRef.current!.muted = isMuted;
-          });
+          videoRef.current.muted = isMuted;
           
           drawFrame();
-          setIsLoading(false);
+          console.log('✅ Stream viewer ready with animated content');
+        } catch (error) {
+          console.warn('Canvas stream not supported, using fallback');
           setIsConnected(true);
         }
-      });
-    }
+      }
+    };
+
+    // Start immediately, no delay
+    setupViewer();
   }, [stream.title, stream.viewerCount, isPlaying, isMuted]);
 
   const togglePlay = () => {

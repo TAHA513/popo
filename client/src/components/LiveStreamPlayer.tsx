@@ -22,6 +22,7 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
       try {
         if (isStreamer) {
           // For streamers, show their own camera feed
+          console.log('🎥 Requesting camera access for streamer...');
           const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
               width: { ideal: 1280 }, 
@@ -31,14 +32,22 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
             audio: true 
           });
           
+          console.log('✅ Camera access granted, setting up video...');
           videoRef.current.srcObject = stream;
           videoRef.current.autoplay = true;
           videoRef.current.playsInline = true;
           videoRef.current.muted = true; // Avoid feedback
+          
+          // Wait for video to be ready
+          videoRef.current.onloadedmetadata = () => {
+            console.log('✅ Video metadata loaded, stream ready');
+            setStreamStatus('connected');
+          };
+          
           setMediaStream(stream);
-          setStreamStatus('connected');
         } else {
-          // For viewers - immediately show connected state
+          // For viewers - show connected immediately with simulated stream
+          console.log('👁️ Setting up viewer interface...');
           setStreamStatus('connected');
         }
       } catch (error) {
@@ -47,9 +56,11 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
       }
     };
 
-    initializePlayer();
+    // Small delay to ensure component is mounted
+    const timer = setTimeout(initializePlayer, 100);
 
     return () => {
+      clearTimeout(timer);
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
       }
