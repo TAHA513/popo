@@ -50,7 +50,7 @@ export default function BottomNavigation() {
           
           if (item.isSpecial) {
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href || "/create-memory"}>
                 <div className="flex flex-col items-center justify-center -mt-4 relative">
                   <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-white">
                     <Icon className="w-7 h-7 text-white" />
@@ -90,7 +90,7 @@ export default function BottomNavigation() {
           }
           
           return (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href || "/"}>
               <div className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 relative ${
                 isActive 
                   ? 'text-purple-600 bg-purple-50 scale-105' 
