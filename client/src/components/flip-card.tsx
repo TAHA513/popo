@@ -160,6 +160,10 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <div className="w-16 h-16 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/60 hover:scale-110 hover:bg-black/70 transition-all duration-300">
               <Play className="w-8 h-8 text-white ml-1" />
             </div>
+            {/* Video Indicator Badge */}
+            <div className="absolute top-3 left-3 bg-red-500/80 text-white px-2 py-1 rounded text-xs font-bold backdrop-blur-sm">
+              VIDEO
+            </div>
           </div>
         )}
 

@@ -60,21 +60,40 @@ export default function SimpleExplore() {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {memories.map((memory: any) => {
-                const cardType = memory.imageUrl && (memory.imageUrl.includes('.mp4') || memory.imageUrl.includes('.webm'))
-                  ? 'video'
-                  : 'image';
+                // تحديد نوع المحتوى بناءً على البيانات الحقيقية
+                const hasVideo = memory.type === 'video' || 
+                  (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
+                    url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')
+                  )) ||
+                  (memory.imageUrl && (
+                    memory.imageUrl.includes('.mp4') || 
+                    memory.imageUrl.includes('.webm') || 
+                    memory.imageUrl.includes('.mov')
+                  ));
+                
+                const cardType = hasVideo ? 'video' : 'image';
+                
+                // إعداد URLs الوسائط بشكل صحيح
+                let mediaUrls = [];
+                if (memory.mediaUrls && Array.isArray(memory.mediaUrls)) {
+                  mediaUrls = memory.mediaUrls;
+                } else if (memory.imageUrl) {
+                  mediaUrls = [memory.imageUrl];
+                } else if (memory.thumbnailUrl) {
+                  mediaUrls = [memory.thumbnailUrl];
+                }
                 
                 return (
                   <FlipCard
                     key={`memory-${memory.id}`}
                     content={{
                       ...memory,
-                      mediaUrls: memory.imageUrl ? [memory.imageUrl] : [],
-                      author: {
+                      mediaUrls: mediaUrls,
+                      author: memory.author || {
                         id: memory.authorId,
-                        firstName: memory.authorId,
-                        username: memory.authorId,
-                        profileImageUrl: null
+                        firstName: memory.author?.firstName || 'مستخدم',
+                        username: memory.author?.username || 'LaaBoBo',
+                        profileImageUrl: memory.author?.profileImageUrl
                       }
                     }}
                     type={cardType}
