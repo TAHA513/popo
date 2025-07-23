@@ -117,13 +117,50 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
   if (streamStatus === 'starting') {
     return (
       <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-pink-900 flex items-center justify-center z-50">
-        <div className="text-center text-white max-w-md mx-4">
+        <div className="text-center text-white max-w-lg mx-4">
           <div className="w-20 h-20 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-8"></div>
-          <h2 className="text-3xl font-bold mb-4">🎥 جاري بدء البث المباشر</h2>
-          <p className="text-lg opacity-90 mb-6">نحتاج إذن للوصول إلى الكاميرا والمايكروفون</p>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-            <h3 className="text-xl font-semibold mb-3">{stream.title}</h3>
-            <p className="text-white/80">{stream.description}</p>
+          <h2 className="text-3xl font-bold mb-6">🎥 بدء البث المباشر</h2>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+            <div className="flex items-center justify-center mb-6">
+              <div className="bg-red-500/20 rounded-full p-4 mr-4">
+                <Camera className="w-8 h-8 text-red-300" />
+              </div>
+              <div className="bg-blue-500/20 rounded-full p-4">
+                <Mic className="w-8 h-8 text-blue-300" />
+              </div>
+            </div>
+            
+            <h3 className="text-2xl font-bold mb-4">إذن الوصول مطلوب</h3>
+            <p className="text-lg opacity-90 mb-6">
+              نحتاج إذن للوصول إلى <span className="font-bold text-red-300">الكاميرا 📹</span> و <span className="font-bold text-blue-300">المايكروفون 🎤</span> لبدء البث المباشر
+            </p>
+            
+            <div className="space-y-3 text-sm opacity-80 mb-6">
+              <div className="flex items-center justify-center">
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                <span>سيتم استخدام الكاميرا لعرض صورتك للمشاهدين</span>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                <span>سيتم استخدام المايكروفون لنقل صوتك</span>  
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                <span>يمكنك التحكم في تشغيل/إيقاف الكاميرا والمايك أثناء البث</span>
+              </div>
+            </div>
+
+            <div className="bg-white/5 rounded-xl p-4">
+              <h4 className="text-lg font-semibold mb-2">{stream.title}</h4>
+              <p className="text-white/70">{stream.description}</p>
+            </div>
+          </div>
+
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-yellow-200">
+            <p className="text-sm">
+              <span className="font-bold">💡 ملاحظة:</span> إذا لم تظهر نافذة طلب الإذن، تحقق من أن المتصفح لا يحجب النوافذ المنبثقة
+            </p>
           </div>
         </div>
       </div>
@@ -134,18 +171,63 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
   if (streamStatus === 'error') {
     return (
       <div className="fixed inset-0 bg-gradient-to-br from-red-900 via-gray-900 to-black flex items-center justify-center z-50">
-        <div className="text-center text-white max-w-md mx-4">
-          <div className="text-6xl mb-6">⚠️</div>
-          <h2 className="text-2xl font-bold mb-4">خطأ في بدء البث المباشر</h2>
-          <p className="text-lg opacity-90 mb-6">لم نتمكن من الوصول إلى الكاميرا أو المايكروفون</p>
-          <div className="space-y-3 mb-8">
-            <p className="text-sm opacity-75">• تأكد من السماح بالوصول للكاميرا</p>
-            <p className="text-sm opacity-75">• تحقق من أن الكاميرا غير مستخدمة في تطبيق آخر</p>
-            <p className="text-sm opacity-75">• جرب إعادة تحميل الصفحة</p>
+        <div className="text-center text-white max-w-lg mx-4">
+          <div className="text-6xl mb-6">🚫</div>
+          <h2 className="text-3xl font-bold mb-4">فشل في الوصول للكاميرا والمايكروفون</h2>
+          <p className="text-lg opacity-90 mb-8">لم نتمكن من الحصول على إذن الوصول للكاميرا أو المايكروفون</p>
+          
+          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 mb-8">
+            <h3 className="text-xl font-bold mb-4 text-red-300">حلول مقترحة:</h3>
+            <div className="space-y-4 text-right">
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</div>
+                <div>
+                  <p className="font-semibold">تحقق من إعدادات المتصفح</p>
+                  <p className="text-sm opacity-75">اضغط على أيقونة القفل 🔒 بجانب العنوان والسماح للكاميرا والمايك</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</div>
+                <div>
+                  <p className="font-semibold">تأكد من عدم استخدام الكاميرا في تطبيق آخر</p>
+                  <p className="text-sm opacity-75">أغلق أي تطبيقات أخرى قد تستخدم الكاميرا (Zoom, Teams, إلخ)</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</div>
+                <div>
+                  <p className="font-semibold">جرب إعادة تحميل الصفحة</p>
+                  <p className="text-sm opacity-75">أحياناً يساعد إعادة تحميل الصفحة في حل المشكلة</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</div>
+                <div>
+                  <p className="font-semibold">تحقق من اتصال الكاميرا</p>
+                  <p className="text-sm opacity-75">تأكد من أن الكاميرا متصلة بشكل صحيح (للكمبيوتر المكتبي)</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <Button onClick={() => window.location.reload()} className="bg-laa-pink hover:bg-pink-600 px-8 py-3">
-            إعادة المحاولة
-          </Button>
+
+          <div className="flex space-x-4 justify-center">
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="bg-laa-pink hover:bg-pink-600 px-8 py-3"
+            >
+              🔄 إعادة المحاولة
+            </Button>
+            <Button 
+              onClick={onClose} 
+              variant="outline"
+              className="border-gray-500 text-gray-300 hover:bg-gray-700 px-8 py-3"
+            >
+              ❌ إلغاء
+            </Button>
+          </div>
         </div>
       </div>
     );
