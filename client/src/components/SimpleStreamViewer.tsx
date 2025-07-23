@@ -173,11 +173,61 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
   }
 
   return (
-    <div className="absolute inset-0 bg-black">
-      {/* Video Player */}
+    <div className="absolute inset-0 bg-black overflow-hidden">
+      {/* Animated Live Stream Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-800 to-blue-900 animate-pulse">
+        {/* Moving particles effect */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-white/30 rounded-full animate-bounce"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${2 + Math.random() * 3}s`
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Floating text animations */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center text-white space-y-4">
+            <div className="text-6xl animate-pulse">🎥</div>
+            <h1 className="text-3xl font-bold animate-bounce">{streamData.title}</h1>
+            <p className="text-xl opacity-80 animate-pulse">بث مباشر تفاعلي</p>
+            <div className="flex items-center justify-center space-x-2 animate-pulse">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+              <span className="text-lg font-semibold">مباشر الآن</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Floating emojis */}
+        <div className="absolute inset-0 pointer-events-none">
+          {['❤️', '👏', '🔥', '✨', '🎉', '💫'].map((emoji, i) => (
+            <div
+              key={i}
+              className="absolute text-2xl animate-bounce opacity-70"
+              style={{
+                left: `${10 + (i * 15)}%`,
+                top: `${20 + Math.sin(i) * 30}%`,
+                animationDelay: `${i * 0.5}s`,
+                animationDuration: '3s'
+              }}
+            >
+              {emoji}
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Hidden video element for future real streaming */}
       <video
         ref={videoRef}
-        className="w-full h-full object-cover"
+        className="hidden w-full h-full object-cover"
         playsInline
         autoPlay
         muted={isMuted}
@@ -188,8 +238,8 @@ export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamV
         }}
       />
       
-      {/* Connection Status Overlay */}
-      {!isConnected && (
+      {/* Connection Status Overlay - Hidden since we show animated content */}
+      {false && !isConnected && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
           <div className="text-center text-white max-w-md mx-auto px-8">
             <WifiOff className="w-16 h-16 text-red-500 mx-auto mb-4" />

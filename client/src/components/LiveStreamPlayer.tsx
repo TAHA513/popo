@@ -160,12 +160,62 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
           )}
         </>
       ) : (
-        // Viewers see a simulated live stream
-        <div className="absolute inset-0 bg-black flex items-center justify-center">
-          <div className="text-center text-white max-w-md mx-auto px-8">
-            {/* Live pulse animation */}
-            <div className="relative mb-8">
-              <div className="w-32 h-32 bg-gradient-to-br from-red-600 via-pink-600 to-purple-600 rounded-full flex items-center justify-center mx-auto shadow-2xl animate-pulse">
+        // Viewers see animated live stream content
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-purple-800 to-pink-900 overflow-hidden">
+          {/* Dynamic animated background */}
+          <div className="absolute inset-0">
+            {/* Floating particles */}
+            {[...Array(30)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-white/40 rounded-full animate-ping"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 3}s`,
+                  animationDuration: `${1 + Math.random() * 2}s`
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Central content */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-white space-y-6 max-w-md px-8">
+              <div className="text-7xl animate-bounce">📹</div>
+              <h1 className="text-4xl font-bold animate-pulse leading-tight">{stream.title}</h1>
+              <p className="text-xl opacity-90 animate-fade-in-out">بث مباشر تفاعلي مع المشاهدين</p>
+              
+              {/* Live indicator */}
+              <div className="flex items-center justify-center space-x-3 animate-pulse">
+                <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+                <span className="text-2xl font-bold">مباشر الآن</span>
+                <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+              </div>
+              
+              {/* Moving emoji stream */}
+              <div className="flex justify-center space-x-4 text-3xl">
+                {['🎵', '🎤', '🎶', '✨', '🔥'].map((emoji, i) => (
+                  <div
+                    key={i}
+                    className="animate-bounce opacity-80"
+                    style={{
+                      animationDelay: `${i * 0.2}s`,
+                      animationDuration: '2s'
+                    }}
+                  >
+                    {emoji}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute top-10 left-10 text-6xl animate-spin-slow opacity-30">⭐</div>
+          <div className="absolute bottom-10 right-10 text-5xl animate-pulse opacity-40">💫</div>
+          <div className="absolute top-20 right-20 text-4xl animate-bounce opacity-50">🎉</div>
+        </div>
                 <span className="text-6xl">🔴</span>
               </div>
               <div className="absolute inset-0 rounded-full border-4 border-red-500/30 animate-ping"></div>
