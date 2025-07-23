@@ -193,18 +193,18 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
         )}
 
         {/* Top Header - TikTok Style */}
-        <div className="absolute top-0 left-0 right-0 z-30 p-4">
+        <div className="absolute top-0 left-0 right-0 z-30 p-4 bg-gradient-to-b from-black/50 to-transparent">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="text-white bg-black/30 hover:bg-black/50 rounded-full w-10 h-10 p-0"
+              className="text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-full w-10 h-10 p-0 transition-all"
             >
               <X className="w-5 h-5" />
             </Button>
             
-            <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-full live-indicator">
+            <div className="flex items-center space-x-2 bg-red-600/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               <span className="text-white text-sm font-semibold">مباشر</span>
               <Eye className="w-4 h-4 text-white" />

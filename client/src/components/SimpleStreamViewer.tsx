@@ -7,9 +7,9 @@ interface SimpleStreamViewerProps {
   stream: Stream;
 }
 
-export default function SimpleStreamViewer({ stream }: SimpleStreamViewerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+export default function SimpleStreamViewer({ stream: streamData }: SimpleStreamViewerProps) {
+  const [isPlaying, setIsPlaying] = useState(true); // Start playing automatically
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
   const [isConnected, setIsConnected] = useState(true);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -18,81 +18,102 @@ export default function SimpleStreamViewer({ stream }: SimpleStreamViewerProps) 
   // محاولة محاكاة تيار البث المباشر
   useEffect(() => {
     if (videoRef.current) {
-      // محاولة الحصول على تيار الكاميرا أو عرض مصدر تجريبي
-      navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 }, 
-          height: { ideal: 720 },
-          facingMode: 'user' 
-        }, 
-        audio: false 
-      })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.autoplay = true;
-          videoRef.current.playsInline = true;
-          videoRef.current.muted = true;
-          setIsLoading(false);
-          setIsConnected(true);
+      // إنشاء كانفاس لعرض محتوى البث المباشر
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext('2d');
+      
+      let frameCount = 0;
+      
+      const drawFrame = () => {
+        if (ctx) {
+          frameCount++;
+          
+          // خلفية متحركة بألوان LaaBoBo
+          const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+          const hue = (frameCount / 2) % 360;
+          gradient.addColorStop(0, `hsl(${hue}, 70%, 50%)`);
+          gradient.addColorStop(0.5, '#ec4899'); // LaaBoBo pink
+          gradient.addColorStop(1, `hsl(${(hue + 60) % 360}, 70%, 40%)`);
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // دائرة متحركة في الخلفية
+          ctx.globalAlpha = 0.3;
+          ctx.beginPath();
+          ctx.arc(
+            canvas.width / 2 + Math.sin(frameCount * 0.01) * 200,
+            canvas.height / 2 + Math.cos(frameCount * 0.01) * 200,
+            300,
+            0,
+            Math.PI * 2
+          );
+          ctx.fillStyle = 'white';
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          
+          // إطار للمحتوى
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100);
+          
+          // نص البث المباشر
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 120px Arial';
+          ctx.textAlign = 'center';
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+          ctx.shadowBlur = 10;
+          ctx.fillText('🔴 بث مباشر', canvas.width / 2, canvas.height / 2 - 200);
+          
+          // عنوان البث
+          ctx.font = 'bold 80px Arial';
+          ctx.fillText(streamData.title || 'LaaBoBo Live', canvas.width / 2, canvas.height / 2);
+          
+          // معلومات البث
+          ctx.font = '60px Arial';
+          ctx.fillText(`👥 ${streamData.viewerCount || 0} مشاهد`, canvas.width / 2, canvas.height / 2 + 150);
+          
+          // الوقت مع أيقونة متحركة
+          const now = new Date();
+          const timeIcon = frameCount % 60 < 30 ? '🕐' : '🕑';
+          ctx.fillText(`${timeIcon} ${now.toLocaleTimeString('ar-SA')}`, canvas.width / 2, canvas.height / 2 + 250);
+          
+          // شعار LaaBoBo
+          ctx.font = 'bold 50px Arial';
+          ctx.fillText('🐰 LaaBoBo Live', canvas.width / 2, canvas.height - 100);
+          
+          ctx.shadowBlur = 0;
         }
-      })
-      .catch((error) => {
-        console.warn('لا يمكن الوصول للكاميرا، جاري عرض مصدر تجريبي:', error);
-        // استخدام مصدر فيديو تجريبي إذا لم تكن الكاميرا متاحة
-        if (videoRef.current) {
-          // إنشاء كانفاس لعرض محتوى تجريبي
-          const canvas = document.createElement('canvas');
-          canvas.width = 1280;
-          canvas.height = 720;
-          const ctx = canvas.getContext('2d');
-          
-          const drawFrame = () => {
-            if (ctx) {
-              // خلفية متدرجة
-              const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-              gradient.addColorStop(0, '#667eea');
-              gradient.addColorStop(1, '#764ba2');
-              ctx.fillStyle = gradient;
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              
-              // نص البث المباشر
-              ctx.fillStyle = 'white';
-              ctx.font = 'bold 80px Arial';
-              ctx.textAlign = 'center';
-              ctx.fillText('🔴 بث مباشر', canvas.width / 2, canvas.height / 2 - 100);
-              
-              ctx.font = 'bold 40px Arial';
-              ctx.fillText(stream.title, canvas.width / 2, canvas.height / 2);
-              
-              ctx.font = '30px Arial';
-              ctx.fillText(`المشاهدون: ${stream.viewerCount || 0}`, canvas.width / 2, canvas.height / 2 + 60);
-              
-              // الوقت الحالي
-              const now = new Date();
-              ctx.fillText(now.toLocaleTimeString('ar-SA'), canvas.width / 2, canvas.height / 2 + 120);
-            }
-            
-            if (isPlaying) {
-              requestAnimationFrame(drawFrame);
-            }
-          };
-          
-          canvas.captureStream(30).getTracks().forEach(track => {
-            const stream = new MediaStream([track]);
-            videoRef.current!.srcObject = stream;
-            videoRef.current!.autoplay = true;
-            videoRef.current!.playsInline = true;
-            videoRef.current!.muted = isMuted;
-          });
-          
-          drawFrame();
-          setIsLoading(false);
-          setIsConnected(true);
+        
+        if (isPlaying) {
+          requestAnimationFrame(drawFrame);
         }
+      };
+      
+      // إنشاء تيار الفيديو من الكانفاس
+      const stream = canvas.captureStream(30);
+      videoRef.current.srcObject = stream;
+      videoRef.current.autoplay = true;
+      videoRef.current.playsInline = true;
+      videoRef.current.muted = isMuted;
+      
+      // بدء الرسم
+      drawFrame();
+      
+      // بدء التشغيل التلقائي
+      videoRef.current.play().catch(e => {
+        console.log('تم منع التشغيل التلقائي:', e);
       });
+      
+      setIsLoading(false);
+      setIsConnected(true);
     }
-  }, [stream.title, stream.viewerCount, isPlaying, isMuted]);
+    
+    return () => {
+      setIsPlaying(false);
+    };
+  }, [streamData.title, streamData.viewerCount]);
 
   const togglePlay = () => {
     if (videoRef.current) {
