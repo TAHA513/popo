@@ -1,0 +1,51 @@
+/* تحسينات أداء الفيديو والتنقل السلس */
+
+/* تحسين الانتقالات */
+.video-transition {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* تحسين العرض للمتصفحات */
+.video-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* تحسين التمرير */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* تحسين استجابة اللمس */
+.touch-responsive {
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* تحسين الرسوم المتحركة */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fast {
+    animation-duration: 0.2s;
+  }
+}
+
+/* تحسين الأداء لتشغيل الفيديو */
+video {
+  object-fit: cover;
+  background-color: #000;
+  will-change: auto;
+}
+
+video:not([autoplay]) {
+  preload: metadata;
+}
+
+/* تحسين تحميل الصور */
+img {
+  loading: lazy;
+  decode: async;
+}
