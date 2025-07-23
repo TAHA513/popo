@@ -33,7 +33,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Stream } from "@/types";
 import { Link, useLocation } from "wouter";
 import CommentsModal from "@/components/comments-modal";
-import InfiniteScrollEnd from "@/components/infinite-scroll-end";
 
 export default function Home() {
   const { user } = useAuth();
@@ -398,20 +397,13 @@ export default function Home() {
                     />
                   );
                 })}
-                
-                {/* إضافة عنصر نهاية التصفح */}
-                {typedMemories.length > 0 && (
-                  <InfiniteScrollEnd 
-                    hasContent={true}
-                    message="تم عرض جميع المنشورات المتاحة"
-                  />
-                )}
               </div>
             ) : (
-              <InfiniteScrollEnd 
-                hasContent={false}
-                message="لا توجد منشورات حالياً"
-              />
+              <div className="text-center py-12 bg-white rounded-lg shadow">
+                <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">لا توجد منشورات حالياً</h3>
+                <p className="text-gray-500">تحقق مرة أخرى قريباً للاطلاع على المحتوى الجديد</p>
+              </div>
             )}
           </div>
 
