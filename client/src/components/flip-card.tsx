@@ -105,79 +105,117 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
         )}
 
-        {/* Author Circle - Top Left (Small) */}
-        <div className="absolute top-3 left-3 z-10">
-          <Link 
-            href={`/user/${content.author?.id || content.authorId}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg hover:scale-105 transition-transform cursor-pointer border-2 border-white/80">
-              {content.author?.profileImageUrl ? (
-                <img
-                  src={content.author.profileImageUrl}
-                  alt={content.author?.firstName || content.author?.username || 'مستخدم'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-              )}
+        {/* Top Header Bar */}
+        <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/60 to-transparent p-3">
+          <div className="flex items-center justify-between">
+            {/* Author Info */}
+            <Link 
+              href={`/user/${content.author?.id || content.authorId}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center space-x-2 rtl:space-x-reverse group"
+            >
+              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/60 group-hover:border-white transition-colors">
+                {content.author?.profileImageUrl ? (
+                  <img
+                    src={content.author.profileImageUrl}
+                    alt={content.author?.firstName || content.author?.username || 'مستخدم'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-white font-semibold text-sm group-hover:text-white/90 transition-colors">
+                  {content.author?.username || 'مستخدم LaaBoBo'}
+                </span>
+                {content.author?.isStreamer && (
+                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                )}
+              </div>
+            </Link>
+
+            {/* Views Count */}
+            <div className="bg-black/40 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs flex items-center">
+              <Eye className="w-3 h-3 mr-1" />
+              <span className="font-medium">{content.viewCount || 0}</span>
             </div>
-          </Link>
+          </div>
         </div>
 
-        {/* Top Badges - Moved to avoid overlap with profile */}
-        <div className="absolute top-16 left-3 flex items-center space-x-2 rtl:space-x-reverse">
-          {type === 'live' && (
-            <Badge className="bg-red-500 text-white px-3 py-1 rounded-full animate-pulse border-2 border-white/50">
-              <Radio className="w-3 h-3 mr-1" />
-              مباشر
+        {/* Content Type Indicator */}
+        {type === 'live' && (
+          <div className="absolute top-12 right-3 z-20">
+            <Badge className="bg-red-500 text-white px-2 py-1 rounded text-xs animate-pulse border border-white/30">
+              🔴 مباشر الآن
             </Badge>
-          )}
-          {type === 'featured' && (
-            <Badge className="bg-yellow-500 text-white px-3 py-1 rounded-full border-2 border-white/50">
-              <Star className="w-3 h-3 mr-1" />
-              مميز
-            </Badge>
-          )}
-          {content.memoryType && (
-            <Badge className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full">
-              {content.memoryType}
-            </Badge>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Views Count - Back to original position */}
-        <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center backdrop-blur-sm">
-          <Eye className="w-3 h-3 mr-1" />
-          <span className="font-medium">{content.viewCount || 0}</span>
-        </div>
-
-        {/* Center Play Button */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-          {type === 'video' || type === 'live' ? (
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 hover:scale-110 transition-transform duration-300">
-              <PlayCircle className="w-10 h-10 text-white" />
+        {/* Center Play Button - Only for Videos */}
+        {type === 'video' && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 group-hover:bg-black/10 transition-colors">
+            <div className="w-16 h-16 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/60 hover:scale-110 hover:bg-black/70 transition-all duration-300">
+              <Play className="w-8 h-8 text-white ml-1" />
             </div>
-          ) : (
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 hover:scale-110 transition-transform duration-300">
-              <Image className="w-8 h-8 text-white" />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Bottom Info */}
-        <div className="absolute bottom-3 left-3 right-3">
-          <div className={`${content.mediaUrls && content.mediaUrls.length > 0 ? 'text-white' : 'text-gray-100'}`}>
-            {content.title && (
-              <h3 className="font-bold text-lg mb-1 line-clamp-1 drop-shadow-lg">
-                {content.title}
-              </h3>
-            )}
-            <p className={`text-sm line-clamp-2 drop-shadow ${content.mediaUrls && content.mediaUrls.length > 0 ? 'text-white/90' : 'text-gray-200'}`}>
-              {content.caption || content.description || "منشور جديد"}
-            </p>
+        {/* Live Join Button */}
+        {type === 'live' && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 group-hover:bg-black/10 transition-colors">
+            <div className="w-18 h-16 bg-red-500/80 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/60 hover:scale-110 hover:bg-red-600/90 transition-all duration-300 px-4">
+              <Radio className="w-6 h-6 text-white mr-2" />
+              <span className="text-white font-bold text-sm">انضم</span>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Content Area */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/70 to-transparent p-3">
+          {/* Post Title */}
+          {content.title && (
+            <h3 className="text-white font-bold text-base mb-2 line-clamp-1 drop-shadow-lg">
+              {content.title}
+            </h3>
+          )}
+          
+          {/* Post Description */}
+          <p className="text-white/90 text-sm line-clamp-2 drop-shadow mb-3">
+            {content.caption || content.description || "منشور جديد على LaaBoBo"}
+          </p>
+
+          {/* Interaction Bar */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4 rtl:space-x-reverse">
+              <button 
+                onClick={(e) => { e.stopPropagation(); onLike?.(content.id); }}
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-red-400 transition-colors"
+              >
+                <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-400 text-red-400' : ''}`} />
+                <span className="text-xs">{content.likeCount || 0}</span>
+              </button>
+              
+              <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-blue-400 transition-colors">
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-xs">{content.commentCount || 0}</span>
+              </button>
+              
+              <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-green-400 transition-colors">
+                <Share2 className="w-4 h-4" />
+              </button>
+              
+              <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors">
+                <Gift className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Time */}
+            <span className="text-white/60 text-xs">
+              <RealTimeTimestamp timestamp={content.createdAt} />
+            </span>
           </div>
         </div>
       </div>
