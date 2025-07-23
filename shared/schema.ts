@@ -237,6 +237,27 @@ export const fragmentCollections = pgTable("fragment_collections", {
   addedAt: timestamp("added_at").defaultNow(),
 });
 
+// Comments table for memories and streams
+export const comments = pgTable("comments", {
+  id: serial("id").primaryKey(),
+  content: text("content").notNull(),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  postId: integer("post_id").notNull(), // Can reference memory or stream
+  postType: varchar("post_type").notNull(), // 'memory' or 'stream'
+  parentId: integer("parent_id").references(() => comments.id), // For nested replies
+  likeCount: integer("like_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Comment likes table
+export const commentLikes = pgTable("comment_likes", {
+  id: serial("id").primaryKey(),
+  commentId: integer("comment_id").notNull().references(() => comments.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schema exports
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -276,6 +297,12 @@ export type MessageRequest = typeof messageRequests.$inferSelect;
 
 export type InsertFragmentCollection = typeof fragmentCollections.$inferInsert;
 export type FragmentCollection = typeof fragmentCollections.$inferSelect;
+
+export type InsertComment = typeof comments.$inferInsert;
+export type Comment = typeof comments.$inferSelect;
+
+export type InsertCommentLike = typeof commentLikes.$inferInsert;
+export type CommentLike = typeof commentLikes.$inferSelect;
 
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -334,6 +361,17 @@ export const insertMemoryFragmentSchema = createInsertSchema(memoryFragments).om
 });
 
 export const insertMemoryInteractionSchema = createInsertSchema(memoryInteractions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCommentSchema = createInsertSchema(comments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({
   id: true,
   createdAt: true,
 });

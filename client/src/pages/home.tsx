@@ -32,6 +32,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Stream } from "@/types";
 import { Link, useLocation } from "wouter";
+import CommentsModal from "@/components/comments-modal";
 
 export default function Home() {
   const { user } = useAuth();
@@ -40,6 +41,15 @@ export default function Home() {
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
   const [mutedVideos, setMutedVideos] = useState<Set<string>>(new Set());
+  const [commentsModal, setCommentsModal] = useState<{
+    isOpen: boolean;
+    postId: string;
+    postType: 'memory' | 'stream';
+  }>({
+    isOpen: false,
+    postId: '',
+    postType: 'memory'
+  });
   
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
@@ -81,10 +91,31 @@ export default function Home() {
     });
   };
 
-  const handleInteraction = (action: string) => {
+  const handleInteraction = (action: string, itemId?: string) => {
+    if (action === 'comment') {
+      // Open comments modal
+      const postType = itemId?.includes('stream') ? 'stream' : 'memory';
+      const postId = itemId?.replace('memory-', '').replace('stream-', '') || '';
+      
+      setCommentsModal({
+        isOpen: true,
+        postId,
+        postType
+      });
+      return;
+    }
+    
     toast({
       title: `تم ${action}`,
       description: `تم تنفيذ ${action} بنجاح`,
+    });
+  };
+
+  const closeCommentsModal = () => {
+    setCommentsModal({
+      isOpen: false,
+      postId: '',
+      postType: 'memory'
     });
   };
 
@@ -353,7 +384,7 @@ export default function Home() {
                             // عرض المحتوى كاملاً
                             break;
                           case 'comment':
-                            handleInteraction('التعليق');
+                            handleInteraction('comment', `memory-${memory.id}`);
                             break;
                           case 'share':
                             handleInteraction('المشاركة');
@@ -392,6 +423,14 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Comments Modal */}
+      <CommentsModal
+        postId={commentsModal.postId}
+        postType={commentsModal.postType}
+        isOpen={commentsModal.isOpen}
+        onClose={closeCommentsModal}
+      />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes } from "@shared/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
@@ -718,6 +718,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error sending gift:", error);
       res.status(500).json({ message: "Failed to send gift" });
+    }
+  });
+
+  // Comments routes
+  app.get('/api/memories/:id/comments', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const commentsData = await db
+        .select({
+          id: comments.id,
+          content: comments.content,
+          authorId: comments.authorId,
+          postId: comments.postId,
+          parentId: comments.parentId,
+          likeCount: comments.likeCount,
+          createdAt: comments.createdAt,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+          }
+        })
+        .from(comments)
+        .leftJoin(users, eq(comments.authorId, users.id))
+        .where(eq(comments.postId, postId))
+        .orderBy(comments.createdAt);
+
+      // Group replies under their parent comments
+      const parentComments = commentsData.filter(c => !c.parentId);
+      const replies = commentsData.filter(c => c.parentId);
+      
+      const commentsWithReplies = parentComments.map(comment => ({
+        ...comment,
+        replies: replies.filter(r => r.parentId === comment.id)
+      }));
+
+      res.json(commentsWithReplies);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ message: "Failed to fetch comments" });
+    }
+  });
+
+  app.post('/api/memories/:id/comments', requireAuth, async (req: any, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const { content, parentId } = req.body;
+      
+      if (!content?.trim()) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      const newComment = await db
+        .insert(comments)
+        .values({
+          content: content.trim(),
+          authorId: req.user.id,
+          postId,
+          postType: 'memory',
+          parentId: parentId || null,
+        })
+        .returning();
+
+      // Get author info
+      const author = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName,
+          profileImageUrl: users.profileImageUrl,
+        })
+        .from(users)
+        .where(eq(users.id, req.user.id))
+        .limit(1);
+
+      res.json({
+        ...newComment[0],
+        author: author[0]
+      });
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      res.status(500).json({ message: "Failed to add comment" });
+    }
+  });
+
+  app.get('/api/streams/:id/comments', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const commentsData = await db
+        .select({
+          id: comments.id,
+          content: comments.content,
+          authorId: comments.authorId,
+          postId: comments.postId,
+          parentId: comments.parentId,
+          likeCount: comments.likeCount,
+          createdAt: comments.createdAt,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+          }
+        })
+        .from(comments)
+        .leftJoin(users, eq(comments.authorId, users.id))
+        .where(eq(comments.postId, postId))
+        .orderBy(comments.createdAt);
+
+      const parentComments = commentsData.filter(c => !c.parentId);
+      const replies = commentsData.filter(c => c.parentId);
+      
+      const commentsWithReplies = parentComments.map(comment => ({
+        ...comment,
+        replies: replies.filter(r => r.parentId === comment.id)
+      }));
+
+      res.json(commentsWithReplies);
+    } catch (error) {
+      console.error("Error fetching stream comments:", error);
+      res.status(500).json({ message: "Failed to fetch stream comments" });
+    }
+  });
+
+  app.post('/api/streams/:id/comments', requireAuth, async (req: any, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const { content, parentId } = req.body;
+      
+      if (!content?.trim()) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      const newComment = await db
+        .insert(comments)
+        .values({
+          content: content.trim(),
+          authorId: req.user.id,
+          postId,
+          postType: 'stream',
+          parentId: parentId || null,
+        })
+        .returning();
+
+      const author = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName,
+          profileImageUrl: users.profileImageUrl,
+        })
+        .from(users)
+        .where(eq(users.id, req.user.id))
+        .limit(1);
+
+      res.json({
+        ...newComment[0],
+        author: author[0]
+      });
+    } catch (error) {
+      console.error("Error adding stream comment:", error);
+      res.status(500).json({ message: "Failed to add stream comment" });
+    }
+  });
+
+  app.post('/api/comments/:id/like', requireAuth, async (req: any, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const userId = req.user.id;
+
+      // Check if already liked
+      const existingLike = await db
+        .select()
+        .from(commentLikes)
+        .where(eq(commentLikes.commentId, commentId))
+        .where(eq(commentLikes.userId, userId))
+        .limit(1);
+
+      if (existingLike.length > 0) {
+        // Unlike
+        await db
+          .delete(commentLikes)
+          .where(eq(commentLikes.commentId, commentId))
+          .where(eq(commentLikes.userId, userId));
+
+        // Decrease like count
+        await db
+          .update(comments)
+          .set({ 
+            likeCount: sql`${comments.likeCount} - 1`
+          })
+          .where(eq(comments.id, commentId));
+
+        res.json({ liked: false });
+      } else {
+        // Like
+        await db
+          .insert(commentLikes)
+          .values({
+            commentId,
+            userId,
+          });
+
+        // Increase like count
+        await db
+          .update(comments)
+          .set({ 
+            likeCount: sql`${comments.likeCount} + 1`
+          })
+          .where(eq(comments.id, commentId));
+
+        res.json({ liked: true });
+      }
+    } catch (error) {
+      console.error("Error liking comment:", error);
+      res.status(500).json({ message: "Failed to like comment" });
     }
   });
 
