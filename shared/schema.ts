@@ -36,6 +36,10 @@ export const users = pgTable("users", {
   bio: text("bio"),
   points: integer("points").default(100), // Start with 100 points
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0"),
+  totalGiftsReceived: decimal("total_gifts_received", { precision: 10, scale: 2 }).default("0"), // Track gifts received
+  totalGiftsSent: decimal("total_gifts_sent", { precision: 10, scale: 2 }).default("0"), // Track gifts sent
+  supporterLevel: integer("supporter_level").default(0), // Supporter level 0-10
+  supporterBadge: varchar("supporter_badge"), // Badge type based on level
   isStreamer: boolean("is_streamer").default(false),
   isAdmin: boolean("is_admin").default(false),
   role: varchar("role").default("user").notNull(), // 'user' | 'admin' | 'super_admin'
@@ -387,3 +391,14 @@ export const insertMemoryCollectionSchema = createInsertSchema(memoryCollections
   createdAt: true,
   fragmentCount: true,
 });
+
+// Types for supporter system
+export type SupporterLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+
+// User with supporter information
+export type UserWithSupporter = typeof users.$inferSelect & {
+  supporterLevel: number;
+  totalGiftsSent: string;
+  totalGiftsReceived: string;
+  supporterBadge: string | null;
+};

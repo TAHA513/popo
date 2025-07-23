@@ -19,6 +19,7 @@ import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
 import { setupMessageRoutes } from './routes/messages';
+import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -707,14 +708,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const gift = await storage.sendGift(giftData);
       
-      // Broadcast gift to stream viewers
+      // Update supporter levels
+      const supporterUpdate = await updateSupporterLevel(giftData.senderId);
+      await updateGiftsReceived(giftData.receiverId, giftData.pointCost);
+      
+      // Broadcast gift to stream viewers with supporter level update
       broadcastToStream(giftData.streamId!, {
         type: 'gift_sent',
         gift,
         sender: req.user.claims,
+        supporterUpdate,
       });
       
-      res.json(gift);
+      res.json({ gift, supporterUpdate });
     } catch (error) {
       console.error("Error sending gift:", error);
       res.status(500).json({ message: "Failed to send gift" });

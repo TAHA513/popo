@@ -24,6 +24,8 @@ import { Stream, ChatMessage, Gift, GiftCharacter } from "@/types";
 import GiftCharacters from "./gift-characters";
 import BeautyFilters from "./beauty-filters";
 import LoveGiftEffect from "./LoveGiftEffect";
+import SupporterBadge from "./SupporterBadge";
+import SupporterLevelUpNotification from "./SupporterLevelUpNotification";
 
 interface StreamingInterfaceProps {
   stream: Stream;
@@ -46,6 +48,7 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
   const [showFilters, setShowFilters] = useState(false);
   const [showLoveEffect, setShowLoveEffect] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<'ar' | 'en'>('ar');
+  const [supporterLevelUp, setSupporterLevelUp] = useState<{newLevel: number, oldLevel: number} | null>(null);
   const [isStreamer, setIsStreamer] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   
@@ -134,15 +137,28 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
         characterId: character.id,
         pointCost: character.pointCost,
         streamId: stream.id,
+      }, {
+        onSuccess: (response) => {
+          // Check if this is the special Love Heart gift
+          if (character.name === 'Love Heart' || character.emoji === '💝') {
+            // Detect user's language preference
+            const userLang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+            setCurrentLanguage(userLang);
+            setShowLoveEffect(true);
+          }
+          
+          // Handle supporter level updates
+          if (response.supporterUpdate) {
+            setSupporterLevelUp({
+              newLevel: response.supporterUpdate.newLevel,
+              oldLevel: response.supporterUpdate.oldLevel
+            });
+          }
+        }
       });
       
-      // Check if this is the special Love Heart gift
-      if (character.name === 'Love Heart' || character.emoji === '💝') {
-        // Detect user's language preference
-        const userLang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
-        setCurrentLanguage(userLang);
-        setShowLoveEffect(true);
-      }
+      // Hide gift panel after sending
+      setShowGiftPanel(false);
     }
   };
 
@@ -316,6 +332,14 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
                             {message.user?.username || 'Anonymous'}
                           </span>
                         </Link>
+                        {message.user && (
+                          <SupporterBadge 
+                            level={message.user.supporterLevel || 0}
+                            totalGiftsSent={message.user.totalGiftsSent || 0}
+                            showText={false}
+                            className="scale-75"
+                          />
+                        )}
                         <span className="text-xs text-gray-500">
                           {message.sentAt ? new Date(message.sentAt).toLocaleTimeString([], { 
                             hour: '2-digit', 
@@ -383,6 +407,16 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
         language={currentLanguage}
         onComplete={() => setShowLoveEffect(false)}
       />
+      
+      {/* Supporter Level Up Notification */}
+      {supporterLevelUp && (
+        <SupporterLevelUpNotification
+          isVisible={!!supporterLevelUp}
+          newLevel={supporterLevelUp.newLevel}
+          oldLevel={supporterLevelUp.oldLevel}
+          onComplete={() => setSupporterLevelUp(null)}
+        />
+      )}
     </div>
   );
 }
