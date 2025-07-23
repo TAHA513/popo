@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation, useParams, Link } from "wouter";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useParams, Link } from "wouter";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, MessageCircle } from "lucide-react";
@@ -12,7 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function ConversationPage() {
   const { user } = useAuth();
-  const params = useParams();
+  const params = useParams<{ userId: string }>();
   const userId = params.userId;
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -34,13 +34,23 @@ export default function ConversationPage() {
   // Fetch other user info
   const { data: otherUser } = useQuery({
     queryKey: [`/api/users/${userId}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${userId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch user');
+      return response.json();
+    },
     enabled: !!userId
   });
 
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
-      return apiRequest(`/api/messages/${userId}`, "POST", { content });
+      return apiRequest('/api/messages/send', "POST", { 
+        recipientId: userId, 
+        content 
+      });
     },
     onSuccess: () => {
       setNewMessage("");
@@ -99,7 +109,7 @@ export default function ConversationPage() {
           </Link>
           
           <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
-            {otherUser.profileImageUrl ? (
+            {otherUser?.profileImageUrl ? (
               <img 
                 src={otherUser.profileImageUrl} 
                 alt={otherUser.username} 
@@ -112,9 +122,9 @@ export default function ConversationPage() {
           
           <div>
             <h1 className="text-lg font-semibold text-gray-800">
-              {otherUser.firstName || otherUser.username}
+              {otherUser?.firstName || otherUser?.username}
             </h1>
-            <p className="text-sm text-gray-500">@{otherUser.username}</p>
+            <p className="text-sm text-gray-500">@{otherUser?.username}</p>
           </div>
         </div>
       </div>
