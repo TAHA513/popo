@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { Suspense } from "react";
+import { initPerformanceOptimizations } from "@/lib/performance";
 
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
@@ -16,12 +17,14 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
+// import { TooltipProvider } from "@/components/ui/tooltip";
 
 type Language = 'en' | 'ar';
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
+  // Always show loading screen while checking auth
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
@@ -30,6 +33,7 @@ function Router() {
     );
   }
 
+  // Once loaded, show appropriate routes based on auth status
   return (
     <Switch>
       <Route path="/login">
@@ -79,11 +83,29 @@ function Router() {
 }
 
 function App() {
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguage] = useState<Language>('en');
 
   useEffect(() => {
+    // Set document direction and language
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
+    
+    // Initialize performance optimizations
+    initPerformanceOptimizations();
+    
+    // Simplified performance monitoring only in development
+    if (process.env.NODE_ENV === 'development') {
+      // Reduced frequency memory monitoring
+      const checkMemory = () => {
+        if ('memory' in performance) {
+          const memory = (performance as any).memory;
+          console.log('Memory:', Math.round(memory.usedJSHeapSize / 1048576) + 'MB');
+        }
+      };
+      
+      const memoryInterval = setInterval(checkMemory, 60000); // كل دقيقة
+      return () => clearInterval(memoryInterval);
+    }
   }, [language]);
 
   return (
