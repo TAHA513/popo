@@ -27,6 +27,7 @@ import BeautyFilters from "./beauty-filters";
 import LoveGiftEffect from "./LoveGiftEffect";
 import SupporterBadge from "./SupporterBadge";
 import SupporterLevelUpNotification from "./SupporterLevelUpNotification";
+import LiveStreamPlayer from "./LiveStreamPlayer";
 
 interface StreamingInterfaceProps {
   stream: Stream;
@@ -72,9 +73,11 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
       joinStream(stream.id, user.id);
       setIsStreamer(user.id === stream.hostId);
     }
-
+  
     return () => {
-      leaveStream();
+      if (user && isConnected) {
+        leaveStream(stream.id, user.id);
+      }
     };
   }, [user, isConnected, stream.id, joinStream, leaveStream]);
 
@@ -173,16 +176,8 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
     <div className="fixed inset-0 bg-black z-50 streaming-interface">
       {/* TikTok-Style Full Screen Stream */}
       <div className="relative w-full h-full">
-        {/* Video Background - TikTok Style */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black">
-          <img 
-            src={stream.thumbnailUrl || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800"}
-            alt="Live Stream" 
-            className="w-full h-full object-cover"
-          />
-          {/* Dark overlay for better visibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30"></div>
-        </div>
+        {/* Live Stream Player Component */}
+        <LiveStreamPlayer stream={stream} isStreamer={isStreamer} />
 
         {/* Top Header - TikTok Style */}
         <div className="absolute top-0 left-0 right-0 z-30 p-4">
