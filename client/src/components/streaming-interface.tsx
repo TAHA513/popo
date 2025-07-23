@@ -28,6 +28,7 @@ import LoveGiftEffect from "./LoveGiftEffect";
 import SupporterBadge from "./SupporterBadge";
 import SupporterLevelUpNotification from "./SupporterLevelUpNotification";
 import LiveStreamPlayer from "./LiveStreamPlayer";
+import SimpleStreamViewer from "./SimpleStreamViewer";
 
 interface StreamingInterfaceProps {
   stream: Stream;
@@ -69,17 +70,20 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
 
   // Join stream on mount and check if user is streamer
   useEffect(() => {
+    setIsStreamer(user?.id === stream.hostId);
+    
     if (user && isConnected) {
+      console.log('🚀 Joining stream:', stream.id, 'as user:', user.id);
       joinStream(stream.id, user.id);
-      setIsStreamer(user.id === stream.hostId);
     }
   
     return () => {
       if (user && isConnected) {
+        console.log('🚪 Leaving stream on cleanup');
         leaveStream();
       }
     };
-  }, [user, isConnected, stream.id, joinStream, leaveStream]);
+  }, [user?.id, isConnected, stream.id]);
 
   // Set up WebSocket listeners
   useEffect(() => {
@@ -177,7 +181,14 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
       {/* TikTok-Style Full Screen Stream */}
       <div className="relative w-full h-full">
         {/* Live Stream Player Component */}
-        <LiveStreamPlayer stream={stream} isStreamer={isStreamer} />
+        {isStreamer ? (
+          <LiveStreamPlayer 
+            stream={stream} 
+            isStreamer={true}
+          />
+        ) : (
+          <SimpleStreamViewer stream={stream} />
+        )}
 
         {/* Top Header - TikTok Style */}
         <div className="absolute top-0 left-0 right-0 z-30 p-4">

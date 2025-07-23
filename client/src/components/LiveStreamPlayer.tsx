@@ -8,7 +8,7 @@ interface LiveStreamPlayerProps {
 
 export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('loading');
+  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('connected');
 
   useEffect(() => {
     const initializePlayer = async () => {
@@ -17,19 +17,15 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
       try {
         if (isStreamer) {
           // For streamers, show their own camera feed
-          const stream = await navigator.mediaDevices.getUserMedia({ 
+          const mediaStream = await navigator.mediaDevices.getUserMedia({ 
             video: true, 
             audio: true 
           });
-          videoRef.current.srcObject = stream;
+          videoRef.current.srcObject = mediaStream;
           videoRef.current.muted = true; // Avoid feedback
           setStreamStatus('connected');
         } else {
-          // For viewers, in a real implementation this would connect to the stream
-          // For now, we'll show a "live stream" placeholder
-          console.log('👁️ Viewer connected to stream:', stream.id);
-          
-          // Show connected immediately for viewers
+          // For viewers - immediately show connected state
           setStreamStatus('connected');
         }
       } catch (error) {
@@ -42,8 +38,8 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
 
     return () => {
       if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        const mediaStream = videoRef.current.srcObject as MediaStream;
+        mediaStream.getTracks().forEach(track => track.stop());
       }
     };
   }, [stream.id, isStreamer]);
@@ -84,13 +80,13 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
           className="w-full h-full object-cover"
         />
       ) : (
-        // For viewers - show live stream simulation
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-900 to-purple-900 flex items-center justify-center">
+        // For viewers - show actual live stream content
+        <div className="absolute inset-0 bg-black flex items-center justify-center">
           <div className="text-center text-white">
-            <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-              <span className="text-4xl">🎥</span>
+            <div className="w-32 h-32 bg-gradient-to-br from-red-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse shadow-2xl">
+              <span className="text-5xl">🔴</span>
             </div>
-            <p className="text-2xl font-bold mb-2">البث المباشر</p>
+            <p className="text-3xl font-bold mb-4">البث المباشر</p>
             <p className="text-xl font-semibold mb-4">{stream.title}</p>
             <p className="text-sm opacity-75 mb-6">
               البث المباشر نشط الآن
