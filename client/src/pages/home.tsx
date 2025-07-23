@@ -407,6 +407,17 @@ export default function Home() {
             )}
           </div>
 
+          {/* End of Content Indicator */}
+          {(typedStreams.length > 0 || typedMemories.length > 0) && (
+            <div className="text-center py-12">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mx-4">
+                <div className="text-3xl mb-2">🎉</div>
+                <p className="text-gray-600 font-medium">تم عرض جميع المنشورات المتاحة</p>
+                <p className="text-gray-500 text-sm mt-1">تابعونا لرؤية المزيد من المحتوى الرائع</p>
+              </div>
+            </div>
+          )}
+
           {/* Empty State for No Content */}
           {typedStreams.length === 0 && typedMemories.length === 0 && (
             <div className="text-center py-20">
@@ -416,9 +427,15 @@ export default function Home() {
               <h3 className="text-3xl font-bold text-gray-800 mb-4">
                 لا يوجد محتوى متاح حالياً
               </h3>
-              <p className="text-gray-600 text-lg max-w-md mx-auto">
-                تحقق مرة أخرى قريباً لاستكشاف المحتوى الجديد والمثير
+              <p className="text-gray-600 text-lg max-w-md mx-auto mb-6">
+                كن أول من ينشر ذكرى جميلة!
               </p>
+              <Button 
+                onClick={() => setLocation('/create-memory')}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full"
+              >
+                إنشاء منشور جديد
+              </Button>
             </div>
           )}
         </div>

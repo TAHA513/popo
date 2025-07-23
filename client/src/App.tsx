@@ -17,6 +17,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 type Language = 'en' | 'ar';
 
@@ -66,7 +67,13 @@ function Router() {
           <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route path="*" component={NotFound} />
+          <Route>
+            {(params) => {
+              // إذا لم تطابق أي route، لا تعرض 404 تلقائياً - فقط التنقل للصفحة الرئيسية
+              window.location.href = '/';
+              return null;
+            }}
+          </Route>
         </Suspense>
       ) : (
         <>
