@@ -53,7 +53,7 @@ export default function SimpleExplore() {
           </div>
         </div>
         {/* Colored Line */}
-        <div className="h-1 bg-gradient-to-r from-laa-pink via-purple-500 to-blue-500"></div>
+        <div className="h-2 bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 shadow-sm"></div>
       </div>
 
       <div className="max-w-sm mx-auto">
