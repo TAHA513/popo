@@ -82,10 +82,10 @@ export default function VideoPage() {
       // Filter only videos
       return data.filter((item: any) => item.type === 'video');
     },
-    refetchInterval: false, // إيقاف التحديث التلقائي
-    staleTime: 300000, // 5 دقائق cache
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchInterval: 10000, // كل 10 ثواني - أكثر عقلانية
+    staleTime: 5000, // 5 ثواني
+    refetchOnMount: true,
+    refetchOnWindowFocus: false, // تجنب التحديث المستمر
   });
 
   // Initialize video with improved loading strategy
@@ -129,26 +129,57 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Ultra-fast video setup - no delays, immediate load
+  // Simplified and improved video setup
   useEffect(() => {
     if (currentVideo) {
-      setIsVideoLoading(false); // Don't show loading initially
+      setIsVideoLoading(true);
       setVideoError(false);
       
-      // Immediate video setup without delays
-      const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
-      if (videoElement) {
-        videoElement.muted = true;
-        videoElement.autoplay = true;
-        videoElement.currentTime = 0;
+      // Multiple attempts to find and setup video element
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      const setupVideo = () => {
+        attempts++;
+        const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
         
-        // Force immediate play
-        videoElement.play().catch(() => {
-          console.log('Video play prevented');
-        });
-      }
+        if (videoElement) {
+          // Video element found, set it up
+          videoElement.muted = isMuted;
+          videoElement.currentTime = 0;
+          
+          // Simple event handlers
+          const handleLoadedData = () => {
+            setIsVideoLoading(false);
+            if (isVideoPlaying) {
+              videoElement.play().catch(() => {
+                console.log('Autoplay prevented');
+                setIsVideoLoading(false);
+              });
+            }
+          };
+          
+          // Clean up old listeners
+          videoElement.removeEventListener('loadeddata', handleLoadedData);
+          videoElement.addEventListener('loadeddata', handleLoadedData, { once: true });
+          
+          // Force load the video
+          videoElement.load();
+          
+        } else if (attempts < maxAttempts) {
+          // Video element not ready yet, try again
+          setTimeout(setupVideo, 100);
+        } else {
+          // Give up after max attempts
+          setIsVideoLoading(false);
+          setVideoError(true);
+        }
+      };
+      
+      // Start setup process
+      setupVideo();
     }
-  }, [currentVideo]);
+  }, [currentVideo, isVideoPlaying, isMuted]);
 
   // Cleanup function to refresh home page cache when leaving
   useEffect(() => {
@@ -504,9 +535,30 @@ export default function VideoPage() {
     }
   };
 
-  // Simple check - show video or nothing
-  if (!currentVideo) {
-    return null;
+  if (videosLoading || !currentVideo) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+          </div>
+          <p className="mt-6 text-white/90 text-lg font-medium">جاري تحضير الفيديوهات...</p>
+          <p className="mt-2 text-white/60 text-sm">التحميل السريع جارٍ</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentVideo || allVideos.length === 0) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">لا توجد فيديوهات</h2>
+          <Button onClick={() => window.history.back()} className="bg-purple-600 text-white">العودة</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -515,10 +567,10 @@ export default function VideoPage() {
       className="min-h-screen bg-black relative overflow-hidden"
       style={{ touchAction: 'pan-y' }}
     >
-      {/* Back Button - Returns to home interface */}
+      {/* Back Button */}
       <Button 
         variant="ghost" 
-        onClick={() => window.location.href = '/home'}
+        onClick={() => window.history.back()}
         className="absolute top-4 left-4 z-20 text-white bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 p-0"
       >
         <ArrowLeft className="w-6 h-6" />
@@ -563,21 +615,60 @@ export default function VideoPage() {
       {/* Video Container */}
       <div className="relative w-full h-screen flex items-center justify-center group">
         <video
-          key={`video-${currentVideo.id}`}
+          key={`video-${currentVideo.id}-${Date.now()}`}
           id={`video-${currentVideo.id}`}
           src={currentVideo.mediaUrls[0]}
           className="w-full h-full object-cover"
           autoPlay
-          muted
+          muted={isMuted}
           loop
           playsInline
           preload="auto"
-          controls={false}
+          poster={currentVideo.thumbnailUrl}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
+          onLoadStart={() => {
+            console.log('Video loading started');
+            setIsVideoLoading(true);
+            setVideoError(false);
+          }}
+          onLoadedData={() => {
+            console.log('Video data loaded');
+            setIsVideoLoading(false);
+          }}
+          onCanPlay={() => {
+            console.log('Video can play');
+            setIsVideoLoading(false);
+          }}
+          onPlaying={() => {
+            console.log('Video is playing');
+            setIsVideoLoading(false);
+            setIsVideoPlaying(true);
+          }}
+          onError={(e) => {
+            console.error('Video error:', e);
+            setIsVideoLoading(false);
+            setIsVideoPlaying(false);
+            setVideoError(true);
+          }}
         />
 
-
+        {/* Loading Indicator */}
+        {isVideoLoading && !videoError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-30">
+            <div className="text-center">
+              <div className="relative mb-4">
+                <div className="w-20 h-20 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+                <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.6s' }}></div>
+              </div>
+              <p className="text-white text-lg font-medium mb-2">تحضير الفيديو...</p>
+              <div className="w-40 h-2 bg-gray-700 rounded-full mx-auto overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-full animate-pulse"></div>
+              </div>
+              <p className="text-gray-300 mt-2 text-sm">لحظة واحدة من فضلك</p>
+            </div>
+          </div>
+        )}
 
         {/* Error Indicator */}
         {videoError && (
