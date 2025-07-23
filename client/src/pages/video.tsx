@@ -66,6 +66,7 @@ export default function VideoPage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch all public videos for TikTok-style browsing
@@ -127,6 +128,9 @@ export default function VideoPage() {
   // Auto-play and handle video changes
   useEffect(() => {
     if (currentVideo) {
+      // Reset loading state when video changes
+      setIsVideoLoading(true);
+      
       const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
       if (videoElement) {
         videoElement.muted = isMuted;
@@ -138,9 +142,12 @@ export default function VideoPage() {
           // Try to play, with fallback for autoplay restrictions
           const playPromise = videoElement.play();
           if (playPromise !== undefined) {
-            playPromise.catch(() => {
+            playPromise.then(() => {
+              setIsVideoLoading(false);
+            }).catch(() => {
               // Auto-play failed, user needs to interact first
               setIsVideoPlaying(false);
+              setIsVideoLoading(false);
             });
           }
         }
@@ -355,6 +362,15 @@ export default function VideoPage() {
     }
   }, [currentVideoIndex, allVideos]);
 
+  // Hide instructions after 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInstructions(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [currentVideo]);
+
   // Follow/Unfollow mutation
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
@@ -539,6 +555,20 @@ export default function VideoPage() {
         )}
       </div>
 
+      {/* Navigation Instructions */}
+      {showInstructions && (
+        <div className={`absolute top-20 left-1/2 transform -translate-x-1/2 z-20 bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2 text-white text-xs text-center transition-opacity duration-500 ${showInstructions ? 'opacity-90' : 'opacity-0'}`}>
+          <div className="md:hidden">اسحب لأعلى/أسفل للتنقل بين الفيديوهات</div>
+          <div className="hidden md:block">استخدم الأسهم أو أزرار التنقل للتنقل بين الفيديوهات</div>
+          <div className="mt-1 text-[10px] opacity-70">مسافة = تشغيل/إيقاف</div>
+        </div>
+      )}
+
+      {/* Video Counter */}
+      <div className="absolute top-4 right-1/2 transform translate-x-1/2 z-20 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs">
+        فيديو {currentVideoIndex + 1} من {allVideos.length}
+      </div>
+
       {/* Video Container */}
       <div className="relative w-full h-screen flex items-center justify-center group">
         <video
@@ -563,6 +593,10 @@ export default function VideoPage() {
             setIsVideoLoading(false);
             setIsVideoPlaying(true);
           }}
+          onCanPlayThrough={() => {
+            // Video has buffered enough to play through
+            setIsVideoLoading(false);
+          }}
           onWaiting={() => {
             console.log('Video waiting for data');
             setIsVideoLoading(true);
@@ -575,6 +609,12 @@ export default function VideoPage() {
             console.error('Video error:', e);
             setIsVideoLoading(false);
             setIsVideoPlaying(false);
+          }}
+          onTimeUpdate={() => {
+            // Hide loading once video starts playing
+            if (isVideoLoading) {
+              setIsVideoLoading(false);
+            }
           }}
         />
 
