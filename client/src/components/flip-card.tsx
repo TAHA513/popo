@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RealTimeTimestamp } from "./real-time-timestamp";
@@ -33,6 +33,7 @@ interface FlipCardProps {
 
 export default function FlipCard({ content, type, onAction, onLike, isLiked }: FlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [location, setLocation] = useLocation();
 
   const getCardStyle = () => {
     switch (type) {
@@ -336,12 +337,12 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
   };
 
   const handleCardClick = () => {
-    // إذا كان فيديو أو بث مباشر، انتقل مباشرة في نفس النافذة
+    // إذا كان فيديو أو بث مباشر، انتقل مباشرة بدون إعادة تحميل
     if (type === 'video' || type === 'live') {
       if (type === 'video' && content.id) {
-        window.location.href = `/video/${content.id}`;
+        setLocation(`/video/${content.id}`);
       } else if (type === 'live' && content.id) {
-        window.location.href = `/stream/${content.id}`;
+        setLocation(`/stream/${content.id}`);
       }
     } else {
       // للمنشورات الأخرى، اقلب البطاقة
