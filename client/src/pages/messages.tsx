@@ -26,6 +26,20 @@ export default function MessagesPage() {
     }
   });
 
+  // Fetch message requests count
+  const { data: requests = [] } = useQuery({
+    queryKey: ['/api/messages/requests'],
+    queryFn: async () => {
+      const response = await fetch('/api/messages/requests', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch requests');
+      return response.json();
+    }
+  });
+
+  const requestCount = requests.length;
+
   const filteredConversations = conversations.filter((conv: any) => 
     conv.otherUser?.username?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -48,7 +62,17 @@ export default function MessagesPage() {
       
       <main className="container mx-auto px-4 py-4 max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">الرسائل</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-gray-800">الرسائل</h1>
+            <Link href="/messages/requests">
+              <Button variant="outline" size="sm" className="text-purple-600 border-purple-600 hover:bg-purple-50">
+                طلبات الرسائل
+                <Badge className="mr-2 bg-purple-600 text-white">
+                  {requestCount}
+                </Badge>
+              </Button>
+            </Link>
+          </div>
           
           {/* Search Bar */}
           <div className="relative">
