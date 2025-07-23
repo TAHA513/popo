@@ -17,7 +17,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 type Language = 'en' | 'ar';
 
@@ -28,21 +28,21 @@ function Router() {
 
   // Auto-navigate to random video when user logs in (TikTok style)
   useEffect(() => {
-    console.log('App.tsx useEffect triggered:', { isAuthenticated, hasAutoNavigated, user });
+    console.log('🎬 App.tsx useEffect triggered:', { isAuthenticated, hasAutoNavigated, user });
     
     if (isAuthenticated && !hasAutoNavigated && user) {
-      console.log('Attempting to open random video...');
+      console.log('🎯 Attempting to open random video...');
       
       const openRandomVideo = async () => {
         try {
-          console.log('Fetching memories from API...');
+          console.log('📡 Fetching memories from API...');
           const response = await fetch('/api/memories/public', {
             credentials: 'include'
           });
           
           if (response.ok) {
             const memories = await response.json();
-            console.log('All memories:', memories);
+            console.log('📦 All memories received:', memories.length, 'items');
             
             // Filter ONLY videos - exclude images completely
             const videos = memories.filter((item: any) => 
@@ -51,35 +51,35 @@ function Router() {
               item.mediaUrls.length > 0
             );
             
-            console.log('Filtered videos:', videos);
+            console.log('🎥 Filtered videos:', videos.length, 'videos found');
+            console.log('🎥 Video details:', videos.map((v: any) => ({ id: v.id, url: v.mediaUrls[0] })));
             
             if (videos.length > 0) {
               // Pick random video
               const randomIndex = Math.floor(Math.random() * videos.length);
               const randomVideo = videos[randomIndex];
-              console.log('Opening random video:', randomVideo.id, 'from index:', randomIndex);
+              console.log('🎲 Opening random video:', randomVideo.id, 'from index:', randomIndex);
+              console.log('🚀 Navigating to /video/' + randomVideo.id);
               setLocation(`/video/${randomVideo.id}`);
               setHasAutoNavigated(true);
             } else {
-              console.log('No videos found, going to home');
-              setLocation('/');
+              console.log('❌ No videos found, staying on home');
+              // Don't redirect if no videos, let user see home page
               setHasAutoNavigated(true);
             }
           } else {
-            console.log('API response not ok:', response.status);
-            setLocation('/');
+            console.log('❌ API response not ok:', response.status);
             setHasAutoNavigated(true);
           }
         } catch (error) {
-          console.error('Error loading random video:', error);
-          setLocation('/');
+          console.error('💥 Error loading random video:', error);
           setHasAutoNavigated(true);
         }
       };
 
       // Small delay to ensure smooth transition
-      console.log('Setting timeout for random video...');
-      setTimeout(openRandomVideo, 300);
+      console.log('⏰ Setting timeout for random video...');
+      setTimeout(openRandomVideo, 500);
     }
   }, [isAuthenticated, hasAutoNavigated, user, setLocation]);
 
@@ -185,12 +185,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+      <TooltipPrimitive.Provider>
         <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
           <Toaster />
           <Router />
         </div>
-      </TooltipProvider>
+      </TooltipPrimitive.Provider>
     </QueryClientProvider>
   );
 }
