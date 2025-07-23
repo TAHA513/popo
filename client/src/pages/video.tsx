@@ -88,7 +88,7 @@ export default function VideoPage() {
     refetchOnWindowFocus: false, // تجنب التحديث المستمر
   });
 
-  // Find current video index and stop previous video - with better initialization
+  // Initialize video with improved loading strategy
   useEffect(() => {
     if (videoId && allVideos.length > 0) {
       // Stop all videos first
@@ -101,36 +101,12 @@ export default function VideoPage() {
       
       const index = allVideos.findIndex(v => v.id === parseInt(videoId));
       if (index !== -1) {
+        // Set initial states immediately
         setCurrentVideoIndex(index);
         setIsVideoPlaying(true);
         setIsMuted(true);
         setIsVideoLoading(true);
         setVideoError(false);
-        
-        // Force immediate video load attempt
-        const targetVideo = allVideos[index];
-        if (targetVideo) {
-          // Use a slight delay to ensure the component renders first
-          setTimeout(() => {
-            const videoElement = document.querySelector(`#video-${targetVideo.id}`) as HTMLVideoElement;
-            if (videoElement) {
-              videoElement.muted = true;
-              videoElement.load();
-              
-              // Attempt immediate play
-              const playPromise = videoElement.play();
-              if (playPromise) {
-                playPromise.then(() => {
-                  setIsVideoLoading(false);
-                  setIsVideoPlaying(true);
-                }).catch(() => {
-                  console.log('Autoplay blocked, waiting for user interaction');
-                  setIsVideoLoading(false);
-                });
-              }
-            }
-          }, 100);
-        }
       }
     }
   }, [videoId, allVideos]);
@@ -153,55 +129,55 @@ export default function VideoPage() {
 
   const isFollowing = followStatus?.isFollowing || false;
 
-  // Enhanced video setup when current video changes
+  // Simplified and improved video setup
   useEffect(() => {
     if (currentVideo) {
-      // Reset states
       setIsVideoLoading(true);
       setVideoError(false);
       
-      // Wait for DOM to be ready, then setup video
+      // Multiple attempts to find and setup video element
+      let attempts = 0;
+      const maxAttempts = 10;
+      
       const setupVideo = () => {
+        attempts++;
         const videoElement = document.querySelector(`#video-${currentVideo.id}`) as HTMLVideoElement;
+        
         if (videoElement) {
-          // Setup video properties
+          // Video element found, set it up
           videoElement.muted = isMuted;
           videoElement.currentTime = 0;
           
-          // Add event listeners for better control
-          const handleCanPlay = () => {
+          // Simple event handlers
+          const handleLoadedData = () => {
             setIsVideoLoading(false);
             if (isVideoPlaying) {
-              videoElement.play().catch(console.warn);
+              videoElement.play().catch(() => {
+                console.log('Autoplay prevented');
+                setIsVideoLoading(false);
+              });
             }
           };
           
-          const handleError = () => {
-            setIsVideoLoading(false);
-            setVideoError(true);
-          };
+          // Clean up old listeners
+          videoElement.removeEventListener('loadeddata', handleLoadedData);
+          videoElement.addEventListener('loadeddata', handleLoadedData, { once: true });
           
-          // Remove existing listeners first
-          videoElement.removeEventListener('canplay', handleCanPlay);
-          videoElement.removeEventListener('error', handleError);
-          
-          // Add new listeners
-          videoElement.addEventListener('canplay', handleCanPlay, { once: true });
-          videoElement.addEventListener('error', handleError, { once: true });
-          
-          // Force load
+          // Force load the video
           videoElement.load();
           
-          return () => {
-            videoElement.removeEventListener('canplay', handleCanPlay);
-            videoElement.removeEventListener('error', handleError);
-          };
+        } else if (attempts < maxAttempts) {
+          // Video element not ready yet, try again
+          setTimeout(setupVideo, 100);
+        } else {
+          // Give up after max attempts
+          setIsVideoLoading(false);
+          setVideoError(true);
         }
       };
       
-      // Use requestAnimationFrame for better timing
-      const frameId = requestAnimationFrame(setupVideo);
-      return () => cancelAnimationFrame(frameId);
+      // Start setup process
+      setupVideo();
     }
   }, [currentVideo, isVideoPlaying, isMuted]);
 
@@ -639,7 +615,7 @@ export default function VideoPage() {
       {/* Video Container */}
       <div className="relative w-full h-screen flex items-center justify-center group">
         <video
-          key={currentVideo.id}
+          key={`video-${currentVideo.id}-${Date.now()}`}
           id={`video-${currentVideo.id}`}
           src={currentVideo.mediaUrls[0]}
           className="w-full h-full object-cover"
@@ -647,34 +623,27 @@ export default function VideoPage() {
           muted={isMuted}
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           poster={currentVideo.thumbnailUrl}
           onPlay={() => setIsVideoPlaying(true)}
           onPause={() => setIsVideoPlaying(false)}
           onLoadStart={() => {
             console.log('Video loading started');
             setIsVideoLoading(true);
+            setVideoError(false);
+          }}
+          onLoadedData={() => {
+            console.log('Video data loaded');
+            setIsVideoLoading(false);
           }}
           onCanPlay={() => {
             console.log('Video can play');
             setIsVideoLoading(false);
           }}
-          onCanPlayThrough={() => {
-            // Video has buffered enough to play through
-            setIsVideoLoading(false);
-          }}
           onPlaying={() => {
-            // Video is actually playing
+            console.log('Video is playing');
             setIsVideoLoading(false);
             setIsVideoPlaying(true);
-          }}
-          onWaiting={() => {
-            console.log('Video waiting for data');
-            setIsVideoLoading(true);
-          }}
-          onLoadedData={() => {
-            console.log('Video data loaded');
-            // Don't hide loading here, wait for canplay
           }}
           onError={(e) => {
             console.error('Video error:', e);
@@ -682,27 +651,21 @@ export default function VideoPage() {
             setIsVideoPlaying(false);
             setVideoError(true);
           }}
-          onTimeUpdate={(e) => {
-            // Hide loading once video starts playing and has time
-            const video = e.currentTarget as HTMLVideoElement;
-            if (isVideoLoading && video.currentTime > 0.1) {
-              setIsVideoLoading(false);
-            }
-          }}
         />
 
         {/* Loading Indicator */}
         {isVideoLoading && !videoError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-30">
             <div className="text-center">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
-                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+              <div className="relative mb-4">
+                <div className="w-20 h-20 border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+                <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.6s' }}></div>
               </div>
-              <p className="text-white mt-4 text-sm">جاري تحميل الفيديو...</p>
-              <div className="w-32 h-1 bg-gray-700 rounded-full mt-3 mx-auto overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
+              <p className="text-white text-lg font-medium mb-2">تحضير الفيديو...</p>
+              <div className="w-40 h-2 bg-gray-700 rounded-full mx-auto overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-full animate-pulse"></div>
               </div>
+              <p className="text-gray-300 mt-2 text-sm">لحظة واحدة من فضلك</p>
             </div>
           </div>
         )}
