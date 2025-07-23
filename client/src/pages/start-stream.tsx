@@ -20,7 +20,10 @@ import {
   Square,
   Sparkles,
   Wand2,
-  ArrowLeft
+  ArrowLeft,
+  Heart,
+  MessageCircle,
+  Share2
 } from 'lucide-react';
 import BeautyFilters from '@/components/beauty-filters';
 import SimpleNavigation from '@/components/simple-navigation';
@@ -198,27 +201,33 @@ export default function StartStreamPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${isRTL ? 'rtl' : 'ltr'}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 ${isRTL ? 'rtl' : 'ltr'}`}>
       <SimpleNavigation />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className={`flex items-center gap-4 mb-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        {/* TikTok-Style Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-pink-500/20 rounded-full blur-xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
+        </div>
+        {/* TikTok-Style Header */}
+        <div className={`relative z-10 flex items-center gap-4 mb-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation('/')}
-            className={isRTL ? 'mr-auto' : ''}
+            className={`text-white hover:bg-white/10 ${isRTL ? 'mr-auto' : ''}`}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             {isRTL ? 'الرجوع للرئيسية' : 'Back to Home'}
           </Button>
           
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-4xl font-bold text-white drop-shadow-lg">
               {isRTL ? 'بدء بث مباشر' : 'Start Live Stream'}
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-white/80 mt-2 text-lg drop-shadow-md">
               {isRTL 
                 ? 'ابدأ بثك المباشر مع فلاتر التجميل المتقدمة' 
                 : 'Start your live stream with advanced beauty filters'
@@ -226,12 +235,13 @@ export default function StartStreamPage() {
             </p>
           </div>
 
-          {/* Language Toggle */}
-          <div className="flex bg-white rounded-lg p-1 shadow-sm">
+          {/* Language Toggle - TikTok Style */}
+          <div className="flex bg-white/20 backdrop-blur-sm rounded-2xl p-1 shadow-lg border border-white/30">
             <Button
               variant={language === 'en' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setLanguage('en')}
+              className={language === 'en' ? 'bg-white text-gray-900' : 'text-white hover:bg-white/20'}
             >
               EN
             </Button>
@@ -239,6 +249,7 @@ export default function StartStreamPage() {
               variant={language === 'ar' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setLanguage('ar')}
+              className={language === 'ar' ? 'bg-white text-gray-900' : 'text-white hover:bg-white/20'}
             >
               العربية
             </Button>
@@ -249,16 +260,16 @@ export default function StartStreamPage() {
           {/* Stream Setup */}
           <div className="lg:col-span-1 space-y-6">
             {/* Stream Information */}
-            <Card>
+            <Card className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl">
               <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <Settings className="w-5 h-5" />
+                <CardTitle className={`flex items-center gap-2 text-white ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <Settings className="w-5 h-5 text-laa-pink" />
                   {isRTL ? 'إعدادات البث' : 'Stream Settings'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="title">
+                  <Label htmlFor="title" className="text-white/90 font-semibold">
                     {isRTL ? 'عنوان البث' : 'Stream Title'}
                   </Label>
                   <Input
@@ -266,13 +277,13 @@ export default function StartStreamPage() {
                     value={streamTitle}
                     onChange={(e) => setStreamTitle(e.target.value)}
                     placeholder={isRTL ? 'اكتب عنوان البث...' : 'Enter stream title...'}
-                    className="mt-1"
+                    className="mt-2 bg-white/20 border-white/30 text-white placeholder-white/60 focus:border-laa-pink"
                     dir={isRTL ? 'rtl' : 'ltr'}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="description">
+                  <Label htmlFor="description" className="text-white/90 font-semibold">
                     {isRTL ? 'الوصف' : 'Description'}
                   </Label>
                   <Textarea
@@ -281,7 +292,7 @@ export default function StartStreamPage() {
                     onChange={(e) => setStreamDescription(e.target.value)}
                     placeholder={isRTL ? 'اكتب وصف البث...' : 'Enter stream description...'}
                     rows={3}
-                    className="mt-1"
+                    className="mt-2 bg-white/20 border-white/30 text-white placeholder-white/60 focus:border-laa-pink"
                     dir={isRTL ? 'rtl' : 'ltr'}
                   />
                 </div>
@@ -399,7 +410,8 @@ export default function StartStreamPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                {/* TikTok-Style Stream Preview */}
+                <div className="relative aspect-[9/16] max-w-sm mx-auto bg-black rounded-2xl overflow-hidden shadow-2xl">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -408,22 +420,66 @@ export default function StartStreamPage() {
                     className="w-full h-full object-cover"
                   />
                   
+                  {/* TikTok-Style Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none"></div>
+                  
                   {!cameraEnabled && (
-                    <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
                       <div className="text-center text-white">
-                        <VideoOff className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p className="text-lg">
+                        <VideoOff className="w-16 h-16 mx-auto mb-4 opacity-70" />
+                        <p className="text-xl font-bold">
                           {isRTL ? 'الكاميرا متوقفة' : 'Camera is off'}
+                        </p>
+                        <p className="text-sm text-gray-300 mt-2">
+                          {isRTL ? 'شغل الكاميرا لبدء البث' : 'Turn on camera to start streaming'}
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Status Overlay */}
-                  <div className="absolute top-4 left-4">
-                    <Badge variant={isStreaming ? "destructive" : "secondary"}>
-                      {isStreaming ? (isRTL ? 'بث مباشر' : 'STREAMING') : (isRTL ? 'معاينة' : 'PREVIEW')}
-                    </Badge>
+                  {/* TikTok-Style Live Badge */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <div className={`px-3 py-1.5 rounded-full font-bold text-sm border-2 border-white shadow-lg ${
+                      isStreaming 
+                        ? 'bg-red-600 text-white animate-pulse' 
+                        : 'bg-gray-800/80 text-gray-300 backdrop-blur-sm'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        {isStreaming && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                        {isStreaming ? (isRTL ? 'مباشر' : 'LIVE') : (isRTL ? 'معاينة' : 'PREVIEW')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TikTok-Style Side Controls Preview */}
+                  <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                      <Heart className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                      <Share2 className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+
+                  {/* TikTok-Style Stream Info */}
+                  <div className="absolute bottom-4 left-4 right-20 text-white">
+                    <div className="space-y-2">
+                      <h3 className="font-bold text-lg drop-shadow-lg">
+                        {streamTitle || (isRTL ? 'عنوان البث' : 'Stream Title')}
+                      </h3>
+                      <p className="text-sm text-gray-200 drop-shadow-md">
+                        {streamDescription || (isRTL ? 'وصف البث المباشر' : 'Live stream description')}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-laa-pink rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold">U</span>
+                        </div>
+                        <span className="font-semibold drop-shadow-lg">{user?.username || 'المستخدم'}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
