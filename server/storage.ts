@@ -55,6 +55,7 @@ export interface IStorage {
   getStreamById(id: number): Promise<Stream | undefined>;
   updateStreamViewerCount(id: number, count: number): Promise<void>;
   endStream(id: number): Promise<void>;
+  deleteStream(id: number): Promise<void>;
   
   // Gift operations
   getGiftCharacters(): Promise<GiftCharacter[]>;
@@ -210,6 +211,17 @@ export class DatabaseStorage implements IStorage {
       .update(streams)
       .set({ isLive: false, endedAt: new Date() })
       .where(eq(streams.id, id));
+  }
+
+  async deleteStream(id: number): Promise<void> {
+    // Delete chat messages for this stream first
+    await db.delete(chatMessages).where(eq(chatMessages.streamId, id));
+    
+    // Delete gifts for this stream
+    await db.delete(gifts).where(eq(gifts.streamId, id));
+    
+    // Delete the stream itself
+    await db.delete(streams).where(eq(streams.id, id));
   }
 
   // Gift operations
@@ -553,7 +565,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(memoryFragments.authorId, users.id))
       .where(eq(memoryFragments.id, id));
     
-    return fragments.length > 0 ? fragments[0] as MemoryFragment : undefined;
+    return fragments.length > 0 ? fragments[0] as any : undefined;
   }
 
   async addMemoryInteraction(interactionData: InsertMemoryInteraction): Promise<MemoryInteraction> {

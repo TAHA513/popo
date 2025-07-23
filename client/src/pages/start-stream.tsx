@@ -61,6 +61,7 @@ export default function StartStreamPage() {
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [micEnabled, setMicEnabled] = useState(true);
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const [currentStreamId, setCurrentStreamId] = useState<number | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -81,6 +82,10 @@ export default function StartStreamPage() {
       .then((stream) => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.autoplay = true;
+          videoRef.current.playsInline = true;
+          videoRef.current.muted = false;
+          videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
           streamRef.current = stream;
         }
       })
@@ -125,9 +130,10 @@ export default function StartStreamPage() {
     },
     onSuccess: (data) => {
       setIsStreaming(true);
+      setCurrentStreamId(data.id);
       toast({
-        title: isRTL ? "تم بدء البث!" : "Stream Started!",
-        description: isRTL ? "بثك المباشر يعمل الآن" : "Your live stream is now active",
+        title: "تم بدء البث!",
+        description: "بثك المباشر يعمل الآن",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/streams'] });
       // Redirect to the stream page
@@ -154,20 +160,25 @@ export default function StartStreamPage() {
   });
 
   const stopStreamMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest('/api/streams/stop', 'POST');
+    mutationFn: async (streamId: number) => {
+      await apiRequest(`/api/streams/${streamId}/end`, 'POST');
     },
     onSuccess: () => {
       setIsStreaming(false);
+      setCurrentStreamId(null);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
       toast({
-        title: isRTL ? "تم إيقاف البث" : "Stream Stopped",
-        description: isRTL ? "تم إنهاء البث المباشر" : "Your live stream has ended",
+        title: "تم إيقاف البث",
+        description: "تم إنهاء البث المباشر وحذفه من النظام",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/streams'] });
+      setLocation('/');
     }
   });
 
@@ -245,7 +256,7 @@ export default function StartStreamPage() {
     <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 ${isRTL ? 'rtl' : 'ltr'}`}>
       <SimpleNavigation />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* TikTok-Style Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-32 h-32 bg-pink-500/20 rounded-full blur-xl animate-pulse"></div>
@@ -265,14 +276,11 @@ export default function StartStreamPage() {
           </Button>
           
           <div className="flex-1">
-            <h1 className="text-4xl font-bold text-white drop-shadow-lg">
-              {isRTL ? 'بدء بث مباشر' : 'Start Live Stream'}
+            <h1 className="text-2xl sm:text-4xl font-bold text-white drop-shadow-lg">
+              بدء بث مباشر
             </h1>
-            <p className="text-white/80 mt-2 text-lg drop-shadow-md">
-              {isRTL 
-                ? 'ابدأ بثك المباشر مع فلاتر التجميل المتقدمة' 
-                : 'Start your live stream with advanced beauty filters'
-              }
+            <p className="text-white/80 mt-1 sm:mt-2 text-sm sm:text-lg drop-shadow-md">
+              ابدأ بثك المباشر مع فلاتر التجميل المتقدمة
             </p>
           </div>
 
@@ -297,7 +305,7 @@ export default function StartStreamPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Stream Setup */}
           <div className="lg:col-span-1 space-y-6">
             {/* Stream Information */}
@@ -376,8 +384,10 @@ export default function StartStreamPage() {
                     onClick={toggleCamera}
                     className="flex-1"
                   >
-                    {cameraEnabled ? <Camera className="w-4 h-4 mr-2" /> : <VideoOff className="w-4 h-4 mr-2" />}
-                    {isRTL ? (cameraEnabled ? 'الكاميرا تعمل' : 'الكاميرا متوقفة') : (cameraEnabled ? 'Camera On' : 'Camera Off')}
+                    {cameraEnabled ? <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> : <VideoOff className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />}
+                    <span className="text-xs sm:text-sm">
+                      {cameraEnabled ? 'الكاميرا' : 'متوقفة'}
+                    </span>
                   </Button>
                   <Button
                     variant={micEnabled ? "default" : "outline"}
@@ -385,8 +395,10 @@ export default function StartStreamPage() {
                     onClick={toggleMic}
                     className="flex-1"
                   >
-                    {micEnabled ? <Mic className="w-4 h-4 mr-2" /> : <MicOff className="w-4 h-4 mr-2" />}
-                    {isRTL ? (micEnabled ? 'المايك يعمل' : 'المايك متوقف') : (micEnabled ? 'Mic On' : 'Mic Off')}
+                    {micEnabled ? <Mic className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> : <MicOff className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />}
+                    <span className="text-xs sm:text-sm">
+                      {micEnabled ? 'المايك' : 'متوقف'}
+                    </span>
                   </Button>
                 </div>
 
@@ -405,7 +417,7 @@ export default function StartStreamPage() {
                   </Button>
                 ) : (
                   <Button 
-                    onClick={() => stopStreamMutation.mutate()}
+                    onClick={() => currentStreamId && stopStreamMutation.mutate(currentStreamId)}
                     disabled={stopStreamMutation.isPending}
                     variant="destructive"
                     className="w-full"

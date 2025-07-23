@@ -652,17 +652,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/streams/:id/end', requireAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
+      console.log("🛑 Ending stream:", streamId);
+      
       const stream = await storage.getStreamById(streamId);
       
       if (!stream || stream.hostId !== req.user.id) {
-        return res.status(403).json({ message: "Unauthorized" });
+        return res.status(403).json({ message: "غير مصرح لك بإنهاء هذا البث" });
       }
       
-      await storage.endStream(streamId);
-      res.json({ success: true });
+      // Delete the stream from database completely
+      await storage.deleteStream(streamId);
+      console.log("✅ Stream deleted successfully:", streamId);
+      
+      res.json({ success: true, message: "تم إنهاء البث وحذفه بنجاح" });
     } catch (error) {
-      console.error("Error ending stream:", error);
-      res.status(500).json({ message: "Failed to end stream" });
+      console.error("❌ Error ending stream:", error);
+      res.status(500).json({ message: "فشل في إنهاء البث" });
     }
   });
 
