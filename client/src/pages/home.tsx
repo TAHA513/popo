@@ -25,7 +25,8 @@ import {
   Radio,
   Maximize2,
   Volume2,
-  VolumeX
+  VolumeX,
+  Camera
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -245,16 +246,29 @@ export default function Home() {
                   </div>
                 </div>
                 
-                {/* Start Stream Button */}
-                <Button
-                  onClick={() => setLocation('/start-stream')}
-                  className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-xl font-bold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-lg"
-                >
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <Video className="w-5 h-5" />
-                    <span>ابدأ البث</span>
-                  </div>
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex space-x-3 rtl:space-x-reverse">
+                  <Button
+                    onClick={() => setLocation('/start-stream')}
+                    className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-xl font-bold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <Video className="w-5 h-5" />
+                      <span>ابدأ البث</span>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setLocation('/single-video')}
+                    className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-xl font-bold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-lg"
+                    title="مشغل الفيديو المفرد"
+                  >
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <Camera className="w-5 h-5" />
+                      <span>فيديو واحد</span>
+                    </div>
+                  </Button>
+                </div>
               </div>
             </div>
         </div>

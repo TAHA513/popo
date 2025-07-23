@@ -63,35 +63,46 @@ export default function VideoPage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  // Removed currentVideoIndex - single video only
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const [isVideoLoading, setIsVideoLoading] = useState(true);
-  const [showInstructions, setShowInstructions] = useState(true);
+  // Removed showInstructions - single video only
   const [videoError, setVideoError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all public videos for TikTok-style browsing
-  const { data: allVideos = [], isLoading: videosLoading } = useQuery<VideoData[]>({
-    queryKey: ['/api/memories/public'],
+  // Fetch only the specific video by ID - no browsing
+  const { data: currentVideo, isLoading: videosLoading } = useQuery<VideoData>({
+    queryKey: ['/api/memories', videoId],
     queryFn: async () => {
+      if (!videoId) throw new Error('Video ID is required');
+      
+      // First get all public memories, then find the specific one
       const response = await fetch('/api/memories/public', {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('فشل في تحميل الفيديوهات');
-      const data = await response.json();
-      // Filter only videos
-      return data.filter((item: any) => item.type === 'video');
+      if (!response.ok) throw new Error('فشل في تحميل الفيديو');
+      const allMemories = await response.json();
+      
+      // Find the specific memory by ID
+      const memory = allMemories.find((m: any) => m.id === parseInt(videoId));
+      if (!memory) {
+        throw new Error('لم يتم العثور على الفيديو');
+      }
+      
+      // Ensure it's a video
+      if (memory.type !== 'video') {
+        throw new Error('هذا المحتوى ليس فيديو');
+      }
+      return memory;
     },
-    refetchInterval: 10000, // كل 10 ثواني - أكثر عقلانية
-    staleTime: 5000, // 5 ثواني
-    refetchOnMount: true,
-    refetchOnWindowFocus: false, // تجنب التحديث المستمر
+    enabled: !!videoId,
+    refetchOnWindowFocus: false,
   });
 
-  // Initialize video with improved loading strategy - videos only
+  // Initialize video when data is loaded
   useEffect(() => {
-    if (videoId && allVideos.length > 0) {
-      // Stop all videos first
+    if (currentVideo) {
+      // Stop all other videos first
       const allVideoElements = document.querySelectorAll('video');
       allVideoElements.forEach(video => {
         video.pause();
@@ -99,32 +110,13 @@ export default function VideoPage() {
         video.muted = true;
       });
       
-      const index = allVideos.findIndex(v => v.id === parseInt(videoId));
-      if (index !== -1) {
-        const video = allVideos[index];
-        // تأكد من أن هذا فيديو وليس صورة
-        if (video.type === 'video') {
-          setCurrentVideoIndex(index);
-          setIsVideoPlaying(true);
-          setIsMuted(true);
-          setIsVideoLoading(true);
-          setVideoError(false);
-        } else {
-          // إذا لم يكن فيديو، توجه للرئيسية
-          toast({
-            title: "محتوى غير مدعوم",
-            description: "هذه الصفحة مخصصة للفيديوهات فقط",
-            variant: "destructive"
-          });
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 2000);
-        }
-      }
+      // Setup this video
+      setIsVideoPlaying(true);
+      setIsMuted(true);
+      setIsVideoLoading(true);
+      setVideoError(false);
     }
-  }, [videoId, allVideos, toast]);
-
-  const currentVideo = allVideos[currentVideoIndex];
+  }, [currentVideo]);
 
   // Check if current user is following the video author
   const { data: followStatus } = useQuery({
@@ -262,54 +254,12 @@ export default function VideoPage() {
     interactionMutation.mutate({ videoId: currentVideo.id, type: 'like' });
   };
 
-  const stopCurrentVideo = () => {
-    if (currentVideo) {
-      const videoElement = document.getElementById(`video-${currentVideo.id}`) as HTMLVideoElement;
-      if (videoElement) {
-        videoElement.pause();
-        videoElement.currentTime = 0;
-      }
-    }
-  };
+  // Removed navigation functions - single video only
 
-  const goToNextVideo = () => {
-    if (currentVideoIndex < allVideos.length - 1) {
-      stopCurrentVideo();
-      
-      const nextIndex = currentVideoIndex + 1;
-      setCurrentVideoIndex(nextIndex);
-      setIsVideoPlaying(true);
-      setIsVideoLoading(false);
-      
-      // Update URL
-      window.history.replaceState(null, '', `/video/${allVideos[nextIndex].id}`);
-    }
-  };
-
-  const goToPrevVideo = () => {
-    if (currentVideoIndex > 0) {
-      stopCurrentVideo();
-      
-      const prevIndex = currentVideoIndex - 1;
-      setCurrentVideoIndex(prevIndex);
-      setIsVideoPlaying(true);
-      setIsVideoLoading(false);
-      
-      // Update URL
-      window.history.replaceState(null, '', `/video/${allVideos[prevIndex].id}`);
-    }
-  };
-
-  // Handle keyboard navigation
+  // Handle keyboard controls - play/pause only
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        e.preventDefault();
-        goToPrevVideo();
-      } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        goToNextVideo();
-      } else if (e.key === ' ') {
+      if (e.key === ' ') {
         e.preventDefault();
         handleVideoToggle();
       }
@@ -317,79 +267,13 @@ export default function VideoPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentVideoIndex, allVideos]);
-
-  // Handle swipe gestures
-  useEffect(() => {
-    let startY = 0;
-    let startX = 0;
-    
-    const handleTouchStart = (e: TouchEvent) => {
-      startY = e.touches[0].clientY;
-      startX = e.touches[0].clientX;
-    };
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      e.preventDefault(); // Prevent scrolling
-    };
-    
-    const handleTouchEnd = (e: TouchEvent) => {
-      const endY = e.changedTouches[0].clientY;
-      const endX = e.changedTouches[0].clientX;
-      const deltaY = startY - endY;
-      const deltaX = Math.abs(startX - endX);
-      
-      // Only handle vertical swipes (ignore horizontal)
-      if (deltaX < 50 && Math.abs(deltaY) > 50) {
-        if (deltaY > 50) {
-          // Swipe up - next video
-          goToNextVideo();
-        } else if (deltaY < -50) {
-          // Swipe down - previous video
-          goToPrevVideo();
-        }
-      }
-    };
-    
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('touchstart', handleTouchStart, { passive: true });
-      container.addEventListener('touchmove', handleTouchMove, { passive: false });
-      container.addEventListener('touchend', handleTouchEnd, { passive: true });
-      
-      return () => {
-        container.removeEventListener('touchstart', handleTouchStart);
-        container.removeEventListener('touchmove', handleTouchMove);
-        container.removeEventListener('touchend', handleTouchEnd);
-      };
-    }
-  }, [currentVideoIndex, allVideos]);
-
-  // Simple preloading - just next video
-  useEffect(() => {
-    if (allVideos.length > 1 && currentVideoIndex < allVideos.length - 1) {
-      const nextVideo = allVideos[currentVideoIndex + 1];
-      const link = document.createElement('link');
-      link.rel = 'prefetch';
-      link.href = nextVideo.mediaUrls[0];
-      document.head.appendChild(link);
-      
-      return () => {
-        if (document.head.contains(link)) {
-          document.head.removeChild(link);
-        }
-      };
-    }
-  }, [currentVideoIndex, allVideos]);
-
-  // Hide instructions after 3 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowInstructions(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
   }, []);
+
+  // Removed swipe gestures - single video only
+
+  // Removed preloading - single video only
+
+  // Removed hide instructions - single video only
 
   // Follow/Unfollow mutation
   const followMutation = useMutation({
@@ -527,11 +411,11 @@ export default function VideoPage() {
     );
   }
 
-  if (!currentVideo || allVideos.length === 0) {
+  if (!currentVideo) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">لا توجد فيديوهات</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">لم يتم العثور على الفيديو</h2>
           <Button onClick={() => window.history.back()} className="bg-purple-600 text-white">العودة</Button>
         </div>
       </div>
@@ -553,40 +437,9 @@ export default function VideoPage() {
         <ArrowLeft className="w-6 h-6" />
       </Button>
 
-      {/* Navigation Arrows - Desktop */}
-      <div className="hidden md:flex absolute right-4 top-1/2 transform -translate-y-1/2 z-20 flex-col space-y-4">
-        {currentVideoIndex > 0 && (
-          <Button
-            variant="ghost"
-            onClick={goToPrevVideo}
-            className="w-12 h-12 rounded-full text-white bg-black/50 hover:bg-black/70"
-          >
-            <ChevronUp className="w-6 h-6" />
-          </Button>
-        )}
-        {currentVideoIndex < allVideos.length - 1 && (
-          <Button
-            variant="ghost"
-            onClick={goToNextVideo}
-            className="w-12 h-12 rounded-full text-white bg-black/50 hover:bg-black/70"
-          >
-            <ChevronDown className="w-6 h-6" />
-          </Button>
-        )}
-      </div>
-
-      {/* Navigation Instructions */}
-      {showInstructions && (
-        <div className={`absolute top-20 left-1/2 transform -translate-x-1/2 z-20 bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2 text-white text-xs text-center transition-opacity duration-500 ${showInstructions ? 'opacity-90' : 'opacity-0'}`}>
-          <div className="md:hidden">اسحب لأعلى/أسفل للتنقل بين الفيديوهات</div>
-          <div className="hidden md:block">استخدم الأسهم أو أزرار التنقل للتنقل بين الفيديوهات</div>
-          <div className="mt-1 text-[10px] opacity-70">مسافة = تشغيل/إيقاف</div>
-        </div>
-      )}
-
-      {/* Video Counter */}
+      {/* Video Info */}
       <div className="absolute top-4 right-1/2 transform translate-x-1/2 z-20 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs">
-        فيديو {currentVideoIndex + 1} من {allVideos.length}
+        فيديو واحد
       </div>
 
       {/* Video Container */}
@@ -828,29 +681,10 @@ export default function VideoPage() {
           </div>
         </div>
 
-        {/* Video Progress Indicator */}
+        {/* Single Video Indicator */}
         <div className="absolute top-1/2 left-2 transform -translate-y-1/2 flex flex-col items-center space-y-1 z-10">
-          {allVideos.map((_, index) => (
-            <div
-              key={index}
-              className={`w-1 h-8 rounded-full transition-all duration-300 ${
-                index === currentVideoIndex 
-                  ? 'bg-white' 
-                  : index < currentVideoIndex 
-                    ? 'bg-white/60' 
-                    : 'bg-white/20'
-              }`}
-            />
-          ))}
+          <div className="w-1 h-8 rounded-full bg-white transition-all duration-300" />
         </div>
-
-        {/* Swipe Instruction - Show on first load */}
-        {currentVideoIndex === 0 && (
-          <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white/70 animate-pulse">
-            <ChevronUp className="w-8 h-8 mx-auto mb-2" />
-            <p className="text-sm">اسحب للأعلى للفيديو التالي</p>
-          </div>
-        )}
       </div>
     </div>
   );
