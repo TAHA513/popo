@@ -31,7 +31,7 @@ export function setupMessageRoutes(app: Express) {
         )
         .orderBy(desc(conversations.lastMessageAt));
 
-      // Get other user details for each conversation
+      // Get other user details for each conversation and count unread messages
       const conversationsWithUsers = await Promise.all(
         userConversations.map(async (conv) => {
           const otherUser = await db
@@ -45,9 +45,22 @@ export function setupMessageRoutes(app: Express) {
             .where(eq(users.id, conv.otherUserId))
             .limit(1);
 
+          // Count unread messages from the other user
+          const unreadMessages = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(messages)
+            .where(
+              and(
+                eq(messages.senderId, conv.otherUserId),
+                eq(messages.recipientId, userId),
+                eq(messages.isRead, false)
+              )
+            );
+
           return {
             ...conv,
-            otherUser: otherUser[0] || null
+            otherUser: otherUser[0] || null,
+            unreadCount: unreadMessages[0]?.count || 0
           };
         })
       );
@@ -76,6 +89,20 @@ export function setupMessageRoutes(app: Express) {
           )
         )
         .orderBy(messages.createdAt);
+
+      // Mark messages from other user as read
+      if (conversationMessages.length > 0) {
+        await db
+          .update(messages)
+          .set({ isRead: true })
+          .where(
+            and(
+              eq(messages.senderId, otherUserId),
+              eq(messages.recipientId, currentUserId),
+              eq(messages.isRead, false)
+            )
+          );
+      }
 
       res.json(conversationMessages);
     } catch (error) {
@@ -145,6 +172,31 @@ export function setupMessageRoutes(app: Express) {
     } catch (error) {
       console.error("Error sending message:", error);
       res.status(500).json({ message: "فشل إرسال الرسالة" });
+    }
+  });
+
+  // Mark messages as read
+  app.put('/api/messages/:userId/read', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.id;
+      const otherUserId = req.params.userId;
+
+      // Mark all unread messages from the other user as read
+      await db
+        .update(messages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(messages.senderId, otherUserId),
+            eq(messages.recipientId, currentUserId),
+            eq(messages.isRead, false)
+          )
+        );
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ message: "Failed to mark messages as read" });
     }
   });
 }

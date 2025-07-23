@@ -71,6 +71,23 @@ export default function ConversationPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Mark messages as read when opening conversation
+  useEffect(() => {
+    if (userId && messages.length > 0) {
+      const markAsRead = async () => {
+        try {
+          await fetch(`/api/messages/${userId}/read`, {
+            method: 'PUT',
+            credentials: 'include',
+          });
+        } catch (error) {
+          console.error('Error marking messages as read:', error);
+        }
+      };
+      markAsRead();
+    }
+  }, [userId, messages.length]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
@@ -156,14 +173,29 @@ export default function ConversationPage() {
                     }`}
                   >
                     <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.senderId === user?.id ? 'text-purple-100' : 'text-gray-400'
-                    }`}>
-                      {new Date(message.createdAt).toLocaleTimeString('ar', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className={`text-xs ${
+                        message.senderId === user?.id ? 'text-purple-100' : 'text-gray-400'
+                      }`}>
+                        {new Date(message.createdAt).toLocaleTimeString('ar', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </p>
+                      {/* Read receipt indicator for sent messages */}
+                      {message.senderId === user?.id && (
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                          <div className={`w-3 h-3 rounded-full ${
+                            message.isRead ? 'bg-green-400' : 'bg-gray-300'
+                          }`} />
+                          <span className={`text-xs ${
+                            message.isRead ? 'text-green-100' : 'text-gray-300'
+                          }`}>
+                            {message.isRead ? 'تم القراءة' : 'تم الإرسال'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
