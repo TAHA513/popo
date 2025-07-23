@@ -66,7 +66,6 @@ function Router() {
           <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route component={NotFound} />
         </Suspense>
       ) : (
         <>
@@ -74,7 +73,6 @@ function Router() {
           <Route path="/landing" component={Landing} />
           <Route path="/login" component={LoginPage} />
           <Route path="/register" component={RegisterPage} />
-          <Route component={LoginPage} />
         </>
       )}
     </Switch>
