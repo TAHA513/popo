@@ -61,123 +61,60 @@ export default function SimpleHome() {
       </div>
 
       <div className="max-w-md mx-auto">
-        {/* عرض موحد للبثوث والمنشورات */}
+        {/* البثوث المباشرة فقط */}
         <div className="p-4">
-          <div className="grid grid-cols-2 gap-3">
-            {/* البثوث المباشرة */}
-            {streams.map((stream: Stream) => (
-              <Card 
-                key={`stream-${stream.id}`} 
-                className="border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => setLocation(`/stream/${stream.id}`)}
-              >
-                <CardContent className="p-0">
-                  {/* صورة البث */}
-                  <div className="aspect-square bg-gradient-to-br from-red-500 to-pink-500 rounded-t-lg flex items-center justify-center relative">
-                    <Radio className="w-12 h-12 text-white" />
-                    <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
-                      🔴 مباشر
-                    </div>
-                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
-                      <Eye className="w-3 h-3 inline ml-1" />
-                      {stream.viewerCount || 0}
-                    </div>
-                  </div>
-                  
-                  {/* عنوان البث */}
-                  <div className="p-3">
-                    <div className="font-medium text-sm text-gray-800 truncate">
-                      {stream.title || `البث رقم ${stream.id}`}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      بث مباشر
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {/* المنشورات */}
-            {memories.map((memory: any) => (
-              <Card key={`memory-${memory.id}`} className="border border-gray-200">
-                <CardContent className="p-0">
-                  {/* صورة أو فيديو المنشور */}
-                  <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
-                    {memory.imageUrl ? (
-                      memory.imageUrl.includes('.mp4') || memory.imageUrl.includes('.webm') ? (
-                        <video 
-                          src={memory.imageUrl}
-                          className="w-full h-full object-cover"
-                          controls
-                          preload="metadata"
-                        />
-                      ) : (
-                        <img 
-                          src={memory.imageUrl}
-                          alt="منشور"
-                          className="w-full h-full object-cover"
-                        />
-                      )
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <User className="w-12 h-12 text-gray-400" />
+          {streams.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {streams.map((stream: Stream) => (
+                <Card 
+                  key={`stream-${stream.id}`} 
+                  className="border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => setLocation(`/stream/${stream.id}`)}
+                >
+                  <CardContent className="p-0">
+                    {/* صورة البث */}
+                    <div className="aspect-square bg-gradient-to-br from-red-500 to-pink-500 rounded-t-lg flex items-center justify-center relative">
+                      <Radio className="w-12 h-12 text-white" />
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
+                        🔴 مباشر
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* محتوى المنشور */}
-                  <div className="p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-medium text-gray-800 truncate">
-                        {memory.content || 'منشور'}
+                      <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
+                        <Eye className="w-3 h-3 inline ml-1" />
+                        {stream.viewerCount || 0}
                       </div>
-                      <button
-                        onClick={() => handleLike(memory.id.toString())}
-                        className="flex-shrink-0"
-                      >
-                        <Heart 
-                          className={`w-4 h-4 ${
-                            likedItems.has(memory.id.toString())
-                              ? 'text-red-500 fill-current'
-                              : 'text-gray-400'
-                          }`}
-                        />
-                      </button>
                     </div>
                     
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>{memory.authorId}</span>
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <MessageCircle className="w-3 h-3" />
-                        <Share2 className="w-3 h-3" />
-                        <Gift className="w-3 h-3 text-yellow-500" />
+                    {/* عنوان البث */}
+                    <div className="p-3">
+                      <div className="font-medium text-sm text-gray-800 truncate">
+                        {stream.title || `البث رقم ${stream.id}`}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        بث مباشر
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🔴</div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                لا توجد بثوث مباشرة
+              </h3>
+              <p className="text-gray-500 mb-4">
+                كن أول من يبدأ البث المباشر
+              </p>
+              <Button 
+                onClick={() => setLocation('/start-stream')}
+                className="bg-laa-pink hover:bg-laa-pink/90"
+              >
+                ابدأ البث الآن
+              </Button>
+            </div>
+          )}
         </div>
-
-        {/* رسالة إذا لم توجد محتويات */}
-        {streams.length === 0 && (memories as any[]).length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🐰</div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              مرحباً بك في LaaBoBo
-            </h3>
-            <p className="text-gray-500 mb-4">
-              لا يوجد محتوى متاح حالياً
-            </p>
-            <Button 
-              onClick={() => setLocation('/start-stream')}
-              className="bg-laa-pink hover:bg-laa-pink/90"
-            >
-              ابدأ البث الآن
-            </Button>
-          </div>
-        )}
       </div>
 
       <BottomNavigation />

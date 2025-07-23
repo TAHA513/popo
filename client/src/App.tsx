@@ -10,6 +10,7 @@ import { initPerformanceOptimizations } from "@/lib/performance";
 
 import Landing from "@/pages/landing";
 import SimpleHome from "@/pages/simple-home";
+import SimpleExplore from "@/pages/simple-explore";
 import AccountPage from "@/pages/account";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
@@ -60,7 +61,7 @@ function Router() {
           <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
           <Route path="/profile/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/explore" component={LazyComponents.ExplorePage} />
+          <Route path="/explore" component={SimpleExplore} />
           <Route path="/gifts" component={LazyComponents.GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
           <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
