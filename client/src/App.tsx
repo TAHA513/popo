@@ -17,7 +17,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// Removed TooltipProvider to fix React hooks error
 
 type Language = 'en' | 'ar';
 
