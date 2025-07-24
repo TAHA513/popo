@@ -33,45 +33,109 @@ export default function DirectCameraStream() {
       return;
     }
 
+    // فحص دعم المتصفح
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const errorMsg = "المتصفح لا يدعم الكاميرا. استخدم Chrome أو Safari";
+      setCameraError(errorMsg);
+      toast({
+        title: "متصفح غير مدعوم",
+        description: errorMsg,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('🔍 فحص المتصفح:', navigator.userAgent);
+    console.log('📱 نوع الجهاز:', /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop');
+
     try {
-      console.log('🎥 Requesting camera access...');
+      console.log('🎥 طلب أذونات الكاميرا...');
       setCameraError(null);
       
-      // طلب الوصول للكاميرا والصوت
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { min: 320, ideal: 1280, max: 1920 },
-          height: { min: 240, ideal: 720, max: 1080 },
-          facingMode: 'user'
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
+      // محاولة بسيطة أولاً
+      let stream;
+      try {
+        console.log('📹 محاولة بسيطة للكاميرا...');
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+      } catch (basicError) {
+        console.log('⚠️ المحاولة البسيطة فشلت، جاري المحاولة بإعدادات متقدمة...');
+        // محاولة مع إعدادات محددة
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { min: 320, ideal: 640, max: 1280 },
+            height: { min: 240, ideal: 480, max: 720 },
+            facingMode: { ideal: 'user' },
+            frameRate: { ideal: 15, max: 30 }
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 44100
+          }
+        });
+      }
+
+      console.log('✅ تم الحصول على stream بنجاح');
+      console.log('📊 معلومات Stream:', {
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length,
+        active: stream.active
       });
 
-      console.log('✅ Camera access granted, stream received:', stream);
       streamRef.current = stream;
       
       // ربط الكاميرا مع عنصر الفيديو
       if (videoRef.current) {
-        console.log('📺 Connecting stream to video element...');
+        console.log('📺 ربط الفيديو بالعنصر...');
         videoRef.current.srcObject = stream;
         videoRef.current.autoplay = true;
         videoRef.current.playsInline = true;
-        videoRef.current.muted = true; // كتم الصوت لتجنب الصدى
+        videoRef.current.muted = true;
         
-        // تشغيل الفيديو
+        // إضافة event listeners للتشخيص
+        videoRef.current.onloadedmetadata = () => {
+          console.log('✅ تم تحميل metadata للفيديو');
+          console.log('📐 أبعاد الفيديو:', {
+            width: videoRef.current?.videoWidth,
+            height: videoRef.current?.videoHeight
+          });
+        };
+        
+        videoRef.current.oncanplay = () => {
+          console.log('✅ الفيديو جاهز للتشغيل');
+        };
+        
+        videoRef.current.onplaying = () => {
+          console.log('✅ الفيديو يعمل الآن');
+        };
+        
+        videoRef.current.onerror = (error) => {
+          console.error('❌ خطأ في عنصر الفيديو:', error);
+        };
+        
+        // محاولة تشغيل الفيديو
         try {
           await videoRef.current.play();
-          console.log('✅ Video is now playing');
+          console.log('✅ بدأ تشغيل الفيديو بنجاح');
         } catch (playError) {
-          console.warn('⚠️ Autoplay failed, trying manual play:', playError);
-          // محاولة تشغيل يدوي
-          videoRef.current.onclick = () => {
-            videoRef.current?.play();
-          };
+          console.warn('⚠️ فشل التشغيل التلقائي:', playError);
+          
+          // إعادة محاولة بعد تأخير
+          setTimeout(async () => {
+            try {
+              if (videoRef.current) {
+                await videoRef.current.play();
+                console.log('✅ نجح التشغيل في المحاولة الثانية');
+              }
+            } catch (retryError) {
+              console.error('❌ فشل نهائي في التشغيل:', retryError);
+              setCameraError("فشل في تشغيل الفيديو. انقر على الشاشة لبدء التشغيل يدوياً");
+            }
+          }, 1000);
         }
       }
 
@@ -97,23 +161,39 @@ export default function DirectCameraStream() {
       };
 
     } catch (error: any) {
-      console.error('❌ Camera error:', error);
+      console.error('❌ خطأ في الكاميرا:', error);
+      console.error('📋 تفاصيل الخطأ:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       
       let errorMessage = "لا يمكن الوصول إلى الكاميرا";
+      let errorTitle = "خطأ في الكاميرا";
       
       if (error.name === 'NotAllowedError') {
-        errorMessage = "تم رفض الإذن. يرجى النقر على 'السماح' للكاميرا والميكروفون";
+        errorTitle = "تم رفض الإذن";
+        errorMessage = "يرجى النقر على 'السماح/Allow' عندما يظهر طلب أذونات الكاميرا. إذا لم تظهر النافذة، انقر على أيقونة الكاميرا 📹 في شريط العنوان";
       } else if (error.name === 'NotFoundError') {
-        errorMessage = "لم يتم العثور على كاميرا في هذا الجهاز";
+        errorTitle = "كاميرا غير موجودة";
+        errorMessage = "لم يتم العثور على كاميرا في هذا الجهاز. تأكد من وجود كاميرا وأنها موصولة بشكل صحيح";
       } else if (error.name === 'NotReadableError') {
-        errorMessage = "الكاميرا مستخدمة من تطبيق آخر. أغلق التطبيقات الأخرى";
+        errorTitle = "كاميرا مشغولة";
+        errorMessage = "الكاميرا مستخدمة من تطبيق آخر. أغلق جميع التطبيقات التي تستخدم الكاميرا (مثل Zoom, Skype, WhatsApp Web)";
       } else if (error.name === 'OverconstrainedError') {
-        errorMessage = "إعدادات الكاميرا غير مدعومة على هذا الجهاز";
+        errorTitle = "إعدادات غير مدعومة";
+        errorMessage = "إعدادات الكاميرا المطلوبة غير متاحة على هذا الجهاز. جرب من جهاز آخر";
+      } else if (error.name === 'SecurityError') {
+        errorTitle = "خطأ أمني";
+        errorMessage = "يجب استخدام HTTPS للوصول إلى الكاميرا. تأكد أن الرابط يبدأ بـ https://";
+      } else if (error.name === 'TypeError') {
+        errorTitle = "متصفح غير مدعوم";
+        errorMessage = "هذا المتصفح لا يدعم الكاميرا. استخدم Chrome أو Safari أو Firefox الحديث";
       }
       
       setCameraError(errorMessage);
       toast({
-        title: "خطأ في الكاميرا",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive"
       });
@@ -208,11 +288,16 @@ export default function DirectCameraStream() {
             </div>
             
             {cameraError && (
-              <div className="bg-red-600/20 border border-red-500/50 rounded-lg p-3">
-                <p className="text-red-200 text-sm">{cameraError}</p>
-                <p className="text-red-300 text-xs mt-1">
-                  تأكد من السماح للمتصفح بالوصول للكاميرا
-                </p>
+              <div className="bg-red-600/20 border border-red-500/50 rounded-lg p-4">
+                <p className="text-red-200 text-sm font-medium mb-2">❌ خطأ في الكاميرا</p>
+                <p className="text-red-100 text-sm leading-relaxed">{cameraError}</p>
+                <div className="mt-3 text-yellow-200 text-xs">
+                  💡 نصائح للحل:
+                  <br />• أعد تحميل الصفحة
+                  <br />• تأكد من أن الرابط يبدأ بـ https://
+                  <br />• أغلق التطبيقات الأخرى التي تستخدم الكاميرا
+                  <br />• جرب متصفح آخر (Chrome مُفضل)
+                </div>
               </div>
             )}
             
@@ -225,9 +310,14 @@ export default function DirectCameraStream() {
                 رجوع
               </Button>
               <Button
-                onClick={startDirectStream}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('🎯 زر البث تم النقر عليه، العنوان:', streamTitle);
+                  startDirectStream();
+                }}
                 className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold text-lg"
                 disabled={!streamTitle.trim()}
+                type="button"
               >
                 🔴 ابدأ البث
               </Button>
