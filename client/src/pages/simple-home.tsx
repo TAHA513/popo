@@ -13,7 +13,7 @@ import {
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+
 import BottomNavigation from "@/components/bottom-navigation";
 
 export default function SimpleHome() {
@@ -28,15 +28,24 @@ export default function SimpleHome() {
   useEffect(() => {
     const checkStreamNotifications = () => {
       const streamData = localStorage.getItem('liveStreamNotification');
+      console.log('Checking for stream notification:', streamData);
       if (streamData) {
-        setCurrentStream(JSON.parse(streamData));
+        try {
+          const parsedData = JSON.parse(streamData);
+          console.log('Found stream data:', parsedData);
+          setCurrentStream(parsedData);
+        } catch (error) {
+          console.error('Error parsing stream data:', error);
+          setCurrentStream(null);
+        }
       } else {
+        console.log('No stream notification found');
         setCurrentStream(null);
       }
     };
 
     checkStreamNotifications();
-    const interval = setInterval(checkStreamNotifications, 3000);
+    const interval = setInterval(checkStreamNotifications, 2000); // Check every 2 seconds
 
     return () => clearInterval(interval);
   }, []);
