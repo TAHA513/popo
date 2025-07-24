@@ -172,10 +172,14 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Remove stream notification only when explicitly stopping
+      // Remove all stream notifications when stopping
       localStorage.removeItem('liveStreamNotification');
       localStorage.removeItem('liveStreamStartTime');
-      console.log('🛑 Stream manually ended - notification removed');
+      sessionStorage.removeItem('liveStreamNotification');
+      sessionStorage.removeItem('liveStreamStartTime');
+      delete (window as any).liveStreamData;
+      delete (window as any).liveStreamStartTime;
+      console.log('🛑 Stream manually ended - all notifications removed');
 
       setIsStreaming(false);
       setLocation('/');

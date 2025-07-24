@@ -55,10 +55,14 @@ export default function SimpleHome() {
               viewerCount: Math.max(1, parsedData.viewerCount + Math.floor(timeElapsed / 30000)) // Increase viewers over time
             });
           } else {
-            // Auto-expire after 2 hours
+            // Auto-expire after 2 hours - clean all storage
             localStorage.removeItem('liveStreamNotification');
             localStorage.removeItem('liveStreamStartTime');
-            console.log('⏰ Stream auto-expired after 2 hours');
+            sessionStorage.removeItem('liveStreamNotification');
+            sessionStorage.removeItem('liveStreamStartTime');
+            delete (window as any).liveStreamData;
+            delete (window as any).liveStreamStartTime;
+            console.log('⏰ Stream auto-expired after 2 hours - all storage cleaned');
             setCurrentStream(null);
           }
         } catch (error) {
@@ -174,16 +178,39 @@ export default function SimpleHome() {
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <Button 
-                        onClick={() => setLocation('/simple-live-streaming')}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
-                      >
-                        مشاهدة البث
-                      </Button>
+                      <div className="flex space-x-2 rtl:space-x-reverse">
+                        <Button 
+                          onClick={() => {
+                            // Always go to streaming page when clicking live stream
+                            setLocation('/simple-live-streaming');
+                          }}
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                          مشاهدة البث
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            // End stream manually
+                            localStorage.removeItem('liveStreamNotification');
+                            localStorage.removeItem('liveStreamStartTime');
+                            sessionStorage.removeItem('liveStreamNotification');
+                            sessionStorage.removeItem('liveStreamStartTime');
+                            setCurrentStream(null);
+                            toast({
+                              title: "تم إنهاء البث",
+                              description: "تم إنهاء البث المباشر",
+                            });
+                          }}
+                          variant="outline"
+                          className="px-3 py-2 text-xs"
+                        >
+                          إنهاء
+                        </Button>
+                      </div>
                       <div className="flex items-center space-x-4 rtl:space-x-reverse text-sm text-gray-500">
                         <div className="flex items-center space-x-1">
                           <Heart className="w-4 h-4" />
-                          <span>{Math.floor(Math.random() * 100) + 20}</span>
+                          <span>{currentStream?.viewerCount || 1}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <MessageCircle className="w-4 h-4" />
