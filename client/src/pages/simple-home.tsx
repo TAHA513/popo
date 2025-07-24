@@ -1,12 +1,22 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Play, 
+  Heart, 
+  MessageCircle, 
+  Share2, 
+  Gift, 
+  Eye, 
+  User,
+  Radio
+} from "lucide-react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { Stream } from "@/types";
 import { Link, useLocation } from "wouter";
-
 import BottomNavigation from "@/components/bottom-navigation";
-import LiveStreamCard from "@/components/LiveStreamCard";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -14,54 +24,14 @@ export default function SimpleHome() {
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  const [currentStream, setCurrentStream] = useState<any>(null);
-  const [allActiveStreams, setAllActiveStreams] = useState<any[]>([]);
+  // البثوث المباشرة
+  const { data: streams = [] } = useQuery<Stream[]>({
+    queryKey: ['/api/streams'],
+    refetchInterval: 10000,
+  });
 
-  // Fetch active streams from database
-  useEffect(() => {
-    const fetchActiveStreams = async () => {
-      try {
-        const response = await fetch('/api/streams');
-        if (response.ok) {
-          const streams = await response.json();
-          console.log('📡 Active streams from database:', streams);
-          
-          // Check if current user is publishing any stream
-          const currentStreamID = localStorage.getItem('currentStreamID');
-          const isPublisher = localStorage.getItem('isPublisher') === 'true';
-          
-          const enhancedStreams = streams.map((stream: any) => ({
-            ...stream,
-            isPublisher: isPublisher && stream.streamId === currentStreamID
-          }));
-          
-          setAllActiveStreams(enhancedStreams);
-          if (enhancedStreams.length > 0) {
-            setCurrentStream(enhancedStreams[0]);
-          } else {
-            setCurrentStream(null);
-          }
-        } else {
-          console.error('❌ Failed to fetch streams');
-          setAllActiveStreams([]);
-          setCurrentStream(null);
-        }
-      } catch (error) {
-        console.error('Error fetching streams:', error);
-        setAllActiveStreams([]);
-        setCurrentStream(null);
-      }
-    };
 
-    // Initial fetch
-    fetchActiveStreams();
-    
-    // Poll every 5 seconds for updates
-    const interval = setInterval(fetchActiveStreams, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
-  
   const handleLike = (id: string) => {
     setLikedItems(prev => {
       const newSet = new Set(prev);
@@ -86,25 +56,14 @@ export default function SimpleHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Action Buttons - Right Side */}
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Button 
-                onClick={() => setLocation('/simple-live-streaming')}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full shadow-lg"
-                title="بث مباشر"
-              >
-                🔴
-              </Button>
-              <Button 
-                onClick={() => {
-                  setLocation('/create-memory');
-                }}
-                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm font-bold">إنشاء ذكرى</span>
-              </Button>
-            </div>
+            {/* Live Stream Button - Right Side */}
+            <Button 
+              onClick={() => setLocation('/start-stream')}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+            >
+              <Radio className="w-4 h-4" />
+              <span className="text-sm font-bold">بث مباشر</span>
+            </Button>
           </div>
         </div>
         {/* Colored Line */}
@@ -112,50 +71,63 @@ export default function SimpleHome() {
       </div>
 
       <div className="max-w-md mx-auto">
-        {/* Live Streams Section - Show ALL active streams */}
-        {allActiveStreams.length > 0 ? (
-          <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
-              <span className="animate-pulse w-3 h-3 bg-red-500 rounded-full ml-2"></span>
-              البثوث المباشرة ({allActiveStreams.length})
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {allActiveStreams.map((stream) => (
-                <LiveStreamCard 
-                  key={stream.id} 
-                  stream={stream} 
-                  onStreamEnd={() => {
-                    // Refresh streams after ending
-                    setAllActiveStreams(prev => prev.filter(s => s.id !== stream.id));
-                  }}
-                />
+        {/* البثوث المباشرة فقط */}
+        <div className="p-4">
+          {streams.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {streams.map((stream: Stream) => (
+                <Card 
+                  key={`stream-${stream.id}`} 
+                  className="border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => setLocation(`/stream/${stream.id}`)}
+                >
+                  <CardContent className="p-0">
+                    {/* صورة البث */}
+                    <div className="aspect-square bg-gradient-to-br from-red-500 to-pink-500 rounded-t-lg flex items-center justify-center relative">
+                      <Radio className="w-12 h-12 text-white" />
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
+                        🔴 مباشر
+                      </div>
+                      <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
+                        <Eye className="w-3 h-3 inline ml-1" />
+                        {stream.viewerCount || 0}
+                      </div>
+                    </div>
+                    
+                    {/* عنوان البث */}
+                    <div className="p-3">
+                      <div className="font-medium text-sm text-gray-800 truncate">
+                        {stream.title || `البث رقم ${stream.id}`}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        بث مباشر
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </div>
-        ) : (
-          <div className="p-4">
+          ) : (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🐰</span>
-              </div>
-              <h3 className="text-lg font-medium text-gray-600 mb-2">لا توجد بثوث مباشرة حالياً</h3>
-              <p className="text-gray-500 text-sm">ابدأ بث مباشر من الأيقونة الحمراء أعلاه 🔴</p>
-              
-              <div className="mt-4">
-                <Button 
-                  onClick={() => setLocation('/explore')}
-                  className="bg-laa-pink hover:bg-laa-pink/90 text-white"
-                >
-                  استكشف المحتوى
-                </Button>
-              </div>
+              <div className="text-6xl mb-4">🔴</div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                لا توجد بثوث مباشرة
+              </h3>
+              <p className="text-gray-500 mb-4">
+                كن أول من يبدأ البث المباشر
+              </p>
+              <Button 
+                onClick={() => setLocation('/start-stream')}
+                className="bg-laa-pink hover:bg-laa-pink/90"
+              >
+                ابدأ البث الآن
+              </Button>
             </div>
-          </div>
-        )}
-        
-        <BottomNavigation />
+          )}
+        </div>
       </div>
+
+      <BottomNavigation />
     </div>
   );
 }

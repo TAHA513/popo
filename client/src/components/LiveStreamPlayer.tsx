@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, CameraOff, Mic, MicOff, Settings, Wifi, WifiOff, Play } from 'lucide-react';
+import { Camera, CameraOff, Mic, MicOff, Settings, Wifi, WifiOff } from 'lucide-react';
 import { Stream } from '@/types';
-import { useRealTimeStream } from '@/hooks/useRealTimeStream';
-import { useAuth } from '@/hooks/useAuth';
 
 interface LiveStreamPlayerProps {
   stream: Stream;
@@ -12,32 +10,18 @@ interface LiveStreamPlayerProps {
 
 export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { user } = useAuth();
-  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('loading');
+  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('connected');
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  
-  const {
-    localVideoRef,
-    localStream,
-    isStreamingVideo,
-    startStreaming,
-    stopStreaming,
-    joinStreamAsViewer,
-    leaveStreamAsViewer,
-    viewerStreams,
-    isConnected
-  } = useRealTimeStream();
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
-    let mounted = true;
-    
     const initializePlayer = async () => {
+      if (!videoRef.current) return;
+
       try {
-        if (!mounted) return;
-        
-        if (isStreamer && user) {
-          // للصاميمر - استخدام النظام القديم المباشر
+        if (isStreamer) {
+          // For streamers, show their own camera feed
           const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
               width: { ideal: 1280 }, 
@@ -47,38 +31,34 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
             audio: true 
           });
           
-          if (localVideoRef.current && mounted) {
-            localVideoRef.current.srcObject = stream;
-            localVideoRef.current.autoplay = true;
-            localVideoRef.current.playsInline = true;
-            localVideoRef.current.muted = true;
-            setStreamStatus('connected');
-            console.log('✅ تم تشغيل الكاميرا للصاميمر');
-          }
-        } else if (!isStreamer) {
-          // للمشاهدين - عرض البث
+          videoRef.current.srcObject = stream;
+          videoRef.current.autoplay = true;
+          videoRef.current.playsInline = true;
+          videoRef.current.muted = true; // Avoid feedback
+          setMediaStream(stream);
           setStreamStatus('connected');
-          console.log('✅ تم تحضير عارض البث للمشاهد');
+        } else {
+          // For viewers - immediately show connected state
+          setStreamStatus('connected');
         }
       } catch (error) {
-        console.error('❌ خطأ في تهيئة البث:', error);
-        if (mounted) {
-          setStreamStatus('error');
-        }
+        console.error('❌ Error initializing stream player:', error);
+        setStreamStatus('error');
       }
     };
 
     initializePlayer();
 
     return () => {
-      mounted = false;
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
     };
-  }, [stream.id, isStreamer, user]);
+  }, [stream.id, isStreamer]);
 
   const toggleVideo = () => {
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      const stream = localVideoRef.current.srcObject as MediaStream;
-      const videoTrack = stream.getVideoTracks()[0];
+    if (mediaStream) {
+      const videoTrack = mediaStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !isVideoEnabled;
         setIsVideoEnabled(!isVideoEnabled);
@@ -87,9 +67,8 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
   };
 
   const toggleAudio = () => {
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      const stream = localVideoRef.current.srcObject as MediaStream;
-      const audioTrack = stream.getAudioTracks()[0];
+    if (mediaStream) {
+      const audioTrack = mediaStream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !isAudioEnabled;
         setIsAudioEnabled(!isAudioEnabled);
@@ -125,7 +104,7 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
       {isStreamer ? (
         <>
           <video
-            ref={localVideoRef}
+            ref={videoRef}
             autoPlay
             muted
             playsInline
@@ -236,6 +215,32 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
           <div className="absolute top-10 left-10 text-6xl animate-spin-slow opacity-30">⭐</div>
           <div className="absolute bottom-10 right-10 text-5xl animate-pulse opacity-40">💫</div>
           <div className="absolute top-20 right-20 text-4xl animate-bounce opacity-50">🎉</div>
+        </div>
+                <span className="text-6xl">🔴</span>
+              </div>
+              <div className="absolute inset-0 rounded-full border-4 border-red-500/30 animate-ping"></div>
+            </div>
+            
+            <h2 className="text-3xl font-bold mb-4">{stream.title}</h2>
+            {stream.description && (
+              <p className="text-lg opacity-80 mb-6">{stream.description}</p>
+            )}
+            
+            <div className="bg-red-600/20 p-6 rounded-xl border border-red-500/30 backdrop-blur-sm mb-6">
+              <div className="flex items-center justify-center mb-3">
+                <Wifi className="w-5 h-5 text-green-400 mr-2" />
+                <span className="text-green-400 font-semibold">متصل بالبث المباشر</span>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></div>
+                <span className="text-red-300 font-bold">مباشر الآن</span>
+              </div>
+            </div>
+            
+            <p className="text-xs opacity-50">
+              المحتوى التفاعلي متاح من خلال الدردشة والهدايا
+            </p>
+          </div>
         </div>
       )}
       
