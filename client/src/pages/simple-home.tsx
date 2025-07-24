@@ -142,7 +142,7 @@ export default function SimpleHome() {
                 كن أول من يبدأ البث المباشر
               </p>
               <Button 
-                onClick={() => setLocation('/zego-stream')}
+                onClick={() => setLocation('/direct-camera')}
                 className="bg-laa-pink hover:bg-laa-pink/90"
               >
                 ابدأ البث الآن
