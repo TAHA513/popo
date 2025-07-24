@@ -37,7 +37,7 @@ import {
   type InsertMessageRequest,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, count } from "drizzle-orm";
+import { eq, desc, and, sql, count, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 export interface IStorage {
@@ -171,6 +171,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveStreams(): Promise<any[]> {
+    // حذف البثوث القديمة التي انتهت منذ أكثر من 15 دقيقة (وقت أطول للسماح للمشاهدين بالدخول)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    await db
+      .delete(streams)
+      .where(
+        and(
+          eq(streams.isLive, true),
+          lt(streams.startedAt, fifteenMinutesAgo)
+        )
+      );
+
     const streamsWithHosts = await db
       .select({
         stream: streams,
@@ -184,13 +195,19 @@ export class DatabaseStorage implements IStorage {
       .from(streams)
       .innerJoin(users, eq(streams.hostId, users.id))
       .where(eq(streams.isLive, true))
-      .orderBy(desc(streams.viewerCount));
+      .orderBy(desc(streams.startedAt)); // ترتيب حسب الأحدث أولاً
     
     // Flatten the data structure
     return streamsWithHosts.map(({ stream, host }) => ({
       ...stream,
       hostProfileImage: host.profileImageUrl,
-      hostName: host.firstName || host.username
+      hostName: host.firstName || host.username,
+      host: {
+        id: host.id,
+        username: host.username,
+        firstName: host.firstName,
+        profileImageUrl: host.profileImageUrl
+      }
     }));
   }
 

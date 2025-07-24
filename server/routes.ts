@@ -619,6 +619,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete stream endpoint
+  app.delete('/api/streams/:id', requireAuth, async (req: any, res) => {
+    try {
+      const streamId = parseInt(req.params.id);
+      console.log("🗑️ Deleting stream:", streamId);
+      
+      if (isNaN(streamId)) {
+        return res.status(400).json({ message: "معرف البث غير صحيح" });
+      }
+      
+      const stream = await storage.getStreamById(streamId);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "البث غير موجود" });
+      }
+      
+      if (stream.hostId !== req.user.id) {
+        return res.status(403).json({ message: "غير مصرح لك بحذف هذا البث" });
+      }
+      
+      // Delete the stream completely from database
+      await storage.deleteStream(streamId);
+      console.log("✅ Stream deleted completely from database");
+      
+      res.json({ message: "تم حذف البث بنجاح" });
+    } catch (error) {
+      console.error("❌ Error deleting stream:", error);
+      res.status(500).json({ message: "فشل في حذف البث" });
+    }
+  });
+
   app.get('/api/streams/:id', async (req, res) => {
     try {
       const streamId = parseInt(req.params.id);
@@ -1239,6 +1270,63 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           });
         }
         client.streamId = undefined;
+        break;
+
+    case 'start_live_stream':
+        console.log("🎥 Starting live stream:", {
+          streamId: message.streamId,
+          userId: client.userId,
+          streamerData: message.streamerData
+        });
+        
+        // إشعار جميع المشاهدين ببدء البث
+        broadcastToStream(message.streamId, {
+          type: 'stream_started',
+          streamId: message.streamId,
+          streamerData: message.streamerData
+        });
+        break;
+
+    case 'stop_live_stream':
+        console.log("🛑 Stopping live stream:", {
+          userId: client.userId,
+          streamId: client.streamId
+        });
+        
+        if (client.streamId) {
+          broadcastToStream(client.streamId, {
+            type: 'stream_ended',
+            streamId: client.streamId
+          });
+        }
+        break;
+
+    case 'join_live_stream':
+        console.log("🎬 Joining live stream as viewer:", {
+          streamId: message.streamId,
+          userId: message.userId,
+          role: message.role
+        });
+        
+        client.streamId = message.streamId;
+        client.userId = message.userId;
+        
+        // إرسال بيانات البث للمشاهد الجديد
+        client.ws.send(JSON.stringify({
+          type: 'live_stream_data',
+          streamId: message.streamId,
+          data: 'stream_ready'
+        }));
+        break;
+
+    case 'leave_live_stream':
+        console.log("🚪 Leaving live stream:", {
+          userId: client.userId,
+          streamId: client.streamId
+        });
+        
+        client.streamId = undefined;
+        client.userId = undefined;
         break;
 
     case 'chat_message':

@@ -27,8 +27,8 @@ import BeautyFilters from "./beauty-filters";
 import LoveGiftEffect from "./LoveGiftEffect";
 import SupporterBadge from "./SupporterBadge";
 import SupporterLevelUpNotification from "./SupporterLevelUpNotification";
-import LiveStreamPlayer from "./LiveStreamPlayer";
-import SimpleStreamViewer from "./SimpleStreamViewer";
+import SimpleStreamer from "./SimpleStreamer";
+import SimpleViewer from "./SimpleViewer";
 
 interface StreamingInterfaceProps {
   stream: Stream;
@@ -182,14 +182,9 @@ export default function StreamingInterface({ stream }: StreamingInterfaceProps) 
       <div className="relative w-full h-full">
         {/* Live Stream Player Component */}
         {isStreamer ? (
-          <LiveStreamPlayer 
-            stream={stream} 
-            isStreamer={true}
-          />
+          <SimpleStreamer stream={stream} />
         ) : (
-          <div className="absolute inset-0">
-            <SimpleStreamViewer stream={stream} />
-          </div>
+          <SimpleViewer stream={stream} />
         )}
 
         {/* Top Header - TikTok Style */}

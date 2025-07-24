@@ -62,7 +62,12 @@ export const streams = pgTable("streams", {
   hostId: varchar("host_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   description: text("description"),
-  category: varchar("category").notNull(),
+  category: varchar("category").notNull().default('live'),
+  // Cloud streaming fields
+  zegoRoomId: text("zego_room_id"),
+  zegoStreamUrl: text("zego_stream_url"),
+  zegoPlayUrl: text("zego_play_url"),
+  cloudProvider: varchar("cloud_provider"), // 'zego', 'agora', 'daily', 'ivs', etc
   thumbnailUrl: text("thumbnail_url"),
   isLive: boolean("is_live").default(true),
   viewerCount: integer("viewer_count").default(0),
