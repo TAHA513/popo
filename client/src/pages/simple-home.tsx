@@ -56,25 +56,17 @@ export default function SimpleHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Live Stream Buttons - Right Side */}
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setLocation('/test-camera')}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs"
-              >
-                اختبار
-              </Button>
-              <Button 
-                onClick={() => {
-                  console.log('Starting ZegoCloud stream');
-                  setLocation('/zego-stream');
-                }}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
-              >
-                <Radio className="w-4 h-4" />
-                <span className="text-sm font-bold">ابدأ بث مباشر</span>
-              </Button>
-            </div>
+            {/* Live Stream Button - Right Side */}
+            <Button 
+              onClick={() => {
+                console.log('Starting ZegoCloud stream');
+                setLocation('/zego-stream');
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+            >
+              <Radio className="w-4 h-4" />
+              <span className="text-sm font-bold">ابدأ بث مباشر</span>
+            </Button>
           </div>
         </div>
         {/* Colored Line */}
