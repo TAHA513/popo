@@ -6,6 +6,7 @@ import { Video, VideoOff, Mic, MicOff, ArrowLeft, Users, Heart, MessageCircle } 
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import CameraTestButton from '@/components/CameraTestButton';
 
 export default function SimpleCameraStream() {
   const { user } = useAuth();
@@ -44,6 +45,27 @@ export default function SimpleCameraStream() {
 
     try {
       console.log('🎥 طلب أذونات الكاميرا...');
+      
+      // إنشاء البث في قاعدة البيانات أولاً
+      console.log('💾 إنشاء البث في قاعدة البيانات...');
+      const response = await fetch('/api/streams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: streamTitle,
+          category: 'general',
+          isActive: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('فشل في إنشاء البث');
+      }
+
+      const streamData = await response.json();
+      console.log('✅ تم إنشاء البث:', streamData);
       
       // طلب بسيط أولاً
       let stream;
@@ -148,11 +170,26 @@ export default function SimpleCameraStream() {
   };
 
   // إيقاف البث
-  const stopStream = () => {
+  const stopStream = async () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    
+    // حذف البث من قاعدة البيانات
+    try {
+      console.log('🗑️ حذف البث من قاعدة البيانات...');
+      const response = await fetch('/api/streams/current', {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        console.log('✅ تم حذف البث من قاعدة البيانات');
+      }
+    } catch (error) {
+      console.error('❌ خطأ في حذف البث:', error);
+    }
+    
     setIsStreaming(false);
     setLocation('/');
   };
@@ -200,11 +237,13 @@ export default function SimpleCameraStream() {
             <p className="text-gray-300">
               بث مباشر مع الكاميرا
             </p>
-            <div className="text-yellow-300 text-xs text-center mt-2">
-              تأكد من السماح للمتصفح بالوصول للكاميرا
+            <div className="text-yellow-300 text-xs text-center mt-2 bg-yellow-900/20 rounded p-2">
+              📱 سيطلب المتصفح أذونات الكاميرا - انقر "السماح"
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            <CameraTestButton />
+            
             <div>
               <label className="text-white text-sm font-medium block mb-2">
                 عنوان البث
