@@ -64,14 +64,14 @@ export default function DirectStreamTest() {
             console.log('📡 تم حفظ البث في الاستضافة:', newStreamId);
             console.log('🗂️ البثوث المحفوظة:', Object.keys((window as any).hostStreams));
             
-          }).catch(err => {
+          }).catch((err: any) => {
             console.error('❌ فشل تشغيل الفيديو:', err);
             setError('فشل في تشغيل الفيديو');
           });
         };
       }
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ خطأ في البث:', err);
       
       let message = 'فشل في بدء البث';
@@ -117,7 +117,7 @@ export default function DirectStreamTest() {
 
   // منع المغادرة أثناء البث
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (e: any) => {
       if (isLive) {
         e.preventDefault();
         e.returnValue = 'أنت في بث مباشر. هل تريد المغادرة؟';
