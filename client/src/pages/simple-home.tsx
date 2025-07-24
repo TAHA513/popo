@@ -142,7 +142,7 @@ export default function SimpleHome() {
                 كن أول من يبدأ البث المباشر
               </p>
               <Button 
-                onClick={() => setLocation('/direct-camera')}
+                onClick={() => setLocation('/webrtc-stream')}
                 className="bg-laa-pink hover:bg-laa-pink/90"
               >
                 ابدأ البث الآن

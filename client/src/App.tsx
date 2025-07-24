@@ -55,6 +55,7 @@ function Router() {
           <Route path="/new-stream" component={LazyComponents.SimpleStreamPage} />
           <Route path="/zego-stream" component={LazyComponents.ZegoStreamPage} />
           <Route path="/direct-camera" component={LazyComponents.DirectCameraStreamPage} />
+          <Route path="/webrtc-stream" component={LazyComponents.WebRTCLiveStreamPage} />
           <Route path="/join/:roomId" component={LazyComponents.StreamPage} />
           <Route path="/cloud-stream-guide" component={LazyComponents.CloudStreamGuidePage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
