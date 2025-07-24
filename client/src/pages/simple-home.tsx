@@ -28,23 +28,42 @@ export default function SimpleHome() {
   useEffect(() => {
     const checkStreamNotifications = () => {
       const streamData = localStorage.getItem('liveStreamNotification');
-      if (streamData) {
+      const startTime = localStorage.getItem('liveStreamStartTime');
+      
+      if (streamData && startTime) {
         try {
           const parsedData = JSON.parse(streamData);
-          console.log('🔴 LIVE STREAM FOUND:', parsedData);
-          setCurrentStream(parsedData);
+          const timeElapsed = Date.now() - parseInt(startTime);
+          
+          // Keep stream active for up to 2 hours (7200000 ms)
+          if (timeElapsed < 7200000) {
+            console.log('🔴 LIVE STREAM ACTIVE:', {
+              ...parsedData,
+              duration: Math.floor(timeElapsed / 1000) + 's'
+            });
+            setCurrentStream({
+              ...parsedData,
+              viewerCount: Math.max(1, parsedData.viewerCount + Math.floor(timeElapsed / 30000)) // Increase viewers over time
+            });
+          } else {
+            // Auto-expire after 2 hours
+            localStorage.removeItem('liveStreamNotification');
+            localStorage.removeItem('liveStreamStartTime');
+            console.log('⏰ Stream auto-expired after 2 hours');
+            setCurrentStream(null);
+          }
         } catch (error) {
           console.error('Error parsing stream data:', error);
           setCurrentStream(null);
         }
       } else {
-        console.log('❌ No live stream found');
+        console.log('❌ No active live stream');
         setCurrentStream(null);
       }
     };
 
     checkStreamNotifications();
-    const interval = setInterval(checkStreamNotifications, 1000); // Check every 1 second
+    const interval = setInterval(checkStreamNotifications, 2000); // Check every 2 seconds
 
     return () => clearInterval(interval);
   }, []);

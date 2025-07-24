@@ -108,7 +108,9 @@ export default function SimpleLiveStreaming() {
       
       // Store notification only - not full stream
       localStorage.setItem('liveStreamNotification', JSON.stringify(streamData));
-      console.log('Stream notification created:', streamData);
+      // Also store with timestamp for persistence
+      localStorage.setItem('liveStreamStartTime', Date.now().toString());
+      console.log('🔴 Stream notification created and persisted:', streamData);
 
       setIsStreaming(true);
       setCurrentStep(4);
@@ -153,9 +155,9 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Remove stream notification
+      // Remove stream notification only when explicitly stopping
       localStorage.removeItem('liveStreamNotification');
-      console.log('Stream notification ended');
+      console.log('🛑 Stream manually ended - notification removed');
 
       setIsStreaming(false);
       setLocation('/');
