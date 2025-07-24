@@ -35,14 +35,14 @@ export default function ZegoLiveStream() {
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js';
       script.onload = () => {
-        console.log('✅ ZegoCloud SDK loaded');
+        console.log('✅ Streaming SDK loaded');
         setIsInitialized(true);
       };
       script.onerror = () => {
-        console.error('❌ Failed to load ZegoCloud SDK');
+        console.error('❌ Failed to load streaming SDK');
         toast({
           title: "خطأ في التحميل",
-          description: "فشل في تحميل ZegoCloud SDK",
+          description: "فشل في تحميل نظام البث",
           variant: "destructive"
         });
       };
@@ -65,15 +65,15 @@ export default function ZegoLiveStream() {
 
     if (!isInitialized || !window.ZegoUIKitPrebuilt) {
       toast({
-        title: "SDK غير جاهز",
-        description: "يرجى الانتظار حتى يتم تحميل ZegoCloud",
+        title: "النظام غير جاهز",
+        description: "يرجى الانتظار حتى يتم تحميل النظام",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      console.log('🚀 Starting ZegoCloud live stream...');
+      console.log('🚀 Starting live stream...');
       
       const appID = parseInt(import.meta.env.VITE_ZEGOCLOUD_APP_ID || '');
       const serverSecret = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN || '';
@@ -81,7 +81,7 @@ export default function ZegoLiveStream() {
       if (!appID || !serverSecret) {
         toast({
           title: "إعدادات مفقودة",
-          description: "مفاتيح ZegoCloud غير موجودة في المتغيرات البيئية",
+          description: "إعدادات البث غير موجودة",
           variant: "destructive"
         });
         return;
@@ -100,7 +100,7 @@ export default function ZegoLiveStream() {
         userName
       );
       
-      console.log('🔑 ZegoCloud Token generated successfully');
+      console.log('🔑 Authentication token generated successfully');
 
       // إعداد البث المباشر
       const zp = window.ZegoUIKitPrebuilt.create(kitToken);
@@ -144,7 +144,7 @@ export default function ZegoLiveStream() {
             console.error('❌ ZegoCloud error:', error);
             toast({
               title: "خطأ في البث",
-              description: `خطأ ZegoCloud: ${error.message || 'خطأ غير معروف'}`,
+              description: `خطأ في البث: ${error.message || 'خطأ غير معروف'}`,
               variant: "destructive"
             });
           }
@@ -171,7 +171,7 @@ export default function ZegoLiveStream() {
               🔴 بث مباشر احترافي
             </CardTitle>
             <p className="text-gray-300">
-              مدعوم بـ ZegoCloud
+              بث مباشر عالي الجودة
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -196,7 +196,7 @@ export default function ZegoLiveStream() {
             {!isInitialized && (
               <div className="text-center text-yellow-300 text-sm">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-300 mx-auto mb-2"></div>
-                جاري تحميل ZegoCloud SDK...
+                جاري تحميل النظام...
               </div>
             )}
             
