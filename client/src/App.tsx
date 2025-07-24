@@ -18,7 +18,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
-import { TooltipProvider } from "@/components/ui/tooltip";
+
 
 type Language = 'en' | 'ar';
 
@@ -52,10 +52,11 @@ function Router() {
           <Route path="/" component={SimpleHome} />
           <Route path="/home" component={SimpleHome} />
           <Route path="/feed" component={FeedPage} />
+          <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
-          <Route path="/start-stream" component={LazyComponents.StartStreamPage} />
+
           <Route path="/account" component={AccountPage} />
           <Route path="/create-memory" component={LazyComponents.CreateMemoryPage} />
           <Route path="/profile" component={LazyComponents.ProfileSimplePage} />

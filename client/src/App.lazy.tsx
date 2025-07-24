@@ -2,6 +2,7 @@ import { lazy } from 'react';
 
 // Lazy loading المكونات الثقيلة لتحسين الأداء
 export const StreamPage = lazy(() => import('@/pages/stream'));
+export const NewStreamPage = lazy(() => import('@/pages/new-stream'));
 export const AdminPage = lazy(() => import('@/pages/admin'));
 export const StartStreamPage = lazy(() => import('@/pages/start-stream'));
 export const CreateMemoryPage = lazy(() => import('@/pages/create-memory'));
