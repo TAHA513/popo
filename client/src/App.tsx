@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 
+
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { Suspense } from "react";
@@ -17,8 +18,8 @@ import LoginPage from "@/pages/login";
 import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
+import SimpleLiveStreaming from '@/pages/simple-live-streaming';
 import { LanguageOption } from "@/types";
-
 
 type Language = 'en' | 'ar';
 
@@ -51,90 +52,73 @@ function Router() {
         }>
           <Route path="/" component={SimpleHome} />
           <Route path="/home" component={SimpleHome} />
-          <Route path="/feed" component={FeedPage} />
-          <Route path="/new-stream" component={LazyComponents.SimpleStreamPage} />
-          <Route path="/zego-stream" component={LazyComponents.ZegoStreamPage} />
-          <Route path="/join/:roomId" component={LazyComponents.StreamPage} />
-          <Route path="/cloud-stream-guide" component={LazyComponents.CloudStreamGuidePage} />
-          <Route path="/stream/:id" component={LazyComponents.StreamPage} />
-          <Route path="/admin" component={LazyComponents.AdminPage} />
-          <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
-
-          <Route path="/account" component={AccountPage} />
-          <Route path="/create-memory" component={LazyComponents.CreateMemoryPage} />
-          <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/profile/:userId" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/explore" component={SimpleExplore} />
-          <Route path="/gifts" component={LazyComponents.GiftsPage} />
+          <Route path="/start-streaming" component={LazyComponents.StartStreamingPage} />
+          <Route path="/simple-live" component={() => <SimpleLiveStreaming />} />
+          <Route path="/simple-live-streaming" component={() => <SimpleLiveStreaming />} />
+          <Route path="/zego-viewer" component={LazyComponents.ZegoViewer} />
+          <Route path="/feed" component={FeedPage} />
           <Route path="/messages" component={MessagesPage} />
-          <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
-          <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
-          <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
+          <Route path="/account" component={AccountPage} />
+          
+          <Route path="/admin" component={LazyComponents.AdminPage} />
+          <Route path="/create-memory" component={LazyComponents.CreateMemoryPage} />
+          <Route path="/profile-simple" component={LazyComponents.ProfileSimplePage} />
+          <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
+          <Route path="/gifts" component={LazyComponents.GiftsPage} />
+          <Route path="/conversation/:userId" component={LazyComponents.ConversationPage} />
+          <Route path="/video/:id" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
+          <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
+          <Route path="/message-requests" component={LazyComponents.MessageRequestsPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route path="/:rest*" component={SimpleHome} />
+          <Route path="/zego-live" component={LazyComponents.ZegoLivePage} />
+          
+          {/* Admin panel hidden route */}
+          <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
+          
+          {/* 404 fallback */}
+          <Route>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🐰</div>
+                <h1 className="text-2xl font-bold text-gray-700 mb-2">الصفحة غير موجودة</h1>
+                <p className="text-gray-500 mb-6">عذراً، الصفحة التي تبحث عنها غير متوفرة</p>
+                <a
+                  href="/"
+                  className="inline-flex items-center px-4 py-2 bg-laa-pink text-white rounded-lg hover:bg-laa-pink/90 transition-colors"
+                >
+                  العودة للرئيسية
+                </a>
+              </div>
+            </div>
+          </Route>
         </Suspense>
       ) : (
-        <>
-          <Route path="/" component={LoginPage} />
-          <Route path="/landing" component={Landing} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/register" component={RegisterPage} />
-          <Route component={LoginPage} />
-        </>
+        <Route component={Landing} />
       )}
     </Switch>
   );
 }
 
 function App() {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar');
 
   useEffect(() => {
-    // Set document direction and language
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
-    
     // Initialize performance optimizations
     initPerformanceOptimizations();
     
-    // Performance monitoring
-    if ('PerformanceObserver' in window) {
-      const observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        entries.forEach(entry => {
-          if (entry.entryType === 'navigation') {
-            console.log('Navigation timing:', entry.toJSON());
-          }
-        });
-      });
-      observer.observe({ entryTypes: ['navigation'] });
-    }
-    
-    // Memory usage monitoring (for development)
-    if (process.env.NODE_ENV === 'development') {
-      const checkMemory = () => {
-        if ('memory' in performance) {
-          const memory = (performance as any).memory;
-          console.log('Memory usage:', {
-            used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
-            total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
-            limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
-          });
-        }
-      };
-      
-      const memoryInterval = setInterval(checkMemory, 30000); // كل 30 ثانية
-      return () => clearInterval(memoryInterval);
-    }
-  }, [language]);
+    // Cleanup function for when the component unmounts
+    return () => {
+      // Any necessary cleanup can go here
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-        <Toaster />
+      <div className={`app ${language === 'ar' ? 'rtl' : 'ltr'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <Router />
+        <Toaster />
       </div>
     </QueryClientProvider>
   );

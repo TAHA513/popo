@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ابدأ البث المباشر - ZEGO</title>
+  <script src="https://download.zegocloud.com/sdk/latest/zego-express-video.min.js"></script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      color: #ffffff;
+      margin-bottom: 30px;
+    }
+    .step {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      backdrop-filter: blur(10px);
+      display: none;
+    }
+    .step.active {
+      display: block;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
+    button {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    button:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .controls {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    .control-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .control-btn:hover {
+      background: rgba(0,0,0,0.9);
+      transform: scale(1.1);
+    }
+    .status {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin: 10px;
+    }
+    .status.live {
+      background: #e74c3c;
+      animation: pulse 2s infinite;
+    }
+    .status.preparing {
+      background: #f39c12;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    .error {
+      background-color: rgba(231, 76, 60, 0.2);
+      border: 1px solid #e74c3c;
+      color: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 ابدأ البث المباشر</h1>
+    
+    <!-- خطوة 1: عنوان البث -->
+    <div class="step active" id="step1">
+      <h2>أدخل عنوان البث</h2>
+      <input type="text" id="streamTitle" placeholder="مثال: بث مباشر مع الأصدقاء" maxlength="50">
+      <p style="font-size: 14px; color: #ddd;">اختر عنواناً جذاباً لبثك المباشر</p>
+      <button onclick="nextStep()" id="titleBtn">التالي</button>
+    </div>
+
+    <!-- خطوة 2: تجهيز الكاميرا -->
+    <div class="step" id="step2">
+      <h2>تجهيز الكاميرا والصوت</h2>
+      <p>اضغط على "السماح" عندما يطلب المتصفح إذن الكاميرا والميكروفون</p>
+      <button onclick="setupCamera()" id="cameraBtn">تشغيل الكاميرا</button>
+      <div id="cameraError" class="error" style="display: none;"></div>
+      
+      <div class="video-container" id="previewContainer" style="display: none;">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <div class="controls">
+          <button class="control-btn" onclick="toggleCamera()" id="cameraToggle">📹</button>
+          <button class="control-btn" onclick="toggleMic()" id="micToggle">🎤</button>
+        </div>
+      </div>
+      
+      <button onclick="startLiveStream()" id="startBtn" style="display: none;">🔴 ابدأ البث المباشر</button>
+    </div>
+
+    <!-- خطوة 3: البث المباشر -->
+    <div class="step" id="step3">
+      <h2 id="liveTitle">البث المباشر</h2>
+      <div class="status live">🔴 مباشر الآن</div>
+      
+      <div class="video-container">
+        <video id="streamVideo" autoplay muted playsinline></video>
+        <div class="controls">
+          <button class="control-btn" onclick="toggleStreamCamera()" id="streamCameraToggle">📹</button>
+          <button class="control-btn" onclick="toggleStreamMic()" id="streamMicToggle">🎤</button>
+          <button class="control-btn" onclick="endStream()" style="background: #e74c3c;">⏹️</button>
+        </div>
+      </div>
+      
+      <p id="streamInfo" style="font-size: 14px; color: #ddd;"></p>
+    </div>
+  </div>
+
+  <script>
+    let appID = 1034062164;
+    let authToken = "";
+    let currentUserId = "";
+    let zg;
+    let localStream;
+    let roomID;
+    let streamID;
+    let isStreaming = false;
+    let cameraEnabled = true;
+    let micEnabled = true;
+
+    // الحصول على رمز المصادقة
+    async function getAuthToken() {
+      try {
+        const response = await fetch('/api/zego/token', {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+          throw new Error('يجب تسجيل الدخول أولاً');
+        }
+
+        const data = await response.json();
+        authToken = data.token;
+        appID = data.appId;
+        currentUserId = data.userId;
+        return true;
+      } catch (error) {
+        alert('يجب تسجيل الدخول أولاً');
+        window.location.href = '/login';
+        return false;
+      }
+    }
+
+    function nextStep() {
+      const title = document.getElementById('streamTitle').value.trim();
+      if (!title) {
+        alert('يرجى إدخال عنوان للبث');
+        return;
+      }
+      
+      document.getElementById('step1').classList.remove('active');
+      document.getElementById('step2').classList.add('active');
+    }
+
+    async function setupCamera() {
+      const cameraBtn = document.getElementById('cameraBtn');
+      const errorDiv = document.getElementById('cameraError');
+      
+      cameraBtn.disabled = true;
+      cameraBtn.textContent = 'جاري تشغيل الكاميرا...';
+      errorDiv.style.display = 'none';
+
+      try {
+        // تهيئة ZEGO
+        const authSuccess = await getAuthToken();
+        if (!authSuccess) return;
+
+        zg = new ZegoExpressEngine(appID, "wss://webliveroom-api.zegocloud.com/ws");
+
+        // طلب إذن الكاميرا والميكروفون
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            width: { ideal: 720 }, 
+            height: { ideal: 480 },
+            facingMode: 'user'
+          },
+          audio: true
+        });
+
+        // عرض معاينة الكاميرا
+        const localVideo = document.getElementById('localVideo');
+        localVideo.srcObject = localStream;
+        
+        document.getElementById('previewContainer').style.display = 'block';
+        document.getElementById('startBtn').style.display = 'block';
+        cameraBtn.style.display = 'none';
+        
+      } catch (error) {
+        console.error('خطأ في تشغيل الكاميرا:', error);
+        errorDiv.textContent = 'فشل في الوصول للكاميرا. تأكد من السماح بالوصول للكاميرا والميكروفون.';
+        errorDiv.style.display = 'block';
+        cameraBtn.disabled = false;
+        cameraBtn.textContent = 'إعادة المحاولة';
+      }
+    }
+
+    function toggleCamera() {
+      if (localStream) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+          cameraEnabled = !cameraEnabled;
+          videoTrack.enabled = cameraEnabled;
+          document.getElementById('cameraToggle').textContent = cameraEnabled ? '📹' : '📹❌';
+        }
+      }
+    }
+
+    function toggleMic() {
+      if (localStream) {
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+          micEnabled = !micEnabled;
+          audioTrack.enabled = micEnabled;
+          document.getElementById('micToggle').textContent = micEnabled ? '🎤' : '🎤❌';
+        }
+      }
+    }
+
+    async function startLiveStream() {
+      const startBtn = document.getElementById('startBtn');
+      startBtn.disabled = true;
+      startBtn.textContent = 'جاري بدء البث...';
+
+      try {
+        const title = document.getElementById('streamTitle').value;
+        roomID = `room_${currentUserId}_${Date.now()}`;
+        streamID = `stream_${currentUserId}_${Date.now()}`;
+
+        // تسجيل الدخول للغرفة
+        await zg.loginRoom(roomID, { 
+          userID: currentUserId, 
+          userName: currentUserId 
+        }, { token: authToken });
+
+        // بدء النشر
+        await zg.startPublishingStream(streamID, localStream);
+        
+        // الانتقال لشاشة البث المباشر
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step3').classList.add('active');
+        
+        document.getElementById('liveTitle').textContent = title;
+        document.getElementById('streamVideo').srcObject = localStream;
+        document.getElementById('streamInfo').textContent = `معرف الغرفة: ${roomID}`;
+        
+        isStreaming = true;
+        
+      } catch (error) {
+        console.error('خطأ في بدء البث:', error);
+        alert('فشل في بدء البث. يرجى المحاولة مرة أخرى.');
+        startBtn.disabled = false;
+        startBtn.textContent = '🔴 ابدأ البث المباشر';
+      }
+    }
+
+    function toggleStreamCamera() {
+      toggleCamera();
+      document.getElementById('streamCameraToggle').textContent = cameraEnabled ? '📹' : '📹❌';
+    }
+
+    function toggleStreamMic() {
+      toggleMic();
+      document.getElementById('streamMicToggle').textContent = micEnabled ? '🎤' : '🎤❌';
+    }
+
+    async function endStream() {
+      if (confirm('هل تريد إنهاء البث المباشر؟')) {
+        try {
+          if (zg && isStreaming) {
+            await zg.stopPublishingStream(streamID);
+            await zg.logoutRoom(roomID);
+          }
+          
+          if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+          }
+          
+          alert('تم إنهاء البث بنجاح');
+          window.location.href = '/';
+          
+        } catch (error) {
+          console.error('خطأ في إنهاء البث:', error);
+          window.location.href = '/';
+        }
+      }
+    }
+
+    // التأكد من إنهاء البث عند إغلاق الصفحة
+    window.addEventListener('beforeunload', function(e) {
+      if (isStreaming) {
+        endStream();
+      }
+    });
+  </script>
+</body>
+</html>
