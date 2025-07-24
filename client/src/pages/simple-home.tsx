@@ -28,24 +28,23 @@ export default function SimpleHome() {
   useEffect(() => {
     const checkStreamNotifications = () => {
       const streamData = localStorage.getItem('liveStreamNotification');
-      console.log('Checking for stream notification:', streamData);
       if (streamData) {
         try {
           const parsedData = JSON.parse(streamData);
-          console.log('Found stream data:', parsedData);
+          console.log('🔴 LIVE STREAM FOUND:', parsedData);
           setCurrentStream(parsedData);
         } catch (error) {
           console.error('Error parsing stream data:', error);
           setCurrentStream(null);
         }
       } else {
-        console.log('No stream notification found');
+        console.log('❌ No live stream found');
         setCurrentStream(null);
       }
     };
 
     checkStreamNotifications();
-    const interval = setInterval(checkStreamNotifications, 2000); // Check every 2 seconds
+    const interval = setInterval(checkStreamNotifications, 1000); // Check every 1 second
 
     return () => clearInterval(interval);
   }, []);
