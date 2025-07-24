@@ -93,22 +93,25 @@ export default function SimpleLiveStreaming() {
     setError('');
 
     try {
-      // Create stream in simple storage (memory only)
-      const streamData = {
-        id: Date.now(),
-        hostId: 'current-user',
-        title: streamTitle,
-        category: 'general',
-        isActive: true,
-        viewerCount: 1,
-        hostName: 'المستخدم الحالي',
-        hostAvatar: '🐰',
-        createdAt: new Date().toISOString()
-      };
-      
-      // Store in localStorage for demo
-      localStorage.setItem('currentStream', JSON.stringify(streamData));
-      console.log('Stream created and stored:', streamData);
+      // Create stream in database
+      const response = await fetch('/api/streams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: streamTitle,
+          category: 'general'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'فشل في إنشاء البث');
+      }
+
+      const streamData = await response.json();
+      console.log('Stream created successfully:', streamData);
 
       setIsStreaming(true);
       setCurrentStep(4);
@@ -153,10 +156,15 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Remove stream from storage
-      localStorage.removeItem('currentStream');
-      console.log('Stream ended and removed from storage');
+      // End stream in database
+      await fetch('/api/streams/end', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
+      console.log('Stream ended successfully');
       setIsStreaming(false);
       setLocation('/');
       

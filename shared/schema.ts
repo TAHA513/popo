@@ -346,6 +346,13 @@ export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({
   createdAt: true,
 });
 
+export const insertStreamSchema = createInsertSchema(streams).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  viewerCount: true,
+});
+
 export const insertMemoryCollectionSchema = createInsertSchema(memoryCollections).omit({
   id: true,
   createdAt: true,

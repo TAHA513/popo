@@ -290,12 +290,26 @@ export class DatabaseStorage implements IStorage {
     return stream;
   }
 
-  async getStreams(): Promise<Stream[]> {
-    return await db
-      .select()
+  async getStreams(): Promise<(Stream & { hostName?: string; hostAvatar?: string })[]> {
+    const streamResults = await db
+      .select({
+        id: streams.id,
+        hostId: streams.hostId,
+        title: streams.title,
+        category: streams.category,
+        isActive: streams.isActive,
+        viewerCount: streams.viewerCount,
+        createdAt: streams.createdAt,
+        updatedAt: streams.updatedAt,
+        hostName: users.username,
+        hostAvatar: users.profileImageUrl,
+      })
       .from(streams)
+      .leftJoin(users, eq(streams.hostId, users.id))
       .where(eq(streams.isActive, true))
       .orderBy(desc(streams.createdAt));
+    
+    return streamResults;
   }
 
   async endUserStreams(userId: string): Promise<void> {
