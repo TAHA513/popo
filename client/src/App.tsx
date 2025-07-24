@@ -18,6 +18,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
+import TestCameraSimple from "@/pages/test-camera-simple";
 
 
 type Language = 'en' | 'ar';
@@ -56,7 +57,9 @@ function Router() {
           <Route path="/zego-stream" component={LazyComponents.ZegoStreamPage} />
           <Route path="/direct-camera" component={LazyComponents.DirectCameraStreamPage} />
           <Route path="/webrtc-stream" component={LazyComponents.WebRTCLiveStreamPage} />
-          <Route path="/camera-test" component={LazyComponents.SimpleCameraTestPage} />
+          <Route path="/camera-test">
+            <TestCameraSimple />
+          </Route>
           <Route path="/join/:roomId" component={LazyComponents.StreamPage} />
           <Route path="/cloud-stream-guide" component={LazyComponents.CloudStreamGuidePage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />

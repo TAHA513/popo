@@ -142,7 +142,10 @@ export default function SimpleHome() {
                 كن أول من يبدأ البث المباشر
               </p>
               <Button 
-                onClick={() => setLocation('/camera-test')}
+                onClick={() => {
+                  console.log('🔗 التنقل إلى صفحة البث...');
+                  setLocation('/camera-test');
+                }}
                 className="bg-laa-pink hover:bg-laa-pink/90"
               >
                 ابدأ البث الآن
