@@ -9,9 +9,7 @@ import {
   Gift, 
   Eye, 
   User,
-  Radio,
-  Cloud,
-  Zap
+  Radio
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -58,30 +56,17 @@ export default function SimpleHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Stream Options - Right Side */}
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              {/* Cloud Stream Button */}
-              <Button 
-                onClick={() => setLocation('/cloud-stream-guide')}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-full flex items-center space-x-1 rtl:space-x-reverse shadow-lg"
-                title="بث احترافي بالسحابة"
-              >
-                <Cloud className="w-4 h-4" />
-                <span className="text-xs font-bold hidden sm:inline">سحابي</span>
-              </Button>
-              
-              {/* Regular Stream Button */}
-              <Button 
-                onClick={() => {
-                  console.log('Navigating to simple-stream from header button');
-                  setLocation('/simple-stream');
-                }}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
-              >
-                <Radio className="w-4 h-4" />
-                <span className="text-sm font-bold">ابدأ بث مباشر</span>
-              </Button>
-            </div>
+            {/* Live Stream Button - Right Side */}
+            <Button 
+              onClick={() => {
+                console.log('Starting ZegoCloud stream');
+                setLocation('/zego-stream');
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+            >
+              <Radio className="w-4 h-4" />
+              <span className="text-sm font-bold">ابدأ بث مباشر</span>
+            </Button>
           </div>
         </div>
         {/* Colored Line */}
@@ -156,23 +141,12 @@ export default function SimpleHome() {
               <p className="text-gray-500 mb-4">
                 كن أول من يبدأ البث المباشر
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button 
-                  onClick={() => setLocation('/cloud-stream-guide')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2 rtl:space-x-reverse"
-                >
-                  <Cloud className="w-4 h-4" />
-                  <span>بث احترافي (سحابي)</span>
-                </Button>
-                
-                <Button 
-                  onClick={() => setLocation('/simple-stream')}
-                  className="bg-laa-pink hover:bg-laa-pink/90 flex items-center space-x-2 rtl:space-x-reverse"
-                >
-                  <Radio className="w-4 h-4" />
-                  <span>بث بسيط</span>
-                </Button>
-              </div>
+              <Button 
+                onClick={() => setLocation('/zego-stream')}
+                className="bg-laa-pink hover:bg-laa-pink/90"
+              >
+                ابدأ البث الآن
+              </Button>
             </div>
           )}
         </div>
