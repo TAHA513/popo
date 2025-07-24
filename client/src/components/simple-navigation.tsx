@@ -74,37 +74,35 @@ export default function SimpleNavigation() {
             </Link>
           </div>
 
-          {/* Center - App Name with Rabbit and Stream Button */}
+          {/* Center - App Name with Rabbit */}
           <div className="flex-1 flex justify-center">
-            <div className="flex items-center space-x-3 rtl:space-x-reverse">
-              <Link href="/">
-                <div className="text-center flex items-center space-x-2 rtl:space-x-reverse">
-                  <div className="text-2xl animate-bounce">🐰</div>
-                  <div>
-                    <div className="text-xl font-bold text-white tracking-wide">
-                      LaaBoBo Live
-                    </div>
-                    <div className="text-xs text-white/80 font-medium">
-                      لايف بوبو
-                    </div>
+            <Link href="/">
+              <div className="text-center flex items-center space-x-2 rtl:space-x-reverse">
+                <div className="text-2xl animate-bounce">🐰</div>
+                <div>
+                  <div className="text-xl font-bold text-white tracking-wide">
+                    LaaBoBo Live
+                  </div>
+                  <div className="text-xs text-white/80 font-medium">
+                    لايف بوبو
                   </div>
                 </div>
-              </Link>
-              
-              {/* أيقونة البث الجديدة */}
-              <Link href="/new-stream">
-                <Button className="bg-blue-600/80 hover:bg-blue-700 text-white rounded-full w-12 h-12 p-0 backdrop-blur-sm border-2 border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-110">
-                  <Video className="w-6 h-6" />
-                </Button>
-              </Link>
-            </div>
+              </div>
+            </Link>
           </div>
 
-          {/* Right Side - Search & Settings */}
+          {/* Right Side - Search & Stream Button */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
             <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
               <Search className="w-5 h-5" />
             </button>
+            
+            {/* أيقونة البث الأصلية */}
+            <Link href="/new-stream">
+              <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
+                <Video className="w-5 h-5" />
+              </button>
+            </Link>
             
             {/* Logout Button */}
             {user && (
