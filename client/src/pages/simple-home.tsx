@@ -85,7 +85,7 @@ export default function SimpleHome() {
                   🔴 بث سريع
                 </Button>
                 <Button 
-                  onClick={() => setLocation('/start-streaming')}
+                  onClick={() => setLocation('/zego-live')}
                   className="bg-purple-500 hover:bg-purple-600 text-white flex-1"
                 >
                   ⚡ بث ZEGO
