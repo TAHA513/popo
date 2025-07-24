@@ -22,6 +22,38 @@ export class ZegoCloudService {
   private appSign: string;
   private zg: any = null;
 
+  // Professional streaming configuration
+  static readonly HOST_CONFIG = {
+    turnOnCameraWhenJoining: true,
+    showMyCameraToggleButton: true,
+    showAudioVideoSettingsButton: true,
+    showScreenSharingButton: true,
+    showTextChat: true,
+    showUserList: true,
+    scenario: {
+      mode: "LiveStreaming" as const,
+      config: {
+        role: "Host" as const,
+      },
+    },
+  };
+
+  // Viewer configuration
+  static readonly VIEWER_CONFIG = {
+    turnOnCameraWhenJoining: false,
+    showMyCameraToggleButton: false,
+    showAudioVideoSettingsButton: false,
+    showScreenSharingButton: false,
+    showTextChat: true,
+    showUserList: true,
+    scenario: {
+      mode: "LiveStreaming" as const,
+      config: {
+        role: "Audience" as const,
+      },
+    },
+  };
+
   constructor(appId: string, appSign: string) {
     this.appId = appId;
     this.appSign = appSign;
