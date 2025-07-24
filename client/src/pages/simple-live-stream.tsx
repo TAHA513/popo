@@ -18,6 +18,7 @@ export default function SimpleLiveStream() {
   const [hasPermissions, setHasPermissions] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [isRequestingPermissions, setIsRequestingPermissions] = useState(false);
   
   // إحصائيات البث
   const [viewerCount, setViewerCount] = useState(0);
@@ -35,19 +36,45 @@ export default function SimpleLiveStream() {
       return;
     }
 
+    // التحقق من دعم المتصفح أولاً
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast({
+        title: "متصفح غير مدعوم",
+        description: "يرجى استخدام متصفح حديث مثل Chrome أو Firefox",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       console.log('🎥 طلب أذونات الكاميرا والميكروفون...');
+      setIsRequestingPermissions(true);
       
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
-        },
-        audio: true
+      toast({
+        title: "طلب أذونات",
+        description: "يرجى النقر على 'السماح' في نافذة المتصفح",
       });
+      
+      // طلب الأذونات بشكل صريح
+      const constraints = {
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user',
+          frameRate: { ideal: 30, min: 15 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      };
 
-      console.log('✅ تم الحصول على أذونات الكاميرا');
+      console.log('🔍 جاري طلب الأذونات من المتصفح...');
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      setIsRequestingPermissions(false);
+
+      console.log('✅ تم الحصول على أذونات الكاميرا والميكروفون');
       setHasPermissions(true);
 
       if (videoRef.current) {
@@ -56,8 +83,19 @@ export default function SimpleLiveStream() {
         videoRef.current.playsInline = true;
         videoRef.current.muted = true;
         
-        await videoRef.current.play();
-        console.log('✅ بدأ البث المباشر');
+        try {
+          await videoRef.current.play();
+          console.log('✅ بدأ عرض الفيديو');
+        } catch (playError) {
+          console.warn('⚠️ خطأ في تشغيل الفيديو، إعادة المحاولة...', playError);
+          setTimeout(async () => {
+            try {
+              await videoRef.current?.play();
+            } catch (retryError) {
+              console.error('❌ فشل في تشغيل الفيديو:', retryError);
+            }
+          }, 100);
+        }
       }
 
       setIsStreaming(true);
@@ -79,19 +117,27 @@ export default function SimpleLiveStream() {
 
     } catch (error) {
       console.error('❌ خطأ في بدء البث:', error);
+      setIsRequestingPermissions(false);
       
       let errorMessage = "لا يمكن الوصول إلى الكاميرا";
+      let errorTitle = "خطأ في البث";
       
       if ((error as any).name === 'NotAllowedError') {
-        errorMessage = "تم رفض الإذن. يرجى السماح بالوصول للكاميرا والميكروفون من إعدادات المتصفح";
+        errorTitle = "تم رفض الإذن";
+        errorMessage = "لم تظهر نافذة الأذونات أو تم رفضها. يرجى تفعيل الكاميرا من إعدادات المتصفح أو تحديث الصفحة والمحاولة مرة أخرى";
       } else if ((error as any).name === 'NotFoundError') {
-        errorMessage = "لم يتم العثور على كاميرا. تأكد من وجود كاميرا متصلة";
+        errorTitle = "كاميرا غير موجودة";
+        errorMessage = "لم يتم العثور على كاميرا. تأكد من وجود كاميرا متصلة بالجهاز";
       } else if ((error as any).name === 'NotReadableError') {
+        errorTitle = "كاميرا مشغولة";
         errorMessage = "الكاميرا مستخدمة من تطبيق آخر. أغلق التطبيقات الأخرى وحاول مرة أخرى";
+      } else if ((error as any).name === 'OverconstrainedError') {
+        errorTitle = "إعدادات غير مدعومة";
+        errorMessage = "إعدادات الكاميرا المطلوبة غير متاحة. جرب كاميرا أخرى";
       }
       
       toast({
-        title: "خطأ في البث",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive"
       });
@@ -188,11 +234,23 @@ export default function SimpleLiveStream() {
                 رجوع
               </Button>
               <Button
-                onClick={startLiveStream}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  startLiveStream();
+                }}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
-                disabled={!streamTitle.trim()}
+                disabled={!streamTitle.trim() || isRequestingPermissions}
+                type="button"
               >
-                🔴 ابدأ البث
+                {isRequestingPermissions ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    انتظار الأذونات...
+                  </>
+                ) : (
+                  <>🔴 ابدأ البث</>
+                )}
               </Button>
             </div>
           </CardContent>
