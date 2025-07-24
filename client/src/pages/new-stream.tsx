@@ -55,33 +55,47 @@ export default function NewStreamPage() {
   const requestMicPermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: hasCamera,
+        video: true,
         audio: true
       });
       
       setHasMic(true);
       setPermissionStep('title');
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.autoplay = true;
-        videoRef.current.playsInline = true;
-        videoRef.current.muted = true;
-        setMediaStream(stream);
-      }
+      // إيقاف الكاميرا مؤقتاً حتى يكتب العنوان
+      stream.getTracks().forEach(track => track.stop());
     } catch (error) {
       console.error('❌ خطأ في إذن الميكروفون:', error);
     }
   };
 
   // بدء البث
-  const startStreaming = () => {
+  const startStreaming = async () => {
     if (hasCamera && hasMic && streamTitle.trim()) {
-      createStreamMutation.mutate({
-        title: streamTitle.trim(),
-        description: streamTitle.trim(),
-        category: 'gaming'
-      });
+      try {
+        // تأكد من أن الكاميرا تعمل قبل بدء البث
+        if (!mediaStream) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+          });
+          
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            setMediaStream(stream);
+          }
+        }
+        
+        // بدء البث في قاعدة البيانات
+        createStreamMutation.mutate({
+          title: streamTitle.trim(),
+          description: streamTitle.trim(),
+          category: 'gaming'
+        });
+      } catch (error) {
+        console.error('❌ خطأ في بدء البث:', error);
+        alert('خطأ في تشغيل الكاميرا. تأكد من السماح للموقع بالوصول للكاميرا والميكروفون.');
+      }
     }
   };
 
@@ -115,27 +129,44 @@ export default function NewStreamPage() {
           className="w-full h-full object-cover"
           autoPlay
           playsInline
-          muted
+          muted={false}
+          controls={false}
+          style={{ 
+            width: '100%', 
+            height: '100%',
+            objectFit: 'cover'
+          }}
         />
         
+        {/* تحقق من وجود الفيديو */}
+        {!mediaStream && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black">
+            <div className="text-white text-center">
+              <div className="text-4xl mb-4">📹</div>
+              <p>جاري تحميل الكاميرا...</p>
+            </div>
+          </div>
+        )}
+        
         {/* أزرار التحكم */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
           <Button 
             onClick={stopStreaming}
             variant="ghost" 
-            className="text-white bg-black/20 backdrop-blur-sm rounded-full w-12 h-12 p-0"
+            className="text-white bg-black/50 backdrop-blur-sm rounded-full w-12 h-12 p-0 hover:bg-red-500/50"
           >
             <X className="w-6 h-6" />
           </Button>
           
-          <div className="text-white bg-red-500 px-3 py-1 rounded-full text-sm font-bold">
+          <div className="text-white bg-red-500 px-3 py-1 rounded-full text-sm font-bold shadow-lg">
             🔴 مباشر
           </div>
         </div>
 
         {/* معلومات البث */}
-        <div className="absolute bottom-20 left-4 right-4 text-white">
-          <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3">
+        <div className="absolute bottom-20 left-4 right-4 text-white z-10">
+          <div className="bg-black/50 backdrop-blur-sm rounded-lg p-3">
+            <div className="text-lg font-bold mb-1">{streamTitle}</div>
             <div className="text-sm opacity-80">مشاهدين: 0</div>
             <div className="text-xs opacity-60">اسحب لأعلى للدردشة</div>
           </div>
@@ -268,7 +299,23 @@ export default function NewStreamPage() {
             />
             
             <Button 
-              onClick={() => setPermissionStep('ready')}
+              onClick={async () => {
+                // تشغيل الكاميرا للمعاينة
+                try {
+                  const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                  });
+                  
+                  if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    setMediaStream(stream);
+                  }
+                  setPermissionStep('ready');
+                } catch (error) {
+                  console.error('❌ خطأ في تشغيل الكاميرا:', error);
+                }
+              }}
               disabled={!streamTitle.trim()}
               className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white py-4 rounded-full font-bold disabled:opacity-50"
             >
