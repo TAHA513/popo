@@ -99,6 +99,7 @@ export default function SimpleLiveStreaming() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include session cookie
         body: JSON.stringify({
           title: streamTitle,
           category: 'general'
@@ -106,7 +107,11 @@ export default function SimpleLiveStreaming() {
       });
 
       if (!response.ok) {
-        throw new Error('فشل في إنشاء البث');
+        const errorData = await response.json();
+        if (response.status === 401) {
+          throw new Error('يجب تسجيل الدخول أولاً');
+        }
+        throw new Error(errorData.message || 'فشل في إنشاء البث');
       }
 
       const streamData = await response.json();
@@ -160,7 +165,8 @@ export default function SimpleLiveStreaming() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Include session cookie
       });
 
       console.log('Stream ended successfully');
