@@ -16,7 +16,7 @@ export default function LiveStreamCard({ stream, onStreamEnd }: LiveStreamCardPr
 
   const handleWatchStream = () => {
     // Store the stream being viewed for the viewer component
-    localStorage.setItem('viewingStreamID', stream.streamID || `stream_${stream.id}`);
+    localStorage.setItem('viewingStreamID', stream.streamId || `stream_${stream.id}`);
     localStorage.setItem('viewingStreamData', JSON.stringify(stream));
     
     if (stream?.isPublisher) {
@@ -26,24 +26,34 @@ export default function LiveStreamCard({ stream, onStreamEnd }: LiveStreamCardPr
     }
   };
 
-  const handleEndStream = () => {
-    // Remove this specific stream
-    localStorage.removeItem(`liveStream_${stream.id}`);
-    localStorage.removeItem(`streamTime_${stream.id}`);
-    
-    // If this is the main stream, remove main notification too
-    if (stream.isPublisher) {
-      localStorage.removeItem('liveStreamNotification');
-      localStorage.removeItem('liveStreamStartTime');
-      localStorage.removeItem('currentStreamID');
+  const handleEndStream = async () => {
+    try {
+      const response = await fetch(`/api/streams/${stream.streamId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        // Clean up local storage
+        localStorage.removeItem('currentStreamID');
+        localStorage.removeItem('isPublisher');
+        
+        onStreamEnd?.(stream.id);
+        
+        toast({
+          title: "تم إنهاء البث",
+          description: "تم إنهاء البث المباشر بنجاح",
+        });
+      } else {
+        throw new Error('فشل في إنهاء البث');
+      }
+    } catch (error) {
+      console.error('Error ending stream:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في إنهاء البث",
+        variant: "destructive"
+      });
     }
-    
-    onStreamEnd?.(stream.id);
-    
-    toast({
-      title: "تم إنهاء البث",
-      description: "تم إنهاء البث المباشر بنجاح",
-    });
   };
 
   return (

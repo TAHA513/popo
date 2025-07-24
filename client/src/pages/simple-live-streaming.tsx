@@ -115,18 +115,37 @@ export default function SimpleLiveStreaming() {
         isPublisher: true
       };
       
-      // Store stream with unique key for multi-stream support
-      const streamDataStr = JSON.stringify(enhancedStreamData);
-      const startTimeStr = Date.now().toString();
-      
-      // Store with unique stream key
-      localStorage.setItem(`liveStream_${streamData.id}`, streamDataStr);
-      localStorage.setItem(`streamTime_${streamData.id}`, startTimeStr);
-      
-      // Also store main notification for compatibility
-      localStorage.setItem('liveStreamNotification', streamDataStr);
-      localStorage.setItem('liveStreamStartTime', startTimeStr);
-      localStorage.setItem('currentStreamID', streamID);
+      // Save stream to database for cross-user visibility
+      try {
+        const response = await fetch('/api/streams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            streamId: streamID,
+            roomId: `room_${streamData.id}`,
+            title: streamTitle,
+            category: 'general'
+          })
+        });
+
+        if (response.ok) {
+          console.log('✅ Stream saved to database successfully');
+          const result = await response.json();
+          
+          // Store local reference for current user
+          localStorage.setItem('currentStreamID', streamID);
+          localStorage.setItem('isPublisher', 'true');
+          
+          setIsStreaming(true);
+        } else {
+          console.error('❌ Failed to save stream to database');
+          throw new Error('Failed to save stream');
+        }
+      } catch (error) {
+        console.error('Database save error:', error);
+        setError('فشل في حفظ البث في قاعدة البيانات');
+        return;
+      }
       
       console.log('🔴 Stream notification created with streamID:', enhancedStreamData);
       console.log('📡 Stream ID for viewers:', streamID);
@@ -198,15 +217,22 @@ export default function SimpleLiveStreaming() {
         }
       }
 
-      // Remove all stream notifications when stopping
-      localStorage.removeItem('liveStreamNotification');
-      localStorage.removeItem('liveStreamStartTime');
+      // End stream in database
+      const currentStreamID = localStorage.getItem('currentStreamID');
+      if (currentStreamID) {
+        try {
+          await fetch(`/api/streams/${currentStreamID}`, {
+            method: 'DELETE'
+          });
+          console.log('✅ Stream ended in database');
+        } catch (error) {
+          console.error('❌ Failed to end stream in database:', error);
+        }
+      }
+
+      // Clean up local storage
       localStorage.removeItem('currentStreamID');
-      sessionStorage.removeItem('liveStreamNotification');
-      sessionStorage.removeItem('liveStreamStartTime');
-      delete (window as any).liveStreamData;
-      delete (window as any).liveStreamStartTime;
-      console.log('🛑 Stream manually ended - all notifications removed');
+      localStorage.removeItem('isPublisher');
 
       setIsStreaming(false);
       setLocation('/');

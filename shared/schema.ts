@@ -216,14 +216,20 @@ export const fragmentCollections = pgTable("fragment_collections", {
   addedAt: timestamp("added_at").defaultNow(),
 });
 
-// Live Streams table
+// Live Streams table for ZEGO Cloud integration
 export const streams = pgTable("streams", {
   id: serial("id").primaryKey(),
+  streamId: varchar("stream_id").notNull().unique(), // ZEGO stream ID
+  roomId: varchar("room_id").notNull(), // ZEGO room ID
   hostId: varchar("host_id").notNull().references(() => users.id),
+  hostName: varchar("host_name").notNull(),
+  hostAvatar: varchar("host_avatar").default("🐰"),
   title: varchar("title").notNull(),
   category: varchar("category").default("general"),
   isActive: boolean("is_active").default(true),
   viewerCount: integer("viewer_count").default(0),
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
