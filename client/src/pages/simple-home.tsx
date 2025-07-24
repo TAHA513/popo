@@ -77,12 +77,20 @@ export default function SimpleHome() {
               >
                 استكشف الذكريات
               </Button>
-              <Button 
-                onClick={() => setLocation('/zego-live')}
-                className="bg-cyan-500 hover:bg-cyan-600 text-white"
-              >
-                🎥 البثوث المباشرة
-              </Button>
+              <div className="flex space-x-2 rtl:space-x-reverse">
+                <Button 
+                  onClick={() => window.location.href = '/start-streaming.html'}
+                  className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                >
+                  🔴 ابدأ بث مباشر
+                </Button>
+                <Button 
+                  onClick={() => setLocation('/zego-live')}
+                  className="bg-cyan-500 hover:bg-cyan-600 text-white flex-1"
+                >
+                  👁️ شاهد البثوث
+                </Button>
+              </div>
             </div>
           </div>
         </div>
