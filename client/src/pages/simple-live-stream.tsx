@@ -71,7 +71,16 @@ export default function SimpleLiveStream() {
       };
 
       console.log('🔍 جاري طلب الأذونات من المتصفح...');
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // محاولة بسيطة أولاً
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      } catch (simpleError) {
+        console.log('⚠️ فشل الطلب البسيط، جاري المحاولة مع إعدادات متقدمة...');
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      }
+      
       setIsRequestingPermissions(false);
 
       console.log('✅ تم الحصول على أذونات الكاميرا والميكروفون');

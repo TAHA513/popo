@@ -54,7 +54,8 @@ function Router() {
           <Route path="/feed" component={FeedPage} />
           <Route path="/new-stream" component={LazyComponents.SimpleStreamPage} />
           <Route path="/zego-stream" component={LazyComponents.ZegoStreamPage} />
-          <Route path="/cloud-stream-guide" component={() => import('./pages/cloud-stream-guide').then(m => ({ default: m.default }))} />
+          <Route path="/test-camera" component={LazyComponents.TestCameraPage} />
+          <Route path="/cloud-stream-guide" component={LazyComponents.CloudStreamGuidePage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
