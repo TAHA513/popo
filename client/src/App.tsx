@@ -18,9 +18,7 @@ import LoginPage from "@/pages/login";
 import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
-import SimpleLiveStreaming from '@/pages/simple-live-streaming';
-import LiveViewer from '@/pages/live-viewer';
-import LiveStatus from '@/pages/live-status';
+
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -56,9 +54,7 @@ function Router() {
           <Route path="/home" component={SimpleHome} />
           <Route path="/explore" component={SimpleExplore} />
           <Route path="/start-streaming" component={LazyComponents.StartStreamingPage} />
-          <Route path="/simple-live" component={SimpleLiveStreaming} />
-          <Route path="/live-viewer" component={LiveViewer} />
-          <Route path="/live-status" component={LiveStatus} />
+
           <Route path="/feed" component={FeedPage} />
           <Route path="/messages" component={MessagesPage} />
           <Route path="/account" component={AccountPage} />

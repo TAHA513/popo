@@ -42,13 +42,12 @@ export default function SimpleExplore() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Live Stream Button - Right Side */}
+            {/* Create Memory Button - Right Side */}
             <Button 
-              onClick={() => setLocation('/start-stream')}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+              onClick={() => setLocation('/create-memory')}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
             >
-              <Radio className="w-4 h-4" />
-              <span className="text-sm font-bold">بث مباشر</span>
+              <span className="text-sm font-bold">إنشاء ذكرى</span>
             </Button>
           </div>
         </div>

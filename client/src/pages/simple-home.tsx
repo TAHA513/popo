@@ -1,26 +1,23 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Plus, 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Gift, 
-  Eye, 
-  User
-} from "lucide-react";
-import React, { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { Link, useLocation } from "wouter";
+import { Plus } from "lucide-react";
+import { useLocation } from "wouter";
 import BottomNavigation from "@/components/bottom-navigation";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import MemoryCard from "@/components/memory-card";
 
 export default function SimpleHome() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
+  // المنشورات العامة (الفيديوهات والصور)
+  const { data: memories = [] } = useQuery<any[]>({
+    queryKey: ['/api/memories/public'], 
+    refetchInterval: 10000,
+  });
+
   const handleLike = (id: string) => {
     setLikedItems(prev => {
       const newSet = new Set(prev);
@@ -32,6 +29,24 @@ export default function SimpleHome() {
       return newSet;
     });
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="text-6xl mb-6">🐰</div>
+          <h1 className="text-3xl font-bold mb-4">مرحباً بك في LaaBoBo</h1>
+          <p className="text-gray-300 mb-8">منصة لمشاركة الذكريات والمحتوى المميز</p>
+          <Button 
+            onClick={() => setLocation('/login')}
+            className="bg-white text-purple-900 hover:bg-gray-100 px-8 py-3 text-lg font-bold"
+          >
+            تسجيل الدخول
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -61,38 +76,47 @@ export default function SimpleHome() {
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
-      <div className="max-w-md mx-auto">
-        {/* محتوى فارغ - تم إزالة نظام البث */}
-        <div className="p-4">
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span className="text-2xl">🐰</span>
-            </div>
-            <h3 className="text-lg font-medium text-gray-600 mb-2">مرحباً بك في LaaBoBo!</h3>
-            <p className="text-gray-500 text-sm">استكشف الذكريات والمحتوى المميز</p>
-            <div className="mt-4 flex flex-col space-y-3">
+      <div className="max-w-sm mx-auto">
+        {/* المنشورات مع البطاقات التفاعلية */}
+        <div className="p-2">
+          {memories.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📱</div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                لا توجد منشورات
+              </h3>
+              <p className="text-gray-500 mb-4">
+                لم يتم العثور على محتوى للعرض
+              </p>
               <Button 
-                onClick={() => setLocation('/explore')}
-                className="bg-laa-pink hover:bg-laa-pink/90 text-white"
+                onClick={() => setLocation('/create-memory')}
+                className="bg-laa-pink hover:bg-laa-pink/90"
               >
-                استكشف الذكريات
+                أنشئ منشور
               </Button>
-              <div className="flex space-x-2 rtl:space-x-reverse">
-                <Button 
-                  onClick={() => setLocation('/simple-live')}
-                  className="bg-red-500 hover:bg-red-600 text-white flex-1"
-                >
-                  🔴 بث سريع
-                </Button>
-                <Button 
-                  onClick={() => setLocation('/live-status')}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white flex-1"
-                >
-                  👁️ البثوث المباشرة
-                </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {memories.map((memory) => (
+                <MemoryCard
+                  key={memory.id}
+                  memory={memory}
+                  isLiked={likedItems.has(memory.id)}
+                  onLike={() => handleLike(memory.id)}
+                  onShare={() => {}}
+                  onComment={() => {}}
+                  onGift={() => {}}
+                  onAuthorClick={() => setLocation(`/user/${memory.authorId}`)}
+                />
+              ))}
+              
+              {/* رسالة نهاية المحتوى */}
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">✨</div>
+                <p className="text-gray-500 text-sm">تم عرض جميع المنشورات المتاحة</p>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
