@@ -16,6 +16,7 @@ export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
 export const ZegoStreamPage = lazy(() => import('@/pages/zego-real-stream'));
 export const DirectCameraStreamPage = lazy(() => import('@/pages/direct-camera-stream'));
 export const WebRTCLiveStreamPage = lazy(() => import('@/pages/webrtc-live-stream'));
+export const SimpleCameraTestPage = lazy(() => import('@/pages/simple-camera-test'));
 
 export const CloudStreamGuidePage = lazy(() => import('@/pages/cloud-stream-guide'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));

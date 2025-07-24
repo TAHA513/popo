@@ -175,11 +175,11 @@ export default function WebRTCLiveStream() {
     try {
       console.log('🎥 بدء البث المباشر...');
 
-      // الحصول على الكاميرا والميكروفون
+          // الحصول على الكاميرا والميكروفون
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1920, min: 1280 },
-          height: { ideal: 1080, min: 720 },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
           facingMode: 'user',
           frameRate: { ideal: 30, min: 15 }
         },
@@ -197,6 +197,17 @@ export default function WebRTCLiveStream() {
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
         localVideoRef.current.muted = true; // كتم الصوت المحلي لتجنب التغذية الراجعة
+        
+        // ضمان تشغيل الفيديو
+        try {
+          await localVideoRef.current.play();
+          console.log('✅ بدأ عرض الفيديو المحلي');
+        } catch (playError) {
+          console.warn('⚠️ خطأ في تشغيل الفيديو:', playError);
+          // محاولة تشغيل صامت
+          localVideoRef.current.muted = true;
+          await localVideoRef.current.play();
+        }
       }
 
       // إنشاء معرف الغرفة
@@ -435,7 +446,12 @@ export default function WebRTCLiveStream() {
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-auto min-h-[300px] object-cover"
+                  controls={false}
+                  className="w-full h-auto min-h-[300px] object-cover transform scale-x-[-1]"
+                  style={{ 
+                    minHeight: '300px',
+                    backgroundColor: '#1a1a1a'
+                  }}
                 />
                 
                 <div className="absolute top-4 left-4 bg-green-600 text-white px-2 py-1 rounded text-sm font-bold">
