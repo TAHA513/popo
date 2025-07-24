@@ -1,387 +1,314 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Video, VideoOff, Mic, MicOff, Radio, Users, Heart, MessageCircle, ArrowLeft } from 'lucide-react';
-import { useLocation } from 'wouter';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { Card } from '@/components/ui/card';
 
 export default function SimpleZegoStream() {
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [title, setTitle] = useState('');
+  const [isLive, setIsLive] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1); // 1: عنوان, 2: كاميرا, 3: بث
+  const [sdkLoaded, setSdkLoaded] = useState(false);
   
-  const [streamTitle, setStreamTitle] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [likes, setLikes] = useState(0);
-  const [comments, setComments] = useState(0);
-  const [step, setStep] = useState<'title' | 'camera' | 'streaming'>('title');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const zegoEngineRef = useRef<any>(null);
+  const roomIdRef = useRef<string>('');
 
-  // تهيئة الكاميرا
+  // تحميل ZEGO SDK عند تحميل الصفحة
   useEffect(() => {
-    if (step === 'camera') {
-      // تأخير قصير للتأكد من تحديث DOM
-      setTimeout(() => {
-        initializeCamera();
-      }, 100);
-    }
-    
-    return () => {
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => {
-          track.stop();
-          console.log(`🛑 Stopped ${track.kind} track`);
-        });
-      }
-    };
-  }, [step]);
+    loadZegoSDK();
+  }, []);
 
-  const initializeCamera = async () => {
+  const loadZegoSDK = async () => {
     try {
-      console.log('🎥 Requesting camera access...');
+      // التحقق إذا كان SDK محمل بالفعل
+      if (window.ZegoExpressEngine) {
+        setSdkLoaded(true);
+        console.log('✅ ZEGO SDK محمل مسبقاً');
+        return;
+      }
+
+      console.log('📦 تحميل ZEGO SDK...');
       
-      // طلب أذونات صريحة
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/zego-express-engine-webrtc@3.2.0/index.js';
+      
+      await new Promise((resolve, reject) => {
+        script.onload = () => {
+          console.log('✅ تم تحميل ZEGO SDK');
+          setSdkLoaded(true);
+          resolve(true);
+        };
+        script.onerror = (err) => {
+          console.error('❌ فشل في تحميل ZEGO SDK', err);
+          setError('فشل في تحميل نظام البث');
+          reject(err);
+        };
+        document.head.appendChild(script);
+      });
+
+    } catch (err) {
+      console.error('❌ خطأ في تحميل SDK:', err);
+      setError('فشل في تحميل نظام البث');
+    }
+  };
+
+  const startStream = async () => {
+    if (!title.trim()) {
+      setError('أدخل عنوان البث');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    
+    try {
+      // الخطوة 1: التحقق من SDK
+      if (!sdkLoaded || !window.ZegoExpressEngine) {
+        throw new Error('نظام البث غير محمل');
+      }
+
+      console.log('🎯 بدء عملية البث...');
+      setStep(2);
+
+      // الخطوة 2: طلب إذن الكاميرا
+      console.log('📷 طلب إذن الكاميرا...');
+      streamRef.current = await navigator.mediaDevices.getUserMedia({
+        video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
           facingMode: 'user'
         },
-        audio: true
-      });
-      
-      console.log('✅ Camera access granted');
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.autoplay = true;
-        videoRef.current.playsInline = true;
-        videoRef.current.muted = true; // ضروري للتشغيل التلقائي
-        
-        // تشغيل الفيديو
-        try {
-          await videoRef.current.play();
-          console.log('✅ Video started playing');
-        } catch (playError) {
-          console.log('🔄 Retrying video play...');
-          setTimeout(() => {
-            videoRef.current?.play();
-          }, 100);
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true
         }
+      });
+
+      // عرض معاينة الكاميرا
+      if (videoRef.current && streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        videoRef.current.muted = true;
+        await videoRef.current.play();
+        console.log('✅ الكاميرا تعمل');
+      }
+
+      setStep(3);
+
+      // الخطوة 3: إعداد ZEGO
+      const appID = 1034062164;
+      const appSign = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN;
+      
+      console.log('🔑 AppID:', appID);
+      console.log('🔑 AppSign متوفر:', !!appSign);
+
+      if (!appSign) {
+        throw new Error('مفتاح الاستضافة غير متوفر');
+      }
+
+      // إنشاء ZEGO Engine
+      zegoEngineRef.current = new window.ZegoExpressEngine(appID, appSign);
+      console.log('✅ تم إنشاء ZEGO Engine');
+
+      // إنشاء معرف الغرفة
+      roomIdRef.current = `live-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      console.log('🏠 معرف الغرفة:', roomIdRef.current);
+
+      // دخول الغرفة
+      const userInfo = {
+        userID: `user-${Date.now()}`,
+        userName: 'مذيع LaaBoBo'
+      };
+
+      await zegoEngineRef.current.loginRoom(roomIdRef.current, userInfo);
+      console.log('✅ تم دخول الغرفة');
+
+      // بدء البث
+      const streamID = `stream-${roomIdRef.current}`;
+      await zegoEngineRef.current.startPublishingStream(streamID, streamRef.current);
+      console.log('🌐 تم بدء البث على ZEGO Cloud!');
+
+      // حفظ معلومات البث في الذاكرة
+      if (!(window as any).liveRooms) {
+        (window as any).liveRooms = [];
       }
       
-      toast({
-        title: "تم تفعيل الكاميرا",
-        description: "الكاميرا جاهزة للبث المباشر",
+      (window as any).liveRooms.push({
+        roomID: roomIdRef.current,
+        streamID: streamID,
+        title: title,
+        hostName: 'مذيع LaaBoBo',
+        viewerCount: 0,
+        isActive: true,
+        createdAt: new Date().toISOString()
       });
+
+      setIsLive(true);
+      setLoading(false);
+      console.log('🎉 البث مباشر الآن!');
+
+    } catch (err: any) {
+      console.error('❌ خطأ في البث:', err);
+      setLoading(false);
       
-    } catch (error) {
-      console.error('❌ Failed to access camera:', error);
-      
-      let errorMessage = "لا يمكن الوصول إلى الكاميرا.";
-      
-      if (error.name === 'NotAllowedError') {
-        errorMessage = "تم رفض الإذن للكاميرا. يرجى السماح بالوصول للكاميرا من إعدادات المتصفح.";
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = "لم يتم العثور على كاميرا. تأكد من وجود كاميرا متصلة.";
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = "الكاميرا مستخدمة من تطبيق آخر. أغلق التطبيقات الأخرى وحاول مرة أخرى.";
+      let message = 'فشل في بدء البث';
+      if (err.name === 'NotAllowedError') {
+        message = 'تم رفض إذن الكاميرا - اسمح بالوصول';
+      } else if (err.name === 'NotFoundError') {
+        message = 'لم يتم العثور على كاميرا';
+      } else if (err.message.includes('AppSign')) {
+        message = 'خطأ في مفاتيح الاستضافة';
       }
       
-      toast({
-        title: "خطأ في الكاميرا",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      setError(message);
     }
   };
 
-  const handleStartCamera = async () => {
-    if (!streamTitle.trim()) {
-      toast({
-        title: "عنوان مطلوب",
-        description: "يرجى إدخال عنوان للبث المباشر",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // التحقق من دعم المتصفح للكاميرا
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      toast({
-        title: "متصفح غير مدعوم",
-        description: "يرجى استخدام متصفح حديث يدعم الكاميرا",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setStep('camera');
-  };
+  const stopStream = async () => {
+    try {
+      console.log('⏹️ إيقاف البث...');
 
-  const handleStartStream = () => {
-    setIsStreaming(true);
-    setStep('streaming');
-    // محاكاة مشاهدين
-    const viewerInterval = setInterval(() => {
-      setViewerCount(prev => prev + Math.floor(Math.random() * 3));
-      setLikes(prev => prev + Math.floor(Math.random() * 2));
-      setComments(prev => prev + Math.floor(Math.random() * 1));
-    }, 3000);
-
-    return () => clearInterval(viewerInterval);
-  };
-
-  const handleEndStream = () => {
-    setIsStreaming(false);
-    setLocation('/');
-  };
-
-  const toggleVideo = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      const videoTrack = stream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !isVideoEnabled;
-        setIsVideoEnabled(!isVideoEnabled);
+      if (zegoEngineRef.current) {
+        await zegoEngineRef.current.stopPublishingStream();
+        await zegoEngineRef.current.logoutRoom(roomIdRef.current);
       }
-    }
-  };
 
-  const toggleAudio = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      const audioTrack = stream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !isAudioEnabled;
-        setIsAudioEnabled(!isAudioEnabled);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+
+      // إزالة من قائمة البثوث
+      if ((window as any).liveRooms) {
+        (window as any).liveRooms = (window as any).liveRooms.filter(
+          (room: any) => room.roomID !== roomIdRef.current
+        );
+      }
+
+      setIsLive(false);
+      setStep(1);
+      setTitle('');
+      console.log('✅ تم إيقاف البث');
+
+    } catch (err) {
+      console.error('خطأ في إيقاف البث:', err);
     }
   };
 
-  // مرحلة إدخال العنوان
-  if (step === 'title') {
+  if (!sdkLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-black/50 backdrop-blur-lg border-white/20">
-          <CardHeader className="text-center">
-            <CardTitle className="text-white text-2xl font-bold">
-              بث مباشر احترافي
-            </CardTitle>
-            <p className="text-gray-300">
-              مدعوم بـ ZegoCloud للحصول على أفضل جودة
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-white text-sm font-medium block mb-2">
-                عنوان البث
-              </label>
-              <Input
-                type="text"
-                placeholder="أدخل عنوان البث المباشر..."
-                value={streamTitle}
-                onChange={(e) => setStreamTitle(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
-            
-            <div className="space-y-3">
-              {/* زر اختبار الكاميرا */}
-              <Button
-                onClick={async () => {
-                  try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    toast({
-                      title: "الكاميرا تعمل بشكل ممتاز!",
-                      description: "يمكنك المتابعة للبث المباشر",
-                    });
-                    stream.getTracks().forEach(track => track.stop());
-                  } catch (error) {
-                    toast({
-                      title: "مشكلة في الكاميرا",
-                      description: "تأكد من منح الأذونات للكاميرا والميكروفون",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Video className="w-4 h-4 mr-2" />
-                اختبار الكاميرا
-              </Button>
-              
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setLocation('/')}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  رجوع
-                </Button>
-                <Button
-                  onClick={handleStartCamera}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                  disabled={!streamTitle.trim()}
-                >
-                  <Video className="w-4 h-4 mr-2" />
-                  التالي
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p className="text-xl">تحميل نظام البث...</p>
+        </div>
       </div>
     );
   }
 
-  // مرحلة معاينة الكاميرا
-  if (step === 'camera') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              onClick={() => setStep('title')}
-              className="bg-gray-600 hover:bg-gray-700 text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              رجوع
-            </Button>
-            <h1 className="text-white font-bold text-lg">{streamTitle}</h1>
-            <Button
-              onClick={handleStartStream}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              بدء البث
-            </Button>
+  return (
+    <div className="min-h-screen bg-black text-white p-4">
+      <div className="max-w-md mx-auto">
+        
+        {/* شريط التقدم */}
+        <div className="mb-6">
+          <div className="flex items-center justify-center space-x-4 rtl:space-x-reverse mb-4">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-pink-500' : 'bg-gray-600'}`}>
+              1
+            </div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-pink-500' : 'bg-gray-600'}`}>
+              2
+            </div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-pink-500' : 'bg-gray-600'}`}>
+              3
+            </div>
           </div>
+          <p className="text-center text-gray-300">
+            {step === 1 && 'أدخل عنوان البث'}
+            {step === 2 && 'إعداد الكاميرا'}
+            {step === 3 && 'البث المباشر'}
+          </p>
+        </div>
 
-          <div className="relative">
-            <video
-              ref={videoRef}
-              className="w-full h-96 bg-black rounded-lg object-cover"
-              muted
-              playsInline
-              autoPlay
-              controls={false}
-              style={{ transform: 'scaleX(-1)' }} // مرآة الكاميرا
-            />
-            
-            {/* رسالة تحميل الكاميرا */}
-            {!videoRef.current?.srcObject && (
-              <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-lg">
-                <div className="text-center text-white">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                  <p>جاري تحميل الكاميرا...</p>
-                  <p className="text-sm text-gray-300 mt-2">يرجى السماح بالوصول للكاميرا</p>
-                </div>
+        {/* منطقة الفيديو */}
+        <Card className="bg-gray-900 border-gray-700 mb-6">
+          <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center relative overflow-hidden">
+            {streamRef.current ? (
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                autoPlay
+                playsInline
+                muted
+              />
+            ) : (
+              <div className="text-center text-gray-400">
+                <div className="text-6xl mb-2">📹</div>
+                <p>معاينة الكاميرا</p>
               </div>
             )}
             
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-              <Button
-                onClick={toggleVideo}
-                className={`${isVideoEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-full p-3`}
-              >
-                {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-              </Button>
-              <Button
-                onClick={toggleAudio}
-                className={`${isAudioEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-full p-3`}
-              >
-                {isAudioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-              </Button>
-            </div>
+            {isLive && (
+              <div className="absolute top-4 left-4 bg-red-500 px-3 py-1 rounded-full text-sm font-bold">
+                🔴 مباشر
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-    );
-  }
+        </Card>
 
-  // مرحلة البث المباشر
-  return (
-    <div className="min-h-screen bg-black">
-      {/* Header */}
-      <div className="bg-black/80 backdrop-blur-lg border-b border-red-500/30 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 rtl:space-x-reverse">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <h1 className="text-white font-bold text-lg">{streamTitle}</h1>
-          </div>
-          
-          <Button
-            onClick={handleEndStream}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            إنهاء البث
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative">
-        <video
-          ref={videoRef}
-          className="w-full h-screen bg-black object-cover"
-          muted
-          playsInline
-          autoPlay
-          controls={false}
-          style={{ transform: 'scaleX(-1)' }} // مرآة الكاميرا
-        />
-        
-        {/* رسالة حالة البث */}
-        {!videoRef.current?.srcObject && (
-          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-            <div className="text-center text-white">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-500 mx-auto mb-4"></div>
-              <p className="text-lg">جاري إعداد البث...</p>
-            </div>
+        {/* إدخال العنوان */}
+        {!isLive && (
+          <div className="space-y-4 mb-6">
+            <Input
+              type="text"
+              placeholder="عنوان البث..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="bg-gray-800 border-gray-600 text-white"
+              dir="rtl"
+            />
           </div>
         )}
-        
-        {/* Stream Stats */}
-        <div className="absolute top-4 right-4 space-y-2">
-          <div className="bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg flex items-center">
-            <Users className="w-4 h-4 mr-2 text-blue-400" />
-            <span>{viewerCount}</span>
-          </div>
-          <div className="bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg flex items-center">
-            <Heart className="w-4 h-4 mr-2 text-red-400" />
-            <span>{likes}</span>
-          </div>
-          <div className="bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg flex items-center">
-            <MessageCircle className="w-4 h-4 mr-2 text-green-400" />
-            <span>{comments}</span>
-          </div>
-        </div>
 
-        {/* Controls */}
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex gap-4">
-          <Button
-            onClick={toggleVideo}
-            className={`${isVideoEnabled ? 'bg-green-600/80 hover:bg-green-700/80' : 'bg-red-600/80 hover:bg-red-700/80'} text-white rounded-full p-4 backdrop-blur-sm`}
-          >
-            {isVideoEnabled ? <Video className="w-6 h-6" /> : <VideoOff className="w-6 h-6" />}
-          </Button>
-          <Button
-            onClick={toggleAudio}
-            className={`${isAudioEnabled ? 'bg-green-600/80 hover:bg-green-700/80' : 'bg-red-600/80 hover:bg-red-700/80'} text-white rounded-full p-4 backdrop-blur-sm`}
-          >
-            {isAudioEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
-          </Button>
-        </div>
+        {/* رسائل الخطأ */}
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 mb-4">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
 
-        {/* Live Badge */}
-        <div className="absolute top-4 left-4 bg-red-600 text-white px-4 py-2 rounded-full font-bold animate-pulse">
-          ● مباشر
+        {/* أزرار التحكم */}
+        <div className="space-y-3">
+          {!isLive ? (
+            <Button
+              onClick={startStream}
+              disabled={loading || !title.trim()}
+              className="w-full bg-red-500 hover:bg-red-600 text-white py-3"
+            >
+              {loading ? '🔄 جاري البدء...' : '🎥 ابدأ البث المباشر'}
+            </Button>
+          ) : (
+            <Button
+              onClick={stopStream}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3"
+            >
+              ⏹️ إيقاف البث
+            </Button>
+          )}
+          
+          <Button
+            onClick={() => window.location.href = '/'}
+            variant="outline"
+            className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+          >
+            العودة للرئيسية
+          </Button>
         </div>
       </div>
     </div>

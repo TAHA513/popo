@@ -49,7 +49,20 @@ export default function ZegoRealStream() {
     }
 
     if (!window.ZegoExpressEngine) {
-      setError('ZEGO SDK غير محمل');
+      setError('ZEGO SDK غير محمل - انتظر قليلاً وحاول مرة أخرى');
+      console.log('❌ ZegoExpressEngine غير متوفر في window');
+      
+      // محاولة إعادة تحميل SDK
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/zego-express-engine-webrtc@3.2.0/index.js';
+      script.onload = () => {
+        console.log('✅ تم إعادة تحميل ZEGO SDK');
+        setTimeout(() => {
+          setError('');
+          console.log('🔄 يمكنك المحاولة الآن');
+        }, 1000);
+      };
+      document.head.appendChild(script);
       return;
     }
 
