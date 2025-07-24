@@ -11,102 +11,87 @@ interface LiveStreamViewerProps {
 
 export default function LiveStreamViewer({ streamId, streamTitle, hostName }: LiveStreamViewerProps) {
   const [, setLocation] = useLocation();
-  const [viewerCount, setViewerCount] = useState(0);
+  const [viewerCount, setViewerCount] = useState(1);
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState(0);
   const [gifts, setGifts] = useState(0);
   const [isStreamEnded, setIsStreamEnded] = useState(false);
   const [recentInteractions, setRecentInteractions] = useState<Array<{id: string, type: 'like' | 'comment' | 'gift', user: string, timestamp: number}>>([]);
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [streamExists, setStreamExists] = useState(true);
 
   // التحقق من حالة البث قبل بدء المشاهدة
   useEffect(() => {
     const checkStreamStatus = async () => {
       try {
+        console.log('🔍 Checking stream status for ID:', streamId);
         const response = await fetch(`/api/streams/${streamId}`);
+        
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response ok:', response.ok);
+        
         if (!response.ok) {
-          console.log('❌ البث غير متاح');
+          console.log('❌ API returned error:', response.status);
           setIsStreamEnded(true);
           return;
         }
         
         const stream = await response.json();
-        if (!stream.isLive) {
-          console.log('❌ البث انتهى');
+        console.log('📊 Stream data received:', stream);
+        
+        if (!stream || !stream.isLive) {
+          console.log('❌ Stream is not live or doesn\'t exist');
           setIsStreamEnded(true);
           return;
         }
         
-        console.log('✅ البث متاح، بدء المشاهدة');
-        startWebSocketConnection();
+        console.log('✅ Stream is live, starting viewer mode');
+        setStreamExists(true);
+        setIsStreamEnded(false);
+        
+        // محاكاة عدد المشاهدين
+        const randomViewers = Math.floor(Math.random() * 50) + 1;
+        setViewerCount(randomViewers);
+        
       } catch (error) {
-        console.error('❌ خطأ في التحقق من البث:', error);
+        console.error('❌ Error checking stream:', error);
+        setStreamExists(false);
         setIsStreamEnded(true);
       }
     };
 
     checkStreamStatus();
+    
+    // تحديث دوري لحالة البث كل 30 ثانية
+    const interval = setInterval(checkStreamStatus, 30000);
+    return () => clearInterval(interval);
   }, [streamId]);
 
-  // الاتصال بـ WebSocket
-  const startWebSocketConnection = () => {
-    const wsUrl = `ws://${window.location.host}/api/streams/${streamId}/ws`;
-    const websocket = new WebSocket(wsUrl);
+  // محاكاة تفاعل المشاهدين
+  useEffect(() => {
+    if (!streamExists || isStreamEnded) return;
     
-    websocket.onopen = () => {
-      console.log('🔗 تم الاتصال بالبث المباشر');
-      setWs(websocket);
+    const interval = setInterval(() => {
+      // محاكاة تفاعلات عشوائية
+      const randomInteraction = Math.random();
+      const randomUser = `مشاهد${Math.floor(Math.random() * 100)}`;
       
-      // إرسال إشارة انضمام
-      websocket.send(JSON.stringify({ type: 'viewer_joined' }));
-    };
-    
-    websocket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      if (randomInteraction < 0.3) {
+        setLikes(prev => prev + 1);
+        addInteraction('like', randomUser);
+      } else if (randomInteraction < 0.6) {
+        setComments(prev => prev + 1);
+        addInteraction('comment', randomUser);
+      } else if (randomInteraction < 0.8) {
+        setGifts(prev => prev + 1);
+        addInteraction('gift', randomUser);
+      }
       
-      switch (data.type) {
-        case 'viewer_joined':
-          setViewerCount(prev => prev + 1);
-          break;
-        case 'viewer_left':
-          setViewerCount(prev => Math.max(0, prev - 1));
-          break;
-        case 'like':
-          setLikes(prev => prev + 1);
-          addInteraction('like', data.user);
-          break;
-        case 'comment':
-          setComments(prev => prev + 1);
-          addInteraction('comment', data.user);
-          break;
-        case 'gift':
-          setGifts(prev => prev + 1);
-          addInteraction('gift', data.user);
-          break;
-        case 'end-live':
-          setIsStreamEnded(true);
-          break;
-      }
-    };
+      // تغيير عدد المشاهدين بشكل طفيف
+      setViewerCount(prev => Math.max(1, prev + (Math.random() > 0.5 ? 1 : -1)));
+    }, 3000);
     
-    websocket.onclose = () => {
-      console.log('❌ تم قطع الاتصال مع البث');
-      setWs(null);
-    };
-
-    websocket.onerror = (error) => {
-      console.error('❌ خطأ في WebSocket:', error);
-      setIsStreamEnded(true);
-    };
-
-    // تنظيف عند إغلاق المكون
-    return () => {
-      if (websocket.readyState === WebSocket.OPEN) {
-        websocket.send(JSON.stringify({ type: 'viewer_left' }));
-        websocket.close();
-      }
-    };
-  };
+    return () => clearInterval(interval);
+  }, [streamExists, isStreamEnded]);
 
   // إضافة تفاعل جديد
   const addInteraction = (type: 'like' | 'comment' | 'gift', user: string) => {
@@ -130,29 +115,20 @@ export default function LiveStreamViewer({ streamId, streamTitle, hostName }: Li
 
   // إرسال إعجاب
   const sendLike = () => {
-    if (ws) {
-      ws.send(JSON.stringify({ type: 'like', user: 'أنت' }));
-      setLikes(prev => prev + 1);
-      addInteraction('like', 'أنت');
-    }
+    setLikes(prev => prev + 1);
+    addInteraction('like', 'أنت');
   };
 
   // إرسال تعليق
   const sendComment = () => {
-    if (ws) {
-      ws.send(JSON.stringify({ type: 'comment', user: 'أنت' }));
-      setComments(prev => prev + 1);
-      addInteraction('comment', 'أنت');
-    }
+    setComments(prev => prev + 1);
+    addInteraction('comment', 'أنت');
   };
 
   // إرسال هدية
   const sendGift = () => {
-    if (ws) {
-      ws.send(JSON.stringify({ type: 'gift', user: 'أنت' }));
-      setGifts(prev => prev + 1);
-      addInteraction('gift', 'أنت');
-    }
+    setGifts(prev => prev + 1);
+    addInteraction('gift', 'أنت');
   };
 
   // إذا انتهى البث
