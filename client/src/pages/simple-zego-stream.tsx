@@ -25,39 +25,84 @@ export default function SimpleZegoStream() {
   // تهيئة الكاميرا
   useEffect(() => {
     if (step === 'camera') {
-      initializeCamera();
+      // تأخير قصير للتأكد من تحديث DOM
+      setTimeout(() => {
+        initializeCamera();
+      }, 100);
     }
     
     return () => {
       if (videoRef.current?.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`🛑 Stopped ${track.kind} track`);
+        });
       }
     };
   }, [step]);
 
   const initializeCamera = async () => {
     try {
+      console.log('🎥 Requesting camera access...');
+      
+      // طلب أذونات صريحة
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720 },
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
         audio: true
       });
       
+      console.log('✅ Camera access granted');
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        videoRef.current.autoplay = true;
+        videoRef.current.playsInline = true;
+        videoRef.current.muted = true; // ضروري للتشغيل التلقائي
+        
+        // تشغيل الفيديو
+        try {
+          await videoRef.current.play();
+          console.log('✅ Video started playing');
+        } catch (playError) {
+          console.log('🔄 Retrying video play...');
+          setTimeout(() => {
+            videoRef.current?.play();
+          }, 100);
+        }
       }
+      
+      toast({
+        title: "تم تفعيل الكاميرا",
+        description: "الكاميرا جاهزة للبث المباشر",
+      });
+      
     } catch (error) {
       console.error('❌ Failed to access camera:', error);
+      
+      let errorMessage = "لا يمكن الوصول إلى الكاميرا.";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "تم رفض الإذن للكاميرا. يرجى السماح بالوصول للكاميرا من إعدادات المتصفح.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "لم يتم العثور على كاميرا. تأكد من وجود كاميرا متصلة.";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "الكاميرا مستخدمة من تطبيق آخر. أغلق التطبيقات الأخرى وحاول مرة أخرى.";
+      }
+      
       toast({
         title: "خطأ في الكاميرا",
-        description: "لا يمكن الوصول إلى الكاميرا. تأكد من الأذونات.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
   };
 
-  const handleStartCamera = () => {
+  const handleStartCamera = async () => {
     if (!streamTitle.trim()) {
       toast({
         title: "عنوان مطلوب",
@@ -66,6 +111,17 @@ export default function SimpleZegoStream() {
       });
       return;
     }
+    
+    // التحقق من دعم المتصفح للكاميرا
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast({
+        title: "متصفح غير مدعوم",
+        description: "يرجى استخدام متصفح حديث يدعم الكاميرا",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setStep('camera');
   };
 
@@ -136,22 +192,48 @@ export default function SimpleZegoStream() {
               />
             </div>
             
-            <div className="flex gap-3">
+            <div className="space-y-3">
+              {/* زر اختبار الكاميرا */}
               <Button
-                onClick={() => setLocation('/')}
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                رجوع
-              </Button>
-              <Button
-                onClick={handleStartCamera}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                disabled={!streamTitle.trim()}
+                onClick={async () => {
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    toast({
+                      title: "الكاميرا تعمل بشكل ممتاز!",
+                      description: "يمكنك المتابعة للبث المباشر",
+                    });
+                    stream.getTracks().forEach(track => track.stop());
+                  } catch (error) {
+                    toast({
+                      title: "مشكلة في الكاميرا",
+                      description: "تأكد من منح الأذونات للكاميرا والميكروفون",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Video className="w-4 h-4 mr-2" />
-                التالي
+                اختبار الكاميرا
               </Button>
+              
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setLocation('/')}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  رجوع
+                </Button>
+                <Button
+                  onClick={handleStartCamera}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={!streamTitle.trim()}
+                >
+                  <Video className="w-4 h-4 mr-2" />
+                  التالي
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -188,7 +270,20 @@ export default function SimpleZegoStream() {
               muted
               playsInline
               autoPlay
+              controls={false}
+              style={{ transform: 'scaleX(-1)' }} // مرآة الكاميرا
             />
+            
+            {/* رسالة تحميل الكاميرا */}
+            {!videoRef.current?.srcObject && (
+              <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-lg">
+                <div className="text-center text-white">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+                  <p>جاري تحميل الكاميرا...</p>
+                  <p className="text-sm text-gray-300 mt-2">يرجى السماح بالوصول للكاميرا</p>
+                </div>
+              </div>
+            )}
             
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
               <Button
@@ -238,7 +333,19 @@ export default function SimpleZegoStream() {
           muted
           playsInline
           autoPlay
+          controls={false}
+          style={{ transform: 'scaleX(-1)' }} // مرآة الكاميرا
         />
+        
+        {/* رسالة حالة البث */}
+        {!videoRef.current?.srcObject && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+            <div className="text-center text-white">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-500 mx-auto mb-4"></div>
+              <p className="text-lg">جاري إعداد البث...</p>
+            </div>
+          </div>
+        )}
         
         {/* Stream Stats */}
         <div className="absolute top-4 right-4 space-y-2">
