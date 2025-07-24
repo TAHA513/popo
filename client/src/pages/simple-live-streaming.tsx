@@ -93,8 +93,22 @@ export default function SimpleLiveStreaming() {
     setError('');
 
     try {
-      // Simulate stream creation (no database needed for this demo)
-      console.log('Starting live stream:', { title: streamTitle });
+      // Create stream in simple storage (memory only)
+      const streamData = {
+        id: Date.now(),
+        hostId: 'current-user',
+        title: streamTitle,
+        category: 'general',
+        isActive: true,
+        viewerCount: 1,
+        hostName: 'المستخدم الحالي',
+        hostAvatar: '🐰',
+        createdAt: new Date().toISOString()
+      };
+      
+      // Store in localStorage for demo
+      localStorage.setItem('currentStream', JSON.stringify(streamData));
+      console.log('Stream created and stored:', streamData);
 
       setIsStreaming(true);
       setCurrentStep(4);
@@ -139,8 +153,9 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Simulate stream end
-      console.log('Ending live stream');
+      // Remove stream from storage
+      localStorage.removeItem('currentStream');
+      console.log('Stream ended and removed from storage');
 
       setIsStreaming(false);
       setLocation('/');

@@ -216,6 +216,18 @@ export const fragmentCollections = pgTable("fragment_collections", {
   addedAt: timestamp("added_at").defaultNow(),
 });
 
+// Live Streams table
+export const streams = pgTable("streams", {
+  id: serial("id").primaryKey(),
+  hostId: varchar("host_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  category: varchar("category").default("general"),
+  isActive: boolean("is_active").default(true),
+  viewerCount: integer("viewer_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Comments table for memories
 export const comments = pgTable("comments", {
   id: serial("id").primaryKey(),
@@ -273,6 +285,9 @@ export type Comment = typeof comments.$inferSelect;
 
 export type InsertCommentLike = typeof commentLikes.$inferInsert;
 export type CommentLike = typeof commentLikes.$inferSelect;
+
+export type InsertStream = typeof streams.$inferInsert;
+export type Stream = typeof streams.$inferSelect;
 
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({

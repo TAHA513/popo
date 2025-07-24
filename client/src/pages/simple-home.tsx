@@ -10,7 +10,7 @@ import {
   Eye, 
   User
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -20,6 +20,7 @@ export default function SimpleHome() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
+  const [currentStream, setCurrentStream] = useState<any>(null);
   
   const handleLike = (id: string) => {
     setLikedItems(prev => {
@@ -32,6 +33,23 @@ export default function SimpleHome() {
       return newSet;
     });
   };
+
+  // Check for active streams
+  useEffect(() => {
+    const checkStreams = () => {
+      const streamData = localStorage.getItem('currentStream');
+      if (streamData) {
+        setCurrentStream(JSON.parse(streamData));
+      } else {
+        setCurrentStream(null);
+      }
+    };
+
+    checkStreams();
+    const interval = setInterval(checkStreams, 3000); // Check every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -62,38 +80,108 @@ export default function SimpleHome() {
       </div>
 
       <div className="max-w-md mx-auto">
-        {/* محتوى فارغ - تم إزالة نظام البث */}
-        <div className="p-4">
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span className="text-2xl">🐰</span>
+        {/* Live Streams Section */}
+        {currentStream ? (
+          <div className="p-4">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">🔴 البثوث المباشرة</h2>
+              
+              <Card className="overflow-hidden border-2 border-red-200 shadow-lg">
+                <CardContent className="p-0">
+                  <div className="relative">
+                    {/* Live Video Placeholder */}
+                    <div className="aspect-video bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <div className="text-6xl mb-2">📹</div>
+                        <div className="flex items-center justify-center space-x-2 mb-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="font-semibold">مباشر</span>
+                        </div>
+                        <p className="text-sm opacity-80">بث مباشر نشط</p>
+                      </div>
+                    </div>
+                    
+                    {/* Live Badge */}
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span>مباشر</span>
+                    </div>
+                    
+                    {/* Viewer Count */}
+                    <div className="absolute top-3 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                      <Eye className="w-3 h-3" />
+                      <span>{Math.floor(Math.random() * 50) + 10}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Stream Info */}
+                  <div className="p-4">
+                    <div className="flex items-center space-x-3 rtl:space-x-reverse mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {currentStream.hostAvatar}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{currentStream.title}</h3>
+                        <p className="text-sm text-gray-600">{currentStream.hostName || user?.username || 'مستخدم'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Button 
+                        onClick={() => setLocation('/simple-live')}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        مشاهدة البث
+                      </Button>
+                      <div className="flex items-center space-x-4 rtl:space-x-reverse text-sm text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Heart className="w-4 h-4" />
+                          <span>{Math.floor(Math.random() * 100) + 20}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MessageCircle className="w-4 h-4" />
+                          <span>{Math.floor(Math.random() * 30) + 5}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            <h3 className="text-lg font-medium text-gray-600 mb-2">مرحباً بك في LaaBoBo!</h3>
-            <p className="text-gray-500 text-sm">استكشف الذكريات والمحتوى المميز</p>
-            <div className="mt-4 flex flex-col space-y-3">
-              <Button 
-                onClick={() => setLocation('/explore')}
-                className="bg-laa-pink hover:bg-laa-pink/90 text-white"
-              >
-                استكشف الذكريات
-              </Button>
-              <div className="flex space-x-2 rtl:space-x-reverse">
+          </div>
+        ) : (
+          <div className="p-4">
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">🐰</span>
+              </div>
+              <h3 className="text-lg font-medium text-gray-600 mb-2">مرحباً بك في LaaBoBo!</h3>
+              <p className="text-gray-500 text-sm">ابدأ بثك المباشر أو استكشف المحتوى</p>
+              <div className="mt-4 flex flex-col space-y-3">
                 <Button 
-                  onClick={() => setLocation('/simple-live')}
-                  className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                  onClick={() => setLocation('/explore')}
+                  className="bg-laa-pink hover:bg-laa-pink/90 text-white"
                 >
-                  🔴 بث سريع
+                  استكشف الذكريات
                 </Button>
-                <Button 
-                  onClick={() => setLocation('/start-streaming')}
-                  className="bg-purple-500 hover:bg-purple-600 text-white flex-1"
-                >
-                  ⚡ بث ZEGO
-                </Button>
+                <div className="flex space-x-2 rtl:space-x-reverse">
+                  <Button 
+                    onClick={() => setLocation('/simple-live')}
+                    className="bg-red-500 hover:bg-red-600 text-white flex-1"
+                  >
+                    🔴 بث سريع
+                  </Button>
+                  <Button 
+                    onClick={() => setLocation('/start-streaming')}
+                    className="bg-purple-500 hover:bg-purple-600 text-white flex-1"
+                  >
+                    ⚡ بث ZEGO
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <BottomNavigation />

@@ -7,6 +7,7 @@ import {
   memoryInteractions,
   memoryCollections,
   fragmentCollections,
+  streams,
   type User,
   type UpsertUser,
   type GiftCharacter,
