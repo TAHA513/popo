@@ -17,6 +17,12 @@ export interface ZegoStreamResponse {
   error?: string;
 }
 
+// إنشاء instance واحد من الخدمة
+export const zegoService = new ZegoCloudService(
+  import.meta.env.VITE_ZEGOCLOUD_APP_ID || '',
+  import.meta.env.VITE_ZEGOCLOUD_APP_SIGN || ''
+);
+
 export class ZegoCloudService {
   private appId: string;
   private appSign: string;
@@ -209,11 +215,7 @@ export class ZegoCloudService {
   }
 }
 
-// تصدير instance جاهز
-export const zegoService = new ZegoCloudService(
-  process.env.VITE_ZEGOCLOUD_APP_ID || '',
-  process.env.VITE_ZEGOCLOUD_APP_SIGN || ''
-);
+// تصدير instance جاهز (تم إنشاؤه أعلاه)
 
 // إضافة types للـ Window
 declare global {
