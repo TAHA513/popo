@@ -23,18 +23,22 @@ export default function ZegoRealStream() {
   // تحميل ZEGO SDK
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://unpkg.com/zego-express-engine-webrtc@2.19.0/index.js';
+    script.src = 'https://unpkg.com/zego-express-engine-webrtc@3.2.0/index.js';
     script.async = true;
     script.onload = () => {
-      console.log('✅ ZEGO SDK تم تحميله');
+      console.log('✅ ZEGO SDK تم تحميله بنجاح');
+      console.log('🔧 ZegoExpressEngine متوفر:', !!window.ZegoExpressEngine);
     };
-    script.onerror = () => {
-      setError('فشل في تحميل SDK');
+    script.onerror = (err) => {
+      console.error('❌ فشل تحميل ZEGO SDK:', err);
+      setError('فشل في تحميل ZEGO SDK');
     };
     document.head.appendChild(script);
 
     return () => {
-      document.head.removeChild(script);
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
     };
   }, []);
 
@@ -65,7 +69,11 @@ export default function ZegoRealStream() {
         throw new Error('ZEGO AppSign غير متوفر - تحقق من إعدادات الاستضافة');
       }
 
-      zegoEngine.current = new window.ZegoExpressEngine(appID, appSign);
+      // تهيئة ZEGO Engine بشكل صحيح
+      const { ZegoExpressEngine } = window;
+      zegoEngine.current = new ZegoExpressEngine(appID, appSign);
+      
+      console.log('🎯 تم إنشاء ZEGO Engine بنجاح');
       
       // إنشاء معرف غرفة فريد
       roomID.current = `live-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -86,11 +94,18 @@ export default function ZegoRealStream() {
       
       console.log('📹 بدء البث:', streamID);
       
-      // الحصول على وسائط محلية
-      const localStream = await zegoEngine.current.createStream({
-        camera: {
-          audio: true,
-          video: true
+      // الحصول على وسائط محلية باستخدام getUserMedia
+      console.log('📷 طلب إذن الكاميرا والمايكروفون...');
+      
+      const localStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true
         }
       });
 
@@ -105,7 +120,8 @@ export default function ZegoRealStream() {
         console.log('✅ الفيديو يعمل محلياً');
       }
 
-      // نشر البث
+      // نشر البث مع MediaStream
+      console.log('🌐 بدء نشر البث على ZEGO Cloud...');
       await zegoEngine.current.startPublishingStream(streamID, localStream);
       
       console.log('🌐 تم نشر البث بنجاح!');
@@ -152,13 +168,27 @@ export default function ZegoRealStream() {
       setLoading(false);
       
       let message = 'فشل في بدء البث';
-      if (err.code === 1003001) {
-        message = 'خطأ في إعدادات ZEGO - تحقق من AppID و AppSign';
-      } else if (err.toString().includes('camera')) {
-        message = 'فشل في الوصول للكاميرا - اسمح بالوصول من إعدادات المتصفح';
+      
+      // معالجة أخطاء محددة
+      if (err.name === 'NotAllowedError') {
+        message = 'تم رفض إذن الكاميرا - اسمح بالوصول من إعدادات المتصفح';
+      } else if (err.name === 'NotFoundError') {
+        message = 'لم يتم العثور على كاميرا - تحقق من الأجهزة المتصلة';
+      } else if (err.code === 1003001) {
+        message = 'خطأ في إعدادات ZEGO - AppID أو AppSign غير صحيح';
+      } else if (err.toString().includes('ZEGO') || err.toString().includes('login')) {
+        message = 'خطأ في الاتصال بـ ZEGO Cloud - تحقق من الشبكة';
+      } else if (err.toString().includes('camera') || err.toString().includes('media')) {
+        message = 'فشل في الوصول للكاميرا - تحقق من الأذونات';
       }
       
-      setError(message + '\n\nخطأ تقني: ' + err.message);
+      setError(message);
+      console.error('📊 تفاصيل الخطأ:', {
+        name: err.name,
+        code: err.code,
+        message: err.message,
+        stack: err.stack
+      });
     }
   };
 

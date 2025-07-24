@@ -23,7 +23,7 @@ export default function ZegoViewer() {
   // تحميل ZEGO SDK
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://unpkg.com/zego-express-engine-webrtc@2.19.0/index.js';
+    script.src = 'https://unpkg.com/zego-express-engine-webrtc@3.2.0/index.js';
     script.async = true;
     script.onload = () => {
       console.log('✅ ZEGO SDK محمل للمشاهد');
