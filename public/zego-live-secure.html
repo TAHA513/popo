@@ -31,6 +31,10 @@
       text-align: center;
       box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
       position: relative;
+      transition: transform 0.3s ease;
+    }
+    .stream-card:hover {
+      transform: translateY(-5px);
     }
     .stream-card img {
       width: 100%;
@@ -45,11 +49,18 @@
       color: black;
       font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .stream-card button:hover {
+      background-color: #0099cc;
     }
     video {
       width: 100%;
-      margin-top: 20px;
+      max-width: 800px;
+      margin: 20px auto;
       display: none;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
     }
     .live-badge {
       position: absolute;
@@ -60,6 +71,12 @@
       padding: 4px 8px;
       font-size: 12px;
       border-radius: 4px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
     }
     .no-streams {
       text-align: center;
@@ -73,13 +90,40 @@
       font-size: 20px;
       margin-top: 100px;
     }
+    .auth-error {
+      text-align: center;
+      color: #ff6b6b;
+      font-size: 18px;
+      margin-top: 50px;
+      padding: 20px;
+      background-color: #2d1b1b;
+      border-radius: 10px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .auth-error button {
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>🎥 البثوث المباشرة الآن</h1>
   
   <div id="loading" class="loading">
-    جاري البحث عن البثوث المباشرة...
+    جاري تسجيل الدخول والبحث عن البثوث المباشرة...
+  </div>
+  
+  <div id="authError" class="auth-error" style="display: none;">
+    <h3>خطأ في تسجيل الدخول</h3>
+    <p>يجب تسجيل الدخول أولاً لمشاهدة البثوث المباشرة</p>
+    <button onclick="window.location.href='/login'">تسجيل الدخول</button>
   </div>
   
   <div class="stream-list" id="streamList" style="display: none;">
@@ -87,42 +131,44 @@
   </div>
 
   <div id="noStreams" class="no-streams" style="display: none;">
-    لا توجد بثوث مباشرة حالياً
+    لا توجد بثوث مباشرة حالياً<br>
+    <small style="color: #999;">يتم تحديث القائمة كل 30 ثانية</small>
   </div>
 
-  <video id="viewer" autoplay playsinline controls></video>
+  <video id="viewer" autoplay playsinline controls style="display: block; margin: 0 auto;"></video>
 
   <script>
-    const appID = 1034062164; // ZEGO App ID الخاص بك
-    const serverSecret = ""; // سيتم الحصول عليه من متغيرات البيئة
+    let appID = 1034062164;
+    let authToken = "";
+    let currentUserId = "";
     let zg;
 
     // بثوث حقيقية فقط يتم عرضها
     const liveStreams = [
       {
         username: "أحمد محمد",
-        image: "https://via.placeholder.com/240x135.png?text=Live+1",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=135&fit=crop&crop=face",
         roomID: "room_ahmed",
         streamID: "stream_ahmed",
         isLive: false
       },
       {
         username: "نور الدين",
-        image: "https://via.placeholder.com/240x135.png?text=Live+2",
+        image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=240&h=135&fit=crop&crop=face",
         roomID: "room_noor",
         streamID: "stream_noor",
         isLive: false
       },
       {
         username: "سارة علي",
-        image: "https://via.placeholder.com/240x135.png?text=Live+3",
+        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=240&h=135&fit=crop&crop=face",
         roomID: "room_sara",
         streamID: "stream_sara",
         isLive: false
       },
       {
         username: "محمد الأحمد",
-        image: "https://via.placeholder.com/240x135.png?text=Live+4",
+        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=240&h=135&fit=crop&crop=face",
         roomID: "room_mohammed",
         streamID: "stream_mohammed",
         isLive: false
@@ -133,10 +179,54 @@
     const loadingDiv = document.getElementById("loading");
     const streamListDiv = document.getElementById("streamList");
     const noStreamsDiv = document.getElementById("noStreams");
+    const authErrorDiv = document.getElementById("authError");
+
+    // الحصول على رمز المصادقة الآمن من الخادم
+    async function getAuthToken() {
+      try {
+        const response = await fetch('/api/zego/token', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            showAuthError();
+            return false;
+          }
+          throw new Error('فشل في الحصول على رمز المصادقة');
+        }
+
+        const data = await response.json();
+        authToken = data.token;
+        appID = data.appId;
+        currentUserId = data.userId;
+        console.log("تم الحصول على رمز المصادقة بنجاح");
+        return true;
+      } catch (error) {
+        console.error("خطأ في الحصول على رمز المصادقة:", error);
+        showAuthError();
+        return false;
+      }
+    }
+
+    function showAuthError() {
+      loadingDiv.style.display = "none";
+      streamListDiv.style.display = "none";
+      noStreamsDiv.style.display = "none";
+      authErrorDiv.style.display = "block";
+    }
 
     async function initializeZego() {
       try {
-        zg = new ZegoExpressEngine(appID, "");
+        const authSuccess = await getAuthToken();
+        if (!authSuccess) return;
+
+        zg = new ZegoExpressEngine(appID, "wss://webliveroom-api.zegocloud.com/ws");
+        console.log("تم تهيئة ZEGO بنجاح");
         await checkLiveStreams();
       } catch (error) {
         console.error("خطأ في تهيئة ZEGO:", error);
@@ -145,35 +235,55 @@
     }
 
     async function checkLiveStatus(roomID, streamID) {
-      if (!zg) return false;
+      if (!zg || !authToken) return false;
       
       try {
-        const userID = "check_" + Date.now();
+        const userID = currentUserId + "_check_" + Math.random().toString(36).substr(2, 9);
         const userName = "مراقب";
-        await zg.loginRoom(roomID, { userID, userName }, { token: "" });
+        await zg.loginRoom(roomID, { userID, userName }, { token: authToken });
         const streamList = await zg.getRemoteStreamList();
         await zg.logoutRoom(roomID);
         return streamList.some(s => s.streamID === streamID);
       } catch (e) {
-        console.log("فحص البث فاشل:", roomID, e.message);
+        console.log("فحص البث:", roomID, "النتيجة:", e.message);
         return false;
       }
     }
 
-    async function playStream(roomID, streamID) {
-      if (!zg) return;
+    async function playStream(roomID, streamID, username) {
+      if (!zg || !authToken) {
+        alert("يجب تسجيل الدخول أولاً");
+        return;
+      }
       
       try {
-        const userID = "viewer_" + Date.now();
+        const userID = currentUserId + "_viewer_" + Math.random().toString(36).substr(2, 9);
         const userName = "مشاهد";
-        await zg.loginRoom(roomID, { userID, userName }, { token: "" });
+        
+        console.log("محاولة الانضمام إلى الغرفة:", roomID);
+        await zg.loginRoom(roomID, { userID, userName }, { token: authToken });
+        
+        console.log("محاولة تشغيل البث:", streamID);
         const remoteStream = await zg.startPlayingStream(streamID);
+        
         viewerVideo.srcObject = remoteStream;
         viewerVideo.style.display = "block";
         viewerVideo.scrollIntoView({ behavior: 'smooth' });
+        
+        // إضافة عنوان للفيديو
+        if (!document.querySelector('.video-title')) {
+          const title = document.createElement('h2');
+          title.className = 'video-title';
+          title.style.textAlign = 'center';
+          title.style.color = '#00d9ff';
+          title.style.marginTop = '20px';
+          title.textContent = `🔴 بث مباشر من ${username}`;
+          viewerVideo.parentNode.insertBefore(title, viewerVideo);
+        }
+        
       } catch (error) {
         console.error("خطأ في تشغيل البث:", error);
-        alert("فشل في تشغيل البث. تأكد من أن البث متاح.");
+        alert("فشل في تشغيل البث. قد يكون البث غير متاح حالياً.");
       }
     }
 
@@ -181,6 +291,7 @@
       loadingDiv.style.display = "block";
       streamListDiv.style.display = "none";
       noStreamsDiv.style.display = "none";
+      authErrorDiv.style.display = "none";
 
       const activeLiveStreams = [];
       
@@ -188,6 +299,7 @@
         const isLive = await checkLiveStatus(stream.roomID, stream.streamID);
         if (isLive) {
           activeLiveStreams.push({ ...stream, isLive: true });
+          console.log("بث مباشر عُثر عليه:", stream.username);
         }
       }
 
@@ -221,28 +333,37 @@
         const img = document.createElement("img");
         img.src = stream.image;
         img.alt = stream.username;
+        img.loading = "lazy";
         card.appendChild(img);
 
         const name = document.createElement("p");
         name.textContent = stream.username;
+        name.style.margin = "10px 0";
+        name.style.fontSize = "16px";
+        name.style.fontWeight = "bold";
         card.appendChild(name);
 
         const btn = document.createElement("button");
         btn.textContent = "مشاهدة البث";
-        btn.onclick = () => playStream(stream.roomID, stream.streamID);
+        btn.onclick = () => playStream(stream.roomID, stream.streamID, stream.username);
         card.appendChild(btn);
 
         list.appendChild(card);
       });
 
       streamListDiv.style.display = "flex";
+      console.log("تم عرض", streams.length, "بث مباشر");
     }
 
     // تهيئة التطبيق عند تحميل الصفحة
     window.addEventListener('load', initializeZego);
 
     // تحديث البثوث كل 30 ثانية
-    setInterval(checkLiveStreams, 30000);
+    setInterval(() => {
+      if (authToken) {
+        checkLiveStreams();
+      }
+    }, 30000);
   </script>
 </body>
 </html>

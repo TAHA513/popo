@@ -391,6 +391,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
 
+  // ZEGO Token endpoint for secure authentication
+  app.get('/api/zego/token', requireAuth, async (req: any, res) => {
+    try {
+      const { generateZegoToken } = await import('./zego-token');
+      const appId = parseInt(process.env.VITE_ZEGOCLOUD_APP_ID || '1034062164');
+      const serverSecret = process.env.ZEGO_SERVER_SECRET;
+      
+      if (!serverSecret) {
+        return res.status(500).json({ message: 'ZEGO Server Secret not configured' });
+      }
+
+      const userId = req.user.id;
+      const token = generateZegoToken(appId, serverSecret, userId);
+      
+      res.json({ 
+        token,
+        appId,
+        userId,
+        expires: Math.floor(Date.now() / 1000) + 7200 // 2 hours
+      });
+    } catch (error) {
+      console.error('Error generating ZEGO token:', error);
+      res.status(500).json({ message: 'Failed to generate authentication token' });
+    }
+  });
+
   // Health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });

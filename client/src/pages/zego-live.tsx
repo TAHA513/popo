@@ -18,13 +18,13 @@ interface LiveStream {
 
 export default function ZegoLivePage() {
   useEffect(() => {
-    // Redirect to HTML page for ZEGO implementation
-    window.location.href = '/zego-live.html';
+    // Redirect to secure HTML page for ZEGO implementation
+    window.location.href = '/zego-live-secure.html';
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="text-white text-xl">جاري التوجيه إلى صفحة البث المباشر...</div>
+      <div className="text-white text-xl">جاري التوجيه إلى صفحة البث المباشر الآمن...</div>
     </div>
   );
 
