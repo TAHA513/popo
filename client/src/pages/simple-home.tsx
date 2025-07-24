@@ -77,7 +77,7 @@ export default function SimpleHome() {
             {/* Action Buttons - Right Side */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <Button 
-                onClick={() => setLocation('/simple-live')}
+                onClick={() => setLocation('/simple-live-streaming')}
                 className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full shadow-lg"
                 title="بث مباشر"
               >
@@ -148,7 +148,7 @@ export default function SimpleHome() {
                     
                     <div className="flex items-center justify-between">
                       <Button 
-                        onClick={() => setLocation('/simple-live')}
+                        onClick={() => setLocation('/simple-live-streaming')}
                         className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
                       >
                         مشاهدة البث
