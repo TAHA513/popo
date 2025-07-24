@@ -157,6 +157,7 @@ export default function SimpleLiveStreaming() {
 
       // Remove stream notification only when explicitly stopping
       localStorage.removeItem('liveStreamNotification');
+      localStorage.removeItem('liveStreamStartTime');
       console.log('🛑 Stream manually ended - notification removed');
 
       setIsStreaming(false);

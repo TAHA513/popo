@@ -193,8 +193,15 @@ export default function SimpleHome() {
               <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <span className="text-2xl">🐰</span>
               </div>
-              <h3 className="text-lg font-medium text-gray-600 mb-2">مرحباً بك في LaaBoBo!</h3>
-              <p className="text-gray-500 text-sm">استكشف المحتوى والذكريات</p>
+              <h3 className="text-lg font-medium text-gray-600 mb-2">لا توجد بثوث مباشرة حالياً</h3>
+              <p className="text-gray-500 text-sm">ابدأ بث مباشر من الأيقونة الحمراء أعلاه 🔴</p>
+              
+              {/* Debug info */}
+              <div className="mt-4 text-xs text-gray-400">
+                <p>Debug: {localStorage.getItem('liveStreamNotification') ? 'Stream data found' : 'No stream data'}</p>
+                <p>Time: {localStorage.getItem('liveStreamStartTime') || 'No start time'}</p>
+              </div>
+              
               <div className="mt-4">
                 <Button 
                   onClick={() => setLocation('/explore')}
