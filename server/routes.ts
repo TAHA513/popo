@@ -259,13 +259,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Live streaming endpoints
   app.get('/api/streams', async (req, res) => {
     try {
-      // Simple in-memory streams for demo
-      const activeStreams = (global as any).activeStreams || {};
-      const streamsList = Object.values(activeStreams).map((stream: any) => ({
-        ...stream,
-        viewerCount: Math.floor(Math.random() * 50) + 5
-      }));
-      res.json(streamsList);
+      const streams = await storage.getStreams();
+      res.json(streams);
     } catch (error) {
       console.error("Error fetching streams:", error);
       res.status(500).json({ message: "Failed to fetch streams" });
@@ -275,30 +270,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const user = req.user;
       const { title, category } = req.body;
       
-      // Initialize global streams if not exists
-      if (!(global as any).activeStreams) {
-        (global as any).activeStreams = {};
-      }
-      
       const streamData = {
-        id: Date.now(),
         hostId: userId,
-        hostName: user.username || user.firstName || 'مستخدم',
-        hostAvatar: '🐰',
         title: title || 'بث مباشر',
         category: category || 'general',
         isActive: true,
-        viewerCount: 1,
-        createdAt: new Date().toISOString()
+        viewerCount: 0,
+        createdAt: new Date()
       };
 
-      // Store in global memory
-      (global as any).activeStreams[userId] = streamData;
-      
-      res.json(streamData);
+      const stream = await storage.createStream(streamData);
+      res.json(stream);
     } catch (error) {
       console.error("Error creating stream:", error);
       res.status(500).json({ message: "Failed to create stream" });
@@ -308,12 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/streams/end', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
-      // Remove from global memory
-      if ((global as any).activeStreams && (global as any).activeStreams[userId]) {
-        delete (global as any).activeStreams[userId];
-      }
-      
+      await storage.endUserStreams(userId);
       res.json({ message: "Stream ended successfully" });
     } catch (error) {
       console.error("Error ending stream:", error);

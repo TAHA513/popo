@@ -13,7 +13,6 @@ import {
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import BottomNavigation from "@/components/bottom-navigation";
 
 export default function SimpleHome() {
@@ -21,6 +20,7 @@ export default function SimpleHome() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
+  const [currentStream, setCurrentStream] = useState<any>(null);
   
   const handleLike = (id: string) => {
     setLikedItems(prev => {
@@ -34,11 +34,22 @@ export default function SimpleHome() {
     });
   };
 
-  // Get active streams from server
-  const { data: streams = [] } = useQuery<any[]>({
-    queryKey: ['/api/streams'], 
-    refetchInterval: 3000, // Check every 3 seconds
-  });
+  // Check for active streams
+  useEffect(() => {
+    const checkStreams = () => {
+      const streamData = localStorage.getItem('currentStream');
+      if (streamData) {
+        setCurrentStream(JSON.parse(streamData));
+      } else {
+        setCurrentStream(null);
+      }
+    };
+
+    checkStreams();
+    const interval = setInterval(checkStreams, 3000); // Check every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -79,74 +90,72 @@ export default function SimpleHome() {
 
       <div className="max-w-md mx-auto">
         {/* Live Streams Section */}
-        {streams.length > 0 ? (
+        {currentStream ? (
           <div className="p-4">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">🔴 البثوث المباشرة ({streams.length})</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">🔴 البثوث المباشرة</h2>
               
-              {streams.map((stream: any) => (
-                <Card key={stream.id} className="overflow-hidden border-2 border-red-200 shadow-lg mb-4">
-                  <CardContent className="p-0">
-                    <div className="relative">
-                      {/* Live Video Placeholder */}
-                      <div className="aspect-video bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <div className="text-6xl mb-2">📹</div>
-                          <div className="flex items-center justify-center space-x-2 mb-2">
-                            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                            <span className="font-semibold">مباشر</span>
-                          </div>
-                          <p className="text-sm opacity-80">{stream.hostName}</p>
+              <Card className="overflow-hidden border-2 border-red-200 shadow-lg">
+                <CardContent className="p-0">
+                  <div className="relative">
+                    {/* Live Video Placeholder */}
+                    <div className="aspect-video bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <div className="text-6xl mb-2">📹</div>
+                        <div className="flex items-center justify-center space-x-2 mb-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="font-semibold">مباشر</span>
                         </div>
-                      </div>
-                      
-                      {/* Live Badge */}
-                      <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                        <span>مباشر</span>
-                      </div>
-                      
-                      {/* Viewer Count */}
-                      <div className="absolute top-3 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                        <Eye className="w-3 h-3" />
-                        <span>{stream.viewerCount}</span>
+                        <p className="text-sm opacity-80">بث مباشر نشط</p>
                       </div>
                     </div>
                     
-                    {/* Stream Info */}
-                    <div className="p-4">
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse mb-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                          {stream.hostAvatar}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{stream.title}</h3>
-                          <p className="text-sm text-gray-600">{stream.hostName}</p>
-                        </div>
+                    {/* Live Badge */}
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span>مباشر</span>
+                    </div>
+                    
+                    {/* Viewer Count */}
+                    <div className="absolute top-3 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                      <Eye className="w-3 h-3" />
+                      <span>{Math.floor(Math.random() * 50) + 10}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Stream Info */}
+                  <div className="p-4">
+                    <div className="flex items-center space-x-3 rtl:space-x-reverse mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {currentStream.hostAvatar}
                       </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <Button 
-                          onClick={() => setLocation('/simple-live')}
-                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
-                        >
-                          مشاهدة البث
-                        </Button>
-                        <div className="flex items-center space-x-4 rtl:space-x-reverse text-sm text-gray-500">
-                          <div className="flex items-center space-x-1">
-                            <Heart className="w-4 h-4" />
-                            <span>{Math.floor(Math.random() * 100) + 20}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle className="w-4 h-4" />
-                            <span>{Math.floor(Math.random() * 30) + 5}</span>
-                          </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{currentStream.title}</h3>
+                        <p className="text-sm text-gray-600">{currentStream.hostName || user?.username || 'مستخدم'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Button 
+                        onClick={() => setLocation('/simple-live')}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        مشاهدة البث
+                      </Button>
+                      <div className="flex items-center space-x-4 rtl:space-x-reverse text-sm text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Heart className="w-4 h-4" />
+                          <span>{Math.floor(Math.random() * 100) + 20}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MessageCircle className="w-4 h-4" />
+                          <span>{Math.floor(Math.random() * 30) + 5}</span>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         ) : (
