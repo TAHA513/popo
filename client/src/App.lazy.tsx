@@ -14,7 +14,7 @@ export const ConversationPage = lazy(() => import('@/pages/conversation'));
 export const VideoPage = lazy(() => import('@/pages/video'));
 export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
 export const ZegoStreamPage = lazy(() => import('@/pages/zego-live-stream'));
-export const TestCameraPage = lazy(() => import('@/pages/test-camera'));
+
 export const CloudStreamGuidePage = lazy(() => import('@/pages/cloud-stream-guide'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));

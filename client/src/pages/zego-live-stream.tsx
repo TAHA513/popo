@@ -99,6 +99,8 @@ export default function ZegoLiveStream() {
         userID,
         userName
       );
+      
+      console.log('🔑 ZegoCloud Token generated successfully');
 
       // إعداد البث المباشر
       const zp = window.ZegoUIKitPrebuilt.create(kitToken);
