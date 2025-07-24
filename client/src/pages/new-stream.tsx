@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Camera, Mic, ArrowLeft, X, Video, VideoOff, MicOff, Users } from 'lucide-react';
+import { Camera, Mic, ArrowLeft, X, Video, VideoOff, MicOff, Users, Heart, MessageCircle, Gift, Eye } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -17,8 +17,13 @@ export default function NewStreamPage() {
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [micEnabled, setMicEnabled] = useState(true);
   const [viewerCount, setViewerCount] = useState(0);
+  const [likes, setLikes] = useState(0);
+  const [comments, setComments] = useState(0);
+  const [gifts, setGifts] = useState(0);
+  const [recentInteractions, setRecentInteractions] = useState<Array<{id: string, type: 'like' | 'comment' | 'gift', user: string, timestamp: number}>>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [ws, setWs] = useState<WebSocket | null>(null);
 
   // إنشاء البث
   const createStreamMutation = useMutation({
@@ -28,12 +33,106 @@ export default function NewStreamPage() {
       console.log('✅ تم إنشاء البث:', newStream);
       setCurrentStreamId(newStream.id);
       setIsLive(true);
+      
+      // بدء WebSocket للتفاعل المباشر
+      initializeWebSocket(newStream.id);
+      
+      // منع التنقل أثناء البث
+      disableNavigation();
     },
     onError: (error) => {
       console.error('❌ خطأ في إنشاء البث:', error);
       alert('فشل في إنشاء البث. حاول مرة أخرى.');
     }
   });
+
+  // منع التنقل أثناء البث
+  const disableNavigation = () => {
+    // منع الضغط على زر الرجوع
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'أنت في بث مباشر الآن. هل تريد إنهاء البث والخروج؟';
+    };
+    
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      if (confirm('أنت في بث مباشر. هل تريد إنهاء البث؟')) {
+        stopStreaming();
+      } else {
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    window.history.pushState(null, '', window.location.href);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  };
+
+  // تهيئة WebSocket للتفاعل المباشر
+  const initializeWebSocket = (streamId: number) => {
+    const wsUrl = `ws://${window.location.host}/api/streams/${streamId}/ws`;
+    const websocket = new WebSocket(wsUrl);
+    
+    websocket.onopen = () => {
+      console.log('🔗 تم الاتصال بـ WebSocket');
+      setWs(websocket);
+    };
+    
+    websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      switch (data.type) {
+        case 'viewer_joined':
+          setViewerCount(prev => prev + 1);
+          break;
+        case 'viewer_left':
+          setViewerCount(prev => Math.max(0, prev - 1));
+          break;
+        case 'like':
+          setLikes(prev => prev + 1);
+          addInteraction('like', data.user);
+          break;
+        case 'comment':
+          setComments(prev => prev + 1);
+          addInteraction('comment', data.user);
+          break;
+        case 'gift':
+          setGifts(prev => prev + 1);
+          addInteraction('gift', data.user);
+          break;
+      }
+    };
+    
+    websocket.onclose = () => {
+      console.log('❌ تم قطع الاتصال مع WebSocket');
+      setWs(null);
+    };
+  };
+
+  // إضافة تفاعل جديد
+  const addInteraction = (type: 'like' | 'comment' | 'gift', user: string) => {
+    const newInteraction = {
+      id: Date.now().toString(),
+      type,
+      user,
+      timestamp: Date.now()
+    };
+    
+    setRecentInteractions(prev => {
+      const updated = [newInteraction, ...prev].slice(0, 5);
+      return updated;
+    });
+    
+    // إزالة التفاعل بعد 3 ثوانٍ
+    setTimeout(() => {
+      setRecentInteractions(prev => prev.filter(i => i.id !== newInteraction.id));
+    }, 3000);
+  };
 
   // تشغيل الكاميرا فوراً
   const startCamera = async () => {
@@ -103,6 +202,13 @@ export default function NewStreamPage() {
   const stopStreaming = async () => {
     console.log('🛑 إيقاف البث...');
     
+    // إرسال إشارة إنهاء للمشاهدين عبر WebSocket
+    if (ws) {
+      ws.send(JSON.stringify({ type: 'end-live' }));
+      ws.close();
+      setWs(null);
+    }
+    
     // حذف البث من قاعدة البيانات
     if (currentStreamId) {
       try {
@@ -126,6 +232,14 @@ export default function NewStreamPage() {
     setIsLive(false);
     setCurrentStreamId(null);
     setViewerCount(0);
+    setLikes(0);
+    setComments(0);
+    setGifts(0);
+    setRecentInteractions([]);
+    
+    // إعادة تمكين التنقل
+    window.removeEventListener('beforeunload', () => {});
+    window.removeEventListener('popstate', () => {});
     
     // العودة للصفحة الرئيسية
     setLocation('/');
@@ -164,12 +278,30 @@ export default function NewStreamPage() {
     };
   }, [mediaStream]);
 
-  // محاكاة عدد المشاهدين
+  // محاكاة عدد المشاهدين والتفاعلات
   useEffect(() => {
     if (isLive) {
       const interval = setInterval(() => {
+        // محاكاة انضمام/مغادرة المشاهدين
         setViewerCount(prev => Math.max(0, prev + Math.floor(Math.random() * 3) - 1));
-      }, 3000);
+        
+        // محاكاة تفاعلات عشوائية من المشاهدين
+        if (Math.random() < 0.3) { // 30% احتمال لتفاعل
+          const interactions = ['like', 'comment', 'gift'] as const;
+          const randomInteraction = interactions[Math.floor(Math.random() * interactions.length)];
+          const randomUser = `مشاهد${Math.floor(Math.random() * 100)}`;
+          
+          if (randomInteraction === 'like') {
+            setLikes(prev => prev + 1);
+          } else if (randomInteraction === 'comment') {
+            setComments(prev => prev + 1);
+          } else {
+            setGifts(prev => prev + 1);
+          }
+          
+          addInteraction(randomInteraction, randomUser);
+        }
+      }, 2000);
       return () => clearInterval(interval);
     }
   }, [isLive]);
@@ -227,11 +359,51 @@ export default function NewStreamPage() {
           </div>
         </div>
 
+        {/* إحصائيات التفاعل */}
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-30 space-y-4">
+          <div className="bg-black/50 backdrop-blur-sm rounded-full p-3 flex flex-col items-center">
+            <Eye className="w-6 h-6 text-white mb-1" />
+            <span className="text-white text-sm font-bold">{viewerCount}</span>
+          </div>
+          
+          <div className="bg-black/50 backdrop-blur-sm rounded-full p-3 flex flex-col items-center">
+            <Heart className="w-6 h-6 text-red-500 mb-1" />
+            <span className="text-white text-sm font-bold">{likes}</span>
+          </div>
+          
+          <div className="bg-black/50 backdrop-blur-sm rounded-full p-3 flex flex-col items-center">
+            <MessageCircle className="w-6 h-6 text-blue-500 mb-1" />
+            <span className="text-white text-sm font-bold">{comments}</span>
+          </div>
+          
+          <div className="bg-black/50 backdrop-blur-sm rounded-full p-3 flex flex-col items-center">
+            <Gift className="w-6 h-6 text-yellow-500 mb-1" />
+            <span className="text-white text-sm font-bold">{gifts}</span>
+          </div>
+        </div>
+
+        {/* التفاعلات المباشرة */}
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 space-y-2">
+          {recentInteractions.map((interaction) => (
+            <div
+              key={interaction.id}
+              className="bg-black/70 backdrop-blur-sm rounded-lg p-2 text-white text-sm animate-bounce"
+            >
+              {interaction.type === 'like' && '❤️'} 
+              {interaction.type === 'comment' && '💬'} 
+              {interaction.type === 'gift' && '🎁'} 
+              <span className="mr-1">{interaction.user}</span>
+            </div>
+          ))}
+        </div>
+
         {/* معلومات البث أسفل */}
         <div className="absolute bottom-32 left-4 right-4 z-30">
           <div className="bg-black/50 backdrop-blur-sm rounded-xl p-4">
             <h3 className="text-white font-bold text-lg mb-1">{streamTitle}</h3>
-            <p className="text-white/70 text-sm">بث مباشر • {viewerCount} مشاهد</p>
+            <p className="text-white/70 text-sm">
+              🔴 بث مباشر • {viewerCount} مشاهد • {likes + comments + gifts} تفاعل
+            </p>
           </div>
         </div>
 

@@ -1,8 +1,7 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import SimpleLiveInterface from "@/components/SimpleLiveInterface";
-import BeautyFilters from "@/components/beauty-filters";
+import LiveStreamViewer from "@/components/LiveStreamViewer";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -116,5 +115,11 @@ export default function StreamPage() {
     );
   }
 
-  return <SimpleLiveInterface stream={stream} />;
+  return (
+    <LiveStreamViewer 
+      streamId={parseInt(id!)}
+      streamTitle={stream.title || 'بث مباشر'}
+      hostName={stream.hostName || 'مذيع'}
+    />
+  );
 }
