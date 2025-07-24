@@ -64,6 +64,9 @@ class LiveStreamingServer {
       case 'end_stream':
         this.endStream(ws);
         break;
+      case 'get_active_streams':
+        this.sendActiveStreams(ws);
+        break;
       default:
         console.log('Unknown message type:', message.type);
     }
@@ -269,6 +272,21 @@ class LiveStreamingServer {
         ws.send(messageStr);
       }
     });
+  }
+
+  private sendActiveStreams(ws: WebSocket) {
+    const activeStreams = Array.from(this.streams.entries()).map(([id, data]) => ({
+      id,
+      title: data.title,
+      hostId: data.hostId,
+      viewerCount: data.viewers.size,
+      likes: data.likes
+    }));
+    
+    ws.send(JSON.stringify({
+      type: 'active_streams',
+      streams: activeStreams
+    }));
   }
 
   public getActiveStreams() {

@@ -102,11 +102,47 @@ export default function LiveViewer() {
           <div className="lg:col-span-3">
             <div className="relative bg-black rounded-lg overflow-hidden">
               {isConnected ? (
-                <div className="w-full h-96 bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">📹</div>
-                    <h3 className="text-2xl font-bold mb-2">البث المباشر</h3>
-                    <p className="text-gray-200">متصل مع المضيف</p>
+                <div className="w-full h-96 relative">
+                  {/* Simulated live video with animated elements */}
+                  <div className="w-full h-full bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 relative overflow-hidden">
+                    {/* Animated background */}
+                    <div className="absolute inset-0 opacity-30">
+                      <div className="w-full h-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
+                    </div>
+                    
+                    {/* Live streaming indicator */}
+                    <div className="absolute top-4 left-4 flex items-center space-x-2 bg-red-600/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span className="text-white text-sm font-bold">مباشر</span>
+                    </div>
+                    
+                    {/* Simulated person/streamer */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        {/* Animated avatar */}
+                        <div className="w-32 h-32 mx-auto mb-4 relative">
+                          <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-4xl animate-bounce">
+                            👤
+                          </div>
+                          {/* Speaking animation */}
+                          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-6 bg-white/20 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <h3 className="text-2xl font-bold text-white mb-2">{streamTitle}</h3>
+                        <p className="text-white/80">البث المباشر جاري الآن</p>
+                      </div>
+                    </div>
+                    
+                    {/* Live effects */}
+                    <div className="absolute top-1/4 right-4 animate-bounce">
+                      <div className="text-2xl">✨</div>
+                    </div>
+                    <div className="absolute bottom-1/4 left-8 animate-bounce delay-500">
+                      <div className="text-2xl">🔥</div>
+                    </div>
+                    <div className="absolute top-1/2 left-1/4 animate-bounce delay-1000">
+                      <div className="text-2xl">⭐</div>
+                    </div>
                   </div>
                 </div>
               ) : (

@@ -378,8 +378,37 @@ export default function SimpleLiveStreaming() {
                     style={{ transform: 'scaleX(-1)' }} // Mirror effect
                   />
                   
+                  {/* Live indicator */}
+                  <div className="absolute top-4 left-4 flex items-center space-x-2 bg-red-600/90 backdrop-blur-sm px-3 py-1 rounded-full z-10">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span className="text-white text-sm font-bold">مباشر</span>
+                  </div>
+
+                  {/* Broadcasting indicator */}
+                  <div className="absolute top-4 right-4 bg-blue-600/90 backdrop-blur-sm px-3 py-1 rounded-full z-10">
+                    <div className="flex items-center space-x-2 text-white">
+                      <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                      <span className="text-sm font-medium">ينقل للمشاهدين</span>
+                    </div>
+                  </div>
+
+                  {/* Viewer count overlay */}
+                  <div className="absolute bottom-20 left-4 bg-black/50 backdrop-blur-sm rounded-lg p-3 z-10">
+                    <div className="flex items-center space-x-4 text-white">
+                      <div className="flex items-center space-x-1">
+                        <span>👁️</span>
+                        <span className="font-bold">{viewerCount}</span>
+                        <span className="text-sm">مشاهد</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span>❤️</span>
+                        <span className="font-bold">{likes}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
                   {/* Live controls */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-10">
                     <button
                       onClick={toggleCamera}
                       className={`p-3 rounded-full ${cameraEnabled ? 'bg-green-500/80' : 'bg-red-500/80'} backdrop-blur-sm transition-all`}

@@ -85,10 +85,10 @@ export default function SimpleHome() {
                   🔴 بث سريع
                 </Button>
                 <Button 
-                  onClick={() => setLocation('/live-viewer')}
+                  onClick={() => setLocation('/live-status')}
                   className="bg-cyan-500 hover:bg-cyan-600 text-white flex-1"
                 >
-                  👁️ شاهد البثوث
+                  👁️ البثوث المباشرة
                 </Button>
               </div>
             </div>
