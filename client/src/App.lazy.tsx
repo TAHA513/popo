@@ -13,7 +13,7 @@ export const GiftsPage = lazy(() => import('@/pages/gifts'));
 export const ConversationPage = lazy(() => import('@/pages/conversation'));
 export const VideoPage = lazy(() => import('@/pages/video'));
 export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
-export const ZegoStreamPage = lazy(() => import('@/pages/simple-camera-stream'));
+export const ZegoStreamPage = lazy(() => import('@/pages/zego-camera-stream'));
 
 export const CloudStreamGuidePage = lazy(() => import('@/pages/cloud-stream-guide'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
