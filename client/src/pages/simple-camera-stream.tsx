@@ -32,23 +32,72 @@ export default function SimpleCameraStream() {
       return;
     }
 
-    try {
-      console.log('🎥 Starting camera stream...');
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 },
-          facingMode: 'user'
-        },
-        audio: true
+    // التحقق من دعم المتصفح
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast({
+        title: "متصفح غير مدعوم",
+        description: "يرجى استخدام متصفح حديث مثل Chrome أو Safari",
+        variant: "destructive"
       });
+      return;
+    }
 
+    try {
+      console.log('🎥 طلب أذونات الكاميرا...');
+      
+      // طلب بسيط أولاً
+      let stream;
+      try {
+        console.log('📱 محاولة أساسية للكاميرا...');
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+      } catch (basicError) {
+        console.log('📱 محاولة متقدمة للكاميرا...');
+        // محاولة مع إعدادات محددة للهاتف
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { min: 320, ideal: 640, max: 1280 },
+            height: { min: 240, ideal: 480, max: 720 },
+            facingMode: { ideal: 'user' },
+            frameRate: { ideal: 30, max: 60 }
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+      }
+
+      console.log('✅ تم الحصول على stream:', stream);
       streamRef.current = stream;
       
       if (videoRef.current) {
+        console.log('📺 ربط الفيديو...');
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        videoRef.current.autoplay = true;
+        videoRef.current.playsInline = true;
+        videoRef.current.muted = true;
+        
+        // محاولة تشغيل الفيديو
+        try {
+          await videoRef.current.play();
+          console.log('✅ بدأ تشغيل الفيديو');
+        } catch (playError) {
+          console.warn('⚠️ خطأ تشغيل، إعادة محاولة...', playError);
+          // إعادة محاولة بعد وقت قصير
+          setTimeout(async () => {
+            try {
+              if (videoRef.current) {
+                await videoRef.current.play();
+              }
+            } catch (retryError) {
+              console.error('❌ فشل نهائي في التشغيل:', retryError);
+            }
+          }, 100);
+        }
       }
 
       setIsStreaming(true);
@@ -68,20 +117,30 @@ export default function SimpleCameraStream() {
       return () => clearInterval(interval);
 
     } catch (error: any) {
-      console.error('❌ Camera error:', error);
+      console.error('❌ خطأ في الكاميرا:', error);
       
       let errorMessage = "لا يمكن الوصول إلى الكاميرا";
+      let errorTitle = "خطأ في الكاميرا";
       
       if (error.name === 'NotAllowedError') {
-        errorMessage = "تم رفض الإذن. يرجى السماح بالوصول للكاميرا";
+        errorTitle = "تم رفض الإذن";
+        errorMessage = "يرجى النقر على 'السماح' عندما يطلب المتصفح أذونات الكاميرا والميكروفون";
       } else if (error.name === 'NotFoundError') {
-        errorMessage = "لم يتم العثور على كاميرا";
+        errorTitle = "كاميرا غير موجودة";
+        errorMessage = "لم يتم العثور على كاميرا. تأكد من وجود كاميرا في الجهاز";
       } else if (error.name === 'NotReadableError') {
-        errorMessage = "الكاميرا مستخدمة من تطبيق آخر";
+        errorTitle = "كاميرا مشغولة";
+        errorMessage = "الكاميرا مستخدمة من تطبيق آخر. أغلق التطبيقات الأخرى وحاول مرة أخرى";
+      } else if (error.name === 'OverconstrainedError') {
+        errorTitle = "إعدادات غير مدعومة";
+        errorMessage = "إعدادات الكاميرا المطلوبة غير متاحة على هذا الجهاز";
+      } else if (error.name === 'SecurityError') {
+        errorTitle = "خطأ أمني";
+        errorMessage = "يجب استخدام HTTPS للوصول إلى الكاميرا";
       }
       
       toast({
-        title: "خطأ في الكاميرا",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive"
       });
@@ -139,8 +198,11 @@ export default function SimpleCameraStream() {
               🔴 بث مباشر
             </CardTitle>
             <p className="text-gray-300">
-              بث مباشر بجودة عالية
+              بث مباشر مع الكاميرا
             </p>
+            <div className="text-yellow-300 text-xs text-center mt-2">
+              تأكد من السماح للمتصفح بالوصول للكاميرا
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -170,9 +232,14 @@ export default function SimpleCameraStream() {
                 رجوع
               </Button>
               <Button
-                onClick={startStream}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('🎯 زر البث تم النقر عليه');
+                  startStream();
+                }}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
                 disabled={!streamTitle.trim()}
+                type="button"
               >
                 🔴 ابدأ البث
               </Button>
