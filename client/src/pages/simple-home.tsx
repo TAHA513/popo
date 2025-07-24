@@ -11,7 +11,7 @@ import {
   User,
   Radio
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Stream } from "@/types";
@@ -29,6 +29,31 @@ export default function SimpleHome() {
     queryKey: ['/api/streams'],
     refetchInterval: 10000,
   });
+
+  // إضافة البثوث من الاستضافة
+  const liveHostedStreams = React.useMemo(() => {
+    const hostedStreams = [];
+    
+    // البث النشط من الاستضافة
+    if ((window as any).activeLiveStream) {
+      hostedStreams.push({
+        id: (window as any).activeLiveStream.id,
+        title: (window as any).activeLiveStream.title,
+        hostId: 'live-user',
+        isActive: true,
+        viewerCount: Math.floor(Math.random() * 20) + 1,
+        isHosted: true
+      });
+    }
+    
+    return hostedStreams;
+  }, []);
+
+  // دمج البثوث من قاعدة البيانات والاستضافة
+  const allStreams = React.useMemo(() => {
+    const dbStreams = streams || [];
+    return [...liveHostedStreams, ...dbStreams];
+  }, [streams, liveHostedStreams]);
 
 
 
@@ -76,9 +101,9 @@ export default function SimpleHome() {
       <div className="max-w-md mx-auto">
         {/* البثوث المباشرة فقط */}
         <div className="p-4">
-          {streams.length > 0 ? (
+          {allStreams.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
-              {streams.map((stream: Stream) => (
+              {allStreams.map((stream: any) => (
                 <Card 
                   key={`stream-${stream.id}`} 
                   className="border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow bg-white"
@@ -98,7 +123,7 @@ export default function SimpleHome() {
                       
                       {/* شارة البث المباشر */}
                       <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full font-bold shadow-lg">
-                        🔴 مباشر
+                        🔴 {stream.isHosted ? 'مباشر - استضافة' : 'مباشر'}
                       </div>
                       
                       {/* عدد المشاهدين */}
@@ -144,7 +169,7 @@ export default function SimpleHome() {
               <Button 
                 onClick={() => {
                   console.log('🔗 التنقل إلى صفحة البث...');
-                  setLocation('/camera-test');
+                  window.location.href = '/camera-test';
                 }}
                 className="bg-laa-pink hover:bg-laa-pink/90"
               >
