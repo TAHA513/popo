@@ -30,11 +30,24 @@ export default function SimpleHome() {
     refetchInterval: 10000,
   });
 
-  // إضافة البثوث من الاستضافة
+  // إضافة البثوث من ZEGO Cloud
   const liveHostedStreams = React.useMemo(() => {
     const hostedStreams = [];
     
-    // البث النشط من الاستضافة
+    // البث النشط من ZEGO
+    if ((window as any).activeZegoStream) {
+      hostedStreams.push({
+        id: (window as any).activeZegoStream.roomID,
+        title: (window as any).activeZegoStream.title,
+        hostId: 'zego-user',
+        isActive: true,
+        viewerCount: Math.floor(Math.random() * 50) + 5,
+        isHosted: true,
+        isZego: true
+      });
+    }
+    
+    // البث البسيط من الاستضافة المحلية
     if ((window as any).activeLiveStream) {
       hostedStreams.push({
         id: (window as any).activeLiveStream.id,
@@ -84,8 +97,8 @@ export default function SimpleHome() {
             {/* Live Stream Button - Right Side */}
             <Button 
               onClick={() => {
-                console.log('Starting ZegoCloud stream');
-                setLocation('/zego-stream');
+                console.log('Starting ZEGO Real stream');
+                window.location.href = '/camera-test';
               }}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
             >
@@ -123,7 +136,7 @@ export default function SimpleHome() {
                       
                       {/* شارة البث المباشر */}
                       <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full font-bold shadow-lg">
-                        🔴 {stream.isHosted ? 'مباشر - استضافة' : 'مباشر'}
+                        🔴 {stream.isZego ? 'ZEGO LIVE' : stream.isHosted ? 'مباشر - استضافة' : 'مباشر'}
                       </div>
                       
                       {/* عدد المشاهدين */}
