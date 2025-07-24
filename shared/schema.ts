@@ -56,26 +56,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Live streams table
-export const streams = pgTable("streams", {
-  id: serial("id").primaryKey(),
-  hostId: varchar("host_id").notNull().references(() => users.id),
-  title: text("title").notNull(),
-  description: text("description"),
-  category: varchar("category").notNull().default('live'),
-  // Cloud streaming fields
-  zegoRoomId: text("zego_room_id"),
-  zegoStreamUrl: text("zego_stream_url"),
-  zegoPlayUrl: text("zego_play_url"),
-  cloudProvider: varchar("cloud_provider"), // 'zego', 'agora', 'daily', 'ivs', etc
-  thumbnailUrl: text("thumbnail_url"),
-  isLive: boolean("is_live").default(true),
-  viewerCount: integer("viewer_count").default(0),
-  totalGifts: integer("total_gifts").default(0),
-  startedAt: timestamp("started_at").defaultNow(),
-  endedAt: timestamp("ended_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+
 
 // Gift characters table
 export const giftCharacters = pgTable("gift_characters", {
@@ -95,26 +76,9 @@ export const giftCharacters = pgTable("gift_characters", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Gifts sent table
-export const gifts = pgTable("gifts", {
-  id: serial("id").primaryKey(),
-  senderId: varchar("sender_id").notNull().references(() => users.id),
-  receiverId: varchar("receiver_id").notNull().references(() => users.id),
-  streamId: integer("stream_id").references(() => streams.id),
-  characterId: integer("character_id").notNull().references(() => giftCharacters.id),
-  pointCost: integer("point_cost").notNull(),
-  message: text("message"),
-  sentAt: timestamp("sent_at").defaultNow(),
-});
 
-// Chat messages table
-export const chatMessages = pgTable("chat_messages", {
-  id: serial("id").primaryKey(),
-  streamId: integer("stream_id").notNull().references(() => streams.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  message: text("message").notNull(),
-  sentAt: timestamp("sent_at").defaultNow(),
-});
+
+
 
 // Point transactions table
 export const pointTransactions = pgTable("point_transactions", {
@@ -123,7 +87,7 @@ export const pointTransactions = pgTable("point_transactions", {
   amount: integer("amount").notNull(),
   type: varchar("type").notNull(), // 'purchase', 'gift_sent', 'gift_received', 'withdrawal'
   description: text("description"),
-  relatedGiftId: integer("related_gift_id").references(() => gifts.id),
+  // relatedGiftId removed - gifts system simplified
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -252,13 +216,13 @@ export const fragmentCollections = pgTable("fragment_collections", {
   addedAt: timestamp("added_at").defaultNow(),
 });
 
-// Comments table for memories and streams
+// Comments table for memories
 export const comments = pgTable("comments", {
   id: serial("id").primaryKey(),
   content: text("content").notNull(),
   authorId: varchar("author_id").notNull().references(() => users.id),
-  postId: integer("post_id").notNull(), // Can reference memory or stream
-  postType: varchar("post_type").notNull(), // 'memory' or 'stream'
+  postId: integer("post_id").notNull(), // References memory only
+  postType: varchar("post_type").notNull().default('memory'), // Only 'memory' type
   parentId: integer("parent_id"), // For nested replies
   likeCount: integer("like_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -277,17 +241,8 @@ export const commentLikes = pgTable("comment_likes", {
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
-export type InsertStream = typeof streams.$inferInsert;
-export type Stream = typeof streams.$inferSelect;
-
 export type InsertGiftCharacter = typeof giftCharacters.$inferInsert;
 export type GiftCharacter = typeof giftCharacters.$inferSelect;
-
-export type InsertGift = typeof gifts.$inferInsert;
-export type Gift = typeof gifts.$inferSelect;
-
-export type InsertChatMessage = typeof chatMessages.$inferInsert;
-export type ChatMessage = typeof chatMessages.$inferSelect;
 
 export type InsertPointTransaction = typeof pointTransactions.$inferInsert;
 export type PointTransaction = typeof pointTransactions.$inferSelect;
@@ -343,22 +298,7 @@ export const loginSchema = z.object({
   password: z.string().min(1, "كلمة المرور مطلوبة"),
 });
 
-export const insertStreamSchema = createInsertSchema(streams).omit({
-  id: true,
-  createdAt: true,
-  startedAt: true,
-  endedAt: true,
-});
 
-export const insertGiftSchema = createInsertSchema(gifts).omit({
-  id: true,
-  sentAt: true,
-});
-
-export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
-  id: true,
-  sentAt: true,
-});
 
 export const insertPointTransactionSchema = createInsertSchema(pointTransactions).omit({
   id: true,

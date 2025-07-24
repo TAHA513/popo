@@ -1,5 +1,5 @@
 import { db } from './db';
-import { users, gifts } from '@shared/schema';
+import { users } from '@shared/schema';
 import { eq, sum } from 'drizzle-orm';
 
 export interface SupporterUpdate {
