@@ -32,26 +32,57 @@ export default function SimpleZegoStream() {
 
       console.log('📦 تحميل ZEGO SDK...');
       
+      // حذف أي script موجود مسبقاً
+      const existingScript = document.querySelector('script[src*="zego-express-engine"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/zego-express-engine-webrtc@3.2.0/index.js';
+      script.async = true;
+      script.crossOrigin = 'anonymous';
       
       await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('انتهت مهلة تحميل SDK'));
+        }, 10000); // 10 ثوان
+        
         script.onload = () => {
+          clearTimeout(timeout);
           console.log('✅ تم تحميل ZEGO SDK');
-          setSdkLoaded(true);
-          resolve(true);
+          
+          // التحقق من وجود ZegoExpressEngine
+          setTimeout(() => {
+            if (window.ZegoExpressEngine) {
+              console.log('✅ ZegoExpressEngine متوفر');
+              setSdkLoaded(true);
+              resolve(true);
+            } else {
+              console.error('❌ ZegoExpressEngine غير متوفر بعد التحميل');
+              reject(new Error('ZegoExpressEngine غير متوفر'));
+            }
+          }, 500);
         };
+        
         script.onerror = (err) => {
+          clearTimeout(timeout);
           console.error('❌ فشل في تحميل ZEGO SDK', err);
-          setError('فشل في تحميل نظام البث');
           reject(err);
         };
+        
         document.head.appendChild(script);
       });
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ خطأ في تحميل SDK:', err);
-      setError('فشل في تحميل نظام البث');
+      setError(`فشل في تحميل نظام البث: ${err?.message || 'خطأ غير معروف'}`);
+      
+      // محاولة التحميل مرة أخرى بعد 3 ثوان
+      setTimeout(() => {
+        console.log('🔄 محاولة إعادة التحميل...');
+        loadZegoSDK();
+      }, 3000);
     }
   };
 
@@ -204,9 +235,32 @@ export default function SimpleZegoStream() {
   if (!sdkLoaded) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center text-white">
+        <div className="text-center text-white max-w-md mx-auto p-4">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p className="text-xl">تحميل نظام البث...</p>
+          <p className="text-xl mb-4">تحميل نظام البث...</p>
+          
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 mb-4">
+              <p className="text-red-300 text-sm">{error}</p>
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Button
+              onClick={loadZegoSDK}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              🔄 إعادة المحاولة
+            </Button>
+            
+            <Button
+              onClick={() => window.location.href = '/'}
+              variant="outline"
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            >
+              العودة للرئيسية
+            </Button>
+          </div>
         </div>
       </div>
     );

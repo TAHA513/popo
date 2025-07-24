@@ -17,6 +17,7 @@ export const ZegoStreamPage = lazy(() => import('@/pages/zego-real-stream'));
 export const ZegoViewerPage = lazy(() => import('@/pages/zego-viewer'));
 export const TestZegoPage = lazy(() => import('@/pages/test-zego'));
 export const SimpleZegoStreamPage = lazy(() => import('@/pages/simple-zego-stream'));
+export const UltraSimpleZegoPage = lazy(() => import('@/pages/ultra-simple-zego'));
 export const DirectCameraStreamPage = lazy(() => import('@/pages/direct-camera-stream'));
 export const WebRTCLiveStreamPage = lazy(() => import('@/pages/webrtc-live-stream'));
 export const SimpleCameraTestPage = lazy(() => import('@/pages/simple-camera-test'));

@@ -97,8 +97,8 @@ export default function SimpleHome() {
             {/* Live Stream Button - Right Side */}
             <Button 
               onClick={() => {
-                console.log('Starting Simple ZEGO stream');
-                setLocation('/simple-zego-stream');
+                console.log('Starting Ultra Simple ZEGO stream');
+                setLocation('/ultra-simple-zego');
               }}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
             >
