@@ -119,12 +119,12 @@ export default function SimpleHome() {
                       <div className="flex items-center">
                         {/* صورة المستخدم */}
                         <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mr-2 text-white text-xs font-bold">
-                          {stream.host?.firstName?.charAt(0) || stream.host?.username?.charAt(0) || '👤'}
+                          👤
                         </div>
                         
                         {/* اسم المستخدم */}
                         <div className="text-xs text-gray-600 truncate">
-                          {stream.host?.firstName || stream.host?.username || stream.hostName || 'مستخدم'}
+                          مستخدم {stream.id}
                         </div>
                       </div>
                     </div>
