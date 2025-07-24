@@ -52,7 +52,7 @@ function Router() {
           <Route path="/" component={SimpleHome} />
           <Route path="/home" component={SimpleHome} />
           <Route path="/feed" component={FeedPage} />
-          <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
+          <Route path="/new-stream" component={LazyComponents.SimpleStreamPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
