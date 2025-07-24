@@ -390,6 +390,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
+  
+  // Serve HTML files from public directory
+  app.use(expressModule.static('public'));
 
   // ZEGO Token endpoint for secure authentication
   app.get('/api/zego/token', requireAuth, async (req: any, res) => {

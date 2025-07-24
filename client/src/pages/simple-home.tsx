@@ -79,7 +79,7 @@ export default function SimpleHome() {
               </Button>
               <div className="flex space-x-2 rtl:space-x-reverse">
                 <Button 
-                  onClick={() => window.location.href = '/start-streaming.html'}
+                  onClick={() => setLocation('/start-streaming')}
                   className="bg-red-500 hover:bg-red-600 text-white flex-1"
                 >
                   🔴 ابدأ بث مباشر
