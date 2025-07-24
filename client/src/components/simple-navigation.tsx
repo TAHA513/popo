@@ -97,15 +97,19 @@ export default function SimpleNavigation() {
               <Search className="w-5 h-5" />
             </button>
             
-            {/* أيقونة البث الأصلية */}
+            {/* أيقونة البث المباشر */}
             <button 
-              className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full"
-              onClick={() => {
-                console.log('Navigating to new-stream');
+              className="flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Button clicked - navigating to new-stream');
                 setLocation('/new-stream');
               }}
+              title="ابدأ بث مباشر"
             >
               <Video className="w-5 h-5" />
+              <span className="text-sm font-medium hidden sm:inline">ابدأ بث مباشر</span>
             </button>
             
             {/* Logout Button */}
