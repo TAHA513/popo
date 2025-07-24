@@ -11,3 +11,4 @@ export const VideoPage = lazy(() => import('@/pages/video'));
 export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));
+export const ZegoLivePage = lazy(() => import('@/pages/zego-live'));

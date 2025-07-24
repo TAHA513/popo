@@ -70,12 +70,18 @@ export default function SimpleHome() {
             </div>
             <h3 className="text-lg font-medium text-gray-600 mb-2">مرحباً بك في LaaBoBo!</h3>
             <p className="text-gray-500 text-sm">استكشف الذكريات والمحتوى المميز</p>
-            <div className="mt-4">
+            <div className="mt-4 flex flex-col space-y-3">
               <Button 
                 onClick={() => setLocation('/explore')}
                 className="bg-laa-pink hover:bg-laa-pink/90 text-white"
               >
                 استكشف الذكريات
+              </Button>
+              <Button 
+                onClick={() => setLocation('/zego-live')}
+                className="bg-cyan-500 hover:bg-cyan-600 text-white"
+              >
+                🎥 البثوث المباشرة
               </Button>
             </div>
           </div>

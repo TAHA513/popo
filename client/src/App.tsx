@@ -67,6 +67,7 @@ function Router() {
           <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/message-requests" component={LazyComponents.MessageRequestsPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
+          <Route path="/zego-live" component={LazyComponents.ZegoLivePage} />
           
           {/* Admin panel hidden route */}
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
