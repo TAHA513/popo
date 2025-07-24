@@ -1,473 +1,420 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Video, VideoOff, Mic, MicOff, ArrowLeft, Users, Eye } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 
-// إعلان النوع العالمي لـ ZegoExpressEngine
+// ZEGO Cloud SDK
 declare global {
   interface Window {
     ZegoExpressEngine: any;
-    zg: any;
-    liveRooms: Array<{
-      roomID: string;
-      streamID: string;
-      userName: string;
-      userID: string;
-      timestamp: number;
-    }>;
   }
 }
 
 export default function ZegoRealStream() {
-  const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  
-  const [streamTitle, setStreamTitle] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [isWatching, setIsWatching] = useState(false);
-  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [liveRooms, setLiveRooms] = useState<any[]>([]);
-  const [currentRoom, setCurrentRoom] = useState<any>(null);
+  const [title, setTitle] = useState('');
+  const [isLive, setIsLive] = useState(false);
+  const [error, setError] = useState('');
   const [viewerCount, setViewerCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const zegoEngine = useRef<any>(null);
+  const roomID = useRef<string>('');
 
   // تحميل ZEGO SDK
   useEffect(() => {
-    const loadZegoSDK = () => {
-      if (window.ZegoExpressEngine) {
-        setIsSDKLoaded(true);
-        initializeLiveRooms();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://download.zegocloud.com/sdk/latest/zego-express-video.min.js';
-      script.onload = () => {
-        console.log('✅ ZEGO SDK loaded successfully');
-        setIsSDKLoaded(true);
-        initializeLiveRooms();
-        toast({
-          title: "تم تحميل النظام",
-          description: "التطبيق جاهز للبث المباشر",
-        });
-      };
-      script.onerror = () => {
-        console.error('❌ Failed to load ZEGO SDK');
-        toast({
-          title: "خطأ في التحميل", 
-          description: "فشل في تحميل التطبيق",
-          variant: "destructive"
-        });
-      };
-      document.head.appendChild(script);
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/zego-express-engine-webrtc@2.19.0/index.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('✅ ZEGO SDK تم تحميله');
     };
+    script.onerror = () => {
+      setError('فشل في تحميل SDK');
+    };
+    document.head.appendChild(script);
 
-    loadZegoSDK();
-  }, [toast]);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
 
-  // تهيئة قائمة البث المباشر
-  const initializeLiveRooms = () => {
-    if (!window.liveRooms) {
-      window.liveRooms = [];
-    }
-    setLiveRooms([...window.liveRooms]);
-    
-    // تحديث القائمة كل 5 ثوان
-    const interval = setInterval(() => {
-      // إزالة الغرف القديمة (أكثر من 10 دقائق)
-      const now = Date.now();
-      window.liveRooms = window.liveRooms.filter(room => 
-        now - room.timestamp < 10 * 60 * 1000
-      );
-      setLiveRooms([...window.liveRooms]);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  };
-
-  // بدء البث المباشر
-  const startLiveStream = async () => {
-    if (!streamTitle.trim()) {
-      toast({
-        title: "عنوان مطلوب",
-        description: "يرجى إدخال عنوان للبث المباشر",
-        variant: "destructive"
-      });
+  const startZegoStream = async () => {
+    if (!title.trim()) {
+      setError('أدخل عنوان البث');
       return;
     }
 
-    console.log('🚀 بدء البث بكاميرا المتصفح...');
+    if (!window.ZegoExpressEngine) {
+      setError('ZEGO SDK غير محمل');
+      return;
+    }
 
     try {
-      // التحقق من دعم المتصفح
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast({
-          title: "متصفح غير مدعوم",
-          description: "يرجى استخدام متصفح حديث",
-          variant: "destructive"
-        });
-        return;
-      }
+      setLoading(true);
+      setError('');
+      console.log('🔴 بدء البث باستخدام ZEGO Cloud...');
 
-      console.log('🎥 طلب أذونات الكاميرا...');
+      // إعداد ZEGO Engine
+      const appID = parseInt(import.meta.env.VITE_ZEGOCLOUD_APP_ID);
+      const appSign = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN;
+      
+      console.log('📱 AppID:', appID);
 
-      // الحصول على الكاميرا والميكروفون مباشرة
-      const localStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 },
-          facingMode: 'user'
-        },
-        audio: true
+      zegoEngine.current = new window.ZegoExpressEngine(appID, appSign);
+      
+      // إنشاء معرف غرفة فريد
+      roomID.current = `live-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // معلومات المستخدم
+      const userInfo = {
+        userID: `user-${Date.now()}`,
+        userName: 'مذيع LaaBoBo'
+      };
+
+      console.log('🏠 دخول الغرفة:', roomID.current);
+      
+      // دخول الغرفة
+      await zegoEngine.current.loginRoom(roomID.current, userInfo);
+      
+      // بدء البث
+      const streamID = `stream-${roomID.current}`;
+      
+      console.log('📹 بدء البث:', streamID);
+      
+      // الحصول على وسائط محلية
+      const localStream = await zegoEngine.current.createStream({
+        camera: {
+          audio: true,
+          video: true
+        }
       });
 
-      console.log('✅ تم الحصول على الكاميرا بنجاح');
+      console.log('✅ تم الحصول على الوسائط المحلية');
 
-      // عرض الفيديو المحلي
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = localStream;
-        localVideoRef.current.autoplay = true;
-        localVideoRef.current.playsInline = true;
-        localVideoRef.current.muted = true;
+      // عرض الفيديو محلياً
+      if (videoRef.current) {
+        videoRef.current.srcObject = localStream;
+        videoRef.current.muted = true;
+        await videoRef.current.play();
         
-        try {
-          await localVideoRef.current.play();
-          console.log('✅ بدأ تشغيل الفيديو');
-        } catch (playError) {
-          console.warn('⚠️ خطأ تشغيل الفيديو:', playError);
-        }
+        console.log('✅ الفيديو يعمل محلياً');
       }
 
-      // إضافة الغرفة للقائمة العامة
-      const roomData = {
-        roomID: `room_${Date.now()}`,
-        streamID: `stream_${Date.now()}`,
-        userName: user?.username || streamTitle,
-        userID: user?.id || `user_${Date.now()}`,
-        timestamp: Date.now(),
-        title: streamTitle
-      };
+      // نشر البث
+      await zegoEngine.current.startPublishingStream(streamID, localStream);
       
-      if (!window.liveRooms) {
-        window.liveRooms = [];
-      }
-      window.liveRooms.push(roomData);
-      setLiveRooms([...window.liveRooms]);
-      setCurrentRoom(roomData);
-      setIsStreaming(true);
+      console.log('🌐 تم نشر البث بنجاح!');
+      
+      setIsLive(true);
+      setLoading(false);
+
+      // حفظ معلومات البث
+      (window as any).activeZegoStream = {
+        roomID: roomID.current,
+        streamID: streamID,
+        title: title,
+        isActive: true,
+        startTime: new Date().toISOString()
+      };
 
       // محاكاة عدد المشاهدين
       const viewerInterval = setInterval(() => {
-        setViewerCount(prev => prev + Math.floor(Math.random() * 3));
-      }, 5000);
+        if (isLive) {
+          setViewerCount(Math.floor(Math.random() * 50) + 1);
+        } else {
+          clearInterval(viewerInterval);
+        }
+      }, 3000);
 
-      toast({
-        title: "🔴 بث مباشر",
-        description: "بدأ البث المباشر بنجاح!",
-      });
-
-      // حفظ البث للتنظيف لاحقاً
-      (window as any).currentLiveStream = {
-        stream: localStream,
-        interval: viewerInterval,
-        roomData
-      };
-
-    } catch (error: any) {
-      console.error('❌ خطأ في البث:', error);
+    } catch (err: any) {
+      console.error('❌ خطأ في ZEGO:', err);
+      setLoading(false);
       
-      let errorMessage = "فشل في بدء البث";
-      if (error.name === 'NotAllowedError') {
-        errorMessage = "تم رفض أذونات الكاميرا - يرجى السماح بالوصول";
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = "لم يتم العثور على كاميرا";
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = "الكاميرا مستخدمة من تطبيق آخر";
+      let message = 'فشل في بدء البث';
+      if (err.code === 1003001) {
+        message = 'خطأ في إعدادات ZEGO - تحقق من AppID و AppSign';
+      } else if (err.toString().includes('camera')) {
+        message = 'فشل في الوصول للكاميرا - اسمح بالوصول من إعدادات المتصفح';
       }
       
-      toast({
-        title: "خطأ في البث",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      setError(message + '\n\nخطأ تقني: ' + err.message);
     }
   };
 
-  // إيقاف البث
-  const stopLiveStream = async () => {
+  const stopZegoStream = async () => {
     try {
-      // إيقاف البث الحالي
-      const currentStream = (window as any).currentLiveStream;
-      if (currentStream) {
-        // إيقاف الكاميرا
-        if (currentStream.stream) {
-          currentStream.stream.getTracks().forEach((track: any) => track.stop());
-        }
+      console.log('⏹️ إيقاف بث ZEGO...');
+
+      if (zegoEngine.current) {
+        // إيقاف النشر
+        await zegoEngine.current.stopPublishingStream();
         
-        // إيقاف العداد
-        if (currentStream.interval) {
-          clearInterval(currentStream.interval);
-        }
+        // مغادرة الغرفة
+        await zegoEngine.current.logoutRoom(roomID.current);
         
-        // إزالة الغرفة من القائمة
-        if (window.liveRooms && currentStream.roomData) {
-          window.liveRooms = window.liveRooms.filter(room => room.roomID !== currentStream.roomData.roomID);
-          setLiveRooms([...window.liveRooms]);
-        }
-        
-        // تنظيف المتغير العام
-        delete (window as any).currentLiveStream;
-        
-        console.log('✅ تم إيقاف البث وتنظيف الموارد');
+        console.log('✅ تم إيقاف البث');
       }
-      
-      setIsStreaming(false);
-      setCurrentRoom(null);
-      setLocation('/');
-    } catch (error) {
-      console.error('❌ خطأ في إيقاف البث:', error);
-    }
-  };
 
-  // مشاهدة بث
-  const watchLiveStream = async (room: any) => {
-    try {
-      console.log('👀 Watching stream:', room);
-      
-      const appID = parseInt(import.meta.env.VITE_ZEGOCLOUD_APP_ID || '');
-      const serverSecret = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN || '';
-      const viewerID = `viewer_${Date.now()}`;
-
-      const zg = new window.ZegoExpressEngine(appID, serverSecret);
-      window.zg = zg;
-
-      // دخول الغرفة كمشاهد
-      await zg.loginRoom(room.roomID, { userID: viewerID, userName: "مشاهد" });
-
-      // بدء مشاهدة البث
-      zg.startPlayingStream(room.streamID, (stream: MediaStream) => {
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
+      if (videoRef.current) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
         }
-      });
-
-      setIsWatching(true);
-      setCurrentRoom(room);
-
-      toast({
-        title: "بدأت المشاهدة",
-        description: `تشاهد الآن بث ${room.userName}`,
-      });
-
-    } catch (error: any) {
-      console.error('❌ Error watching stream:', error);
-      toast({
-        title: "خطأ في المشاهدة",
-        description: `فشل في مشاهدة البث: ${error.message}`,
-        variant: "destructive"
-      });
-    }
-  };
-
-  // إيقاف المشاهدة
-  const stopWatching = async () => {
-    try {
-      if (window.zg && currentRoom) {
-        await window.zg.stopPlayingStream(currentRoom.streamID);
-        await window.zg.logoutRoom(currentRoom.roomID);
+        videoRef.current.srcObject = null;
       }
+
+      // إزالة من الذاكرة
+      delete (window as any).activeZegoStream;
+
+      setIsLive(false);
+      setViewerCount(0);
       
-      setIsWatching(false);
-      setCurrentRoom(null);
-    } catch (error) {
-      console.error('❌ Error stopping watching:', error);
+      // العودة للرئيسية
+      setTimeout(() => setLocation('/'), 1000);
+
+    } catch (err: any) {
+      console.error('❌ خطأ في إيقاف البث:', err);
     }
   };
 
-  // إذا كان يبث
-  if (isStreaming) {
-    return (
-      <div className="min-h-screen bg-black">
-        {/* الفيديو المحلي */}
-        <video
-          ref={localVideoRef}
-          className="w-full h-screen object-cover"
-          autoPlay
-          playsInline
-          muted
-          style={{ transform: 'scaleX(-1)' }}
-        />
-        
-        {/* شريط علوي */}
-        <div className="absolute top-4 left-4 right-4 z-50">
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-white font-bold">مباشر</span>
-                <span className="text-white">{streamTitle}</span>
-              </div>
-              
-              <div className="flex items-center space-x-2 rtl:space-x-reverse text-white text-sm">
-                <Users className="w-4 h-4" />
-                <span>{viewerCount}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* أزرار التحكم */}
-        <div className="absolute bottom-20 left-4 right-4 z-50">
-          <div className="flex justify-center">
-            <Button
-              onClick={stopLiveStream}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full"
-            >
-              إنهاء البث
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // إذا كان يشاهد
-  if (isWatching) {
-    return (
-      <div className="min-h-screen bg-black">
-        {/* الفيديو البعيد */}
-        <video
-          ref={remoteVideoRef}
-          className="w-full h-screen object-cover"
-          autoPlay
-          playsInline
-        />
-        
-        {/* شريط علوي */}
-        <div className="absolute top-4 left-4 right-4 z-50">
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-white font-bold">مباشر</span>
-                <span className="text-white">{currentRoom?.title || currentRoom?.userName}</span>
-              </div>
-              
-              <Button
-                onClick={stopWatching}
-                className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1"
-              >
-                إغلاق
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // الواجهة الرئيسية
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black p-4">
-      <div className="max-w-md mx-auto">
-        {/* بدء بث جديد */}
-        <Card className="mb-6 bg-black/50 backdrop-blur-lg border-white/20">
-          <CardHeader className="text-center">
-            <CardTitle className="text-white text-2xl font-bold">
-              🔴 بث مباشر حقيقي
-            </CardTitle>
-            <p className="text-gray-300">
-              بث مباشر حقيقي
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-white text-sm font-medium block mb-2">
-                عنوان البث
-              </label>
-              <Input
-                type="text"
-                placeholder="أدخل عنوان البث المباشر..."
-                value={streamTitle}
-                onChange={(e) => setStreamTitle(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+    <div style={{ 
+      padding: '20px', 
+      background: 'linear-gradient(135deg, #667eea, #764ba2)', 
+      minHeight: '100vh',
+      color: 'white',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+        
+        {/* العنوان */}
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+          <h1 style={{ margin: '0 0 10px 0', fontSize: '24px' }}>
+            🐰 LaaBoBo Live - ZEGO Cloud
+          </h1>
+          <p style={{ margin: 0, color: '#ccc' }}>بث مباشر حقيقي</p>
+        </div>
+
+        {!isLive ? (
+          /* نموذج البث */
+          <div style={{
+            background: 'rgba(0,0,0,0.4)',
+            padding: '30px',
+            borderRadius: '15px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '60px', marginBottom: '20px' }}>
+              {loading ? '⏳' : '🔴'}
+            </div>
+            
+            <h2 style={{ marginBottom: '20px', color: 'white' }}>
+              {loading ? 'جاري إعداد البث...' : 'بث مباشر عبر ZEGO Cloud'}
+            </h2>
+
+            {error && (
+              <div style={{
+                background: '#dc2626',
+                color: 'white',
+                padding: '15px',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                whiteSpace: 'pre-line',
+                textAlign: 'left'
+              }}>
+                ❌ {error}
+              </div>
+            )}
+
+            <input
+              type="text"
+              placeholder="عنوان البث..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '16px',
+                borderRadius: '8px',
+                border: '1px solid #ccc',
+                marginBottom: '20px',
+                boxSizing: 'border-box',
+                opacity: loading ? 0.5 : 1
+              }}
+            />
+
+            <button
+              onClick={startZegoStream}
+              disabled={!title.trim() || loading}
+              style={{
+                width: '100%',
+                padding: '15px',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                borderRadius: '8px',
+                border: 'none',
+                background: (title.trim() && !loading) ? '#dc2626' : '#666',
+                color: 'white',
+                cursor: (title.trim() && !loading) ? 'pointer' : 'not-allowed',
+                opacity: loading ? 0.7 : 1
+              }}
+            >
+              {loading ? '⏳ جاري الإعداد...' : '🔴 بث مباشر ZEGO'}
+            </button>
+
+            <div style={{
+              background: '#10b981',
+              color: 'white',
+              padding: '10px',
+              borderRadius: '8px',
+              marginTop: '20px',
+              fontSize: '14px'
+            }}>
+              🌐 بث حقيقي عبر ZEGO Cloud - AppID: 1034062164
+            </div>
+          </div>
+        ) : (
+          /* واجهة البث المباشر */
+          <div>
+            {/* شريط حالة البث */}
+            <div style={{
+              background: 'rgba(0,0,0,0.5)',
+              padding: '15px',
+              borderRadius: '10px',
+              marginBottom: '15px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  background: '#dc2626',
+                  borderRadius: '50%',
+                  animation: 'pulse 2s infinite'
+                }}></div>
+                <span style={{ fontWeight: 'bold' }}>LIVE ZEGO</span>
+                <span>{title}</span>
+                <span style={{ 
+                  background: '#10b981', 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  fontSize: '12px' 
+                }}>
+                  👥 {viewerCount}
+                </span>
+              </div>
+              
+              <button
+                onClick={stopZegoStream}
+                style={{
+                  padding: '8px 15px',
+                  background: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                إيقاف
+              </button>
+            </div>
+
+            {/* شاشة الفيديو */}
+            <div style={{
+              background: 'black',
+              borderRadius: '15px',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  minHeight: '300px',
+                  objectFit: 'cover',
+                  transform: 'scaleX(-1)'
+                }}
               />
-            </div>
-            
-            <div className="text-center text-green-300 text-sm bg-green-900/20 rounded p-2">
-              📱 التطبيق جاهز للبث المباشر
-            </div>
-            
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setLocation('/')}
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                رجوع
-              </Button>
-              <Button
-                onClick={startLiveStream}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
-                disabled={!streamTitle.trim()}
-              >
-                🔴 ابدأ البث
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              
+              {/* مؤشرات البث */}
+              <div style={{
+                position: 'absolute',
+                top: '10px',
+                left: '10px',
+                background: '#10b981',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}>
+                🌐 ZEGO LIVE
+              </div>
 
-        {/* قائمة البثوث المباشرة */}
-        {liveRooms.length > 0 && (
-          <Card className="bg-black/50 backdrop-blur-lg border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white text-xl">
-                🎥 البثوث المباشرة ({liveRooms.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {liveRooms.map((room, index) => (
-                <div
-                  key={room.roomID}
-                  className="bg-white/10 rounded-lg p-3 flex items-center justify-between"
-                >
-                  <div>
-                    <div className="text-white font-medium">{room.title || room.userName}</div>
-                    <div className="text-gray-400 text-sm flex items-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
-                      مباشر الآن
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => watchLiveStream(room)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    مشاهدة
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+              <div style={{
+                position: 'absolute',
+                bottom: '10px',
+                right: '10px',
+                background: 'rgba(0,0,0,0.7)',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '12px'
+              }}>
+                Room: {roomID.current.slice(-8)}
+              </div>
+            </div>
+
+            {/* رسالة النجاح */}
+            <div style={{
+              background: '#10b981',
+              color: 'white',
+              padding: '15px',
+              borderRadius: '10px',
+              marginTop: '15px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                ✅ بث مباشر حقيقي نشط!
+              </div>
+              <div style={{ fontSize: '14px' }}>
+                يتم البث عبر خوادم ZEGO Cloud العالمية
+              </div>
+            </div>
+          </div>
         )}
 
-        {liveRooms.length === 0 && isSDKLoaded && (
-          <Card className="bg-black/50 backdrop-blur-lg border-white/20">
-            <CardContent className="text-center py-8">
-              <div className="text-gray-400 text-lg mb-2">📡</div>
-              <p className="text-gray-400">لا توجد بثوث مباشرة حالياً</p>
-              <p className="text-gray-500 text-sm">ابدأ بثك لتكون أول المذيعين!</p>
-            </CardContent>
-          </Card>
-        )}
+        {/* زر العودة */}
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <button
+            onClick={() => setLocation('/')}
+            style={{
+              padding: '10px 20px',
+              background: 'transparent',
+              color: '#ccc',
+              border: '1px solid #ccc',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            ← العودة للرئيسية
+          </button>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
 }
