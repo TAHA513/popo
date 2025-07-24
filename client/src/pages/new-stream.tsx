@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Camera, Mic, ArrowLeft, Gamepad2, Key, MessageSquare, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
@@ -12,20 +13,19 @@ export default function NewStreamPage() {
   const [hasCamera, setHasCamera] = useState(false);
   const [hasMic, setHasMic] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [permissionStep, setPermissionStep] = useState('main'); // 'main', 'camera', 'mic', 'ready'
+  const [permissionStep, setPermissionStep] = useState('main'); // 'main', 'camera', 'mic', 'title', 'ready'
+  const [streamTitle, setStreamTitle] = useState('');
+  const [currentStreamId, setCurrentStreamId] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
   // إنشاء البث
   const createStreamMutation = useMutation({
-    mutationFn: () => 
-      apiRequest('/api/streams', 'POST', { 
-        title: 'بث مباشر', 
-        description: 'بث مباشر', 
-        category: 'gaming' 
-      }),
+    mutationFn: (data: { title: string; description: string; category: string }) => 
+      apiRequest('/api/streams', 'POST', data),
     onSuccess: (newStream) => {
       console.log('✅ تم إنشاء البث:', newStream);
+      setCurrentStreamId(newStream.id);
       setIsStreaming(true);
     },
     onError: (error) => {
@@ -60,7 +60,7 @@ export default function NewStreamPage() {
       });
       
       setHasMic(true);
-      setPermissionStep('ready');
+      setPermissionStep('title');
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -76,18 +76,32 @@ export default function NewStreamPage() {
 
   // بدء البث
   const startStreaming = () => {
-    if (hasCamera && hasMic) {
-      createStreamMutation.mutate();
+    if (hasCamera && hasMic && streamTitle.trim()) {
+      createStreamMutation.mutate({
+        title: streamTitle.trim(),
+        description: streamTitle.trim(),
+        category: 'gaming'
+      });
     }
   };
 
   // إيقاف البث
-  const stopStreaming = () => {
+  const stopStreaming = async () => {
+    if (currentStreamId) {
+      try {
+        await apiRequest(`/api/streams/${currentStreamId}`, 'DELETE', {});
+        console.log('✅ تم حذف البث من قاعدة البيانات');
+      } catch (error) {
+        console.error('❌ خطأ في حذف البث:', error);
+      }
+    }
+    
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => track.stop());
       setMediaStream(null);
     }
     setIsStreaming(false);
+    setCurrentStreamId(null);
     setLocation('/');
   };
 
@@ -230,6 +244,40 @@ export default function NewStreamPage() {
         </div>
       )}
 
+      {/* كتابة اسم البث */}
+      {permissionStep === 'title' && (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
+          <div className="w-32 h-32 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+            <MessageSquare className="w-16 h-16 text-white" />
+          </div>
+          
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-bold">اسم البث</h2>
+            <p className="text-white/70 max-w-sm">
+              اكتب اسماً جذاباً لبثك المباشر
+            </p>
+          </div>
+
+          <div className="w-full max-w-sm space-y-4">
+            <Input
+              placeholder="مثال: ألعاب ممتعة مع الأصدقاء"
+              value={streamTitle}
+              onChange={(e) => setStreamTitle(e.target.value)}
+              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 text-center py-4 text-lg"
+              maxLength={50}
+            />
+            
+            <Button 
+              onClick={() => setPermissionStep('ready')}
+              disabled={!streamTitle.trim()}
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white py-4 rounded-full font-bold disabled:opacity-50"
+            >
+              التالي
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* جاهز للبث */}
       {permissionStep === 'ready' && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
@@ -247,6 +295,9 @@ export default function NewStreamPage() {
           
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-bold">جاهز للبث!</h2>
+            <div className="bg-white/10 rounded-lg p-3 max-w-sm">
+              <p className="text-white font-medium">{streamTitle}</p>
+            </div>
             <p className="text-white/70 max-w-sm">
               كل شيء جاهز. اضغط للبدء في البث المباشر
             </p>
