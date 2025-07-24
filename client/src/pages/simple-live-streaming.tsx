@@ -48,8 +48,16 @@ export default function SimpleLiveStreaming() {
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
         localVideoRef.current.muted = true;
+        localVideoRef.current.autoplay = true;
         localVideoRef.current.playsInline = true;
-        await localVideoRef.current.play();
+        
+        // Force video to play
+        try {
+          await localVideoRef.current.play();
+          console.log('Video started playing successfully');
+        } catch (playError) {
+          console.error('Video play error:', playError);
+        }
       }
       
       setCurrentStep(3);
@@ -141,6 +149,7 @@ export default function SimpleLiveStreaming() {
         const newState = !cameraEnabled;
         setCameraEnabled(newState);
         videoTrack.enabled = newState;
+        console.log('Camera toggled:', newState ? 'ON' : 'OFF');
       }
     }
   };
@@ -152,6 +161,7 @@ export default function SimpleLiveStreaming() {
         const newState = !micEnabled;
         setMicEnabled(newState);
         audioTrack.enabled = newState;
+        console.log('Microphone toggled:', newState ? 'ON' : 'OFF');
       }
     }
   };
@@ -247,8 +257,10 @@ export default function SimpleLiveStreaming() {
                 <video
                   ref={localVideoRef}
                   className="w-full h-64 bg-black rounded-lg object-cover"
+                  autoPlay
                   playsInline
                   muted
+                  style={{ transform: 'scaleX(-1)' }} // Mirror effect
                 />
                 
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
@@ -312,8 +324,10 @@ export default function SimpleLiveStreaming() {
                   <video
                     ref={localVideoRef}
                     className="w-full h-96 object-cover"
+                    autoPlay
                     playsInline
                     muted
+                    style={{ transform: 'scaleX(-1)' }} // Mirror effect
                   />
                   
                   {/* Live controls */}
