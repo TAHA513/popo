@@ -58,11 +58,14 @@ export default function SimpleHome() {
             
             {/* Live Stream Button - Right Side */}
             <Button 
-              onClick={() => setLocation('/start-stream')}
+              onClick={() => {
+                console.log('Navigating to new-stream from header button');
+                setLocation('/new-stream');
+              }}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
             >
               <Radio className="w-4 h-4" />
-              <span className="text-sm font-bold">بث مباشر</span>
+              <span className="text-sm font-bold">ابدأ بث مباشر</span>
             </Button>
           </div>
         </div>
