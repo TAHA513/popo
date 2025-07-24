@@ -93,17 +93,25 @@ export default function SimpleLiveStreaming() {
     setError('');
 
     try {
-      // Create simple stream notification (no database)
-      const streamNotification = {
-        id: Date.now(),
-        title: streamTitle,
-        isLive: true,
-        startTime: Date.now()
-      };
-      
-      // Store notification in localStorage for homepage
-      localStorage.setItem('liveStreamNotification', JSON.stringify(streamNotification));
-      console.log('بدأ البث المباشر:', streamNotification);
+      // Create stream in database
+      const response = await fetch('/api/streams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: streamTitle,
+          category: 'general'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'فشل في إنشاء البث');
+      }
+
+      const streamData = await response.json();
+      console.log('Stream created successfully:', streamData);
 
       setIsStreaming(true);
       setCurrentStep(4);
@@ -148,10 +156,15 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Remove stream notification
-      localStorage.removeItem('liveStreamNotification');
-      console.log('انتهى البث المباشر');
+      // End stream in database
+      await fetch('/api/streams/end', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
+      console.log('Stream ended successfully');
       setIsStreaming(false);
       setLocation('/');
       

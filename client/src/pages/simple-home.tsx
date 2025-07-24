@@ -22,24 +22,11 @@ export default function SimpleHome() {
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // Check for live stream notification
-  const [liveStream, setLiveStream] = useState<any>(null);
-  
-  useEffect(() => {
-    const checkLiveStream = () => {
-      const notification = localStorage.getItem('liveStreamNotification');
-      if (notification) {
-        setLiveStream(JSON.parse(notification));
-      } else {
-        setLiveStream(null);
-      }
-    };
-
-    checkLiveStream();
-    const interval = setInterval(checkLiveStream, 2000); // Check every 2 seconds
-
-    return () => clearInterval(interval);
-  }, []);
+  // Fetch active streams from database
+  const { data: streams = [] } = useQuery<any[]>({
+    queryKey: ['/api/streams'],
+    refetchInterval: 3000, // Refresh every 3 seconds
+  });
   
   const handleLike = (id: string) => {
     setLikedItems(prev => {
