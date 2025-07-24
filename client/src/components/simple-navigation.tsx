@@ -103,8 +103,8 @@ export default function SimpleNavigation() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Button clicked - navigating to new-stream');
-                setLocation('/new-stream');
+                console.log('Button clicked - navigating to simple-stream');
+                setLocation('/simple-stream');
               }}
               title="ابدأ بث مباشر"
             >

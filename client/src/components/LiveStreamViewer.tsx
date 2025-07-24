@@ -19,8 +19,37 @@ export default function LiveStreamViewer({ streamId, streamTitle, hostName }: Li
   const [recentInteractions, setRecentInteractions] = useState<Array<{id: string, type: 'like' | 'comment' | 'gift', user: string, timestamp: number}>>([]);
   const [ws, setWs] = useState<WebSocket | null>(null);
 
-  // الاتصال بـ WebSocket
+  // التحقق من حالة البث قبل بدء المشاهدة
   useEffect(() => {
+    const checkStreamStatus = async () => {
+      try {
+        const response = await fetch(`/api/streams/${streamId}`);
+        if (!response.ok) {
+          console.log('❌ البث غير متاح');
+          setIsStreamEnded(true);
+          return;
+        }
+        
+        const stream = await response.json();
+        if (!stream.isLive) {
+          console.log('❌ البث انتهى');
+          setIsStreamEnded(true);
+          return;
+        }
+        
+        console.log('✅ البث متاح، بدء المشاهدة');
+        startWebSocketConnection();
+      } catch (error) {
+        console.error('❌ خطأ في التحقق من البث:', error);
+        setIsStreamEnded(true);
+      }
+    };
+
+    checkStreamStatus();
+  }, [streamId]);
+
+  // الاتصال بـ WebSocket
+  const startWebSocketConnection = () => {
     const wsUrl = `ws://${window.location.host}/api/streams/${streamId}/ws`;
     const websocket = new WebSocket(wsUrl);
     
@@ -65,6 +94,11 @@ export default function LiveStreamViewer({ streamId, streamTitle, hostName }: Li
       setWs(null);
     };
 
+    websocket.onerror = (error) => {
+      console.error('❌ خطأ في WebSocket:', error);
+      setIsStreamEnded(true);
+    };
+
     // تنظيف عند إغلاق المكون
     return () => {
       if (websocket.readyState === WebSocket.OPEN) {
@@ -72,7 +106,7 @@ export default function LiveStreamViewer({ streamId, streamTitle, hostName }: Li
         websocket.close();
       }
     };
-  }, [streamId]);
+  };
 
   // إضافة تفاعل جديد
   const addInteraction = (type: 'like' | 'comment' | 'gift', user: string) => {
@@ -127,8 +161,8 @@ export default function LiveStreamViewer({ streamId, streamTitle, hostName }: Li
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center text-white p-8">
           <div className="text-6xl mb-4">📺</div>
-          <h2 className="text-2xl font-bold mb-2">انتهى البث</h2>
-          <p className="text-white/70 mb-6">هذا البث انتهى. شكراً لمشاهدتك!</p>
+          <h2 className="text-2xl font-bold mb-2">البث غير متاح</h2>
+          <p className="text-white/70 mb-6">قد يكون البث انتهى أو غير متاح حالياً</p>
           <Button 
             onClick={() => setLocation('/')}
             className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-xl"

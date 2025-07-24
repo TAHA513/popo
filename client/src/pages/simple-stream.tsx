@@ -119,7 +119,7 @@ export default function SimpleStreamPage() {
   const stopStreaming = async () => {
     console.log('🛑 إيقاف البث...');
     
-    // حذف البث من قاعدة البيانات
+    // حذف البث من قاعدة البيانات أولاً
     if (currentStreamId) {
       try {
         await apiRequest(`/api/streams/${currentStreamId}`, 'DELETE', {});
@@ -147,6 +147,37 @@ export default function SimpleStreamPage() {
     // العودة للصفحة الرئيسية
     setLocation('/');
   };
+
+  // حذف البث تلقائياً عند إغلاق الصفحة أو التبديل
+  useEffect(() => {
+    const handleUnload = async () => {
+      if (currentStreamId) {
+        // محاولة حذف البث عند إغلاق الصفحة
+        navigator.sendBeacon(`/api/streams/${currentStreamId}`, 
+          JSON.stringify({ method: 'DELETE' }));
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isLive) {
+        e.preventDefault();
+        e.returnValue = 'سيتم إنهاء البث المباشر. هل أنت متأكد؟';
+        return 'سيتم إنهاء البث المباشر. هل أنت متأكد؟';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+      // حذف البث عند تنظيف المكون
+      if (currentStreamId) {
+        apiRequest(`/api/streams/${currentStreamId}`, 'DELETE', {}).catch(console.error);
+      }
+    };
+  }, [isLive, currentStreamId]);
 
   // تبديل الكاميرا
   const toggleCamera = () => {
