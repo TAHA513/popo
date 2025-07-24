@@ -103,36 +103,73 @@ export default function StartStreamingPage() {
     setError("");
 
     try {
+      console.log('Starting camera setup...');
+      
       const authSuccess = await getAuthToken();
       if (!authSuccess) return;
 
+      console.log('Auth successful, checking ZEGO SDK...');
+
+      // Wait for ZEGO SDK to load
+      let attempts = 0;
+      while (!window.ZegoExpressEngine && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+
       if (!window.ZegoExpressEngine) {
-        throw new Error('ZEGO SDK لم يتم تحميله بعد');
+        throw new Error('ZEGO SDK لم يتم تحميله. يرجى إعادة تحميل الصفحة');
       }
 
-      const zegoEngine = new window.ZegoExpressEngine(appID, "wss://webliveroom-api.zegocloud.com/ws");
-      setZg(zegoEngine);
+      console.log('ZEGO SDK loaded, requesting camera permissions...');
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          width: { ideal: 720 }, 
-          height: { ideal: 480 },
-          facingMode: 'user'
-        },
-        audio: true
-      });
-
-      setLocalStream(stream);
-      
-      const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
-      if (localVideo) {
-        localVideo.srcObject = stream;
+      // First get basic camera permission
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280 }, 
+            height: { ideal: 720 },
+            facingMode: 'user' 
+          }, 
+          audio: true 
+        });
+        
+        console.log('Camera permission granted');
+        
+        // Display the stream in video element immediately
+        const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
+        if (localVideo) {
+          localVideo.srcObject = stream;
+          localVideo.muted = true; // Prevent feedback
+          localVideo.playsInline = true;
+          await localVideo.play();
+          console.log('Local video playing');
+        }
+        
+        setLocalStream(stream);
+        setCurrentStep(3);
+        setIsStreaming(false); // Not streaming yet, just preview
+        
+      } catch (mediaError: any) {
+        console.error('Media access error:', mediaError);
+        throw mediaError;
       }
 
-      setCurrentStep(3);
     } catch (error: any) {
-      console.error('خطأ في تشغيل الكاميرا:', error);
-      setError('فشل في الوصول للكاميرا. تأكد من السماح بالوصول للكاميرا والميكروفون.');
+      console.error('Camera setup error:', error);
+      if (error.name === 'NotAllowedError') {
+        setError('يرجى السماح بالوصول للكاميرا والميكروفون من إعدادات المتصفح. اضغط على أيقونة القفل بجوار عنوان الموقع واختر "السماح"');
+      } else if (error.name === 'NotFoundError') {
+        setError('لم يتم العثور على كاميرا أو ميكروفون متصل بالجهاز');
+      } else if (error.name === 'NotReadableError') {
+        setError('الكاميرا أو الميكروفون قيد الاستخدام من تطبيق آخر. أغلق التطبيقات الأخرى وحاول مرة أخرى');
+      } else if (error.name === 'AbortError') {
+        setError('تم إلغاء طلب الوصول للكاميرا');
+      } else if (error.name === 'NotSupportedError') {
+        setError('متصفحك لا يدعم الوصول للكاميرا والميكروفون');
+      } else {
+        setError(error.message || 'فشل في تشغيل الكاميرا. تأكد من وجود كاميرا متصلة ومنح الإذن للمتصفح');
+      }
     } finally {
       setLoading(false);
     }
