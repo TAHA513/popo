@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 
 import BottomNavigation from "@/components/bottom-navigation";
+import LiveStreamCard from "@/components/LiveStreamCard";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -23,6 +24,7 @@ export default function SimpleHome() {
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
   const [currentStream, setCurrentStream] = useState<any>(null);
+  const [allActiveStreams, setAllActiveStreams] = useState<any[]>([]);
 
   // Check for live stream notifications
   useEffect(() => {
@@ -50,10 +52,12 @@ export default function SimpleHome() {
               ...parsedData,
               duration: Math.floor(timeElapsed / 1000) + 's'
             });
-            setCurrentStream({
+            const activeStream = {
               ...parsedData,
               viewerCount: Math.max(1, parsedData.viewerCount + Math.floor(timeElapsed / 30000)) // Increase viewers over time
-            });
+            };
+            setCurrentStream(activeStream);
+            setAllActiveStreams([activeStream]); // For now, show single stream in array
           } else {
             // Auto-expire after 2 hours - clean all storage
             localStorage.removeItem('liveStreamNotification');
@@ -64,14 +68,17 @@ export default function SimpleHome() {
             delete (window as any).liveStreamStartTime;
             console.log('⏰ Stream auto-expired after 2 hours - all storage cleaned');
             setCurrentStream(null);
+            setAllActiveStreams([]);
           }
         } catch (error) {
           console.error('Error parsing stream data:', error);
           setCurrentStream(null);
+          setAllActiveStreams([]);
         }
       } else {
         console.log('❌ No active live stream');
         setCurrentStream(null);
+        setAllActiveStreams([]);
       }
     };
 
@@ -131,8 +138,8 @@ export default function SimpleHome() {
       </div>
 
       <div className="max-w-md mx-auto">
-        {/* Live Streams Section */}
-        {currentStream ? (
+        {/* Live Streams Section - Show ALL active streams */}
+        {allActiveStreams.length > 0 ? (
           <div className="p-4">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-gray-800 mb-3">🔴 البثوث المباشرة</h2>

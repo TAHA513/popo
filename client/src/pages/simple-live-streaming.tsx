@@ -115,10 +115,15 @@ export default function SimpleLiveStreaming() {
         isPublisher: true
       };
       
-      // Store notification with stream ID for viewers
+      // Store stream with unique key for multi-stream support
       const streamDataStr = JSON.stringify(enhancedStreamData);
       const startTimeStr = Date.now().toString();
       
+      // Store with unique stream key
+      localStorage.setItem(`liveStream_${streamData.id}`, streamDataStr);
+      localStorage.setItem(`streamTime_${streamData.id}`, startTimeStr);
+      
+      // Also store main notification for compatibility
       localStorage.setItem('liveStreamNotification', streamDataStr);
       localStorage.setItem('liveStreamStartTime', startTimeStr);
       localStorage.setItem('currentStreamID', streamID);
