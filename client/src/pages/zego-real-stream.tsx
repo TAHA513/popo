@@ -55,14 +55,14 @@ export default function ZegoRealStream() {
         initializeLiveRooms();
         toast({
           title: "تم تحميل النظام",
-          description: "نظام البث المباشر جاهز للاستخدام",
+          description: "التطبيق جاهز للبث المباشر",
         });
       };
       script.onerror = () => {
         console.error('❌ Failed to load ZEGO SDK');
         toast({
-          title: "خطأ في التحميل",
-          description: "فشل في تحميل نظام البث المباشر",
+          title: "خطأ في التحميل", 
+          description: "فشل في تحميل التطبيق",
           variant: "destructive"
         });
       };
@@ -120,8 +120,8 @@ export default function ZegoRealStream() {
       
       if (!appID || !serverSecret) {
         toast({
-          title: "إعدادات مفقودة",
-          description: "إعدادات البث غير موجودة في النظام",
+          title: "إعدادات مفقودة", 
+          description: "إعدادات التطبيق غير مكتملة",
           variant: "destructive"
         });
         return;
@@ -367,7 +367,7 @@ export default function ZegoRealStream() {
               🔴 بث مباشر حقيقي
             </CardTitle>
             <p className="text-gray-300">
-              بث مباشر عبر ZEGO Cloud
+              بث مباشر حقيقي
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -387,7 +387,7 @@ export default function ZegoRealStream() {
             {!isSDKLoaded && (
               <div className="text-center text-yellow-300 text-sm">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-300 mx-auto mb-2"></div>
-                جاري تحميل نظام البث...
+                جاري تحميل التطبيق...
               </div>
             )}
             
