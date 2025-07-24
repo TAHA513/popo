@@ -110,14 +110,30 @@ export default function ZegoRealStream() {
       setIsLive(true);
       setLoading(false);
 
-      // حفظ معلومات البث
+      // حفظ معلومات البث في ذاكرة ZEGO Cloud فقط
       (window as any).activeZegoStream = {
         roomID: roomID.current,
         streamID: streamID,
         title: title,
         isActive: true,
-        startTime: new Date().toISOString()
+        startTime: new Date().toISOString(),
+        hostOnZegoOnly: true // البث على ZEGO Cloud فقط
       };
+
+      // إضافة البث لقائمة البثوث النشطة في الذاكرة
+      if (!(window as any).liveRooms) {
+        (window as any).liveRooms = [];
+      }
+      
+      (window as any).liveRooms.push({
+        roomID: roomID.current,
+        streamID: streamID,
+        title: title,
+        hostName: 'مذيع LaaBoBo',
+        viewerCount: 0,
+        isActive: true,
+        createdAt: new Date().toISOString()
+      });
 
       // محاكاة عدد المشاهدين
       const viewerInterval = setInterval(() => {
@@ -167,6 +183,13 @@ export default function ZegoRealStream() {
 
       // إزالة من الذاكرة
       delete (window as any).activeZegoStream;
+      
+      // إزالة من قائمة البثوث النشطة
+      if ((window as any).liveRooms) {
+        (window as any).liveRooms = (window as any).liveRooms.filter(
+          (room: any) => room.roomID !== roomID.current
+        );
+      }
 
       setIsLive(false);
       setViewerCount(0);
