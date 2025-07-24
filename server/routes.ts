@@ -256,9 +256,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Empty streams endpoint (streaming system removed)
+  // Live streaming endpoints
   app.get('/api/streams', async (req, res) => {
-    res.json([]);
+    try {
+      const streams = await storage.getStreams();
+      res.json(streams);
+    } catch (error) {
+      console.error("Error fetching streams:", error);
+      res.status(500).json({ message: "Failed to fetch streams" });
+    }
+  });
+
+  app.post('/api/streams', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { title, category } = req.body;
+      
+      const streamData = {
+        hostId: userId,
+        title: title || 'بث مباشر',
+        category: category || 'general',
+        isActive: true,
+        viewerCount: 0,
+        createdAt: new Date()
+      };
+
+      const stream = await storage.createStream(streamData);
+      res.json(stream);
+    } catch (error) {
+      console.error("Error creating stream:", error);
+      res.status(500).json({ message: "Failed to create stream" });
+    }
+  });
+
+  app.post('/api/streams/end', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      await storage.endUserStreams(userId);
+      res.json({ message: "Stream ended successfully" });
+    } catch (error) {
+      console.error("Error ending stream:", error);
+      res.status(500).json({ message: "Failed to end stream" });
+    }
   });
 
   // Memory fragments routes

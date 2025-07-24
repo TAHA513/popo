@@ -76,23 +76,8 @@ export default function SimpleLiveStreaming() {
     setError('');
 
     try {
-      // Create stream in database
-      const response = await fetch('/api/streams', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: streamTitle,
-          category: 'general'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('فشل في إنشاء البث');
-      }
-
-      const streamData = await response.json();
-      console.log('Stream created:', streamData);
+      // Simulate stream creation (no database needed for this demo)
+      console.log('Starting live stream:', { title: streamTitle });
 
       setIsStreaming(true);
       setCurrentStep(4);
@@ -137,12 +122,8 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Remove stream from database
-      await fetch('/api/streams/end', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      // Simulate stream end
+      console.log('Ending live stream');
 
       setIsStreaming(false);
       setLocation('/');

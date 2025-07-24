@@ -280,6 +280,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(memoryFragments.id, id));
   }
 
+  // Stream operations
+  async createStream(streamData: InsertStream): Promise<Stream> {
+    const [stream] = await db
+      .insert(streams)
+      .values(streamData)
+      .returning();
+    return stream;
+  }
+
+  async getStreams(): Promise<Stream[]> {
+    return await db
+      .select()
+      .from(streams)
+      .where(eq(streams.isActive, true))
+      .orderBy(desc(streams.createdAt));
+  }
+
+  async endUserStreams(userId: string): Promise<void> {
+    await db
+      .update(streams)
+      .set({ isActive: false })
+      .where(eq(streams.hostId, userId));
+  }
+
   async getExpiredMemoryFragments(): Promise<MemoryFragment[]> {
     return await db
       .select()
