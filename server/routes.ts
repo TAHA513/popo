@@ -395,8 +395,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(expressModule.static('public'));
 
   // ZEGO Token endpoint for secure authentication
-  app.get('/api/zego/token', requireAuth, async (req: any, res) => {
+  app.get('/api/zego/token', async (req: any, res) => {
     try {
+      console.log('ZEGO Token request:', {
+        isAuthenticated: req.isAuthenticated(),
+        user: req.user ? { id: req.user.id, username: req.user.username } : null,
+        sessionID: req.sessionID,
+        session: req.session ? Object.keys(req.session) : null
+      });
+
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: 'يجب تسجيل الدخول أولاً' });
+      }
+
       const { generateZegoToken } = await import('./zego-token');
       const appId = parseInt(process.env.VITE_ZEGOCLOUD_APP_ID || '1034062164');
       const serverSecret = process.env.ZEGO_SERVER_SECRET;
@@ -407,6 +418,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.id;
       const token = generateZegoToken(appId, serverSecret, userId);
+      
+      console.log('ZEGO Token generated successfully for user:', userId);
       
       res.json({ 
         token,

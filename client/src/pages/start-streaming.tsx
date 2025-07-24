@@ -42,23 +42,48 @@ export default function StartStreamingPage() {
 
   const getAuthToken = async () => {
     try {
-      const response = await fetch('/api/zego/token', {
+      // First check if user is authenticated
+      const userResponse = await fetch('/api/auth/user', {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
 
-      if (!response.ok) {
+      if (!userResponse.ok) {
         throw new Error('يجب تسجيل الدخول أولاً');
       }
 
+      const userData = await userResponse.json();
+      console.log('User authenticated:', userData);
+
+      // Now get ZEGO token
+      const response = await fetch('/api/zego/token', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      console.log('ZEGO token response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('ZEGO token error:', errorData);
+        throw new Error('فشل في الحصول على رمز المصادقة');
+      }
+
       const data = await response.json();
+      console.log('ZEGO token received:', { appId: data.appId, userId: data.userId });
+      
       setAuthToken(data.token);
       setAppID(data.appId);
       setCurrentUserId(data.userId);
       return true;
-    } catch (error) {
-      setError('يجب تسجيل الدخول أولاً');
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      setError(error.message || 'يجب تسجيل الدخول أولاً');
       setTimeout(() => window.location.href = '/login', 2000);
       return false;
     }
