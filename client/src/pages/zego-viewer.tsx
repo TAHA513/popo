@@ -52,9 +52,13 @@ export default function ZegoViewer() {
     try {
       console.log('👁️ انضمام للبث كمشاهد...', params.roomId);
 
-      // إعداد ZEGO Engine
-      const appID = parseInt(import.meta.env.VITE_ZEGOCLOUD_APP_ID);
+      // إعداد ZEGO Engine باستخدام الاستضافة المضافة
+      const appID = 1034062164; // AppID الخاص بك
       const appSign = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN;
+      
+      if (!appSign) {
+        throw new Error('ZEGO AppSign غير متوفر من الاستضافة');
+      }
       
       zegoEngine.current = new window.ZegoExpressEngine(appID, appSign);
       

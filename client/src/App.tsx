@@ -64,6 +64,10 @@ function Router() {
           <Route path="/camera-test">
             <ZegoRealStream />
           </Route>
+          <Route path="/zego-real-stream">
+            <ZegoRealStream />
+          </Route>
+          <Route path="/zego-viewer/:roomId" component={LazyComponents.ZegoViewerPage} />
           <Route path="/join/:roomId" component={LazyComponents.StreamPage} />
           <Route path="/cloud-stream-guide" component={LazyComponents.CloudStreamGuidePage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />

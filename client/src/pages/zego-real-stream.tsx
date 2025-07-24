@@ -54,13 +54,16 @@ export default function ZegoRealStream() {
       setError('');
       console.log('🔴 بدء البث باستخدام ZEGO Cloud...');
 
-      // إعداد ZEGO Engine
-      const appID = parseInt(import.meta.env.VITE_ZEGOCLOUD_APP_ID);
+      // إعداد ZEGO Engine باستخدام الاستضافة المضافة
+      const appID = 1034062164; // AppID الخاص بك
       const appSign = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN;
       
-      console.log('📱 AppID:', appID);
-      console.log('🔑 AppSign متوفر:', appSign ? 'نعم' : 'لا');
-      console.log('🔑 طول AppSign:', appSign ? appSign.length : 0);
+      console.log('📱 استخدام ZEGO Cloud AppID:', appID);
+      console.log('🔑 AppSign من الاستضافة:', appSign ? 'متوفر' : 'غير متوفر');
+      
+      if (!appSign) {
+        throw new Error('ZEGO AppSign غير متوفر - تحقق من إعدادات الاستضافة');
+      }
 
       zegoEngine.current = new window.ZegoExpressEngine(appID, appSign);
       

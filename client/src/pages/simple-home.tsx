@@ -97,8 +97,8 @@ export default function SimpleHome() {
             {/* Live Stream Button - Right Side */}
             <Button 
               onClick={() => {
-                console.log('Starting ZEGO Real stream');
-                window.location.href = '/camera-test';
+                console.log('Starting ZEGO Cloud stream');
+                setLocation('/zego-real-stream');
               }}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
             >
@@ -120,7 +120,13 @@ export default function SimpleHome() {
                 <Card 
                   key={`stream-${stream.id}`} 
                   className="border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow bg-white"
-                  onClick={() => setLocation(`/stream/${stream.id}`)}
+                  onClick={() => {
+                    if (stream.isZego) {
+                      setLocation(`/zego-viewer/${stream.id}`);
+                    } else {
+                      setLocation(`/stream/${stream.id}`);
+                    }
+                  }}
                 >
                   <CardContent className="p-0">
                     {/* صورة البث */}
