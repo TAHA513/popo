@@ -24,36 +24,64 @@ export default function ZegoLiveStream() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // تحميل ZegoCloud SDK
+  // تحميل SDK
   useEffect(() => {
-    const loadZegoSDK = () => {
+    const loadSDK = () => {
+      console.log('🔄 Starting SDK load process...');
+      
       if (window.ZegoUIKitPrebuilt) {
+        console.log('✅ SDK already loaded');
         setIsInitialized(true);
         return;
       }
 
+      console.log('📥 Loading SDK from CDN...');
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js';
+      script.async = true;
+      
       script.onload = () => {
-        console.log('✅ Streaming SDK loaded');
-        setIsInitialized(true);
+        console.log('✅ SDK script loaded successfully');
+        console.log('🔍 Checking global object:', !!window.ZegoUIKitPrebuilt);
+        
+        // انتظار قصير للتأكد من تحميل الكائن
+        setTimeout(() => {
+          if (window.ZegoUIKitPrebuilt) {
+            console.log('✅ SDK initialized and ready');
+            setIsInitialized(true);
+            toast({
+              title: "نجح التحميل",
+              description: "النظام جاهز للبث المباشر",
+            });
+          } else {
+            console.error('❌ SDK object not available after load');
+            toast({
+              title: "خطأ في النظام",
+              description: "فشل في تهيئة نظام البث",
+              variant: "destructive"
+            });
+          }
+        }, 500);
       };
-      script.onerror = () => {
-        console.error('❌ Failed to load streaming SDK');
+      
+      script.onerror = (error) => {
+        console.error('❌ Failed to load SDK script:', error);
         toast({
           title: "خطأ في التحميل",
-          description: "فشل في تحميل نظام البث",
+          description: "فشل في تحميل نظام البث من الخادم",
           variant: "destructive"
         });
       };
+      
       document.head.appendChild(script);
     };
 
-    loadZegoSDK();
+    loadSDK();
   }, [toast]);
 
-  // بدء البث المباشر مع ZegoCloud
+  // بدء البث المباشر
   const startLiveStream = async () => {
+    console.log('🚀 startLiveStream called with:', { streamTitle, isInitialized });
     if (!streamTitle.trim()) {
       toast({
         title: "عنوان مطلوب",
@@ -78,10 +106,15 @@ export default function ZegoLiveStream() {
       const appID = parseInt(import.meta.env.VITE_ZEGOCLOUD_APP_ID || '');
       const serverSecret = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN || '';
       
+      console.log('🔑 Checking credentials...');
+      console.log('App ID exists:', !!appID);
+      console.log('Server Secret exists:', !!serverSecret);
+      
       if (!appID || !serverSecret) {
+        console.error('❌ Missing credentials:', { hasAppID: !!appID, hasSecret: !!serverSecret });
         toast({
           title: "إعدادات مفقودة",
-          description: "إعدادات البث غير موجودة",
+          description: "إعدادات البث غير موجودة في النظام",
           variant: "destructive"
         });
         return;
@@ -209,9 +242,14 @@ export default function ZegoLiveStream() {
                 رجوع
               </Button>
               <Button
-                onClick={startLiveStream}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('🎯 Button clicked, title:', streamTitle, 'initialized:', isInitialized);
+                  startLiveStream();
+                }}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
                 disabled={!streamTitle.trim() || !isInitialized}
+                type="button"
               >
                 🔴 ابدأ البث
               </Button>
