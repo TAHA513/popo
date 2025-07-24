@@ -40,6 +40,11 @@ export default function SimpleStreamPage() {
     try {
       console.log('🎥 محاولة تشغيل الكاميرا...');
       
+      // إيقاف الكاميرا السابقة إن وجدت
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 640, max: 1280 },
@@ -54,19 +59,28 @@ export default function SimpleStreamPage() {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.muted = true; // كتم الصوت لتجنب التغذية الراجعة
+        videoRef.current.muted = false; // تفعيل الصوت للبث المباشر
+        videoRef.current.autoplay = true;
+        videoRef.current.playsInline = true;
         
-        videoRef.current.addEventListener('loadedmetadata', () => {
-          console.log('📺 تم تحميل بيانات الفيديو');
-          if (videoRef.current) {
-            videoRef.current.play().then(() => {
-              console.log('▶️ تم تشغيل الفيديو بنجاح');
+        // تشغيل الفيديو فوراً
+        try {
+          await videoRef.current.play();
+          console.log('▶️ تم تشغيل الفيديو بنجاح');
+          setCameraReady(true);
+        } catch (playError) {
+          console.error('❌ خطأ في تشغيل الفيديو:', playError);
+          // محاولة ثانية بعد تحميل البيانات
+          videoRef.current.onloadedmetadata = async () => {
+            try {
+              await videoRef.current!.play();
+              console.log('▶️ تم تشغيل الفيديو في المحاولة الثانية');
               setCameraReady(true);
-            }).catch(error => {
-              console.error('❌ خطأ في تشغيل الفيديو:', error);
-            });
-          }
-        });
+            } catch (secondError) {
+              console.error('❌ فشل في تشغيل الفيديو نهائياً:', secondError);
+            }
+          };
+        }
       }
       
       return true;
@@ -84,16 +98,15 @@ export default function SimpleStreamPage() {
       return;
     }
     
-    // تشغيل الكاميرا أولاً
-    const cameraSuccess = await startCamera();
-    if (!cameraSuccess) return;
-    
-    // إنشاء البث في قاعدة البيانات
+    // إنشاء البث في قاعدة البيانات أولاً
     createStreamMutation.mutate({
       title: streamTitle.trim(),
       description: streamTitle.trim(),
       category: 'gaming'
     });
+    
+    // تشغيل الكاميرا بعد إنشاء البث
+    await startCamera();
   };
 
   // إيقاف البث
@@ -173,7 +186,7 @@ export default function SimpleStreamPage() {
   }, [isLive]);
 
   // واجهة البث المباشر
-  if (isLive && cameraReady) {
+  if (isLive) {
     return (
       <div className="relative min-h-screen bg-black overflow-hidden">
         {/* الفيديو المباشر */}
@@ -307,19 +320,29 @@ export default function SimpleStreamPage() {
           </Button>
         </div>
 
-        {/* معاينة الكاميرا المخفية للاختبار */}
-        {mediaStream && (
-          <div className="mt-8">
-            <h3 className="text-white text-center mb-4">معاينة الكاميرا</h3>
-            <video 
-              ref={videoRef}
-              className="w-64 h-48 rounded-lg border-2 border-white/20"
-              autoPlay
-              playsInline
-              muted
-            />
-          </div>
-        )}
+        {/* معاينة الكاميرا للاختبار */}
+        <div className="mt-8">
+          <Button 
+            onClick={startCamera}
+            className="mb-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+          >
+            اختبار الكاميرا
+          </Button>
+          
+          {mediaStream && (
+            <div>
+              <h3 className="text-white text-center mb-4">معاينة الكاميرا</h3>
+              <video 
+                ref={videoRef}
+                className="w-64 h-48 rounded-lg border-2 border-white/20"
+                autoPlay
+                playsInline
+                muted
+              />
+              <p className="text-green-400 text-center mt-2">✅ الكاميرا تعمل بنجاح</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
