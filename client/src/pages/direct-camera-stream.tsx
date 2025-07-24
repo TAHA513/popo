@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function DirectCameraStream() {
   const [, setLocation] = useLocation();
@@ -15,6 +16,7 @@ export default function DirectCameraStream() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [viewerCount, setViewerCount] = useState(1);
+  const [currentStreamId, setCurrentStreamId] = useState<number | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -52,6 +54,22 @@ export default function DirectCameraStream() {
 
       console.log('✅ تم الحصول على الكاميرا');
 
+      // إنشاء البث في قاعدة البيانات
+      console.log('💾 إنشاء البث في المنصة...');
+      const streamResponse = await apiRequest('/api/streams', 'POST', {
+        title: streamTitle,
+        category: 'عام',
+        isActive: true
+      });
+
+      if (!streamResponse.ok) {
+        throw new Error('فشل في إنشاء البث في المنصة');
+      }
+
+      const streamData = await streamResponse.json();
+      setCurrentStreamId(streamData.id);
+      console.log('✅ تم إنشاء البث في المنصة:', streamData.id);
+
       // عرض الفيديو
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -71,17 +89,26 @@ export default function DirectCameraStream() {
       setIsStreaming(true);
       setIsLoading(false);
 
-      // محاكاة مشاهدين
-      const viewerInterval = setInterval(() => {
+      // محاكاة مشاهدين وتحديث قاعدة البيانات
+      const viewerInterval = setInterval(async () => {
         setViewerCount(prev => prev + Math.floor(Math.random() * 2));
-      }, 3000);
+        
+        // تحديث عدد المشاهدين في قاعدة البيانات
+        try {
+          await apiRequest(`/api/streams/${streamData.id}/viewers`, 'POST', {
+            action: 'join'
+          });
+        } catch (error) {
+          console.warn('⚠️ فشل في تحديث المشاهدين:', error);
+        }
+      }, 5000);
 
       // حفظ العداد للتنظيف
       (window as any).viewerInterval = viewerInterval;
 
       toast({
         title: "🔴 بث مباشر",
-        description: "بدأ البث المباشر بنجاح!"
+        description: "بدأ البث المباشر بنجاح في المنصة!"
       });
 
     } catch (error: any) {
@@ -106,8 +133,19 @@ export default function DirectCameraStream() {
   };
 
   // إيقاف البث
-  const stopStream = () => {
+  const stopStream = async () => {
     try {
+      // إيقاف البث في قاعدة البيانات
+      if (currentStreamId) {
+        console.log('💾 إيقاف البث في المنصة...');
+        try {
+          await apiRequest(`/api/streams/${currentStreamId}`, 'DELETE');
+          console.log('✅ تم حذف البث من المنصة');
+        } catch (error) {
+          console.warn('⚠️ فشل في حذف البث من المنصة:', error);
+        }
+      }
+
       // إيقاف الكاميرا
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
@@ -129,11 +167,17 @@ export default function DirectCameraStream() {
       }
 
       setIsStreaming(false);
+      setCurrentStreamId(null);
       
       toast({
         title: "تم إيقاف البث",
-        description: "تم إنهاء البث المباشر"
+        description: "تم إنهاء البث المباشر من المنصة"
       });
+
+      // العودة للصفحة الرئيسية
+      setTimeout(() => {
+        setLocation('/');
+      }, 2000);
 
     } catch (error) {
       console.error('❌ خطأ في إيقاف البث:', error);
@@ -142,15 +186,34 @@ export default function DirectCameraStream() {
 
   // تنظيف عند مغادرة الصفحة
   useEffect(() => {
+    // منع مغادرة الصفحة أثناء البث
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isStreaming) {
+        e.preventDefault();
+        e.returnValue = 'أنت في بث مباشر. هل تريد إنهاء البث والمغادرة؟';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      
+      // تنظيف الموارد
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
       if ((window as any).viewerInterval) {
         clearInterval((window as any).viewerInterval);
       }
+      
+      // حذف البث من قاعدة البيانات عند المغادرة
+      if (currentStreamId) {
+        apiRequest(`/api/streams/${currentStreamId}`, 'DELETE').catch(console.error);
+      }
     };
-  }, []);
+  }, [isStreaming, currentStreamId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -306,9 +369,14 @@ export default function DirectCameraStream() {
             
             {/* رسالة للمشاهدين */}
             <div className="mt-4 text-center">
-              <p className="text-gray-300">
-                📱 أنت الآن في بث مباشر! يمكن للمشاهدين رؤيتك الآن
-              </p>
+              <div className="bg-green-900/20 rounded-lg p-4 mb-4">
+                <p className="text-green-300 font-bold mb-2">
+                  ✅ البث نشط في منصة LaaBoBo
+                </p>
+                <p className="text-gray-300 text-sm">
+                  البث ID: {currentStreamId} | يمكن للمشاهدين مشاهدتك الآن من الصفحة الرئيسية
+                </p>
+              </div>
             </div>
           </div>
         )}
