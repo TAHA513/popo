@@ -20,7 +20,7 @@ import {
 
 export default function SimpleNavigation() {
   const { user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Fetch conversations to get unread count
   const { data: conversations = [] } = useQuery({
@@ -98,11 +98,15 @@ export default function SimpleNavigation() {
             </button>
             
             {/* أيقونة البث الأصلية */}
-            <Link href="/new-stream">
-              <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
-                <Video className="w-5 h-5" />
-              </button>
-            </Link>
+            <button 
+              className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full"
+              onClick={() => {
+                console.log('Navigating to new-stream');
+                setLocation('/new-stream');
+              }}
+            >
+              <Video className="w-5 h-5" />
+            </button>
             
             {/* Logout Button */}
             {user && (
