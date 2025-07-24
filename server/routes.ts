@@ -272,8 +272,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams', requireAuth, async (req: any, res) => {
+  app.post('/api/streams', async (req: any, res) => {
     try {
+      console.log('Stream creation request:', {
+        isAuthenticated: req.isAuthenticated(),
+        user: req.user ? req.user.id : 'none',
+        body: req.body
+      });
+
+      // Check authentication manually
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });
+      }
+
       const userId = req.user.id;
       const user = req.user;
       const { title, category } = req.body;
@@ -298,6 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store in global memory
       (global as any).activeStreams[userId] = streamData;
       
+      console.log('Stream created successfully:', streamData);
       res.json(streamData);
     } catch (error) {
       console.error("Error creating stream:", error);
@@ -305,13 +317,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams/end', requireAuth, async (req: any, res) => {
+  app.post('/api/streams/end', async (req: any, res) => {
     try {
+      // Check authentication manually
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });
+      }
+
       const userId = req.user.id;
       
       // Remove from global memory
       if ((global as any).activeStreams && (global as any).activeStreams[userId]) {
         delete (global as any).activeStreams[userId];
+        console.log('Stream ended for user:', userId);
       }
       
       res.json({ message: "Stream ended successfully" });
