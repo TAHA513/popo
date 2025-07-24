@@ -24,10 +24,19 @@ export default function SimpleStreamPage() {
   const createStreamMutation = useMutation({
     mutationFn: (data: { title: string; description: string; category: string }) => 
       apiRequest('/api/streams', 'POST', data),
-    onSuccess: (newStream) => {
+    onSuccess: async (newStream) => {
       console.log('✅ تم إنشاء البث:', newStream);
       setCurrentStreamId(newStream.id);
       setIsLive(true);
+      
+      // تشغيل الكاميرا فوراً بعد إنشاء البث
+      const cameraStarted = await startCamera();
+      if (!cameraStarted) {
+        // إذا فشلت الكاميرا، احذف البث
+        await apiRequest(`/api/streams/${newStream.id}`, 'DELETE', {});
+        setIsLive(false);
+        setCurrentStreamId(null);
+      }
     },
     onError: (error) => {
       console.error('❌ خطأ في إنشاء البث:', error);
@@ -59,7 +68,7 @@ export default function SimpleStreamPage() {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.muted = false; // تفعيل الصوت للبث المباشر
+        videoRef.current.muted = isLive ? false : true; // كتم الصوت فقط في المعاينة
         videoRef.current.autoplay = true;
         videoRef.current.playsInline = true;
         
@@ -98,15 +107,12 @@ export default function SimpleStreamPage() {
       return;
     }
     
-    // إنشاء البث في قاعدة البيانات أولاً
+    // إنشاء البث في قاعدة البيانات
     createStreamMutation.mutate({
       title: streamTitle.trim(),
       description: streamTitle.trim(),
       category: 'gaming'
     });
-    
-    // تشغيل الكاميرا بعد إنشاء البث
-    await startCamera();
   };
 
   // إيقاف البث
@@ -195,9 +201,19 @@ export default function SimpleStreamPage() {
           className="absolute inset-0 w-full h-full object-cover"
           autoPlay
           playsInline
-          muted
+          muted={false}
           controls={false}
         />
+        
+        {/* تأكيد أن الفيديو يعمل */}
+        {!mediaStream && (
+          <div className="absolute inset-0 bg-black flex items-center justify-center z-10">
+            <div className="text-white text-center">
+              <div className="w-16 h-16 border-4 border-laa-pink border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-lg">جاري تشغيل البث...</p>
+            </div>
+          </div>
+        )}
         
         {/* طبقة إذا كانت الكاميرا متوقفة */}
         {!cameraEnabled && (
