@@ -27,8 +27,17 @@ export default function SimpleHome() {
   // Check for live stream notifications
   useEffect(() => {
     const checkStreamNotifications = () => {
-      const streamData = localStorage.getItem('liveStreamNotification');
-      const startTime = localStorage.getItem('liveStreamStartTime');
+      // Check multiple storage sources
+      let streamData = localStorage.getItem('liveStreamNotification') || 
+                      sessionStorage.getItem('liveStreamNotification');
+      let startTime = localStorage.getItem('liveStreamStartTime') || 
+                     sessionStorage.getItem('liveStreamStartTime');
+      
+      // Check window object as fallback
+      if (!streamData && (window as any).liveStreamData) {
+        streamData = JSON.stringify((window as any).liveStreamData);
+        startTime = (window as any).liveStreamStartTime;
+      }
       
       if (streamData && startTime) {
         try {
@@ -197,9 +206,26 @@ export default function SimpleHome() {
               <p className="text-gray-500 text-sm">ابدأ بث مباشر من الأيقونة الحمراء أعلاه 🔴</p>
               
               {/* Debug info */}
-              <div className="mt-4 text-xs text-gray-400">
-                <p>Debug: {localStorage.getItem('liveStreamNotification') ? 'Stream data found' : 'No stream data'}</p>
-                <p>Time: {localStorage.getItem('liveStreamStartTime') || 'No start time'}</p>
+              <div className="mt-4 text-xs text-gray-400 bg-gray-100 p-2 rounded">
+                <p><strong>Debug Info:</strong></p>
+                <p>Stream: {localStorage.getItem('liveStreamNotification') ? '✅ Found' : '❌ Not found'}</p>
+                <p>Start Time: {localStorage.getItem('liveStreamStartTime') || '❌ Missing'}</p>
+                <p>Current Stream State: {currentStream ? '✅ Active' : '❌ None'}</p>
+                <button 
+                  onClick={() => {
+                    // Manual check
+                    const streamData = localStorage.getItem('liveStreamNotification');
+                    const startTime = localStorage.getItem('liveStreamStartTime');
+                    console.log('Manual check - Stream data:', streamData);
+                    console.log('Manual check - Start time:', startTime);
+                    if (streamData && startTime) {
+                      setCurrentStream(JSON.parse(streamData));
+                    }
+                  }}
+                  className="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded"
+                >
+                  🔄 Force Check
+                </button>
               </div>
               
               <div className="mt-4">

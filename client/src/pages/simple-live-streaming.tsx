@@ -106,11 +106,28 @@ export default function SimpleLiveStreaming() {
         createdAt: new Date().toISOString()
       };
       
-      // Store notification only - not full stream
-      localStorage.setItem('liveStreamNotification', JSON.stringify(streamData));
-      // Also store with timestamp for persistence
-      localStorage.setItem('liveStreamStartTime', Date.now().toString());
-      console.log('🔴 Stream notification created and persisted:', streamData);
+      // Store notification with multiple backup methods
+      const streamDataStr = JSON.stringify(streamData);
+      const startTimeStr = Date.now().toString();
+      
+      // Store in localStorage
+      localStorage.setItem('liveStreamNotification', streamDataStr);
+      localStorage.setItem('liveStreamStartTime', startTimeStr);
+      
+      // Store in sessionStorage as backup
+      sessionStorage.setItem('liveStreamNotification', streamDataStr);
+      sessionStorage.setItem('liveStreamStartTime', startTimeStr);
+      
+      // Store in window object as additional backup
+      (window as any).liveStreamData = streamData;
+      (window as any).liveStreamStartTime = startTimeStr;
+      
+      console.log('🔴 Stream notification created with multiple backups:', streamData);
+      console.log('💾 Storage check:', {
+        localStorage: !!localStorage.getItem('liveStreamNotification'),
+        sessionStorage: !!sessionStorage.getItem('liveStreamNotification'),
+        window: !!(window as any).liveStreamData
+      });
 
       setIsStreaming(true);
       setCurrentStep(4);
