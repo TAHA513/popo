@@ -106,28 +106,33 @@ export default function SimpleLiveStreaming() {
         createdAt: new Date().toISOString()
       };
       
-      // Store notification with multiple backup methods
-      const streamDataStr = JSON.stringify(streamData);
+      // Create unique but consistent stream ID
+      const streamID = `stream_${streamData.id}`;
+      const enhancedStreamData = {
+        ...streamData,
+        streamID: streamID,
+        zegoRoomID: `room_${streamData.id}`,
+        isPublisher: true
+      };
+      
+      // Store notification with stream ID for viewers
+      const streamDataStr = JSON.stringify(enhancedStreamData);
       const startTimeStr = Date.now().toString();
       
-      // Store in localStorage
       localStorage.setItem('liveStreamNotification', streamDataStr);
       localStorage.setItem('liveStreamStartTime', startTimeStr);
+      localStorage.setItem('currentStreamID', streamID);
       
-      // Store in sessionStorage as backup
-      sessionStorage.setItem('liveStreamNotification', streamDataStr);
-      sessionStorage.setItem('liveStreamStartTime', startTimeStr);
+      console.log('🔴 Stream notification created with streamID:', enhancedStreamData);
+      console.log('📡 Stream ID for viewers:', streamID);
       
-      // Store in window object as additional backup
-      (window as any).liveStreamData = streamData;
-      (window as any).liveStreamStartTime = startTimeStr;
-      
-      console.log('🔴 Stream notification created with multiple backups:', streamData);
-      console.log('💾 Storage check:', {
-        localStorage: !!localStorage.getItem('liveStreamNotification'),
-        sessionStorage: !!sessionStorage.getItem('liveStreamNotification'),
-        window: !!(window as any).liveStreamData
-      });
+      // Initialize ZEGO streaming with proper stream ID
+      try {
+        await initializeZegoStreaming(streamID, enhancedStreamData.zegoRoomID);
+        console.log('✅ ZEGO streaming initialized successfully');
+      } catch (zegoError) {
+        console.error('❌ ZEGO initialization failed:', zegoError);
+      }
 
       setIsStreaming(true);
       setCurrentStep(4);
@@ -172,9 +177,26 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
+      // Stop ZEGO stream
+      if ((window as any).zegoEngine) {
+        try {
+          const streamID = localStorage.getItem('currentStreamID');
+          if (streamID) {
+            await (window as any).zegoEngine.stopPublishingStream(streamID);
+          }
+          (window as any).zegoEngine.logoutRoom();
+          (window as any).zegoEngine.destroyEngine();
+          delete (window as any).zegoEngine;
+          console.log('🛑 ZEGO stream stopped');
+        } catch (error) {
+          console.error('ZEGO stop error:', error);
+        }
+      }
+
       // Remove all stream notifications when stopping
       localStorage.removeItem('liveStreamNotification');
       localStorage.removeItem('liveStreamStartTime');
+      localStorage.removeItem('currentStreamID');
       sessionStorage.removeItem('liveStreamNotification');
       sessionStorage.removeItem('liveStreamStartTime');
       delete (window as any).liveStreamData;
@@ -239,6 +261,74 @@ export default function SimpleLiveStreaming() {
       }
     };
   }, []);
+
+  // ZEGO streaming functions
+  const initializeZegoStreaming = async (streamID: string, roomID: string) => {
+    try {
+      console.log('🔧 Starting ZEGO initialization...');
+      
+      // Load ZEGO SDK if not loaded
+      if (!window.ZegoExpressEngine) {
+        console.log('📦 Loading ZEGO SDK...');
+        await loadZegoSDK();
+      }
+      
+      const appID = parseInt(import.meta.env.VITE_ZEGOCLOUD_APP_ID);
+      const appSign = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN;
+      
+      if (!appID || !appSign) {
+        throw new Error('ZEGO credentials not found');
+      }
+
+      // Create ZEGO engine
+      const zg = new window.ZegoExpressEngine(appID, appSign);
+      
+      // Get token from server
+      const response = await fetch('/api/zego-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userID: `publisher_${Date.now()}`,
+          roomID: roomID
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get ZEGO token');
+      }
+
+      const { token, userID } = await response.json();
+      console.log('🔑 Got publisher token for room:', roomID);
+
+      // Login to room
+      await zg.loginRoom(roomID, token, { userID, userName: 'المُبث' });
+      console.log('🏠 Publisher logged into room successfully');
+
+      // Start publishing stream with local video
+      if (localStream) {
+        console.log('📡 Starting to publish stream:', streamID);
+        await zg.startPublishingStream(streamID, localStream);
+        console.log('✅ Stream published successfully with ID:', streamID);
+        
+        // Store ZEGO instance for cleanup
+        (window as any).zegoEngine = zg;
+      }
+
+    } catch (error) {
+      console.error('❌ ZEGO streaming error:', error);
+      throw error;
+    }
+  };
+
+  const loadZegoSDK = () => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/zego-express-engine-webrtc@3.0.2/index.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">

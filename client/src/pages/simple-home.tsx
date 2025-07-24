@@ -181,12 +181,18 @@ export default function SimpleHome() {
                       <div className="flex space-x-2 rtl:space-x-reverse">
                         <Button 
                           onClick={() => {
-                            // Always go to streaming page when clicking live stream
-                            setLocation('/simple-live-streaming');
+                            // Check if current user is the streamer
+                            if (currentStream?.isPublisher) {
+                              // Go back to streaming interface
+                              setLocation('/simple-live-streaming');
+                            } else {
+                              // Go to viewer interface
+                              setLocation('/zego-viewer');
+                            }
                           }}
                           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
                         >
-                          مشاهدة البث
+                          {currentStream?.isPublisher ? 'العودة للبث' : 'مشاهدة البث'}
                         </Button>
                         <Button 
                           onClick={() => {
