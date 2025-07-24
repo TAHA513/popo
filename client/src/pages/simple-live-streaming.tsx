@@ -44,20 +44,29 @@ export default function SimpleLiveStreaming() {
       console.log('Camera permission granted');
       setLocalStream(stream);
       
-      // Display stream in video element
+      // Display stream in video element immediately
+      console.log('Setting up video stream...');
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
         localVideoRef.current.muted = true;
         localVideoRef.current.autoplay = true;
         localVideoRef.current.playsInline = true;
         
+        // Ensure video dimensions and visibility
+        localVideoRef.current.style.display = 'block';
+        localVideoRef.current.style.opacity = '1';
+        localVideoRef.current.style.width = '100%';
+        localVideoRef.current.style.height = '100%';
+        
         // Force video to play
         try {
           await localVideoRef.current.play();
-          console.log('Video started playing successfully');
+          console.log('✅ Video started playing successfully! Camera should be visible now.');
         } catch (playError) {
-          console.error('Video play error:', playError);
+          console.error('❌ Video play error:', playError);
         }
+      } else {
+        console.error('❌ Video element not found!');
       }
       
       setCurrentStep(3);
@@ -165,6 +174,24 @@ export default function SimpleLiveStreaming() {
       }
     }
   };
+
+  // Ensure video element gets stream when component mounts or stream changes
+  useEffect(() => {
+    if (localStream && localVideoRef.current && currentStep >= 3) {
+      console.log('🔄 Connecting stream to video element...');
+      localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.muted = true;
+      localVideoRef.current.autoplay = true;
+      localVideoRef.current.playsInline = true;
+      
+      // Force play
+      localVideoRef.current.play().then(() => {
+        console.log('✅ Stream connected successfully!');
+      }).catch(error => {
+        console.error('❌ Failed to play video:', error);
+      });
+    }
+  }, [localStream, currentStep]);
 
   useEffect(() => {
     return () => {

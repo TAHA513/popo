@@ -54,7 +54,7 @@ function Router() {
           <Route path="/home" component={SimpleHome} />
           <Route path="/explore" component={SimpleExplore} />
           <Route path="/start-streaming" component={LazyComponents.StartStreamingPage} />
-          <Route path="/simple-live" component={SimpleLiveStreaming} />
+          <Route path="/simple-live" component={() => <SimpleLiveStreaming />} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/messages" component={MessagesPage} />
           <Route path="/account" component={AccountPage} />
