@@ -619,6 +619,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete stream endpoint
+  app.delete('/api/streams/:id', requireAuth, async (req: any, res) => {
+    try {
+      const streamId = parseInt(req.params.id);
+      console.log("🗑️ Deleting stream:", streamId);
+      
+      if (isNaN(streamId)) {
+        return res.status(400).json({ message: "معرف البث غير صحيح" });
+      }
+      
+      const stream = await storage.getStreamById(streamId);
+      
+      if (!stream) {
+        return res.status(404).json({ message: "البث غير موجود" });
+      }
+      
+      if (stream.hostId !== req.user.id) {
+        return res.status(403).json({ message: "غير مصرح لك بحذف هذا البث" });
+      }
+      
+      // Delete the stream completely from database
+      await storage.deleteStream(streamId);
+      console.log("✅ Stream deleted completely from database");
+      
+      res.json({ message: "تم حذف البث بنجاح" });
+    } catch (error) {
+      console.error("❌ Error deleting stream:", error);
+      res.status(500).json({ message: "فشل في حذف البث" });
+    }
+  });
+
   app.get('/api/streams/:id', async (req, res) => {
     try {
       const streamId = parseInt(req.params.id);
