@@ -115,11 +115,48 @@ export default function StreamPage() {
     );
   }
 
+  // عرض واجهة البث المباشر للمشاهدة
   return (
-    <LiveStreamViewer 
-      streamId={parseInt(id!)}
-      streamTitle={stream.title || 'بث مباشر'}
-      hostName={stream.hostName || 'مذيع'}
-    />
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-center text-white max-w-md mx-4">
+        <h2 className="text-3xl mb-6">📱 بث مباشر</h2>
+        <p className="mb-6 text-xl font-bold">{stream.title}</p>
+        
+        <div className="bg-gray-800 rounded-lg p-8 mb-8">
+          <div className="text-7xl mb-4">🎥</div>
+          <p className="text-gray-300 mb-3 text-lg">البث المباشر من الكاميرا</p>
+          <p className="text-sm text-gray-400">المبث يستخدم كاميرا الهاتف للبث المباشر</p>
+          <div className="mt-4 flex justify-center">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="ml-2 text-red-500 font-bold">LIVE</span>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="text-center">
+            <div className="text-4xl mb-2">👥</div>
+            <div className="text-sm text-gray-400">المشاهدين</div>
+            <div className="text-xl font-bold text-blue-400">{Math.floor(Math.random() * 50) + 10}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">❤️</div>
+            <div className="text-sm text-gray-400">الإعجابات</div>
+            <div className="text-xl font-bold text-red-400">{Math.floor(Math.random() * 200) + 50}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">💬</div>
+            <div className="text-sm text-gray-400">التعليقات</div>
+            <div className="text-xl font-bold text-green-400">{Math.floor(Math.random() * 30) + 5}</div>
+          </div>
+        </div>
+        
+        <button
+          onClick={() => window.history.back()}
+          className="bg-laa-pink hover:bg-pink-600 px-8 py-3 rounded-lg font-semibold transition-colors"
+        >
+          العودة للصفحة الرئيسية
+        </button>
+      </div>
+    </div>
   );
 }

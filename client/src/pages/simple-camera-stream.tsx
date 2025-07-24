@@ -67,6 +67,9 @@ export default function SimpleCameraStream() {
       const streamData = await response.json();
       console.log('✅ تم إنشاء البث:', streamData);
       
+      // حفظ معرف البث لحذفه لاحقاً
+      streamRef.current = { streamId: streamData.id } as any;
+      
       // طلب بسيط أولاً
       let stream;
       try {
@@ -179,12 +182,15 @@ export default function SimpleCameraStream() {
     // حذف البث من قاعدة البيانات
     try {
       console.log('🗑️ حذف البث من قاعدة البيانات...');
-      const response = await fetch('/api/streams/current', {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        console.log('✅ تم حذف البث من قاعدة البيانات');
+      const streamId = (streamRef.current as any)?.streamId;
+      if (streamId) {
+        const response = await fetch(`/api/streams/${streamId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          console.log('✅ تم حذف البث من قاعدة البيانات');
+        }
       }
     } catch (error) {
       console.error('❌ خطأ في حذف البث:', error);
