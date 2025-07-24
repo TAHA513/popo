@@ -63,16 +63,25 @@ export default function SimpleHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Create Memory Button - Right Side */}
-            <Button 
-              onClick={() => {
-                setLocation('/create-memory');
-              }}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="text-sm font-bold">إنشاء ذكرى</span>
-            </Button>
+            {/* Action Buttons - Right Side */}
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Button 
+                onClick={() => setLocation('/simple-live')}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full shadow-lg"
+                title="بث مباشر"
+              >
+                🔴
+              </Button>
+              <Button 
+                onClick={() => {
+                  setLocation('/create-memory');
+                }}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="text-sm font-bold">إنشاء ذكرى</span>
+              </Button>
+            </div>
           </div>
         </div>
         {/* Colored Line */}
@@ -156,28 +165,14 @@ export default function SimpleHome() {
                 <span className="text-2xl">🐰</span>
               </div>
               <h3 className="text-lg font-medium text-gray-600 mb-2">مرحباً بك في LaaBoBo!</h3>
-              <p className="text-gray-500 text-sm">ابدأ بثك المباشر أو استكشف المحتوى</p>
-              <div className="mt-4 flex flex-col space-y-3">
+              <p className="text-gray-500 text-sm">استكشف المحتوى والذكريات</p>
+              <div className="mt-4">
                 <Button 
                   onClick={() => setLocation('/explore')}
-                  className="bg-laa-pink hover:bg-laa-pink/90 text-white"
+                  className="bg-laa-pink hover:bg-laa-pink/90 text-white w-full"
                 >
                   استكشف الذكريات
                 </Button>
-                <div className="flex space-x-2 rtl:space-x-reverse">
-                  <Button 
-                    onClick={() => setLocation('/simple-live')}
-                    className="bg-red-500 hover:bg-red-600 text-white flex-1"
-                  >
-                    🔴 بث سريع
-                  </Button>
-                  <Button 
-                    onClick={() => setLocation('/start-streaming')}
-                    className="bg-purple-500 hover:bg-purple-600 text-white flex-1"
-                  >
-                    ⚡ بث ZEGO
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
