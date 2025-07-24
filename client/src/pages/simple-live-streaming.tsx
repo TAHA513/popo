@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
 
+// WebSocket for real live streaming
+let ws: WebSocket | null = null;
+
 export default function SimpleLiveStreaming() {
   const [, setLocation] = useLocation();
   const [streamTitle, setStreamTitle] = useState('');
@@ -51,13 +54,27 @@ export default function SimpleLiveStreaming() {
         localVideoRef.current.autoplay = true;
         localVideoRef.current.playsInline = true;
         
-        // Force video to play
-        try {
-          await localVideoRef.current.play();
-          console.log('Video started playing successfully');
-        } catch (playError) {
-          console.error('Video play error:', playError);
-        }
+        // Add event listener to ensure video loads
+        localVideoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded');
+          localVideoRef.current?.play().then(() => {
+            console.log('Video started playing successfully');
+          }).catch((playError) => {
+            console.error('Video play error:', playError);
+          });
+        };
+        
+        // Force video to play immediately
+        setTimeout(async () => {
+          try {
+            if (localVideoRef.current) {
+              await localVideoRef.current.play();
+              console.log('Video forced to play');
+            }
+          } catch (playError) {
+            console.error('Video force play error:', playError);
+          }
+        }, 100);
       }
       
       setCurrentStep(3);
@@ -84,13 +101,40 @@ export default function SimpleLiveStreaming() {
     setError('');
 
     try {
-      // Simulate stream creation (no database needed for this demo)
-      console.log('Starting live stream:', { title: streamTitle });
+      // Start real WebSocket connection for live streaming
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/live-stream-ws`;
+      
+      ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log('WebSocket connected for live streaming');
+        ws?.send(JSON.stringify({
+          type: 'start_stream',
+          title: streamTitle,
+          hostId: 'current_user'
+        }));
+      };
+      
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log('WebSocket message:', data);
+        
+        if (data.type === 'viewer_joined') {
+          setViewerCount(prev => prev + 1);
+        } else if (data.type === 'like') {
+          setLikes(prev => prev + 1);
+        }
+      };
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
 
       setIsStreaming(true);
       setCurrentStep(4);
       
-      // Simulate viewer interactions
+      // Simulate some initial viewer interactions
       simulateViewerInteractions();
       
     } catch (error: any) {
@@ -130,8 +174,12 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Simulate stream end
-      console.log('Ending live stream');
+      // Close WebSocket connection
+      if (ws) {
+        ws.send(JSON.stringify({ type: 'end_stream' }));
+        ws.close();
+        ws = null;
+      }
 
       setIsStreaming(false);
       setLocation('/');

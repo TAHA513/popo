@@ -4,6 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { getSession } from "./replitAuth";
 import { setupLocalAuth } from "./localAuth";
 import passport from "passport";
+import { createServer } from "http";
+import LiveStreamingServer from "./websocket";
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for proper session handling
@@ -47,6 +49,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Create HTTP server
+  const httpServer = createServer(app);
+  
+  // Setup WebSocket for live streaming
+  const liveStreamingServer = new LiveStreamingServer(httpServer);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -54,14 +62,13 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
@@ -71,11 +78,8 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  httpServer.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    log(`WebSocket live streaming server ready`);
   });
 })();
