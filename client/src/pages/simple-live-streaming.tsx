@@ -93,25 +93,24 @@ export default function SimpleLiveStreaming() {
     setError('');
 
     try {
-      // Create stream via API with guest user support
-      const currentUserId = user?.id || `guest-${Date.now()}`;
-      const currentUserName = user?.username || user?.firstName || `مستخدم-${Date.now().toString().slice(-4)}`;
-      
+      // Create stream via API
       const response = await fetch('/api/streams', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           title: streamTitle,
-          category: 'general',
-          userId: currentUserId,
-          userName: currentUserName
+          category: 'general'
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (response.status === 401) {
+          throw new Error('يجب تسجيل الدخول أولاً');
+        }
         throw new Error(errorData.message || 'فشل في إنشاء البث');
       }
 
@@ -161,18 +160,13 @@ export default function SimpleLiveStreaming() {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Get current user ID
-      const currentUserId = user?.id || `guest-${Date.now()}`;
-
       // End stream via API
       await fetch('/api/streams/end', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userId: currentUserId
-        })
+        credentials: 'include'
       });
 
       console.log('Stream ended successfully');

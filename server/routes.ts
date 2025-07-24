@@ -272,9 +272,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams', async (req: any, res) => {
+  app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
-      const { title, category, userId, userName } = req.body;
+      const userId = req.user.id;
+      const user = req.user;
+      const { title, category } = req.body;
       
       // Initialize global streams if not exists
       if (!(global as any).activeStreams) {
@@ -283,8 +285,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const streamData = {
         id: Date.now(),
-        hostId: userId || `guest-${Date.now()}`,
-        hostName: userName || 'مستخدم ضيف',
+        hostId: userId,
+        hostName: user.username || user.firstName || 'مستخدم',
         hostAvatar: '🐰',
         title: title || 'بث مباشر',
         category: category || 'general',
@@ -294,9 +296,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Store in global memory
-      (global as any).activeStreams[streamData.hostId] = streamData;
+      (global as any).activeStreams[userId] = streamData;
       
-      console.log('Stream created successfully:', streamData);
       res.json(streamData);
     } catch (error) {
       console.error("Error creating stream:", error);
@@ -304,14 +305,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams/end', async (req: any, res) => {
+  app.post('/api/streams/end', requireAuth, async (req: any, res) => {
     try {
-      const { userId } = req.body;
+      const userId = req.user.id;
       
       // Remove from global memory
       if ((global as any).activeStreams && (global as any).activeStreams[userId]) {
         delete (global as any).activeStreams[userId];
-        console.log('Stream ended for user:', userId);
       }
       
       res.json({ message: "Stream ended successfully" });
