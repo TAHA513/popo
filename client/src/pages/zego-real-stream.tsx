@@ -59,6 +59,8 @@ export default function ZegoRealStream() {
       const appSign = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN;
       
       console.log('📱 AppID:', appID);
+      console.log('🔑 AppSign متوفر:', appSign ? 'نعم' : 'لا');
+      console.log('🔑 طول AppSign:', appSign ? appSign.length : 0);
 
       zegoEngine.current = new window.ZegoExpressEngine(appID, appSign);
       
