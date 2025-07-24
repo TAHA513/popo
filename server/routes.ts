@@ -405,24 +405,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passport: req.session?.passport
       });
 
-      // Alternative auth check using session data directly
+      // Check session authentication (custom auth system)
       let userId = null;
+      let user = null;
+      
       if (req.user?.id) {
         userId = req.user.id;
-      } else if (req.session?.passport?.user) {
-        userId = req.session.passport.user;
-        // Get user data manually if passport deserialization failed
-        try {
-          const user = await storage.getUser(userId);
-          if (user) {
-            req.user = user;
-          }
-        } catch (e) {
-          console.error('Failed to get user:', e);
-        }
+        user = req.user;
+      } else if (req.session?.user?.id) {
+        // Custom session auth system
+        userId = req.session.user.id;
+        user = req.session.user;
+        req.user = user; // Set for consistency
       }
 
-      if (!userId) {
+      console.log('Auth check result:', {
+        sessionUser: req.session?.user ? { id: req.session.user.id, username: req.session.user.username } : null,
+        finalUserId: userId,
+        hasUser: !!user
+      });
+
+      if (!userId || !user) {
         return res.status(401).json({ message: 'يجب تسجيل الدخول أولاً' });
       }
 
