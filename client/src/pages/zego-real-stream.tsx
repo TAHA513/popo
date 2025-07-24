@@ -103,19 +103,20 @@ export default function ZegoRealStream() {
       return;
     }
 
-    // تجاهل فحص SDK - استخدام كاميرا عادية
     console.log('🚀 بدء البث بكاميرا المتصفح...');
 
     try {
-      console.log('🚀 Starting ZEGO live stream...');
-      
-      // تجاوز فحص SDK وبدء البث مباشرة بالكاميرا العادية
-      console.log('🎥 بدء بث مباشر بالكاميرا العادية...');
+      // التحقق من دعم المتصفح
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: "متصفح غير مدعوم",
+          description: "يرجى استخدام متصفح حديث",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      const roomID = `room_${Date.now()}`;
-      const streamID = `stream_${Date.now()}`;
-      const userID = user?.id || `user_${Date.now()}`;
-      const userName = user?.username || streamTitle;
+      console.log('🎥 طلب أذونات الكاميرا...');
 
       // الحصول على الكاميرا والميكروفون مباشرة
       const localStream = await navigator.mediaDevices.getUserMedia({
@@ -132,18 +133,31 @@ export default function ZegoRealStream() {
       // عرض الفيديو المحلي
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = localStream;
+        localVideoRef.current.autoplay = true;
+        localVideoRef.current.playsInline = true;
+        localVideoRef.current.muted = true;
+        
+        try {
+          await localVideoRef.current.play();
+          console.log('✅ بدأ تشغيل الفيديو');
+        } catch (playError) {
+          console.warn('⚠️ خطأ تشغيل الفيديو:', playError);
+        }
       }
 
       // إضافة الغرفة للقائمة العامة
       const roomData = {
-        roomID,
-        streamID,
-        userName,
-        userID,
+        roomID: `room_${Date.now()}`,
+        streamID: `stream_${Date.now()}`,
+        userName: user?.username || streamTitle,
+        userID: user?.id || `user_${Date.now()}`,
         timestamp: Date.now(),
         title: streamTitle
       };
       
+      if (!window.liveRooms) {
+        window.liveRooms = [];
+      }
       window.liveRooms.push(roomData);
       setLiveRooms([...window.liveRooms]);
       setCurrentRoom(roomData);
@@ -159,18 +173,28 @@ export default function ZegoRealStream() {
         description: "بدأ البث المباشر بنجاح!",
       });
 
-      // تنظيف عند إنهاء البث
-      window.addEventListener('beforeunload', () => {
-        stopLiveStream();
-      });
-
-      return () => clearInterval(viewerInterval);
+      // حفظ البث للتنظيف لاحقاً
+      (window as any).currentLiveStream = {
+        stream: localStream,
+        interval: viewerInterval,
+        roomData
+      };
 
     } catch (error: any) {
-      console.error('❌ ZEGO stream error:', error);
+      console.error('❌ خطأ في البث:', error);
+      
+      let errorMessage = "فشل في بدء البث";
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "تم رفض أذونات الكاميرا - يرجى السماح بالوصول";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "لم يتم العثور على كاميرا";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "الكاميرا مستخدمة من تطبيق آخر";
+      }
+      
       toast({
         title: "خطأ في البث",
-        description: `فشل في بدء البث: ${error.message || 'خطأ غير معروف'}`,
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -179,22 +203,36 @@ export default function ZegoRealStream() {
   // إيقاف البث
   const stopLiveStream = async () => {
     try {
-      if (window.zg && currentRoom) {
-        await window.zg.stopPublishingStream(currentRoom.streamID);
-        await window.zg.logoutRoom(currentRoom.roomID);
+      // إيقاف البث الحالي
+      const currentStream = (window as any).currentLiveStream;
+      if (currentStream) {
+        // إيقاف الكاميرا
+        if (currentStream.stream) {
+          currentStream.stream.getTracks().forEach((track: any) => track.stop());
+        }
+        
+        // إيقاف العداد
+        if (currentStream.interval) {
+          clearInterval(currentStream.interval);
+        }
         
         // إزالة الغرفة من القائمة
-        window.liveRooms = window.liveRooms.filter(room => room.roomID !== currentRoom.roomID);
-        setLiveRooms([...window.liveRooms]);
+        if (window.liveRooms && currentStream.roomData) {
+          window.liveRooms = window.liveRooms.filter(room => room.roomID !== currentStream.roomData.roomID);
+          setLiveRooms([...window.liveRooms]);
+        }
         
-        console.log('✅ Stream stopped and room removed');
+        // تنظيف المتغير العام
+        delete (window as any).currentLiveStream;
+        
+        console.log('✅ تم إيقاف البث وتنظيف الموارد');
       }
       
       setIsStreaming(false);
       setCurrentRoom(null);
       setLocation('/');
     } catch (error) {
-      console.error('❌ Error stopping stream:', error);
+      console.error('❌ خطأ في إيقاف البث:', error);
     }
   };
 
