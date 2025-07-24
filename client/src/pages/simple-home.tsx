@@ -79,16 +79,16 @@ export default function SimpleHome() {
               </Button>
               <div className="flex space-x-2 rtl:space-x-reverse">
                 <Button 
-                  onClick={() => setLocation('/start-streaming')}
+                  onClick={() => setLocation('/simple-live')}
                   className="bg-red-500 hover:bg-red-600 text-white flex-1"
                 >
-                  🔴 ابدأ بث مباشر
+                  🔴 بث سريع
                 </Button>
                 <Button 
-                  onClick={() => setLocation('/zego-live')}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white flex-1"
+                  onClick={() => setLocation('/start-streaming')}
+                  className="bg-purple-500 hover:bg-purple-600 text-white flex-1"
                 >
-                  👁️ شاهد البثوث
+                  ⚡ بث ZEGO
                 </Button>
               </div>
             </div>

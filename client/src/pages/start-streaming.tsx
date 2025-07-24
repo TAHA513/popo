@@ -27,11 +27,43 @@ export default function StartStreamingPage() {
   const [streamID, setStreamID] = useState("");
 
   useEffect(() => {
-    // Load ZEGO SDK
-    const script = document.createElement('script');
-    script.src = 'https://download.zegocloud.com/sdk/latest/zego-express-video.min.js';
-    script.async = true;
-    document.head.appendChild(script);
+    // Load ZEGO SDK with better error handling
+    const loadZegoSDK = () => {
+      return new Promise((resolve, reject) => {
+        // Check if already loaded
+        if (window.ZegoExpressEngine) {
+          resolve(true);
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/zego-express-engine-webrtc@3.8.3/index.js';
+        script.async = true;
+        
+        script.onload = () => {
+          console.log('ZEGO SDK loaded successfully');
+          resolve(true);
+        };
+        
+        script.onerror = () => {
+          console.error('Failed to load ZEGO SDK');
+          reject(new Error('Failed to load ZEGO SDK'));
+        };
+        
+        document.head.appendChild(script);
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          if (!window.ZegoExpressEngine) {
+            reject(new Error('ZEGO SDK loading timeout'));
+          }
+        }, 10000);
+      });
+    };
+
+    loadZegoSDK().catch(error => {
+      console.error('ZEGO SDK loading error:', error);
+    });
 
     return () => {
       if (localStream) {
@@ -110,15 +142,32 @@ export default function StartStreamingPage() {
 
       console.log('Auth successful, checking ZEGO SDK...');
 
-      // Wait for ZEGO SDK to load
+      // Wait for ZEGO SDK to load with extended timeout
       let attempts = 0;
-      while (!window.ZegoExpressEngine && attempts < 50) {
+      const maxAttempts = 100; // 10 seconds total
+      
+      while (!window.ZegoExpressEngine && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
+        
+        if (attempts % 10 === 0) {
+          console.log(`Waiting for ZEGO SDK... attempt ${attempts}/${maxAttempts}`);
+        }
       }
 
       if (!window.ZegoExpressEngine) {
-        throw new Error('ZEGO SDK لم يتم تحميله. يرجى إعادة تحميل الصفحة');
+        // Try to reload the SDK from alternative CDN
+        console.log('Attempting to reload ZEGO SDK from alternative CDN...');
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/zego-express-engine-webrtc@3.8.3/index.js';
+        document.head.appendChild(script);
+        
+        // Wait another 5 seconds
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        if (!window.ZegoExpressEngine) {
+          throw new Error('ZEGO SDK لم يتم تحميله. تحقق من اتصال الإنترنت وأعد تحميل الصفحة');
+        }
       }
 
       console.log('ZEGO SDK loaded, requesting camera permissions...');
