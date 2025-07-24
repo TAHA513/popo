@@ -201,7 +201,13 @@ export class DatabaseStorage implements IStorage {
     return streamsWithHosts.map(({ stream, host }) => ({
       ...stream,
       hostProfileImage: host.profileImageUrl,
-      hostName: host.firstName || host.username
+      hostName: host.firstName || host.username,
+      host: {
+        id: host.id,
+        username: host.username,
+        firstName: host.firstName,
+        profileImageUrl: host.profileImageUrl
+      }
     }));
   }
 

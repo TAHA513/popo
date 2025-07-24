@@ -139,6 +139,16 @@ img {
   }
 }
 
+/* Custom animations for live streaming */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 2s infinite;
+}
+
 /* Mobile-optimized video controls */
 @media (max-width: 768px) {
   .video-controls button {

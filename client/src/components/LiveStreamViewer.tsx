@@ -152,14 +152,27 @@ export default function LiveStreamViewer({ streamId, streamTitle, hostName }: Li
 
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
-      {/* محاكاة بث مباشر */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-blue-900/50 to-pink-900/50 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="w-32 h-32 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <span className="text-4xl">🎥</span>
+      {/* محاكاة الفيديو المباشر */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-blue-900/30 to-pink-900/30">
+        {/* شخص متحرك يحاكي البث المباشر */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative">
+            {/* رأس متحرك */}
+            <div className="w-48 h-48 bg-gradient-to-b from-yellow-200 to-yellow-300 rounded-full relative animate-pulse">
+              {/* عيون */}
+              <div className="absolute top-16 left-12 w-6 h-6 bg-black rounded-full animate-blink"></div>
+              <div className="absolute top-16 right-12 w-6 h-6 bg-black rounded-full animate-blink"></div>
+              {/* فم متحرك */}
+              <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-red-500 rounded-full animate-bounce"></div>
+            </div>
+            {/* نص التحية */}
+            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center">
+              <div className="bg-black/50 backdrop-blur-md rounded-xl p-4 text-white">
+                <h3 className="text-lg font-bold">{streamTitle}</h3>
+                <p className="text-sm opacity-80">🔴 بث مباشر</p>
+              </div>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold mb-2">{streamTitle}</h2>
-          <p className="text-xl opacity-80">بث مباشر من {hostName}</p>
         </div>
       </div>
 
