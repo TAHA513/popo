@@ -394,17 +394,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve HTML files from public directory
   app.use(expressModule.static('public'));
 
-  // ZEGO Token endpoint for secure authentication
+  // ZEGO Token endpoint for secure authentication  
   app.get('/api/zego/token', async (req: any, res) => {
     try {
       console.log('ZEGO Token request:', {
         isAuthenticated: req.isAuthenticated(),
         user: req.user ? { id: req.user.id, username: req.user.username } : null,
         sessionID: req.sessionID,
-        session: req.session ? Object.keys(req.session) : null
+        session: req.session ? Object.keys(req.session) : null,
+        passport: req.session?.passport
       });
 
-      if (!req.isAuthenticated() || !req.user) {
+      // Alternative auth check using session data directly
+      let userId = null;
+      if (req.user?.id) {
+        userId = req.user.id;
+      } else if (req.session?.passport?.user) {
+        userId = req.session.passport.user;
+        // Get user data manually if passport deserialization failed
+        try {
+          const user = await storage.getUser(userId);
+          if (user) {
+            req.user = user;
+          }
+        } catch (e) {
+          console.error('Failed to get user:', e);
+        }
+      }
+
+      if (!userId) {
         return res.status(401).json({ message: 'يجب تسجيل الدخول أولاً' });
       }
 
@@ -416,7 +434,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: 'ZEGO Server Secret not configured' });
       }
 
-      const userId = req.user.id;
       const token = generateZegoToken(appId, serverSecret, userId);
       
       console.log('ZEGO Token generated successfully for user:', userId);
