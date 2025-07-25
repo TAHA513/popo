@@ -41,7 +41,7 @@ export default function SimpleExplore() {
             {/* Create Memory Button - Right Side */}
             <Button 
               onClick={() => setLocation('/create-memory')}
-              className="bg-laa-pink hover:bg-laa-pink/90 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-bold">إنشاء ذكرى</span>
