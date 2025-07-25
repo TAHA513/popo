@@ -15,6 +15,7 @@ export default function SimpleExplore() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [showCharacters, setShowCharacters] = useState(false);
+  const [showGiftSending, setShowGiftSending] = useState(false);
   
   // Fetch user's pet
   const { data: pet, isLoading: petLoading } = useQuery({
@@ -82,7 +83,7 @@ export default function SimpleExplore() {
             {/* Logo - Left Side */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <div className="text-2xl animate-bounce">🎮</div>
-              <h1 className="text-xl font-bold text-purple-600">ملفي الشخصي</h1>
+              <h1 className="text-xl font-bold text-purple-600">صالة الألعاب</h1>
             </div>
             
             {/* Create Memory Button - Right Side */}
@@ -119,22 +120,35 @@ export default function SimpleExplore() {
               </div>
             </div>
             
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-3 text-center">
+            {/* Player Profile & Owned Characters */}
+            <div className="grid grid-cols-1 gap-3 text-center mb-4">
               <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <div className="text-lg font-bold">⭐</div>
-                <div className="text-xs">الإنجازات</div>
-                <div className="text-sm font-bold">12</div>
+                <div className="text-lg font-bold mb-2">🎮 شخصياتي المملوكة</div>
+                <div className="flex justify-center space-x-2 space-x-reverse mb-2">
+                  <span className="text-2xl">⚔️</span>
+                  <span className="text-2xl">👩‍⚕️</span>
+                  <span className="text-2xl">🧙‍♂️</span>
+                  <span className="text-2xl">🐲</span>
+                </div>
+                <div className="text-xs">4 شخصيات مملوكة</div>
               </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <div className="text-lg font-bold">🎯</div>
-                <div className="text-xs">المهام</div>
-                <div className="text-sm font-bold">8/10</div>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <div className="text-lg font-bold">👥</div>
-                <div className="text-xs">الأصدقاء</div>
-                <div className="text-sm font-bold">24</div>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white bg-opacity-20 rounded-lg p-2">
+                  <div className="text-lg font-bold">⭐</div>
+                  <div className="text-xs">المستوى</div>
+                  <div className="text-sm font-bold">{Math.floor((user?.points || 0) / 100) + 1}</div>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-2">
+                  <div className="text-lg font-bold">🏆</div>
+                  <div className="text-xs">الانتصارات</div>
+                  <div className="text-sm font-bold">45</div>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-2">
+                  <div className="text-lg font-bold">🎁</div>
+                  <div className="text-xs">هدايا مرسلة</div>
+                  <div className="text-sm font-bold">12</div>
+                </div>
               </div>
             </div>
           </div>
@@ -195,6 +209,17 @@ export default function SimpleExplore() {
                     }}
                   >
                     🛒 متجر التسوق
+                  </Button>
+                </div>
+
+                {/* Gift Sending Section */}
+                <div className="grid grid-cols-1 gap-3 mb-4">
+                  <Button 
+                    size="sm" 
+                    className="bg-pink-500 hover:bg-pink-600 text-white"
+                    onClick={() => setShowGiftSending(!showGiftSending)}
+                  >
+                    🎁 إرسال هدايا وشخصيات
                   </Button>
                 </div>
 
@@ -313,6 +338,86 @@ export default function SimpleExplore() {
                     <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg text-center">
                       <h6 className="font-bold mb-1">🎤 المحادثة الصوتية</h6>
                       <p className="text-xs opacity-90">تحدث مع اللاعبين الآخرين أثناء الألعاب الجماعية واستمتع بتجربة أكثر تفاعلية</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Gift Sending Interface */}
+                {showGiftSending && (
+                  <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-4 mt-4">
+                    <h5 className="text-lg font-bold text-purple-600 mb-4 text-center">🎁 إرسال الهدايا والشخصيات</h5>
+                    
+                    {/* Friend Selection */}
+                    <div className="mb-4">
+                      <h6 className="font-bold text-gray-800 mb-2">اختر صديق لإرسال الهدية:</h6>
+                      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                        {friends.map((friend: any) => (
+                          <Button
+                            key={friend.user.id}
+                            size="sm"
+                            className="bg-blue-500 hover:bg-blue-600 text-white text-xs p-2"
+                            onClick={() => alert(`تم اختيار ${friend.user.username} لإرسال الهدية`)}
+                          >
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                              <span>👤</span>
+                              <span>{friend.user.username}</span>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Gift Type Selection */}
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="bg-white rounded-lg p-3">
+                        <h6 className="font-bold text-gray-800 mb-2">🎮 إرسال شخصية</h6>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" 
+                                  onClick={() => alert("إرسال علي المحارب بـ 200 نقطة!\nسيتم خصم النقاط من محفظتك")}>
+                            ⚔️ علي (200)
+                          </Button>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                                  onClick={() => alert("إرسال محمد الساحر بـ 300 نقطة!\nسيتم خصم النقاط من محفظتك")}>
+                            🧙‍♂️ محمد (300)
+                          </Button>
+                          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                                  onClick={() => alert("إرسال أسطورة التنانين بـ 8000 نقطة!\nشخصية VIP حصرية 👑")}>
+                            🐲 أسطورة (8000)
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg p-3">
+                        <h6 className="font-bold text-gray-800 mb-2">💎 إرسال تطويرات</h6>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs"
+                                  onClick={() => alert("إرسال تطوير الطاقة بـ 800 نقطة!\nسيساعد صديقك في تطوير شخصيته")}>
+                            🔋 طاقة +1 (800)
+                          </Button>
+                          <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs"
+                                  onClick={() => alert("إرسال تطوير القوة بـ 1000 نقطة!\nسيزيد قوة شخصية صديقك")}>
+                            💪 قوة +1 (1000)
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg p-3">
+                        <h6 className="font-bold text-gray-800 mb-2">🎁 إرسال نقاط</h6>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
+                                  onClick={() => alert("إرسال 500 نقطة لصديقك!\nسيتم خصمها من رصيدك")}>
+                            💰 500 نقطة
+                          </Button>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                                  onClick={() => alert("إرسال 1000 نقطة لصديقك!\nهدية كريمة ومفيدة")}>
+                            💎 1000 نقطة
+                          </Button>
+                          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                                  onClick={() => alert("إرسال 5000 نقطة لصديقك!\nهدية ملكية فاخرة 👑")}>
+                            👑 5000 نقطة
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

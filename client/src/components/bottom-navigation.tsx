@@ -37,7 +37,7 @@ export default function BottomNavigation() {
 
   const navItems = [
     { href: "/", icon: Home, label: "الرئيسية" },
-    { href: "/explore", icon: GamepadIcon, label: "ملفي الشخصي" },
+    { href: "/explore", icon: GamepadIcon, label: "صالة الألعاب" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" },
