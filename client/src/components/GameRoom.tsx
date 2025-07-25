@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Trophy, Users, Play, Star, Crown, Gift } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import VoiceChat from "./VoiceChat";
+import MemoryGame from "./games/MemoryGame";
+import RacingGame from "./games/RacingGame";
 
 interface GameRoomProps {
   gameType: string;
@@ -33,6 +36,8 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
   const [gameStarted, setGameStarted] = useState(false);
   const [gameResults, setGameResults] = useState<any>(null);
   const [entryFee] = useState(0); // لعب مجاني
+  const [voiceChatActive, setVoiceChatActive] = useState(false);
+  const [actualGameStarted, setActualGameStarted] = useState(false);
 
   useEffect(() => {
     createOrJoinRoom();
@@ -122,6 +127,9 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
     try {
       setIsStarting(true);
       
+      // Start voice chat automatically for multiplayer
+      setVoiceChatActive(true);
+      
       // Simulate game play
       toast({
         title: "🎮 بدأت اللعبة!",
@@ -129,11 +137,7 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
       });
       
       setGameStarted(true);
-      
-      // Simulate game duration (3 seconds for demo)
-      setTimeout(() => {
-        finishGame();
-      }, 3000);
+      setActualGameStarted(true);
       
     } catch (error) {
       console.error('Error starting game:', error);
@@ -147,22 +151,27 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
     }
   };
 
-  const finishGame = () => {
+  const handleGameEnd = (score: number, coins: number) => {
     // Simulate game results
     const results = players.map((player, index) => ({
       ...player,
       position: index + 1,
-      pointsWon: index === 0 ? 200 : index === 1 ? 100 : index === 2 ? 50 : 25,
-      score: Math.floor(Math.random() * 1000) + 500
+      pointsWon: index === 0 ? coins : index === 1 ? Math.floor(coins * 0.7) : index === 2 ? Math.floor(coins * 0.5) : Math.floor(coins * 0.3),
+      score: index === 0 ? score : Math.floor(Math.random() * (score * 0.8)) + 200
     })).sort((a, b) => b.score - a.score);
     
     setGameResults(results);
     setGameStarted(false);
+    setActualGameStarted(false);
     
     toast({
       title: "🏆 انتهت اللعبة!",
-      description: `الفائز: ${results[0].username}`,
+      description: `حصلت على ${score} نقطة و ${coins} عملة!`,
     });
+  };
+
+  const finishGame = () => {
+    handleGameEnd(500, 25);
   };
 
   const getRankColor = (rank: string) => {
@@ -252,16 +261,61 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
     );
   }
 
-  if (gameStarted) {
+  if (gameStarted && actualGameStarted) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 w-96">
-          <div className="text-center">
-            <div className="text-6xl mb-4 animate-bounce">{gameEmoji}</div>
-            <h2 className="text-2xl font-bold mb-4 text-purple-600">{gameName}</h2>
-            <p className="text-gray-600 mb-6">اللعبة جارية...</p>
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          </div>
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-4 w-full max-w-4xl h-[90vh] overflow-hidden">
+          {/* Voice Chat Section */}
+          <VoiceChat 
+            isActive={voiceChatActive}
+            playerCount={players.length}
+            onToggle={() => setVoiceChatActive(!voiceChatActive)}
+          />
+          
+          {/* Game Content */}
+          {gameType === 'memory' && (
+            <MemoryGame 
+              isMultiplayer={true}
+              playerCount={players.length}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+          
+          {gameType === 'racing' && (
+            <RacingGame 
+              isMultiplayer={true}
+              playerCount={players.length}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+          
+          {/* Default fallback for other games */}
+          {!['memory', 'racing'].includes(gameType) && (
+            <div className="text-center">
+              <div className="text-6xl mb-4 animate-bounce">{gameEmoji}</div>
+              <h2 className="text-2xl font-bold mb-4 text-purple-600">{gameName}</h2>
+              <p className="text-gray-600 mb-6">اللعبة جارية...</p>
+              <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <Button 
+                onClick={() => handleGameEnd(500, 25)}
+                className="mt-6"
+              >
+                إنهاء اللعبة التجريبية
+              </Button>
+            </div>
+          )}
+          
+          <Button
+            onClick={() => {
+              setActualGameStarted(false);
+              setGameStarted(false);
+              setVoiceChatActive(false);
+            }}
+            variant="outline"
+            className="mt-4 w-full"
+          >
+            الخروج من اللعبة
+          </Button>
         </div>
       </div>
     );
