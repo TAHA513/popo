@@ -178,26 +178,65 @@ export default function SimpleExplore() {
                 {showCharacters && (
                   <div className="bg-white/80 rounded-xl p-4">
                     <h5 className="text-lg font-bold text-purple-600 mb-4 text-center">🎭 اختر شخصيتك للألعاب</h5>
-                    <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="grid grid-cols-2 gap-2 mb-4 max-h-96 overflow-y-auto">
                       {[
-                        { id: "1", name: "المحارب الشجاع", type: "warrior", emoji: "⚔️", rarity: "common", price: 0 },
-                        { id: "2", name: "الساحر الحكيم", type: "mage", emoji: "🧙‍♂️", rarity: "rare", price: 100 },
-                        { id: "3", name: "الرامي الماهر", type: "archer", emoji: "🏹", rarity: "epic", price: 500 },
-                        { id: "4", name: "الأميرة الذهبية", type: "healer", emoji: "✨", rarity: "legendary", price: 1000 }
+                        // شخصيات عادية
+                        { id: "1", name: "المحارب الشجاع", type: "warrior", emoji: "⚔️", rarity: "common", price: 0, badge: "" },
+                        { id: "2", name: "الساحر الحكيم", type: "mage", emoji: "🧙‍♂️", rarity: "rare", price: 100, badge: "" },
+                        { id: "3", name: "الرامي الماهر", type: "archer", emoji: "🏹", rarity: "epic", price: 500, badge: "" },
+                        { id: "4", name: "الأميرة الذهبية", type: "healer", emoji: "✨", rarity: "legendary", price: 1000, badge: "" },
+                        { id: "5", name: "الفارس النبيل", type: "knight", emoji: "🛡️", rarity: "rare", price: 200, badge: "" },
+                        { id: "6", name: "النينجا الخفي", type: "ninja", emoji: "🥷", rarity: "epic", price: 600, badge: "" },
+                        { id: "7", name: "الطبيب المعالج", type: "medic", emoji: "👨‍⚕️", rarity: "rare", price: 150, badge: "" },
+                        { id: "8", name: "الصياد البري", type: "hunter", emoji: "🏹", rarity: "common", price: 50, badge: "" },
+                        
+                        // شخصيات غالية جداً - VIP
+                        { id: "9", name: "ملك التنانين", type: "dragon_king", emoji: "🐲", rarity: "mythic", price: 5000, badge: "👑" },
+                        { id: "10", name: "إمبراطور النجوم", type: "star_emperor", emoji: "⭐", rarity: "mythic", price: 7500, badge: "🌟" },
+                        { id: "11", name: "سيد الزمن", type: "time_lord", emoji: "⏰", rarity: "mythic", price: 10000, badge: "⚡" },
+                        { id: "12", name: "إله الحرب", type: "war_god", emoji: "💀", rarity: "mythic", price: 12500, badge: "🔥" },
+                        { id: "13", name: "ملكة الكون", type: "universe_queen", emoji: "🌌", rarity: "mythic", price: 15000, badge: "💎" }
                       ].map((character) => (
-                        <div key={character.id} className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                        <div key={character.id} className={`p-3 rounded-lg border-2 transition-all hover:scale-105 relative ${
+                          character.rarity === 'mythic' ? 'bg-gradient-to-br from-purple-200 via-pink-200 to-red-200 border-purple-500 shadow-lg animate-pulse' :
                           character.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-100 to-orange-100 border-yellow-300' :
                           character.rarity === 'epic' ? 'bg-gradient-to-br from-purple-100 to-pink-100 border-purple-300' :
                           character.rarity === 'rare' ? 'bg-gradient-to-br from-blue-100 to-cyan-100 border-blue-300' :
                           'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300'
                         }`}>
+                          {/* VIP Badge for Mythic Characters */}
+                          {character.rarity === 'mythic' && (
+                            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg animate-spin-slow">
+                              {character.badge}
+                            </div>
+                          )}
+                          
                           <div className="text-center">
                             <div className="text-3xl mb-2">{character.emoji}</div>
-                            <h6 className="text-sm font-bold text-gray-800 mb-1">{character.name}</h6>
+                            <h6 className={`text-sm font-bold mb-1 ${
+                              character.rarity === 'mythic' ? 'text-purple-800 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent' : 'text-gray-800'
+                            }`}>
+                              {character.name}
+                              {character.rarity === 'mythic' && <span className="ml-1">{character.badge}</span>}
+                            </h6>
                             <p className="text-xs text-gray-600 mb-2 capitalize">{character.type}</p>
+                            {character.rarity === 'mythic' && (
+                              <div className="text-xs font-bold text-purple-600 mb-2 bg-purple-100 rounded-full px-2 py-1">
+                                🌟 VIP حصري
+                              </div>
+                            )}
                             {character.price === 0 ? (
                               <Button size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white text-xs" onClick={() => alert(`تم اختيار ${character.name}!`)}>
                                 🆓 مجاني
+                              </Button>
+                            ) : character.rarity === 'mythic' ? (
+                              <Button 
+                                size="sm" 
+                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs font-bold shadow-lg"
+                                onClick={() => alert(`شراء شخصية VIP: ${character.name} بـ ${character.price.toLocaleString()} نقطة!\nستحصل على علامة مميزة: ${character.badge}`)}
+                                disabled={(user?.points || 0) < character.price}
+                              >
+                                👑 {character.price.toLocaleString()}
                               </Button>
                             ) : (
                               <Button 
@@ -214,6 +253,29 @@ export default function SimpleExplore() {
                       ))}
                     </div>
                     
+                    {/* VIP Benefits Info */}
+                    <div className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-center mb-3">
+                      <h6 className="font-bold mb-2">👑 مزايا الشخصيات VIP</h6>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-white bg-opacity-20 rounded p-2">
+                          <div className="text-lg mb-1">🌟</div>
+                          <p>علامة مميزة</p>
+                        </div>
+                        <div className="bg-white bg-opacity-20 rounded p-2">
+                          <div className="text-lg mb-1">⚡</div>
+                          <p>قوة إضافية</p>
+                        </div>
+                        <div className="bg-white bg-opacity-20 rounded p-2">
+                          <div className="text-lg mb-1">💎</div>
+                          <p>مظهر خاص</p>
+                        </div>
+                        <div className="bg-white bg-opacity-20 rounded p-2">
+                          <div className="text-lg mb-1">👑</div>
+                          <p>مكانة VIP</p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Voice Chat Info */}
                     <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg text-center">
                       <h6 className="font-bold mb-1">🎤 المحادثة الصوتية</h6>
