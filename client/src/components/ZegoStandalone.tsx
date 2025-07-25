@@ -2,12 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuthFixed';
 import { 
-  ZEGO_STANDALONE_CONFIG, 
-  initStandaloneZego, 
-  generateStandaloneToken,
-  createZegoUser,
-  createZegoRoom 
-} from '@/lib/zegoStandalone';
+  ZEGO_CONFIG, 
+  initZegoEngine, 
+  generateSimpleToken
+} from '@/lib/zegoProperSDK';
 import { Camera, CameraOff, Mic, MicOff, PhoneOff, Users, Heart, MessageCircle } from 'lucide-react';
 
 interface ZegoStandaloneProps {
@@ -45,32 +43,43 @@ export default function ZegoStandalone({ streamTitle, onStreamEnd }: ZegoStandal
 
       console.log('🚀 Initializing standalone ZEGO streaming...');
       
-      // Initialize ZEGO Engine without server dependency
-      const engine = await initStandaloneZego(
-        ZEGO_STANDALONE_CONFIG.appID, 
-        ZEGO_STANDALONE_CONFIG.server
-      );
-      
+      // Initialize ZEGO Engine
+      const engine = await initZegoEngine();
       setZegoEngine(engine);
       
-      // Generate standalone token
-      const token = generateStandaloneToken(user.id, roomID);
-      console.log('🔑 Generated standalone token');
+      // Generate token
+      const token = generateSimpleToken(user.id);
+      console.log('🔑 Generated token for user:', user.id);
       
       // Create user and room objects
-      const zegoUser = createZegoUser(user.id, user.username || 'المستخدم');
-      const zegoRoom = createZegoRoom(roomID, streamTitle);
+      const zegoUser = {
+        userID: user.id,
+        userName: user.username || 'المستخدم'
+      };
+      const zegoRoom = {
+        roomID: roomID,
+        roomName: streamTitle
+      };
       
       // Login to room
       await engine.loginRoom(zegoRoom.roomID, token, zegoUser);
       setIsConnected(true);
-      console.log('✅ Connected to ZEGO room independently');
+      console.log('✅ Connected to ZEGO room:', zegoRoom.roomID);
       
       // Start camera preview
-      await startCameraPreview(engine);
+      const localVideo = await engine.createZegoStream({
+        camera: { video: true, audio: true }
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = localVideo;
+      }
       
       // Start publishing stream
-      await startPublishing(engine);
+      const streamID = `stream_${user.id}_${Date.now()}`;
+      await engine.startPublishingStream(streamID);
+      setIsPublishing(true);
+      console.log('✅ Publishing stream:', streamID);
       
     } catch (error) {
       console.error('❌ Standalone streaming initialization failed:', error);
@@ -78,34 +87,7 @@ export default function ZegoStandalone({ streamTitle, onStreamEnd }: ZegoStandal
     }
   };
 
-  const startCameraPreview = async (engine: any) => {
-    try {
-      const constraints = {
-        camera: {
-          video: cameraEnabled,
-          audio: micEnabled
-        }
-      };
-
-      await engine.startPreview(videoRef.current, constraints);
-      console.log('📹 Camera preview started independently');
-    } catch (error) {
-      console.error('❌ Camera preview failed:', error);
-      setError('فشل في تشغيل الكاميرا: ' + (error as Error).message);
-    }
-  };
-
-  const startPublishing = async (engine: any) => {
-    try {
-      const streamID = `stream_${user?.id}_${Date.now()}`;
-      await engine.startPublishingStream(streamID);
-      setIsPublishing(true);
-      console.log('📡 Publishing stream independently:', streamID);
-    } catch (error) {
-      console.error('❌ Publishing failed:', error);
-      setError('فشل في بدء البث: ' + (error as Error).message);
-    }
-  };
+  // Remove these functions as they're now integrated above
 
   const toggleCamera = async () => {
     if (!zegoEngine) return;
