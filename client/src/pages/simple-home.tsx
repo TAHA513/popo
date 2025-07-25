@@ -3,20 +3,34 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/bottom-navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import FlipCard from "@/components/flip-card";
+import { useVideoPreloader } from "@/hooks/useVideoPreloader";
 
 export default function SimpleHome() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // المنشورات العامة (الفيديوهات والصور)
+  // المنشورات العامة (الفيديوهات والصور) - تحديث سريع
   const { data: memories = [] } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 10000,
+    refetchInterval: 5000, // تحديث أسرع
+    staleTime: 1000, // البيانات تصبح قديمة بسرعة
+    gcTime: 30000, // TanStack Query v5 استخدام gcTime بدلاً من cacheTime
   });
+
+  // استخراج روابط الفيديوهات للتحميل المسبق
+  const videoUrls = useMemo(() => {
+    return (memories as any[])
+      .filter((m: any) => m.type === 'video')
+      .map((m: any) => m.mediaUrls?.[0] || m.imageUrl || m.thumbnailUrl)
+      .filter(Boolean);
+  }, [memories]);
+
+  // تحميل مسبق للفيديوهات
+  useVideoPreloader(videoUrls);
 
   const handleLike = (id: string) => {
     setLikedItems(prev => {
@@ -80,7 +94,7 @@ export default function SimpleHome() {
         {/* المنشورات مع البطاقات التفاعلية */}
         <div className="p-2">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 px-2">الذكريات والمنشورات</h3>
-          {memories.length === 0 ? (
+          {(memories as any[]).length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📱</div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">
@@ -98,7 +112,7 @@ export default function SimpleHome() {
             </div>
           ) : (
             <div className="space-y-4">
-              {memories.map((memory) => {
+              {(memories as any[]).map((memory: any) => {
                 // تحديد نوع المحتوى بناءً على البيانات الحقيقية
                 const hasVideo = memory.type === 'video' || 
                   (memory.mediaUrls && memory.mediaUrls.some((url: string) => 

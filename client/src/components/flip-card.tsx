@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RealTimeTimestamp } from "./real-time-timestamp";
+import { videoCache } from "@/utils/videoCache";
 import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,6 +34,17 @@ interface FlipCardProps {
 
 export default function FlipCard({ content, type, onAction, onLike, isLiked }: FlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoReady, setVideoReady] = useState(false);
+
+  // تحميل مسبق للفيديوهات
+  useEffect(() => {
+    if (type === 'video' && content.mediaUrls?.[0]) {
+      videoCache.preloadVideo(content.mediaUrls[0])
+        .then(() => setVideoReady(true))
+        .catch(() => console.log('فشل في تحميل الفيديو مسبقاً'));
+    }
+  }, [type, content.mediaUrls]);
   const [location, setLocation] = useLocation();
 
   const getCardStyle = () => {
@@ -79,25 +91,61 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           
           if (type === 'video' || type === 'live') {
             return (
-              <video
-                src={mediaUrl}
-                className="w-full h-full object-cover"
-                muted
-                autoPlay
-                loop
-                playsInline
-                poster={content.thumbnailUrl}
-                onMouseEnter={(e) => {
-                  e.currentTarget.play();
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.pause();
-                }}
-                onError={(e) => {
-                  console.error('Video failed to load:', mediaUrl);
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              <div className="relative w-full h-full">
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  className="w-full h-full object-cover"
+                  muted
+                  autoPlay
+                  loop
+                  playsInline
+                  preload="auto"
+                  crossOrigin="anonymous"
+                  controls={false}
+                  poster={content.thumbnailUrl}
+                  style={{ 
+                    objectFit: 'cover',
+                    transition: 'opacity 0.2s ease',
+                    opacity: videoReady ? 1 : 0.7
+                  }}
+                  onLoadStart={() => {
+                    // تشغيل فوري عند بداية التحميل
+                    setTimeout(() => {
+                      if (videoRef.current) {
+                        videoRef.current.play().catch(() => {});
+                      }
+                    }, 50);
+                  }}
+                  onCanPlay={(e) => {
+                    // تشغيل فوري عند الجاهزية
+                    const video = e.currentTarget;
+                    video.currentTime = 0;
+                    video.play().catch(() => {});
+                    setVideoReady(true);
+                  }}
+                  onLoadedData={(e) => {
+                    // تشغيل فوري عند تحميل البيانات
+                    e.currentTarget.play().catch(() => {});
+                    setVideoReady(true);
+                  }}
+                  onError={(e) => {
+                    console.error('فشل تحميل الفيديو:', mediaUrl);
+                    // استخدام الصورة المصغرة كبديل
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = content.thumbnailUrl || content.imageUrl || '';
+                    fallbackImg.className = 'w-full h-full object-cover';
+                    fallbackImg.alt = 'فيديو';
+                    e.currentTarget.parentNode?.replaceChild(fallbackImg, e.currentTarget);
+                  }}
+                />
+                {/* مؤشر التحميل للفيديو */}
+                {!videoReady && (
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+              </div>
             );
           } else {
             return (
@@ -170,13 +218,32 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
 
         {/* Center Play Button - Only for Videos */}
         {type === 'video' && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 group-hover:bg-black/10 transition-colors">
-            <div className="w-16 h-16 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/60 hover:scale-110 hover:bg-black/70 transition-all duration-300">
+          <div 
+            className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              // تشغيل الفيديو بسرعة البرق
+              const video = e.currentTarget.parentElement?.querySelector('video');
+              if (video) {
+                // تشغيل فوري مع عناصر التحكم
+                video.play().then(() => {
+                  video.controls = true;
+                  video.muted = false; // إلغاء كتم الصوت عند النقر
+                }).catch(() => {
+                  // إذا فشل، جرب مع كتم الصوت
+                  video.muted = true;
+                  video.play();
+                  video.controls = true;
+                });
+              }
+            }}
+          >
+            <div className="w-16 h-16 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/80 hover:scale-110 hover:bg-black/90 transition-all duration-200 shadow-lg">
               <Play className="w-8 h-8 text-white ml-1" />
             </div>
             {/* Video Indicator Badge */}
-            <div className="absolute top-3 left-3 bg-red-500/80 text-white px-2 py-1 rounded text-xs font-bold backdrop-blur-sm">
-              VIDEO
+            <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm shadow-lg">
+              🎥 فيديو
             </div>
           </div>
         )}
