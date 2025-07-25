@@ -71,8 +71,12 @@ export default function SimpleHome() {
       </div>
 
       <div className="max-w-md mx-auto">
-        {/* البثوث المباشرة فقط */}
+        {/* صفحة الاستكشاف - البثوث المباشرة */}
         <div className="p-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">🔍 الاستكشاف</h2>
+            <p className="text-gray-600 text-sm">البثوث المباشرة الآن</p>
+          </div>
           {streams.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               {streams.map((stream: Stream) => (

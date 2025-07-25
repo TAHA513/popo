@@ -364,3 +364,12 @@ The application is designed for deployment on Replit's platform but can be adapt
 - ✓ **Stream Management**: Proper stream creation and deletion with database cleanup
 - ✓ **User Role Detection**: Automatic detection of streamer vs viewer based on hostId
 - ✓ **Professional UI**: TikTok-inspired interface with gradients, animations, and modern design
+
+### July 25, 2025 - Page Role Reversal and Navigation Update
+- ✓ **Home/Explore Page Swap**: Reversed the roles between homepage and explore page per user request
+- ✓ **New Homepage**: Now displays posts and memories with FlipCard components at root URL (/)
+- ✓ **New Explore Page**: Now shows live streams at /explore with stream discovery functionality  
+- ✓ **Updated Navigation**: Modified mobile and desktop navigation icons to reflect new page purposes
+- ✓ **Route Updates**: Updated all App.tsx routes to properly redirect to the new page structure
+- ✓ **Page Headers**: Added clear section headers and descriptions to distinguish page purposes
+- ✓ **User Experience**: Maintained all existing functionality while improving content organization
