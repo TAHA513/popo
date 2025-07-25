@@ -17,6 +17,7 @@ export default function CharacterSelector() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [activeCategory, setActiveCategory] = useState<'free' | 'cheap' | 'expensive' | 'legendary' | 'all'>('all');
 
   // Rich character collection with varied pricing
   const availableCharacters: Character[] = [
@@ -291,6 +292,22 @@ export default function CharacterSelector() {
     }
   };
 
+  const getFilteredCharacters = () => {
+    switch(activeCategory) {
+      case 'free':
+        return availableCharacters.filter(char => char.price === 0);
+      case 'cheap':
+        return availableCharacters.filter(char => char.price > 0 && char.price <= 800);
+      case 'expensive':
+        return availableCharacters.filter(char => char.price >= 1000 && char.price <= 5000);
+      case 'legendary':
+        return availableCharacters.filter(char => char.price >= 8000);
+      case 'all':
+      default:
+        return availableCharacters;
+    }
+  };
+
   const handleSelectCharacter = (character: Character) => {
     if (character.price > 0 && (!user || (user.points || 0) < character.price)) {
       toast({
@@ -334,160 +351,135 @@ export default function CharacterSelector() {
         </div>
       )}
 
-      {/* Available Characters */}
-      <div className="space-y-6">
-        <h3 className="text-lg font-bold text-gray-800">📦 مجموعة الشخصيات المتاحة</h3>
+      {/* Available Characters - Grid Layout */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-gray-800 text-center">🎮 معرض الشخصيات الكامل</h3>
         
-        {/* Filter by Price Category */}
-        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200">
-          <h4 className="text-md font-bold text-gray-700 mb-3">🆓 الشخصيات المجانية</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {availableCharacters.filter(char => char.price === 0).map((character) => (
-              <div 
-                key={character.id} 
-                className={`bg-white rounded-lg p-3 border-2 transition-all cursor-pointer hover:shadow-lg ${
-                  selectedCharacter?.id === character.id 
-                    ? `border-green-400 bg-green-50 shadow-lg` 
-                    : 'border-gray-200 hover:border-green-300'
-                }`}
-                onClick={() => handleSelectCharacter(character)}
-              >
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${getRarityColor(character.rarity)} rounded-lg flex items-center justify-center text-xl`}>
-                    {getCharacterTypeEmoji(character.type)}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-gray-800">{character.name}</h4>
-                    <p className="text-xs text-gray-600">{character.description}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="flex items-center space-x-1 space-x-reverse">
-                        {getRarityIcon(character.rarity)}
-                        <span className="text-xs text-gray-500 capitalize">{character.rarity}</span>
-                      </div>
-                      <span className="text-xs font-bold text-green-600">مجاني</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Category Tabs */}
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          <Button 
+            size="sm" 
+            className={`${activeCategory === 'free' ? 'bg-green-600 shadow-lg' : 'bg-green-500'} hover:bg-green-600 text-white`}
+            onClick={() => setActiveCategory('free')}
+          >
+            🆓 مجاني
+          </Button>
+          <Button 
+            size="sm" 
+            className={`${activeCategory === 'cheap' ? 'bg-blue-600 shadow-lg' : 'bg-blue-500'} hover:bg-blue-600 text-white`}
+            onClick={() => setActiveCategory('cheap')}
+          >
+            💰 متوسط
+          </Button>
+          <Button 
+            size="sm" 
+            className={`${activeCategory === 'expensive' ? 'bg-purple-600 shadow-lg' : 'bg-purple-500'} hover:bg-purple-600 text-white`}
+            onClick={() => setActiveCategory('expensive')}
+          >
+            💎 متقدم
+          </Button>
+          <Button 
+            size="sm" 
+            className={`${activeCategory === 'legendary' ? 'bg-yellow-600 shadow-lg' : 'bg-yellow-500'} hover:bg-yellow-600 text-white`}
+            onClick={() => setActiveCategory('legendary')}
+          >
+            👑 أسطوري
+          </Button>
+          <Button 
+            size="sm" 
+            className={`${activeCategory === 'all' ? 'bg-gray-600 shadow-lg' : 'bg-gray-500'} hover:bg-gray-600 text-white`}
+            onClick={() => setActiveCategory('all')}
+          >
+            🌟 الكل
+          </Button>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200">
-          <h4 className="text-md font-bold text-gray-700 mb-3">💰 الشخصيات المتوسطة (50-800 نقطة)</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {availableCharacters.filter(char => char.price > 0 && char.price <= 800).map((character) => (
-              <div 
-                key={character.id} 
-                className={`bg-white rounded-lg p-3 border-2 transition-all cursor-pointer hover:shadow-lg ${
-                  selectedCharacter?.id === character.id 
-                    ? `border-blue-400 bg-blue-50 shadow-lg` 
-                    : 'border-gray-200 hover:border-blue-300'
-                }`}
-                onClick={() => handleSelectCharacter(character)}
-              >
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${getRarityColor(character.rarity)} rounded-lg flex items-center justify-center text-xl`}>
-                    {getCharacterTypeEmoji(character.type)}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-gray-800">{character.name}</h4>
-                    <p className="text-xs text-gray-600">{character.description}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="flex items-center space-x-1 space-x-reverse">
-                        {getRarityIcon(character.rarity)}
-                        <span className="text-xs text-gray-500 capitalize">{character.rarity}</span>
-                      </div>
-                      <span className="text-xs font-bold text-blue-600">{character.price} نقطة</span>
-                    </div>
-                  </div>
+        {/* Characters Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {getFilteredCharacters().map((character) => (
+            <div 
+              key={character.id} 
+              className={`bg-white rounded-xl p-4 border-2 transition-all cursor-pointer hover:scale-105 hover:shadow-xl ${
+                selectedCharacter?.id === character.id 
+                  ? `border-pink-400 bg-pink-50 shadow-xl scale-105` 
+                  : 'border-gray-200 hover:border-pink-300'
+              }`}
+              onClick={() => handleSelectCharacter(character)}
+            >
+              {/* Character Visual */}
+              <div className="text-center mb-3">
+                <div className={`w-16 h-16 bg-gradient-to-br ${getRarityColor(character.rarity)} rounded-xl flex items-center justify-center text-2xl mx-auto mb-2 relative`}>
+                  {getCharacterTypeEmoji(character.type)}
+                  {/* Rarity Indicators */}
+                  {character.rarity === 'legendary' && <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>}
+                  {character.rarity === 'mythic' && <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full animate-pulse"></div>}
+                  {character.rarity === 'divine' && <div className="absolute -top-1 -right-1 w-4 h-4 bg-rainbow-500 rounded-full animate-spin"></div>}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
-          <h4 className="text-md font-bold text-gray-700 mb-3">💎 الشخصيات المتقدمة (1000-5000 نقطة)</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {availableCharacters.filter(char => char.price >= 1000 && char.price <= 5000).map((character) => (
-              <div 
-                key={character.id} 
-                className={`bg-white rounded-lg p-3 border-2 transition-all cursor-pointer hover:shadow-lg ${
-                  selectedCharacter?.id === character.id 
-                    ? `border-purple-400 bg-purple-50 shadow-lg` 
-                    : 'border-gray-200 hover:border-purple-300'
-                }`}
-                onClick={() => handleSelectCharacter(character)}
-              >
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${getRarityColor(character.rarity)} rounded-lg flex items-center justify-center text-xl relative`}>
-                    {getCharacterTypeEmoji(character.type)}
-                    {character.rarity === 'legendary' && <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-gray-800">{character.name}</h4>
-                    <p className="text-xs text-gray-600">{character.description}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="flex items-center space-x-1 space-x-reverse">
-                        {getRarityIcon(character.rarity)}
-                        <span className="text-xs text-gray-500 capitalize">{character.rarity}</span>
-                      </div>
-                      <span className="text-xs font-bold text-purple-600">{character.price} نقطة</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-300">
-          <h4 className="text-md font-bold text-gray-700 mb-3">👑 الشخصيات الأسطورية (8000+ نقطة)</h4>
-          <div className="grid grid-cols-1 gap-4">
-            {availableCharacters.filter(char => char.price >= 8000).map((character) => (
-              <div 
-                key={character.id} 
-                className={`bg-white rounded-lg p-4 border-2 transition-all cursor-pointer hover:shadow-xl relative overflow-hidden ${
-                  selectedCharacter?.id === character.id 
-                    ? `border-yellow-400 bg-yellow-50 shadow-xl` 
-                    : 'border-gray-200 hover:border-yellow-400'
-                }`}
-                onClick={() => handleSelectCharacter(character)}
-              >
+                
+                {/* Special Effects for High Tier */}
                 {character.rarity === 'divine' && (
-                  <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500"></div>
+                  <div className="w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-full mb-2"></div>
                 )}
                 {character.rarity === 'mythic' && (
-                  <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-purple-600 to-pink-600"></div>
+                  <div className="w-full h-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full mb-2"></div>
                 )}
-                <div className="flex items-center space-x-4 space-x-reverse">
-                  <div className={`w-16 h-16 bg-gradient-to-br ${getRarityColor(character.rarity)} rounded-xl flex items-center justify-center text-2xl relative`}>
-                    {getCharacterTypeEmoji(character.type)}
-                    {character.rarity === 'mythic' && <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full animate-pulse"></div>}
-                    {character.rarity === 'divine' && <div className="absolute -top-1 -right-1 w-4 h-4 bg-rainbow-500 rounded-full animate-spin"></div>}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-lg font-bold text-gray-800">{character.name}</h4>
-                    <p className="text-sm text-gray-600">{character.description}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center space-x-2 space-x-reverse">
-                        {getRarityIcon(character.rarity)}
-                        <span className="text-sm text-gray-600 capitalize font-semibold">{character.rarity}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-lg font-bold text-yellow-600">{character.price.toLocaleString()} نقطة</span>
-                        {character.price >= 15000 && (
-                          <p className="text-xs text-yellow-600">حصري جداً 🌟</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                
+                <h4 className="text-sm font-bold text-gray-800 mb-1">{character.name}</h4>
+                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{character.description}</p>
               </div>
-            ))}
-          </div>
+              
+              {/* Character Info */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-center space-x-1 space-x-reverse">
+                  {getRarityIcon(character.rarity)}
+                  <span className="text-xs text-gray-500 capitalize font-medium">{character.rarity}</span>
+                </div>
+                
+                {/* Price */}
+                <div className="text-center">
+                  {character.price === 0 ? (
+                    <span className="text-sm font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">مجاني</span>
+                  ) : character.price >= 8000 ? (
+                    <div>
+                      <span className="text-sm font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">{character.price.toLocaleString()} نقطة</span>
+                      {character.price >= 15000 && (
+                        <p className="text-xs text-yellow-600 mt-1">حصري 🌟</p>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-sm font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">{character.price} نقطة</span>
+                  )}
+                </div>
+                
+                {/* Purchase/Select Button */}
+                <Button 
+                  size="sm" 
+                  className={`w-full text-xs ${
+                    character.price === 0 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : character.price >= 8000 
+                        ? 'bg-yellow-600 hover:bg-yellow-700' 
+                        : 'bg-purple-600 hover:bg-purple-700'
+                  } text-white`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectCharacter(character);
+                  }}
+                >
+                  {character.price === 0 ? 'اختيار' : 'شراء'}
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
+        
+        {/* Empty State */}
+        {getFilteredCharacters().length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-4xl mb-4">🔍</div>
+            <p className="text-gray-600">لا توجد شخصيات في هذه الفئة</p>
+          </div>
+        )}
       </div>
     </div>
   );
