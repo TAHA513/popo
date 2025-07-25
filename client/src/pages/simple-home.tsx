@@ -103,13 +103,31 @@ export default function SimpleHome() {
               </div>
               
               <div className="grid grid-cols-3 gap-2">
-                <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                <Button 
+                  size="sm" 
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  onClick={() => {
+                    alert("🍎 تم إطعام أرنوب الصغير! زادت الصحة +10");
+                  }}
+                >
                   🍎 إطعام
                 </Button>
-                <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
+                <Button 
+                  size="sm" 
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={() => {
+                    alert("🎮 لعبت مع أرنوب الصغير! زادت السعادة +15");
+                  }}
+                >
                   🎮 لعب
                 </Button>
-                <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white">
+                <Button 
+                  size="sm" 
+                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                  onClick={() => {
+                    alert("🛍️ مرحباً بك في متجر الهدايا!");
+                  }}
+                >
                   🛍️ تسوق
                 </Button>
               </div>
@@ -124,7 +142,13 @@ export default function SimpleHome() {
                 <div className="text-3xl mb-2">🍯</div>
                 <p className="text-sm font-semibold text-gray-700">عسل طبيعي</p>
                 <p className="text-xs text-gray-500 mb-2">يزيد الصحة +20</p>
-                <Button size="sm" className="bg-laa-pink hover:bg-laa-pink/90 w-full">
+                <Button 
+                  size="sm" 
+                  className="bg-laa-pink hover:bg-laa-pink/90 w-full"
+                  onClick={() => {
+                    alert("🍯 تم شراء العسل الطبيعي! أرنوب سعيد جداً");
+                  }}
+                >
                   10 نقاط
                 </Button>
               </div>
@@ -132,7 +156,13 @@ export default function SimpleHome() {
                 <div className="text-3xl mb-2">🎾</div>
                 <p className="text-sm font-semibold text-gray-700">كرة ملونة</p>
                 <p className="text-xs text-gray-500 mb-2">يزيد السعادة +30</p>
-                <Button size="sm" className="bg-blue-500 hover:bg-blue-600 w-full">
+                <Button 
+                  size="sm" 
+                  className="bg-blue-500 hover:bg-blue-600 w-full"
+                  onClick={() => {
+                    alert("🎾 تم شراء الكرة الملونة! أرنوب يحب اللعب");
+                  }}
+                >
                   15 نقاط
                 </Button>
               </div>
@@ -140,7 +170,13 @@ export default function SimpleHome() {
                 <div className="text-3xl mb-2">👑</div>
                 <p className="text-sm font-semibold text-gray-700">تاج ذهبي</p>
                 <p className="text-xs text-gray-500 mb-2">اكسسوار فاخر</p>
-                <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 w-full">
+                <Button 
+                  size="sm" 
+                  className="bg-yellow-500 hover:bg-yellow-600 w-full"
+                  onClick={() => {
+                    alert("👑 تم شراء التاج الذهبي! أرنوب يبدو ملكياً الآن");
+                  }}
+                >
                   50 نقاط
                 </Button>
               </div>
@@ -148,7 +184,13 @@ export default function SimpleHome() {
                 <div className="text-3xl mb-2">💐</div>
                 <p className="text-sm font-semibold text-gray-700">باقة ورد</p>
                 <p className="text-xs text-gray-500 mb-2">هدية رومانسية</p>
-                <Button size="sm" className="bg-red-500 hover:bg-red-600 w-full">
+                <Button 
+                  size="sm" 
+                  className="bg-red-500 hover:bg-red-600 w-full"
+                  onClick={() => {
+                    alert("💐 تم شراء باقة الورد! هدية رومانسية جميلة");
+                  }}
+                >
                   25 نقاط
                 </Button>
               </div>
@@ -167,7 +209,13 @@ export default function SimpleHome() {
                     <p className="text-xs text-gray-500">ثعلب ذكي - مستوى 12</p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    alert("🏘️ زرت حديقة أحمد! ثعلب ذكي يرحب بك");
+                  }}
+                >
                   زيارة
                 </Button>
               </div>
@@ -179,7 +227,13 @@ export default function SimpleHome() {
                     <p className="text-xs text-gray-500">قطة لطيفة - مستوى 8</p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    alert("🏘️ زرت حديقة فاطمة! القطة اللطيفة تموء بسعادة");
+                  }}
+                >
                   زيارة
                 </Button>
               </div>
@@ -191,7 +245,13 @@ export default function SimpleHome() {
                     <p className="text-xs text-gray-500">ذئب قوي - مستوى 15</p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    alert("🏘️ زرت حديقة محمد! الذئب القوي يرحب بك بحماس");
+                  }}
+                >
                   زيارة
                 </Button>
               </div>

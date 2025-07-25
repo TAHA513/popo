@@ -151,6 +151,7 @@ export default function SimpleNavigation() {
                 variant={location === "/explore" ? "secondary" : "ghost"} 
                 size="sm"
                 className={`rounded-full ${location === "/explore" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                title="حديقة LaaBoBo"
               >
                 🌸
               </Button>

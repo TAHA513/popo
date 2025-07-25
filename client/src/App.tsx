@@ -38,10 +38,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? <SimpleExplore /> : <LoginPage />}
+        {isAuthenticated ? <SimpleHome /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isAuthenticated ? <SimpleExplore /> : <RegisterPage />}
+        {isAuthenticated ? <SimpleHome /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
         <Suspense fallback={
@@ -49,8 +49,8 @@ function Router() {
             <div className="text-white text-lg">جاري التحميل...</div>
           </div>
         }>
-          <Route path="/" component={SimpleExplore} />
-          <Route path="/home" component={SimpleExplore} />
+          <Route path="/" component={SimpleHome} />
+          <Route path="/home" component={SimpleHome} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
@@ -62,7 +62,7 @@ function Router() {
           <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
           <Route path="/profile/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/explore" component={SimpleHome} />
+          <Route path="/explore" component={SimpleExplore} />
           <Route path="/gifts" component={LazyComponents.GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
           <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
@@ -70,7 +70,7 @@ function Router() {
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route path="/:rest*" component={SimpleExplore} />
+          <Route path="/:rest*" component={SimpleHome} />
         </Suspense>
       ) : (
         <>
