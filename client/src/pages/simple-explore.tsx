@@ -6,6 +6,8 @@ import { useLocation } from "wouter";
 import { Plus, Heart, ShoppingBag, Sparkles } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import { apiRequest } from "@/lib/queryClient";
+import FriendsGardens from "@/components/FriendsGardens";
+import MultiplayerGames from "@/components/MultiplayerGames";
 
 export default function SimpleExplore() {
   const { user } = useAuth();
@@ -228,63 +230,12 @@ export default function SimpleExplore() {
 
           {/* حدائق الأصدقاء */}
           <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">🏘️ حدائق الأصدقاء</h3>
-            <div className="space-y-3">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="text-2xl mr-3">🦊</div>
-                  <div>
-                    <p className="font-semibold text-gray-800">أحمد</p>
-                    <p className="text-xs text-gray-500">ثعلب ذكي - مستوى 12</p>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    alert("🏘️ زرت حديقة أحمد! ثعلب ذكي يرحب بك");
-                  }}
-                >
-                  زيارة
-                </Button>
-              </div>
-              <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="text-2xl mr-3">🐱</div>
-                  <div>
-                    <p className="font-semibold text-gray-800">فاطمة</p>
-                    <p className="text-xs text-gray-500">قطة لطيفة - مستوى 8</p>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    alert("🏘️ زرت حديقة فاطمة! القطة اللطيفة تموء بسعادة");
-                  }}
-                >
-                  زيارة
-                </Button>
-              </div>
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="text-2xl mr-3">🐺</div>
-                  <div>
-                    <p className="font-semibold text-gray-800">محمد</p>
-                    <p className="text-xs text-gray-500">ذئب قوي - مستوى 15</p>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    alert("🏘️ زرت حديقة محمد! الذئب القوي يرحب بك بحماس");
-                  }}
-                >
-                  زيارة
-                </Button>
-              </div>
-            </div>
+            <FriendsGardens />
+          </div>
+
+          {/* الألعاب الجماعية */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <MultiplayerGames />
           </div>
         </div>
       </div>

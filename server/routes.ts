@@ -1283,6 +1283,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get friends list (users with pets)
+  app.get("/api/garden/friends", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const friends = await storage.getAllUsersWithPets(userId);
+      res.json(friends);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+      res.status(500).json({ message: "Failed to fetch friends" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket setup

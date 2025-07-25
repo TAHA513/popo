@@ -55,7 +55,7 @@ import {
   type InsertMessageRequest,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, count } from "drizzle-orm";
+import { eq, desc, and, sql, count, ne } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 export interface IStorage {
@@ -129,6 +129,7 @@ export interface IStorage {
   getFriendGarden(friendId: string): Promise<{ pet: VirtualPet; user: User } | undefined>;
   getGardenActivities(userId: string): Promise<GardenActivity[]>;
   getPetAchievements(userId: string): Promise<PetAchievement[]>;
+  getAllUsersWithPets(currentUserId: string): Promise<Array<{ user: User; pet: VirtualPet | null }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -865,14 +866,14 @@ export class DatabaseStorage implements IStorage {
     }
 
     const totalCost = item.price * quantity;
-    if (user.points < totalCost) {
+    if ((user.points || 0) < totalCost) {
       throw new Error("Insufficient points");
     }
 
     // Deduct points
     await db
       .update(users)
-      .set({ points: user.points - totalCost })
+      .set({ points: (user.points || 0) - totalCost })
       .where(eq(users.id, userId));
 
     // Add to inventory or update quantity
@@ -969,6 +970,20 @@ export class DatabaseStorage implements IStorage {
       .from(petAchievements)
       .where(eq(petAchievements.userId, userId))
       .orderBy(desc(petAchievements.createdAt));
+  }
+
+  async getAllUsersWithPets(currentUserId: string): Promise<Array<{ user: User; pet: VirtualPet | null }>> {
+    const usersWithPets = await db
+      .select({
+        user: users,
+        pet: virtualPets,
+      })
+      .from(users)
+      .leftJoin(virtualPets, eq(users.id, virtualPets.userId))
+      .where(ne(users.id, currentUserId))
+      .limit(10); // Get up to 10 friends
+
+    return usersWithPets;
   }
 }
 
