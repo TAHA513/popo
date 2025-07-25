@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Gamepad2, Trophy, Users, Play, UserPlus, Shuffle, Heart } from "lucide-react";
 import GameRoom from "./GameRoom";
-import SoloGameInterface from "./SoloGameInterface";
+
 
 interface Game {
   id: string;
@@ -96,7 +96,7 @@ export default function MultiplayerGames() {
   const [showGameRoom, setShowGameRoom] = useState(false);
   const [gameMode, setGameMode] = useState<'solo' | 'random' | 'friends' | null>(null);
   const [showModeSelection, setShowModeSelection] = useState(false);
-  const [showSoloGame, setShowSoloGame] = useState(false);
+
 
   const handleStartGame = (game: Game) => {
     setSelectedGame(game);
@@ -107,10 +107,10 @@ export default function MultiplayerGames() {
     setGameMode(mode);
     setShowModeSelection(false);
     
-    if (mode === 'solo') {
-      // For solo mode, open actual game interface
-      setShowSoloGame(true);
-    } else {
+    // All game modes currently disabled - show coming soon message
+    alert(`🚧 وضع "${mode === 'solo' ? 'اللعب المنفرد' : mode === 'random' ? 'العشوائي' : 'مع الأصدقاء'}" قيد التطوير\n\n⏳ سيتم إطلاق الألعاب قريباً جداً!\n🎮 استعد لتجربة ألعاب مذهلة!`);
+    
+    if (false) { // Disabled for now
       setShowGameRoom(true);
       
       // Show mode-specific message for multiplayer
@@ -147,18 +147,6 @@ export default function MultiplayerGames() {
 
   return (
     <>
-      {/* Solo Game Interface */}
-      {showSoloGame && selectedGame && (
-        <SoloGameInterface
-          gameId={selectedGame.id}
-          gameName={selectedGame.name}
-          gameEmoji={selectedGame.emoji}
-          onClose={() => {
-            setShowSoloGame(false);
-            setSelectedGame(null);
-          }}
-        />
-      )}
 
       {/* Game Room */}
       {showGameRoom && selectedGame && (
