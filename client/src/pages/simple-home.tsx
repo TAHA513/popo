@@ -1,32 +1,20 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Play, 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Gift, 
-  Eye, 
-  User,
-  Radio
-} from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { Stream } from "@/types";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
+import { Radio } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
+import FlipCard from "@/components/flip-card";
 
 export default function SimpleHome() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // البثوث المباشرة
-  const { data: streams = [] } = useQuery<Stream[]>({
-    queryKey: ['/api/streams'],
+  // المنشورات العامة فقط (بدون البثوث)
+  const { data: memories = [] } = useQuery<any[]>({
+    queryKey: ['/api/memories/public'], 
     refetchInterval: 10000,
   });
 
@@ -70,193 +58,79 @@ export default function SimpleHome() {
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
-      <div className="max-w-md mx-auto">
-        {/* حديقة LaaBoBo الاجتماعية */}
-        <div className="p-4">
+      <div className="max-w-sm mx-auto">
+        {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}
+        <div className="p-2">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">🌸 حديقة LaaBoBo</h2>
-            <p className="text-gray-600 text-sm">اعتني بشخصيتك وتفاعل مع الأصدقاء</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">🏠 الرئيسية</h2>
+            <p className="text-gray-600 text-sm">اكتشف المنشورات والذكريات</p>
           </div>
-          {/* الحديقة الشخصية */}
-          <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-6 mb-6">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🐰</div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">أرنوب الصغير</h3>
-              <p className="text-sm text-gray-600 mb-4">شخصيتك الافتراضية</p>
-              
-              {/* شريط الصحة */}
-              <div className="bg-white/50 rounded-full p-1 mb-4">
-                <div className="bg-green-500 h-3 rounded-full w-4/5 relative">
-                  <span className="absolute inset-0 text-xs text-white font-bold flex items-center justify-center">
-                    صحة 80%
-                  </span>
-                </div>
-              </div>
-              
-              {/* شريط السعادة */}
-              <div className="bg-white/50 rounded-full p-1 mb-6">
-                <div className="bg-yellow-500 h-3 rounded-full w-3/5 relative">
-                  <span className="absolute inset-0 text-xs text-white font-bold flex items-center justify-center">
-                    سعادة 60%
-                  </span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-2">
-                <Button 
-                  size="sm" 
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={() => {
-                    alert("🍎 تم إطعام أرنوب الصغير! زادت الصحة +10");
-                  }}
-                >
-                  🍎 إطعام
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={() => {
-                    alert("🎮 لعبت مع أرنوب الصغير! زادت السعادة +15");
-                  }}
-                >
-                  🎮 لعب
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="bg-purple-500 hover:bg-purple-600 text-white"
-                  onClick={() => {
-                    alert("🛍️ مرحباً بك في متجر الهدايا!");
-                  }}
-                >
-                  🛍️ تسوق
-                </Button>
-              </div>
+          {memories.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📱</div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                لا توجد منشورات
+              </h3>
+              <p className="text-gray-500 mb-4">
+                لم يتم العثور على محتوى للعرض
+              </p>
+              <Button 
+                onClick={() => setLocation('/create-memory')}
+                className="bg-laa-pink hover:bg-laa-pink/90"
+              >
+                أنشئ منشور
+              </Button>
             </div>
-          </div>
-
-          {/* متجر الهدايا */}
-          <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">🎁 متجر الهدايا</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">🍯</div>
-                <p className="text-sm font-semibold text-gray-700">عسل طبيعي</p>
-                <p className="text-xs text-gray-500 mb-2">يزيد الصحة +20</p>
-                <Button 
-                  size="sm" 
-                  className="bg-laa-pink hover:bg-laa-pink/90 w-full"
-                  onClick={() => {
-                    alert("🍯 تم شراء العسل الطبيعي! أرنوب سعيد جداً");
-                  }}
-                >
-                  10 نقاط
-                </Button>
-              </div>
-              <div className="bg-gradient-to-br from-blue-100 to-green-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">🎾</div>
-                <p className="text-sm font-semibold text-gray-700">كرة ملونة</p>
-                <p className="text-xs text-gray-500 mb-2">يزيد السعادة +30</p>
-                <Button 
-                  size="sm" 
-                  className="bg-blue-500 hover:bg-blue-600 w-full"
-                  onClick={() => {
-                    alert("🎾 تم شراء الكرة الملونة! أرنوب يحب اللعب");
-                  }}
-                >
-                  15 نقاط
-                </Button>
-              </div>
-              <div className="bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">👑</div>
-                <p className="text-sm font-semibold text-gray-700">تاج ذهبي</p>
-                <p className="text-xs text-gray-500 mb-2">اكسسوار فاخر</p>
-                <Button 
-                  size="sm" 
-                  className="bg-yellow-500 hover:bg-yellow-600 w-full"
-                  onClick={() => {
-                    alert("👑 تم شراء التاج الذهبي! أرنوب يبدو ملكياً الآن");
-                  }}
-                >
-                  50 نقاط
-                </Button>
-              </div>
-              <div className="bg-gradient-to-br from-red-100 to-pink-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">💐</div>
-                <p className="text-sm font-semibold text-gray-700">باقة ورد</p>
-                <p className="text-xs text-gray-500 mb-2">هدية رومانسية</p>
-                <Button 
-                  size="sm" 
-                  className="bg-red-500 hover:bg-red-600 w-full"
-                  onClick={() => {
-                    alert("💐 تم شراء باقة الورد! هدية رومانسية جميلة");
-                  }}
-                >
-                  25 نقاط
-                </Button>
-              </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {memories.map((memory: any) => {
+                // تحديد نوع المحتوى بناءً على البيانات الحقيقية
+                const hasVideo = memory.type === 'video' || 
+                  (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
+                    url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')
+                  )) ||
+                  (memory.imageUrl && (
+                    memory.imageUrl.includes('.mp4') || 
+                    memory.imageUrl.includes('.webm') || 
+                    memory.imageUrl.includes('.mov')
+                  ));
+                
+                const cardType = hasVideo ? 'video' : 'image';
+                
+                // إعداد URLs الوسائط بشكل صحيح
+                let mediaUrls = [];
+                if (memory.mediaUrls && Array.isArray(memory.mediaUrls)) {
+                  mediaUrls = memory.mediaUrls;
+                } else if (memory.imageUrl) {
+                  mediaUrls = [memory.imageUrl];
+                } else if (memory.thumbnailUrl) {
+                  mediaUrls = [memory.thumbnailUrl];
+                }
+                
+                return (
+                  <FlipCard
+                    key={`memory-${memory.id}`}
+                    content={{
+                      ...memory,
+                      mediaUrls: mediaUrls,
+                      author: memory.author || {
+                        id: memory.authorId,
+                        firstName: memory.author?.firstName || 'مستخدم',
+                        username: memory.author?.username || 'LaaBoBo',
+                        profileImageUrl: memory.author?.profileImageUrl
+                      }
+                    }}
+                    type={cardType}
+                    isLiked={likedItems.has(memory.id.toString())}
+                    onLike={(id) => handleLike(memory.id.toString())}
+                    onAction={(action) => {
+                      // يمكن إضافة إجراءات هنا إذا لزم الأمر
+                    }}
+                  />
+                );
+              })}
             </div>
-          </div>
-
-          {/* حدائق الأصدقاء */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">🏘️ حدائق الأصدقاء</h3>
-            <div className="space-y-3">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="text-2xl mr-3">🦊</div>
-                  <div>
-                    <p className="font-semibold text-gray-800">أحمد</p>
-                    <p className="text-xs text-gray-500">ثعلب ذكي - مستوى 12</p>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    alert("🏘️ زرت حديقة أحمد! ثعلب ذكي يرحب بك");
-                  }}
-                >
-                  زيارة
-                </Button>
-              </div>
-              <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="text-2xl mr-3">🐱</div>
-                  <div>
-                    <p className="font-semibold text-gray-800">فاطمة</p>
-                    <p className="text-xs text-gray-500">قطة لطيفة - مستوى 8</p>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    alert("🏘️ زرت حديقة فاطمة! القطة اللطيفة تموء بسعادة");
-                  }}
-                >
-                  زيارة
-                </Button>
-              </div>
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="text-2xl mr-3">🐺</div>
-                  <div>
-                    <p className="font-semibold text-gray-800">محمد</p>
-                    <p className="text-xs text-gray-500">ذئب قوي - مستوى 15</p>
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    alert("🏘️ زرت حديقة محمد! الذئب القوي يرحب بك بحماس");
-                  }}
-                >
-                  زيارة
-                </Button>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
