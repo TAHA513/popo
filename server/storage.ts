@@ -348,6 +348,79 @@ export class DatabaseStorage implements IStorage {
       .where(eq(memoryCollections.id, collectionId));
   }
 
+  // Simple messages system
+  async getConversations(userId: string) {
+    // Get all messages where user is sender or recipient
+    const userMessages = await db
+      .select()
+      .from(privateMessages)
+      .where(eq(privateMessages.senderId, userId))
+      .orderBy(desc(privateMessages.createdAt))
+      .limit(50);
+
+    // Group by conversation partners
+    const conversations: any[] = [];
+    const seen = new Set();
+
+    for (const msg of userMessages) {
+      const otherId = msg.recipientId;
+      if (!seen.has(otherId)) {
+        seen.add(otherId);
+        const otherUser = await db
+          .select({
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl
+          })
+          .from(users)
+          .where(eq(users.id, otherId))
+          .limit(1);
+
+        if (otherUser.length > 0) {
+          conversations.push({
+            id: conversations.length + 1,
+            otherUserId: otherId,
+            otherUser: otherUser[0],
+            lastMessage: msg.content,
+            lastMessageAt: msg.createdAt
+          });
+        }
+      }
+    }
+
+    return conversations;
+  }
+
+  async getMessageRequests(userId: string) {
+    return [];
+  }
+
+  async getMessages(conversationId: number, userId: string) {
+    // For simplicity, just return recent messages for the user
+    return await db
+      .select()
+      .from(privateMessages)
+      .where(eq(privateMessages.senderId, userId))
+      .orderBy(desc(privateMessages.createdAt))
+      .limit(50);
+  }
+
+  async sendMessage(senderId: string, receiverId: string, content: string) {
+    const message = await db
+      .insert(privateMessages)
+      .values({
+        senderId,
+        recipientId: receiverId,
+        content,
+        isRead: false,
+        createdAt: new Date()
+      })
+      .returning();
+
+    return message[0];
+  }
+
   // Admin operations
   async getAppStats(): Promise<{ activeUsers: number; totalMemories: number; dailyRevenue: number }> {
     const [userCount] = await db

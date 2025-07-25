@@ -16,7 +16,7 @@ import AccountPage from "@/pages/account";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
 import FeedPage from "@/pages/feed";
-import MessagesPage from "@/pages/messages";
+import SimpleMessagesPage from "@/pages/simple-messages";
 import * as LazyComponents from "@/App.lazy";
 
 import { LanguageOption } from "@/types";
@@ -56,7 +56,7 @@ function Router() {
           <Route path="/start-streaming" component={LazyComponents.StartStreamingPage} />
 
           <Route path="/feed" component={FeedPage} />
-          <Route path="/messages" component={MessagesPage} />
+          <Route path="/messages" component={SimpleMessagesPage} />
           <Route path="/account" component={AccountPage} />
           
           <Route path="/admin" component={LazyComponents.AdminPage} />

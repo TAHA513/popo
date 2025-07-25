@@ -391,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const interactionData = {
         userId: req.user.id,
-        memoryFragmentId: memoryId,
+        fragmentId: memoryId,
         type,
         giftCharacterId: giftCharacterId || null,
       };
@@ -401,6 +401,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error adding memory interaction:", error);
       res.status(500).json({ message: "Failed to add interaction" });
+    }
+  });
+
+  // Messages routes
+  app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const conversations = await storage.getConversations(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get('/api/messages/requests', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const requests = await storage.getMessageRequests(userId);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching message requests:", error);
+      res.status(500).json({ message: "Failed to fetch message requests" });
+    }
+  });
+
+  app.get('/api/messages/:conversationId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const conversationId = parseInt(req.params.conversationId);
+      const messages = await storage.getMessages(conversationId, userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post('/api/messages', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user.id;
+      const { receiverId, content } = req.body;
+      
+      if (!receiverId || !content) {
+        return res.status(400).json({ message: "Receiver ID and content are required" });
+      }
+
+      const message = await storage.sendMessage(senderId, receiverId, content);
+      res.json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "Failed to send message" });
     }
   });
 
