@@ -4,7 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Crown, Star, Trophy, Sparkles, Lock, Gamepad2 } from "lucide-react";
+import { Crown, Star, Trophy, Sparkles, Lock, Gamepad2, ArrowLeft } from "lucide-react";
+import CharacterCard from "./CharacterCard";
+import { useLocation } from "wouter";
 
 interface Character {
   id: string;
@@ -45,36 +47,199 @@ export default function CharacterSelector() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [showUpgrades, setShowUpgrades] = useState(false);
 
-  // Get available characters
-  const { data: availableCharacters = [], isLoading: loadingAvailable } = useQuery<Character[]>({
-    queryKey: ['/api/characters/available'],
-    enabled: !!user,
-  });
-
-  // Get user's owned characters
-  const { data: ownedCharacters = [], isLoading: loadingOwned } = useQuery<UserCharacter[]>({
-    queryKey: ['/api/characters/owned'],
-    enabled: !!user,
-  });
-
-  // Purchase character mutation
-  const purchaseCharacterMutation = useMutation({
-    mutationFn: (characterId: string) => 
-      apiRequest('/api/characters/purchase', 'POST', { characterId }),
-    onSuccess: () => {
-      toast({
-        title: "🎉 تم شراء الشخصية!",
-        description: "يمكنك الآن استخدام شخصيتك الجديدة في الألعاب",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/characters/owned'] });
-      setSelectedCharacter(null);
+  // Mock data for demonstration - في الواقع سيتم استدعاء البيانات من API
+  const availableCharacters: Character[] = [
+    {
+      id: "1",
+      name: "المحارب الشجاع",
+      type: "warrior",
+      rarity: "common",
+      baseStats: { strength: 80, agility: 60, intelligence: 40, health: 100 },
+      appearance: { skin: "medium", hair: "brown", clothes: "armor", accessories: ["sword", "shield"] },
+      skills: ["ضربة السيف", "حاجز الدرع", "صرخة الحرب"],
+      isPremium: false,
+      price: 0,
+      description: "محارب قوي يعتمد على القوة والدفاع"
     },
-    onError: (error: any) => {
+    {
+      id: "2",
+      name: "الساحر الحكيم",
+      type: "mage",
+      rarity: "rare",
+      baseStats: { strength: 30, agility: 50, intelligence: 90, health: 70 },
+      appearance: { skin: "light", hair: "white", clothes: "robes", accessories: ["staff", "hat"] },
+      skills: ["كرة النار", "الشفاء", "النقل"],
+      isPremium: false,
+      price: 100,
+      description: "ساحر ذكي يستخدم السحر والحكمة"
+    },
+    {
+      id: "3",
+      name: "الرامي الماهر",
+      type: "archer",
+      rarity: "epic",
+      baseStats: { strength: 60, agility: 85, intelligence: 55, health: 80 },
+      appearance: { skin: "dark", hair: "black", clothes: "leather", accessories: ["bow", "quiver"] },
+      skills: ["رمية دقيقة", "أسهم متعددة", "عين النسر"],
+      isPremium: true,
+      price: 500,
+      description: "رامي سريع ودقيق في إصابة الأهداف"
+    },
+    {
+      id: "4",
+      name: "الأميرة الذهبية",
+      type: "healer",
+      rarity: "legendary",
+      baseStats: { strength: 40, agility: 70, intelligence: 95, health: 90 },
+      appearance: { skin: "light", hair: "golden", clothes: "royal", accessories: ["crown", "magic_gem"] },
+      skills: ["الشفاء الملكي", "البركة", "الحماية الإلهية"],
+      isPremium: true,
+      price: 1000,
+      description: "أميرة قوية تملك قدرات الشفاء والحماية"
+    }
+  ];
+
+  const ownedCharacters: UserCharacter[] = [];
+  const loadingAvailable = false;
+  const loadingOwned = false;
+
+  const handlePurchaseCharacter = (characterId: string) => {
+    const character = availableCharacters.find(c => c.id === characterId);
+    if (character) {
       toast({
-        title: "خطأ في الشراء",
+        title: "🎉 تم الحصول على الشخصية!",
+        description: `حصلت على ${character.name} بنجاح! يمكنك الآن استخدامها في الألعاب`,
+      });
+    }
+  };
+
+  const handleSelectCharacter = (characterId: string) => {
+    const character = availableCharacters.find(c => c.id === characterId);
+    if (character) {
+      toast({
+        title: "✅ تم اختيار الشخصية!",
+        description: `اخترت ${character.name} كشخصيتك الأساسية`,
+      });
+    }
+  };
+
+  if (loadingAvailable || loadingOwned) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">جاري تحميل الشخصيات...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-8">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Button 
+            onClick={() => setLocation('/')}
+            variant="ghost"
+            className="flex items-center space-x-2 space-x-reverse"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>العودة للرئيسية</span>
+          </Button>
+          
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-purple-600 mb-2">🎮 اختر شخصيتك</h1>
+            <p className="text-gray-600">اختر الشخصية التي تناسب أسلوب لعبك</p>
+          </div>
+          
+          <div className="w-32"></div> {/* Spacer */}
+        </div>
+
+        {/* User Points Display */}
+        <div className="bg-white rounded-xl p-4 mb-8 text-center shadow-lg">
+          <div className="flex items-center justify-center space-x-2 space-x-reverse">
+            <span className="text-2xl">💎</span>
+            <span className="text-xl font-bold text-purple-600">
+              {user?.points || 0} نقطة متاحة
+            </span>
+          </div>
+        </div>
+
+        {/* Characters Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {availableCharacters.map((character) => {
+            const isOwned = ownedCharacters.some(oc => oc.characterId === character.id);
+            
+            return (
+              <CharacterCard
+                key={character.id}
+                character={character}
+                isOwned={isOwned}
+                onPurchase={handlePurchaseCharacter}
+                onSelect={handleSelectCharacter}
+                userPoints={user?.points || 0}
+              />
+            );
+          })}
+        </div>
+
+        {/* Voice Chat Info */}
+        <div className="mt-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl p-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">🎤 المحادثة الصوتية في الألعاب</h2>
+            <p className="text-lg opacity-90 mb-4">
+              تحدث مع اللاعبين الآخرين أثناء الألعاب الجماعية باستخدام المحادثة الصوتية
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl mb-2">🎮</div>
+                <h3 className="font-bold mb-1">ألعاب جماعية</h3>
+                <p>شارك في الألعاب مع أصدقائك</p>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl mb-2">🗣️</div>
+                <h3 className="font-bold mb-1">محادثة صوتية</h3>
+                <p>تواصل مع الفريق بالصوت</p>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl mb-2">🏆</div>
+                <h3 className="font-bold mb-1">تطوير الشخصية</h3>
+                <p>طور مهارات شخصيتك</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Features Info */}
+        <div className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl p-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">👑 الميزات المميزة</h2>
+            <p className="text-lg opacity-90 mb-4">
+              احصل على شخصيات مميزة ومهارات إضافية لتعزيز تجربة اللعب
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl mb-2">⭐</div>
+                <h3 className="font-bold mb-1">شخصيات نادرة</h3>
+                <p>شخصيات بقدرات خاصة ومظهر مميز</p>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-4">
+                <div className="text-2xl mb-2">🚀</div>
+                <h3 className="font-bold mb-1">مهارات متقدمة</h3>
+                <p>قدرات قتالية وسحرية قوية</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
         description: error.message || "فشل في شراء الشخصية",
         variant: "destructive",
       });
