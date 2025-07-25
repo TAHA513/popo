@@ -66,39 +66,53 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
     return (
       <div className={`relative w-full h-full ${cardStyle.front} overflow-hidden rounded-xl ${cardStyle.glow}`}>
         {/* Background Media */}
-        {content.mediaUrls && content.mediaUrls.length > 0 ? (
-          type === 'video' || type === 'live' ? (
-            <video
-              src={content.mediaUrls[0]}
-              className="w-full h-full object-cover"
-              muted
-              autoPlay
-              loop
-              playsInline
-              poster={content.thumbnailUrl}
-              onMouseEnter={(e) => {
-                e.currentTarget.play();
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.pause();
-              }}
-            />
-          ) : (
-            <img
-              src={content.mediaUrls[0]}
-              alt="منشور"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Show gradient background instead of broken image
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          )
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Image className="w-16 h-16 text-white/50" />
-          </div>
-        )}
+        {(() => {
+          const mediaUrl = content.mediaUrls?.[0] || content.imageUrl || content.thumbnailUrl;
+          
+          if (!mediaUrl) {
+            return (
+              <div className="w-full h-full flex items-center justify-center">
+                <Image className="w-16 h-16 text-white/50" />
+              </div>
+            );
+          }
+          
+          if (type === 'video' || type === 'live') {
+            return (
+              <video
+                src={mediaUrl}
+                className="w-full h-full object-cover"
+                muted
+                autoPlay
+                loop
+                playsInline
+                poster={content.thumbnailUrl}
+                onMouseEnter={(e) => {
+                  e.currentTarget.play();
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.pause();
+                }}
+                onError={(e) => {
+                  console.error('Video failed to load:', mediaUrl);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            );
+          } else {
+            return (
+              <img
+                src={mediaUrl}
+                alt="منشور"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('Image failed to load:', mediaUrl);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            );
+          }
+        })()}
 
         {/* Overlay Gradient - only if there's media */}
         {content.mediaUrls && content.mediaUrls.length > 0 && (
