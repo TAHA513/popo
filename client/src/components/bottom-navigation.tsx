@@ -38,7 +38,7 @@ export default function BottomNavigation() {
     { href: "/", icon: Home, label: "الرئيسية" },
     { href: "/explore", icon: Search, label: "استكشف" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
-    { href: "/simple-live-streaming", icon: () => <span className="text-lg">🔴</span>, label: "بث مباشر", isLive: true },
+    { href: "/zego-standalone", icon: () => <span className="text-lg">🔴</span>, label: "بث مستقل", isLive: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" },
     { action: "logout", icon: LogOut, label: "خروج", isLogout: true }

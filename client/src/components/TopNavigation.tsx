@@ -65,13 +65,13 @@ export default function TopNavigation() {
             </Link>
 
             {/* Live Streaming Button - Red */}
-            <Link href="/simple-live-streaming">
+            <Link href="/zego-standalone">
               <Button 
                 className="bg-red-500 hover:bg-red-600 text-white flex items-center space-x-2 rtl:space-x-reverse animate-pulse"
                 size="sm"
               >
                 <span className="text-lg">🔴</span>
-                <span>بث مباشر</span>
+                <span>بث مستقل</span>
               </Button>
             </Link>
 
