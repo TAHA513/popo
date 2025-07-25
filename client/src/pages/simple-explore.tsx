@@ -212,22 +212,34 @@ export default function SimpleExplore() {
                 <div className="grid grid-cols-3 gap-2 mb-4">
                   <Button 
                     size="sm" 
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => setShowCharacters(!showCharacters)}
+                    className={`${showCharacters ? 'bg-blue-600 shadow-lg' : 'bg-blue-500'} hover:bg-blue-600 text-white`}
+                    onClick={() => {
+                      setShowCharacters(!showCharacters);
+                      setShowShopping(false);
+                      setShowGiftSending(false);
+                    }}
                   >
                     🎮 شخصيات
                   </Button>
                   <Button 
                     size="sm" 
-                    className="bg-purple-500 hover:bg-purple-600 text-white"
-                    onClick={() => setShowShopping(!showShopping)}
+                    className={`${showShopping ? 'bg-purple-600 shadow-lg' : 'bg-purple-500'} hover:bg-purple-600 text-white`}
+                    onClick={() => {
+                      setShowShopping(!showShopping);
+                      setShowCharacters(false);
+                      setShowGiftSending(false);
+                    }}
                   >
                     🛒 متجر
                   </Button>
                   <Button 
                     size="sm" 
-                    className="bg-pink-500 hover:bg-pink-600 text-white"
-                    onClick={() => setShowGiftSending(!showGiftSending)}
+                    className={`${showGiftSending ? 'bg-pink-600 shadow-lg' : 'bg-pink-500'} hover:bg-pink-600 text-white`}
+                    onClick={() => {
+                      setShowGiftSending(!showGiftSending);
+                      setShowCharacters(false);
+                      setShowShopping(false);
+                    }}
                   >
                     🎁 هدايا
                   </Button>
@@ -242,18 +254,20 @@ export default function SimpleExplore() {
 
                 {/* Gift Sending Interface */}
                 {showGiftSending && (
-                  <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-4 mt-4">
-                    <h5 className="text-lg font-bold text-purple-600 mb-4 text-center">🎁 إرسال الهدايا والشخصيات</h5>
+                  <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-4 mt-4 border-2 border-pink-200">
+                    <h5 className="text-lg font-bold text-pink-700 mb-4 text-center flex items-center justify-center">
+                      🎁 إرسال الهدايا والشخصيات
+                    </h5>
                     
                     {/* Friend Selection */}
-                    <div className="mb-4">
-                      <h6 className="font-bold text-gray-800 mb-2">اختر صديق لإرسال الهدية:</h6>
-                      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                    <div className="mb-6">
+                      <h6 className="font-bold text-gray-800 mb-3 flex items-center">👥 اختر صديق لإرسال الهدية:</h6>
+                      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto bg-white rounded-lg p-2">
                         {(friends as any[] || []).map((friend: any) => (
                           <Button
                             key={friend.user.id}
                             size="sm"
-                            className="bg-blue-500 hover:bg-blue-600 text-white text-xs p-2"
+                            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-xs p-2 border-0"
                             onClick={() => alert(`تم اختيار ${friend.user.username} لإرسال الهدية`)}
                           >
                             <div className="flex items-center space-x-2 space-x-reverse">
@@ -265,23 +279,143 @@ export default function SimpleExplore() {
                       </div>
                     </div>
 
-                    {/* Gift Type Selection */}
-                    <div className="grid grid-cols-1 gap-3">
-                      <div className="bg-white rounded-lg p-3">
-                        <h6 className="font-bold text-gray-800 mb-2">🎮 إرسال شخصية</h6>
-                        <div className="grid grid-cols-3 gap-2">
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" 
-                                  onClick={() => alert("إرسال علي المحارب بـ 200 نقطة!\nسيتم خصم النقاط من محفظتك")}>
-                            ⚔️ علي (200)
-                          </Button>
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                                  onClick={() => alert("إرسال محمد الساحر بـ 300 نقطة!\nسيتم خصم النقاط من محفظتك")}>
-                            🧙‍♂️ محمد (300)
-                          </Button>
-                          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
-                                  onClick={() => alert("إرسال أسطورة التنانين بـ 8000 نقطة!\nشخصية VIP حصرية 👑")}>
-                            🐲 أسطورة (8000)
-                          </Button>
+                    {/* Gift Categories */}
+                    <div className="space-y-4">
+                      {/* Characters Gifts */}
+                      <div className="bg-white rounded-lg p-4 border-2 border-green-200">
+                        <h6 className="font-bold text-gray-800 mb-3 flex items-center">🎮 إرسال شخصيات</h6>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg p-3 text-center border border-green-300">
+                            <div className="text-2xl mb-1">⚔️</div>
+                            <h6 className="font-bold text-xs text-green-800">المحارب الشجاع</h6>
+                            <p className="text-xs text-green-700 mb-2">شخصية قوية ومتوازنة</p>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white w-full text-xs">
+                              200 نقطة
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg p-3 text-center border border-blue-300">
+                            <div className="text-2xl mb-1">🔮</div>
+                            <h6 className="font-bold text-xs text-blue-800">الساحر الأزرق</h6>
+                            <p className="text-xs text-blue-700 mb-2">سحر قوي وتحكم بالعناصر</p>
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white w-full text-xs">
+                              300 نقطة
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-3 text-center border border-purple-300">
+                            <div className="text-2xl mb-1">🐲</div>
+                            <h6 className="font-bold text-xs text-purple-800">أسطورة التنين</h6>
+                            <p className="text-xs text-purple-700 mb-2">شخصية أسطورية نادرة</p>
+                            <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white w-full text-xs">
+                              8000 نقطة
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg p-3 text-center border border-yellow-300">
+                            <div className="text-2xl mb-1">👑</div>
+                            <h6 className="font-bold text-xs text-yellow-800">إله البرق</h6>
+                            <p className="text-xs text-yellow-700 mb-2">قوة البرق الخارقة</p>
+                            <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white w-full text-xs">
+                              2500 نقطة
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Equipment Gifts */}
+                      <div className="bg-white rounded-lg p-4 border-2 border-indigo-200">
+                        <h6 className="font-bold text-gray-800 mb-3 flex items-center">🛡️ إرسال معدات</h6>
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="flex items-center space-x-3 space-x-reverse bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg p-3 border border-purple-300">
+                            <div className="text-2xl">🗡️</div>
+                            <div className="flex-1">
+                              <h6 className="font-bold text-sm text-purple-800">سيف التنين</h6>
+                              <p className="text-xs text-purple-700">+500 قوة هجوم</p>
+                            </div>
+                            <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
+                              800 نقطة
+                            </Button>
+                          </div>
+                          
+                          <div className="flex items-center space-x-3 space-x-reverse bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg p-3 border border-blue-300">
+                            <div className="text-2xl">🛡️</div>
+                            <div className="flex-1">
+                              <h6 className="font-bold text-sm text-blue-800">درع الحارس</h6>
+                              <p className="text-xs text-blue-700">+300 دفاع</p>
+                            </div>
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                              600 نقطة
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Points & Resources */}
+                      <div className="bg-white rounded-lg p-4 border-2 border-amber-200">
+                        <h6 className="font-bold text-gray-800 mb-3 flex items-center">💰 إرسال نقاط وموارد</h6>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="bg-gradient-to-br from-cyan-100 to-blue-100 rounded-lg p-3 text-center border border-cyan-300">
+                            <div className="text-2xl mb-1">💰</div>
+                            <h6 className="font-bold text-xs text-cyan-800">500 نقطة</h6>
+                            <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white w-full text-xs">
+                              إرسال
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg p-3 text-center border border-blue-300">
+                            <div className="text-2xl mb-1">💎</div>
+                            <h6 className="font-bold text-xs text-blue-800">1000 نقطة</h6>
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white w-full text-xs">
+                              إرسال
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-3 text-center border border-purple-300">
+                            <div className="text-2xl mb-1">👑</div>
+                            <h6 className="font-bold text-xs text-purple-800">5000 نقطة</h6>
+                            <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white w-full text-xs">
+                              إرسال
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Special Gifts */}
+                      <div className="bg-white rounded-lg p-4 border-2 border-rose-200">
+                        <h6 className="font-bold text-gray-800 mb-3 flex items-center">✨ هدايا خاصة</h6>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-gradient-to-br from-pink-100 to-rose-100 rounded-lg p-3 text-center border border-pink-300">
+                            <div className="text-2xl mb-1">🌹</div>
+                            <h6 className="font-bold text-xs text-pink-800">باقة ورود</h6>
+                            <Button size="sm" className="bg-pink-600 hover:bg-pink-700 text-white w-full text-xs">
+                              50 نقطة
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-yellow-100 to-amber-100 rounded-lg p-3 text-center border border-yellow-300">
+                            <div className="text-2xl mb-1">🏆</div>
+                            <h6 className="font-bold text-xs text-yellow-800">كأس الفوز</h6>
+                            <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white w-full text-xs">
+                              100 نقطة
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg p-3 text-center border border-green-300">
+                            <div className="text-2xl mb-1">🎂</div>
+                            <h6 className="font-bold text-xs text-green-800">كعكة احتفال</h6>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white w-full text-xs">
+                              200 نقطة
+                            </Button>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg p-3 text-center border border-indigo-300">
+                            <div className="text-2xl mb-1">🎁</div>
+                            <h6 className="font-bold text-xs text-indigo-800">صندوق مفاجآت</h6>
+                            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white w-full text-xs">
+                              500 نقطة
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -290,27 +424,137 @@ export default function SimpleExplore() {
 
                 {/* Shopping Interface */}
                 {showShopping && (
-                  <div className="bg-white/80 rounded-xl p-4 mt-4">
-                    <h5 className="text-lg font-bold text-purple-600 mb-4 text-center">🛒 متجر التطويرات</h5>
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 mt-4 border-2 border-purple-200">
+                    <h5 className="text-lg font-bold text-purple-700 mb-4 text-center flex items-center justify-center">
+                      🛒 متجر التطويرات والأدوات
+                    </h5>
                     
-                    {/* Shopping Items Preview */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-white rounded-lg p-3 text-center">
-                        <div className="text-2xl mb-2">🔋</div>
-                        <h6 className="font-bold text-sm mb-1">طاقة +1</h6>
-                        <p className="text-xs text-gray-600 mb-2">زيادة النمو والنشاط</p>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white w-full">
-                          800 نقطة
-                        </Button>
+                    {/* Character Stats Upgrades */}
+                    <div className="mb-6">
+                      <h6 className="text-md font-bold text-gray-800 mb-3 flex items-center">⚡ تطوير القدرات الأساسية</h6>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">🔋</div>
+                          <h6 className="font-bold text-sm mb-1 text-green-800">طاقة +1</h6>
+                          <p className="text-xs text-green-700 mb-2">زيادة النمو والنشاط 50%</p>
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white w-full">
+                            800 نقطة
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">🧠</div>
+                          <h6 className="font-bold text-sm mb-1 text-blue-800">ذكاء +1</h6>
+                          <p className="text-xs text-blue-700 mb-2">نقاط مضاعفة من الألعاب</p>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white w-full">
+                            1200 نقطة
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-red-100 to-pink-100 border-2 border-red-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">💪</div>
+                          <h6 className="font-bold text-sm mb-1 text-red-800">قوة +1</h6>
+                          <p className="text-xs text-red-700 mb-2">هجمات أقوى في المعارك</p>
+                          <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white w-full">
+                            1000 نقطة
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">⚡</div>
+                          <h6 className="font-bold text-sm mb-1 text-yellow-800">سرعة +1</h6>
+                          <p className="text-xs text-yellow-700 mb-2">حركة أسرع وردود فعل</p>
+                          <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white w-full">
+                            900 نقطة
+                          </Button>
+                        </div>
                       </div>
-                      
-                      <div className="bg-white rounded-lg p-3 text-center">
-                        <div className="text-2xl mb-2">🧠</div>
-                        <h6 className="font-bold text-sm mb-1">ذكاء +1</h6>
-                        <p className="text-xs text-gray-600 mb-2">نقاط مضاعفة</p>
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white w-full">
-                          1200 نقطة
-                        </Button>
+                    </div>
+
+                    {/* Special Equipment */}
+                    <div className="mb-6">
+                      <h6 className="text-md font-bold text-gray-800 mb-3 flex items-center">🛡️ المعدات الخاصة</h6>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="bg-gradient-to-r from-purple-100 to-indigo-100 border-2 border-purple-300 rounded-lg p-3">
+                          <div className="flex items-center space-x-3 space-x-reverse">
+                            <div className="text-3xl">🗡️</div>
+                            <div className="flex-1">
+                              <h6 className="font-bold text-sm text-purple-800">سيف التنين الأسطوري</h6>
+                              <p className="text-xs text-purple-700">+500 قوة هجوم، +200 دفاع سحري</p>
+                            </div>
+                            <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
+                              5000 نقطة
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-blue-100 to-cyan-100 border-2 border-blue-300 rounded-lg p-3">
+                          <div className="flex items-center space-x-3 space-x-reverse">
+                            <div className="text-3xl">🛡️</div>
+                            <div className="flex-1">
+                              <h6 className="font-bold text-sm text-blue-800">درع الحارس الذهبي</h6>
+                              <p className="text-xs text-blue-700">+800 دفاع، +300 مقاومة سحرية</p>
+                            </div>
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                              4500 نقطة
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 rounded-lg p-3">
+                          <div className="flex items-center space-x-3 space-x-reverse">
+                            <div className="text-3xl">💍</div>
+                            <div className="flex-1">
+                              <h6 className="font-bold text-sm text-green-800">خاتم القوة الأبدية</h6>
+                              <p className="text-xs text-green-700">+30% نقاط من جميع الأنشطة</p>
+                            </div>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                              8000 نقطة
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Magical Items */}
+                    <div className="mb-6">
+                      <h6 className="text-md font-bold text-gray-800 mb-3 flex items-center">✨ الأدوات السحرية</h6>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gradient-to-br from-pink-100 to-rose-100 border-2 border-pink-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">🔮</div>
+                          <h6 className="font-bold text-sm mb-1 text-pink-800">كرة بلورية</h6>
+                          <p className="text-xs text-pink-700 mb-2">رؤية المستقبل</p>
+                          <Button size="sm" className="bg-pink-600 hover:bg-pink-700 text-white w-full">
+                            2500 نقطة
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-indigo-100 to-purple-100 border-2 border-indigo-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">📜</div>
+                          <h6 className="font-bold text-sm mb-1 text-indigo-800">لفافة النقل</h6>
+                          <p className="text-xs text-indigo-700 mb-2">نقل فوري للمواقع</p>
+                          <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white w-full">
+                            1500 نقطة
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-amber-100 to-yellow-100 border-2 border-amber-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">🌟</div>
+                          <h6 className="font-bold text-sm mb-1 text-amber-800">نجمة التمني</h6>
+                          <p className="text-xs text-amber-700 mb-2">تحقيق أمنية واحدة</p>
+                          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white w-full">
+                            12000 نقطة
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-teal-100 to-cyan-100 border-2 border-teal-300 rounded-lg p-3 text-center">
+                          <div className="text-3xl mb-2">💧</div>
+                          <h6 className="font-bold text-sm mb-1 text-teal-800">إكسير الشفاء</h6>
+                          <p className="text-xs text-teal-700 mb-2">شفاء كامل فوري</p>
+                          <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white w-full">
+                            3000 نقطة
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
