@@ -107,13 +107,14 @@ export default function MultiplayerGames() {
     
     if (mode === 'solo') {
       // For solo mode, start game immediately without room interface
-      alert(`🎮 بدء ${selectedGame?.name} في وضع منفرد!`);
+      alert(`🎮 بدأت لعبة "${selectedGame?.name}" بوضع منفرد!\n⏰ ستنتهي خلال 3 ثوانٍ...`);
       
       // Simulate quick solo game
       setTimeout(() => {
         const randomScore = Math.floor(Math.random() * 100) + 50;
         const randomCoins = Math.floor(Math.random() * 20) + 10;
-        alert(`🏆 انتهت اللعبة!\nالنتيجة: ${randomScore} نقطة\nربحت: ${randomCoins} عملة ذهبية!`);
+        const randomPoints = Math.floor(Math.random() * 50) + 25;
+        alert(`🏆 تهانينا! انتهت اللعبة بنجاح!\n\n🎯 النتيجة النهائية: ${randomScore} نقطة\n💰 ربحت: ${randomCoins} عملة ذهبية\n⭐ نقاط التجربة: +${randomPoints} نقطة\n\n🎉 أحسنت! العب مرة أخرى لتحسين نتيجتك!`);
       }, 3000);
     } else {
       setShowGameRoom(true);
@@ -312,23 +313,41 @@ export default function MultiplayerGames() {
                 </div>
               </div>
 
-              <Button
-                onClick={() => handleStartGame(game)}
-                disabled={isCreatingRoom && selectedGame?.id === game.id}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl py-3"
-              >
-                {isCreatingRoom && selectedGame?.id === game.id ? (
+              <div className="space-y-2">
+                {/* Quick Solo Play Button */}
+                <Button
+                  onClick={() => {
+                    setSelectedGame(game);
+                    handleModeSelection('solo');
+                  }}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl py-3"
+                >
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>جاري التحضير...</span>
+                    <Gamepad2 className="w-4 h-4" />
+                    <span>العب بمفردك ⚡</span>
                   </div>
-                ) : (
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <Play className="w-4 h-4" />
-                    <span>اختيار اللعبة</span>
-                  </div>
-                )}
-              </Button>
+                </Button>
+                
+                {/* Other Game Modes */}
+                <Button
+                  onClick={() => handleStartGame(game)}
+                  disabled={isCreatingRoom && selectedGame?.id === game.id}
+                  variant="outline"
+                  className="w-full rounded-xl py-3"
+                >
+                  {isCreatingRoom && selectedGame?.id === game.id ? (
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span>جاري التحضير...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <Users className="w-4 h-4" />
+                      <span>خيارات أخرى</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           ))}
         </div>
