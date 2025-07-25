@@ -152,7 +152,7 @@ export default function SimpleNavigation() {
                 size="sm"
                 className={`rounded-full ${location === "/explore" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
               >
-                <Home className="w-4 h-4" />
+                🌸
               </Button>
             </Link>
             <Link href="/create-memory">
