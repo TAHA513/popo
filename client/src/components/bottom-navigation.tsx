@@ -8,7 +8,8 @@ import {
   Plus,
   MessageCircle,
   User,
-  LogOut
+  LogOut,
+  GamepadIcon
 } from "lucide-react";
 
 export default function BottomNavigation() {
@@ -36,7 +37,7 @@ export default function BottomNavigation() {
 
   const navItems = [
     { href: "/", icon: Home, label: "الرئيسية" },
-    { href: "/explore", icon: Search, label: "استكشف" },
+    { href: "/explore", icon: GamepadIcon, label: "ملفي الشخصي" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" },

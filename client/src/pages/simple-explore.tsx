@@ -81,8 +81,8 @@ export default function SimpleExplore() {
           <div className="flex items-center justify-between">
             {/* Logo - Left Side */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <div className="text-2xl animate-bounce">🐰</div>
-              <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
+              <div className="text-2xl animate-bounce">🎮</div>
+              <h1 className="text-xl font-bold text-purple-600">ملفي الشخصي</h1>
             </div>
             
             {/* Create Memory Button - Right Side */}
@@ -96,15 +96,47 @@ export default function SimpleExplore() {
           </div>
         </div>
         {/* Colored Line */}
-        <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
+        <div className="h-0.5 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 opacity-60"></div>
       </div>
 
       <div className="max-w-md mx-auto">
-        {/* حديقة LaaBoBo الاجتماعية */}
+        {/* Player Profile & Achievements */}
         <div className="p-4">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">🌸 حديقة LaaBoBo</h2>
-            <p className="text-gray-600 text-sm">اعتني بشخصيتك وتفاعل مع الأصدقاء</p>
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl p-4 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3 space-x-reverse">
+                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl">
+                  🎮
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{user?.username || "اللاعب"}</h2>
+                  <p className="text-sm opacity-90">المستوى {Math.floor((user?.points || 0) / 100) + 1}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">{user?.points || 0}</div>
+                <div className="text-xs opacity-80">نقطة</div>
+              </div>
+            </div>
+            
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                <div className="text-lg font-bold">⭐</div>
+                <div className="text-xs">الإنجازات</div>
+                <div className="text-sm font-bold">12</div>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                <div className="text-lg font-bold">🎯</div>
+                <div className="text-xs">المهام</div>
+                <div className="text-sm font-bold">8/10</div>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                <div className="text-lg font-bold">👥</div>
+                <div className="text-xs">الأصدقاء</div>
+                <div className="text-sm font-bold">24</div>
+              </div>
+            </div>
           </div>
           {/* الحديقة الشخصية */}
           <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-6 mb-6">
@@ -150,11 +182,14 @@ export default function SimpleExplore() {
                 <div className="grid grid-cols-3 gap-2 mb-4">
                   <Button 
                     size="sm" 
-                    className="bg-orange-500 hover:bg-orange-600 text-white"
-                    onClick={handleFeedPet}
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                    onClick={() => {
+                      handleFeedPet();
+                      alert("🍎 تم إطعام أرنوب مجاناً! الطعام دائماً مجاني في LaaBoBo");
+                    }}
                     disabled={feedPetMutation.isPending}
                   >
-                    {feedPetMutation.isPending ? "..." : "🍎 إطعام"}
+                    {feedPetMutation.isPending ? "..." : "🍎 إطعام مجاني"}
                   </Button>
                   <Button 
                     size="sm" 
@@ -167,10 +202,10 @@ export default function SimpleExplore() {
                     size="sm" 
                     className="bg-purple-500 hover:bg-purple-600 text-white"
                     onClick={() => {
-                      document.getElementById('shop-section')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('upgrade-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   >
-                    🛍️ تسوق
+                    ⬆️ تطوير
                   </Button>
                 </div>
 
@@ -287,12 +322,125 @@ export default function SimpleExplore() {
             )}
           </div>
 
-          {/* متجر الهدايا */}
-          <div id="shop-section" className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+          {/* Garden & Pet Upgrades */}
+          <div id="upgrade-section" className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800">🎁 متجر الهدايا</h3>
+              <h3 className="text-lg font-bold text-gray-800">⬆️ تطوير الحديقة والشخصية</h3>
               <div className="text-sm text-gray-600">
                 💰 {user?.points || 0} نقطة
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              {/* Pet Upgrades */}
+              <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-4">
+                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                  🐰 تطوير الشخصية
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    size="sm" 
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => alert("🔋 تطوير الطاقة بـ 500 نقطة!\nزيادة معدل النمو والسعادة")}
+                  >
+                    🔋 طاقة +1 (500)
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => alert("🧠 تطوير الذكاء بـ 750 نقطة!\nزيادة النقاط من الألعاب")}
+                  >
+                    🧠 ذكاء +1 (750)
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => alert("💪 تطوير القوة بـ 600 نقطة!\nأداء أفضل في المعارك")}
+                  >
+                    💪 قوة +1 (600)
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                    onClick={() => alert("⚡ تطوير السرعة بـ 550 نقطة!\nحركة أسرع في الألعاب")}
+                  >
+                    ⚡ سرعة +1 (550)
+                  </Button>
+                </div>
+              </div>
+
+              {/* Garden Upgrades */}
+              <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-4">
+                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                  🌸 تطوير الحديقة
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    size="sm" 
+                    className="bg-pink-600 hover:bg-pink-700 text-white"
+                    onClick={() => alert("🏠 توسيع الحديقة بـ 1000 نقطة!\nمساحة أكبر لزراعة النباتات")}
+                  >
+                    🏠 توسيع (1000)
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    onClick={() => alert("✨ ديكورات خاصة بـ 800 نقطة!\nجمال إضافي ونقاط بونص")}
+                  >
+                    ✨ ديكور (800)
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    onClick={() => alert("🌈 ألوان مميزة بـ 1200 نقطة!\nتخصيص ألوان الحديقة")}
+                  >
+                    🌈 ألوان (1200)
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-teal-600 hover:bg-teal-700 text-white"
+                    onClick={() => alert("🎵 موسيقى خاصة بـ 900 نقطة!\nأصوات مريحة للحديقة")}
+                  >
+                    🎵 موسيقى (900)
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium Features */}
+          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 mb-6 shadow-lg">
+            <h3 className="text-lg font-bold mb-4 flex items-center">
+              👑 المزايا المدفوعة الحصرية
+            </h3>
+            <div className="grid grid-cols-1 gap-3">
+              <Button 
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
+                onClick={() => alert("🚀 عضوية VIP شهرية بـ 2500 نقطة!\n• نقاط مضاعفة\n• شخصيات حصرية\n• أولوية في الألعاب\n• دعم مميز")}
+              >
+                🚀 عضوية VIP شهرية (2500)
+              </Button>
+              <Button 
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
+                onClick={() => alert("🎁 حزمة النقاط الذهبية بـ 5000 نقطة!\n• 10,000 نقطة إضافية\n• 3 شخصيات مجانية\n• ديكورات حصرية")}
+              >
+                🎁 حزمة النقاط الذهبية (5000)
+              </Button>
+              <Button 
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
+                onClick={() => alert("🏆 بطل الشهر بـ 10000 نقطة!\n• لقب خاص لمدة شهر\n• مظهر ذهبي للملف الشخصي\n• مزايا حصرية في الألعاب")}
+              >
+                🏆 بطل الشهر (10000)
+              </Button>
+            </div>
+          </div>
+
+          {/* متجر الهدايا المجانية */}
+          <div id="shop-section" className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">🎁 الهدايا والطعام المجاني</h3>
+              <div className="text-sm text-green-600 font-bold">
+                🆓 مجاني للجميع
               </div>
             </div>
             
