@@ -147,7 +147,7 @@ export default function SimpleExplore() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2 mb-4">
                   <Button 
                     size="sm" 
                     className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -159,9 +159,9 @@ export default function SimpleExplore() {
                   <Button 
                     size="sm" 
                     className="bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => setLocation('/games')}
+                    onClick={() => setShowCharacters(!showCharacters)}
                   >
-                    🎮 ألعاب
+                    🎮 شخصيات
                   </Button>
                   <Button 
                     size="sm" 
@@ -173,6 +173,54 @@ export default function SimpleExplore() {
                     🛍️ تسوق
                   </Button>
                 </div>
+
+                {/* Character Selection Section */}
+                {showCharacters && (
+                  <div className="bg-white/80 rounded-xl p-4">
+                    <h5 className="text-lg font-bold text-purple-600 mb-4 text-center">🎭 اختر شخصيتك للألعاب</h5>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      {[
+                        { id: "1", name: "المحارب الشجاع", type: "warrior", emoji: "⚔️", rarity: "common", price: 0 },
+                        { id: "2", name: "الساحر الحكيم", type: "mage", emoji: "🧙‍♂️", rarity: "rare", price: 100 },
+                        { id: "3", name: "الرامي الماهر", type: "archer", emoji: "🏹", rarity: "epic", price: 500 },
+                        { id: "4", name: "الأميرة الذهبية", type: "healer", emoji: "✨", rarity: "legendary", price: 1000 }
+                      ].map((character) => (
+                        <div key={character.id} className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                          character.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-100 to-orange-100 border-yellow-300' :
+                          character.rarity === 'epic' ? 'bg-gradient-to-br from-purple-100 to-pink-100 border-purple-300' :
+                          character.rarity === 'rare' ? 'bg-gradient-to-br from-blue-100 to-cyan-100 border-blue-300' :
+                          'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300'
+                        }`}>
+                          <div className="text-center">
+                            <div className="text-3xl mb-2">{character.emoji}</div>
+                            <h6 className="text-sm font-bold text-gray-800 mb-1">{character.name}</h6>
+                            <p className="text-xs text-gray-600 mb-2 capitalize">{character.type}</p>
+                            {character.price === 0 ? (
+                              <Button size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white text-xs" onClick={() => alert(`تم اختيار ${character.name}!`)}>
+                                🆓 مجاني
+                              </Button>
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                className="w-full bg-purple-500 hover:bg-purple-600 text-white text-xs"
+                                onClick={() => alert(`شراء ${character.name} بـ ${character.price} نقطة`)}
+                                disabled={(user?.points || 0) < character.price}
+                              >
+                                💎 {character.price}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Voice Chat Info */}
+                    <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg text-center">
+                      <h6 className="font-bold mb-1">🎤 المحادثة الصوتية</h6>
+                      <p className="text-xs opacity-90">تحدث مع اللاعبين الآخرين أثناء الألعاب الجماعية واستمتع بتجربة أكثر تفاعلية</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
