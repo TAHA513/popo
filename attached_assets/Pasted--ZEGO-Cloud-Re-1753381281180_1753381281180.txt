@@ -1,121 +1,0 @@
-أكيد يا عمري، تفضل الآن الطريقة الكاملة خطوة بخطوة لتشغيل بث مباشر حقيقي باستخدام ZEGO Cloud داخل Replit، بدون تخزين في قاعدة البيانات، ويظهر فقط المستخدمين اللي فعليًا يبثّون.
-
-✅ المتطلبات:
-حساب في ZEGO Cloud (Trial مجاني)
-
-واجهة مستخدم (HTML أو React)
-
-Replit كمستضيف للموقع أو التطبيق
-
-لا قاعدة بيانات للبث
-
-بث مباشر حقيقي عبر الكاميرا من ZEGO
-
-مشاهدات حقيقية، لا بيانات وهمية
-
-🧱 الهيكل العام:
-✔️ المستخدم يدخل ➝ يضغط "بدء بث"
-
-➝ يتم توليد roomID و streamID
-
-➝ يتم بث الفيديو مباشرة عبر ZEGO
-
-✔️ المستخدم الآخر يرى قائمة البثوث الحية فقط ➝ يضغط على اسم المذيع ➝ يشاهد البث الحقيقي
-
-🔧 الخطوات البرمجية:
-1. تثبيت ZEGO SDK في Replit:
-➤ HTML:
-لا تحتاج تثبيت، فقط أضف هذا في <head>:
-
-html
-Copy
-Edit
-<script src="https://download.zegocloud.com/sdk/latest/zego-express-video.min.js"></script>
-2. كود بدء البث (Publisher)
-html
-Copy
-Edit
-<!-- واجهة البث -->
-<video id="local-video" autoplay muted playsinline></video>
-<button onclick="startLive()">ابدأ البث</button>
-
-<script>
-  const appID = 123456789; // استبدله بالرقم من ZEGO
-  const serverSecret = "xxxxxxxxxxxxxxxx"; // استبدله بالـ Server Secret
-  const zg = new ZegoExpressEngine(appID, serverSecret);
-
-  const roomID = "room_" + Date.now();
-  const streamID = "stream_" + Date.now();
-  const userID = "user_" + Date.now();
-  const userName = "مذيع_" + Date.now();
-
-  async function startLive() {
-    await zg.loginRoom(roomID, { userID, userName }, { userID, token: "" });
-    const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    zg.startPublishingStream(streamID, localStream);
-    document.getElementById("local-video").srcObject = localStream;
-
-    // يمكن تخزين roomID واسم المستخدم مؤقتًا في مصفوفة داخل الذاكرة (وليس قاعدة البيانات)
-    liveRooms.push({ roomID, userName });
-  }
-
-  const liveRooms = []; // قائمة مؤقتة بدون تخزين دائم
-</script>
-3. كود عرض البث (Viewer)
-html
-Copy
-Edit
-<!-- واجهة المشاهدة -->
-<div id="rooms"></div>
-<video id="remote-video" autoplay playsinline></video>
-
-<script>
-  const zg = new ZegoExpressEngine(appID, serverSecret);
-  const viewerID = "viewer_" + Date.now();
-
-  function renderRooms() {
-    document.getElementById("rooms").innerHTML = liveRooms.map(r => `
-      <div>
-        <span>🎥 ${r.userName}</span>
-        <button onclick="watchLive('${r.roomID}', '${r.userName}')">مشاهدة</button>
-      </div>
-    `).join("");
-  }
-
-  async function watchLive(roomID, userName) {
-    await zg.loginRoom(roomID, { userID: viewerID, userName: "مشاهد" }, { userID: viewerID, token: "" });
-    zg.startPlayingStream("stream_" + roomID.split("_")[1], stream => {
-      document.getElementById("remote-video").srcObject = stream;
-    });
-  }
-
-  renderRooms(); // اعرض الغرف المباشرة
-</script>
-4. منع التخزين في قاعدة البيانات
-لا تستخدم Firebase أو Mongo أو أي شيء لتخزين roomID
-
-فقط استخدم liveRooms[] داخل الذاكرة المؤقتة أو كود داخلي
-
-عند إغلاق البث ➝ امسح الغرفة من liveRooms
-
-5. تحسينات إضافية (اختياري):
-أضف:
-
-js
-Copy
-Edit
-window.onbeforeunload = () => {
-  zg.logoutRoom(roomID);
-};
-لمنع البث بعد الخروج
-
-استخدم صورة المستخدم واسمه في زر البث (يمكن جلبها من حسابه)
-
-✅ النتيجة النهائية:
-بث مباشر حقيقي عبر الكاميرا
-
-يظهر فقط إذا كان المستخدم يبث فعليًا
-
-لا تخزين لأي فيديو أو بيانات في قاعدة البيانات
-
-كل شيء مباشر، بدون تمثيل أو محتوى وهمي

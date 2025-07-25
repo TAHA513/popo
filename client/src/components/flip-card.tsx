@@ -66,56 +66,39 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
     return (
       <div className={`relative w-full h-full ${cardStyle.front} overflow-hidden rounded-xl ${cardStyle.glow}`}>
         {/* Background Media */}
-        {(() => {
-          const mediaUrl = content.mediaUrls?.[0] || content.imageUrl || content.thumbnailUrl;
-          
-          if (!mediaUrl) {
-            return (
-              <div className="w-full h-full flex items-center justify-center">
-                <Image className="w-16 h-16 text-white/50" />
-              </div>
-            );
-          }
-          
-          if (type === 'video' || type === 'live') {
-            return (
-              <video
-                src={mediaUrl}
-                className="w-full h-full object-cover"
-                muted
-                autoPlay
-                loop
-                playsInline
-                controls={false}
-                poster={content.thumbnailUrl}
-                onError={(e) => {
-                  console.error('فشل تحميل الفيديو:', mediaUrl);
-                  // استخدام الصورة المصغرة كبديل
-                  const target = e.currentTarget;
-                  const img = document.createElement('img');
-                  img.src = content.thumbnailUrl || content.imageUrl || '';
-                  img.className = 'w-full h-full object-cover';
-                  img.alt = 'فيديو';
-                  if (target.parentNode) {
-                    target.parentNode.replaceChild(img, target);
-                  }
-                }}
-              />
-            );
-          } else {
-            return (
-              <img
-                src={mediaUrl}
-                alt="منشور"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  console.error('Image failed to load:', mediaUrl);
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            );
-          }
-        })()}
+        {content.mediaUrls && content.mediaUrls.length > 0 ? (
+          type === 'video' || type === 'live' ? (
+            <video
+              src={content.mediaUrls[0]}
+              className="w-full h-full object-cover"
+              muted
+              autoPlay
+              loop
+              playsInline
+              poster={content.thumbnailUrl}
+              onMouseEnter={(e) => {
+                e.currentTarget.play();
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.pause();
+              }}
+            />
+          ) : (
+            <img
+              src={content.mediaUrls[0]}
+              alt="منشور"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Show gradient background instead of broken image
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Image className="w-16 h-16 text-white/50" />
+          </div>
+        )}
 
         {/* Overlay Gradient - only if there's media */}
         {content.mediaUrls && content.mediaUrls.length > 0 && (
@@ -173,30 +156,13 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
 
         {/* Center Play Button - Only for Videos */}
         {type === 'video' && (
-          <div 
-            className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              // تشغيل الفيديو فوراً
-              const video = e.currentTarget.parentElement?.querySelector('video');
-              if (video) {
-                if (video.paused) {
-                  video.play();
-                  video.controls = true;
-                  video.muted = false;
-                } else {
-                  video.pause();
-                  video.controls = false;
-                }
-              }
-            }}
-          >
-            <div className="w-16 h-16 bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/80 hover:scale-110 hover:bg-black/90 transition-all duration-200 shadow-lg">
+          <div className="absolute inset-0 flex items-center justify-center z-10 group-hover:bg-black/10 transition-colors">
+            <div className="w-16 h-16 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/60 hover:scale-110 hover:bg-black/70 transition-all duration-300">
               <Play className="w-8 h-8 text-white ml-1" />
             </div>
             {/* Video Indicator Badge */}
-            <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm shadow-lg">
-              🎥 فيديو
+            <div className="absolute top-3 left-3 bg-red-500/80 text-white px-2 py-1 rounded text-xs font-bold backdrop-blur-sm">
+              VIDEO
             </div>
           </div>
         )}

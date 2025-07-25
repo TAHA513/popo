@@ -88,7 +88,7 @@ export default function BottomNavigation() {
           }
           
           return (
-            <Link key={item.href} href={item.href || '/'}>
+            <Link key={item.href} href={item.href}>
               <div className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 relative ${
                 isActive 
                   ? 'text-purple-600 bg-purple-50 scale-105' 
