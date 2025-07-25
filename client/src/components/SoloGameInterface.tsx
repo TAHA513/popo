@@ -1,103 +1,131 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trophy, Star, Skull, Crown } from "lucide-react";
-import BattleRoyaleGame from "./games/BattleRoyaleGame";
+import { Trophy, Star, Gift, ArrowLeft } from "lucide-react";
 
 interface SoloGameInterfaceProps {
   gameId: string;
   gameName: string;
-  onBack: () => void;
+  gameEmoji: string;
+  onClose: () => void;
 }
 
-export default function SoloGameInterface({ gameId, gameName, onBack }: SoloGameInterfaceProps) {
-  const [gameResult, setGameResult] = useState<{
-    score: number;
-    coins: number;
-    kills: number;
-    rank: number;
-  } | null>(null);
+export default function SoloGameInterface({ gameId, gameName, gameEmoji, onClose }: SoloGameInterfaceProps) {
+  const [gamePhase, setGamePhase] = useState<'starting' | 'playing' | 'finished'>('starting');
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(10);
+  const [clicks, setClicks] = useState(0);
+  const [targetClicks] = useState(Math.floor(Math.random() * 15) + 10);
+  const [finalScore, setFinalScore] = useState(0);
+  const [earnedCoins, setEarnedCoins] = useState(0);
 
-  const handleGameEnd = (score: number, coins: number, kills: number, rank: number) => {
-    setGameResult({
-      score,
-      coins,
-      kills,
-      rank
-    });
+  useEffect(() => {
+    if (gamePhase === 'starting') {
+      const timer = setTimeout(() => {
+        setGamePhase('playing');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [gamePhase]);
+
+  useEffect(() => {
+    if (gamePhase === 'playing' && timeLeft > 0) {
+      const timer = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (gamePhase === 'playing' && timeLeft === 0) {
+      finishGame();
+    }
+  }, [timeLeft, gamePhase]);
+
+  const handleClick = () => {
+    if (gamePhase === 'playing') {
+      setClicks(clicks + 1);
+      setScore(score + 10);
+      
+      if (clicks + 1 >= targetClicks) {
+        finishGame();
+      }
+    }
   };
 
-  const playAgain = () => {
-    setGameResult(null);
+  const finishGame = () => {
+    const finalPoints = score + (clicks * 5);
+    const coins = Math.floor(finalPoints / 10) + Math.floor(Math.random() * 10) + 5;
+    setFinalScore(finalPoints);
+    setEarnedCoins(coins);
+    setGamePhase('finished');
   };
 
-  if (gameResult) {
+  if (gamePhase === 'starting') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Button 
-              onClick={onBack}
-              variant="outline" 
-              className="text-white border-white/20 hover:bg-white/10"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              العودة
-            </Button>
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 w-96 text-center">
+          <div className="text-6xl mb-4 animate-bounce">{gameEmoji}</div>
+          <h2 className="text-2xl font-bold text-purple-600 mb-4">{gameName}</h2>
+          <p className="text-gray-600 mb-4">جاري تحضير اللعبة...</p>
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gamePhase === 'finished') {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 w-96 text-center">
+          <div className="text-6xl mb-4">🏆</div>
+          <h2 className="text-2xl font-bold text-green-600 mb-4">تهانينا!</h2>
+          
+          <div className="space-y-4 mb-6">
+            <div className="bg-yellow-100 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">النقاط النهائية:</span>
+                <span className="text-2xl font-bold text-yellow-600">{finalScore}</span>
+              </div>
+            </div>
+            
+            <div className="bg-green-100 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">العملات المكتسبة:</span>
+                <span className="text-2xl font-bold text-green-600">{earnedCoins} 💰</span>
+              </div>
+            </div>
+            
+            <div className="bg-blue-100 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">النقرات:</span>
+                <span className="text-xl font-bold text-blue-600">{clicks}</span>
+              </div>
+            </div>
           </div>
 
-          {/* Game Results */}
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 text-center text-white">
-            <div className="text-8xl mb-6">
-              {gameResult.rank === 1 ? '👑' : gameResult.rank <= 3 ? '🏆' : gameResult.rank <= 10 ? '🥉' : '💀'}
-            </div>
+          <div className="space-y-3">
+            <Button 
+              onClick={() => {
+                setGamePhase('starting');
+                setScore(0);
+                setClicks(0);
+                setTimeLeft(10);
+              }}
+              className="w-full bg-green-500 hover:bg-green-600"
+            >
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <Star className="w-4 h-4" />
+                <span>العب مرة أخرى</span>
+              </div>
+            </Button>
             
-            <h2 className="text-3xl font-bold mb-4">
-              {gameResult.rank === 1 ? 'Victory Royale!' : `المركز #${gameResult.rank}`}
-            </h2>
-            
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-red-500 bg-opacity-20 rounded-lg p-4">
-                <Skull className="w-8 h-8 mx-auto mb-2 text-red-400" />
-                <div className="text-2xl font-bold">{gameResult.kills}</div>
-                <div className="text-sm opacity-80">القتلى</div>
+            <Button 
+              onClick={onClose}
+              variant="outline"
+              className="w-full"
+            >
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <ArrowLeft className="w-4 h-4" />
+                <span>العودة للألعاب</span>
               </div>
-              
-              <div className="bg-blue-500 bg-opacity-20 rounded-lg p-4">
-                <Trophy className="w-8 h-8 mx-auto mb-2 text-blue-400" />
-                <div className="text-2xl font-bold">#{gameResult.rank}</div>
-                <div className="text-sm opacity-80">الترتيب</div>
-              </div>
-              
-              <div className="bg-yellow-500 bg-opacity-20 rounded-lg p-4">
-                <Star className="w-8 h-8 mx-auto mb-2 text-yellow-400" />
-                <div className="text-2xl font-bold">{gameResult.score.toLocaleString()}</div>
-                <div className="text-sm opacity-80">النقاط</div>
-              </div>
-              
-              <div className="bg-green-500 bg-opacity-20 rounded-lg p-4">
-                <Crown className="w-8 h-8 mx-auto mb-2 text-green-400" />
-                <div className="text-2xl font-bold">{gameResult.coins}</div>
-                <div className="text-sm opacity-80">العملات</div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Button 
-                onClick={playAgain}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3"
-              >
-                لعب مرة أخرى 🔥
-              </Button>
-              
-              <Button 
-                onClick={onBack}
-                variant="outline"
-                className="w-full border-white/20 text-white hover:bg-white/10"
-              >
-                العودة إلى القائمة
-              </Button>
-            </div>
+            </Button>
           </div>
         </div>
       </div>
@@ -105,30 +133,76 @@ export default function SoloGameInterface({ gameId, gameName, onBack }: SoloGame
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      {/* Header */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <Button 
-            onClick={onBack}
-            variant="outline" 
-            className="text-white border-white/20 hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            العودة
-          </Button>
-          
-          <h1 className="text-xl font-bold text-white">🎮 {gameName}</h1>
-          <div></div>
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-8 w-96 text-center relative">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="text-4xl mb-2">{gameEmoji}</div>
+          <h2 className="text-xl font-bold text-purple-600">{gameName}</h2>
         </div>
-      </div>
 
-      {/* Battle Royale Game */}
-      <BattleRoyaleGame 
-        isMultiplayer={false}
-        playerCount={1}
-        onGameEnd={handleGameEnd}
-      />
+        {/* Game Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-purple-100 rounded-lg p-3">
+            <div className="text-2xl font-bold text-purple-600">{score}</div>
+            <div className="text-xs text-gray-600">النقاط</div>
+          </div>
+          
+          <div className="bg-red-100 rounded-lg p-3">
+            <div className="text-2xl font-bold text-red-600">{timeLeft}</div>
+            <div className="text-xs text-gray-600">ثانية</div>
+          </div>
+          
+          <div className="bg-green-100 rounded-lg p-3">
+            <div className="text-2xl font-bold text-green-600">{clicks}</div>
+            <div className="text-xs text-gray-600">نقرات</div>
+          </div>
+        </div>
+
+        {/* Game Instructions */}
+        <div className="mb-6">
+          <p className="text-gray-600 text-sm mb-2">
+            اضغط على الزر أدناه أسرع ما يمكن!
+          </p>
+          <p className="text-purple-600 text-sm font-bold">
+            الهدف: {targetClicks} نقرة
+          </p>
+        </div>
+
+        {/* Main Game Button */}
+        <Button
+          onClick={handleClick}
+          className="w-full h-20 text-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-150"
+        >
+          <div className="flex items-center justify-center space-x-3 space-x-reverse">
+            <div className="text-3xl animate-pulse">{gameEmoji}</div>
+            <span>اضغط هنا!</span>
+          </div>
+        </Button>
+
+        {/* Progress Bar */}
+        <div className="mt-4">
+          <div className="bg-gray-200 rounded-full h-3">
+            <div 
+              className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-300"
+              style={{ width: `${Math.min((clicks / targetClicks) * 100, 100)}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-600 mt-1">
+            التقدم: {clicks}/{targetClicks}
+          </p>
+        </div>
+
+        {/* Exit Button */}
+        <Button
+          onClick={onClose}
+          variant="outline"
+          size="sm"
+          className="absolute top-4 right-4"
+        >
+          ×
+        </Button>
+      </div>
     </div>
   );
 }

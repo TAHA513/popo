@@ -5,14 +5,14 @@ import { Trophy, Users, Play, Star, Crown, Gift } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import VoiceChat from "./VoiceChat";
-import BattleRoyaleGame from "./games/BattleRoyaleGame";
+import MemoryGame from "./games/MemoryGame";
+import RacingGame from "./games/RacingGame";
 
 interface GameRoomProps {
   gameType: string;
   gameName: string;
-  gameEmoji?: string;
-  onClose?: () => void;
-  onBack?: () => void;
+  gameEmoji: string;
+  onClose: () => void;
 }
 
 interface Player {
@@ -26,8 +26,7 @@ interface Player {
   isReady: boolean;
 }
 
-export default function GameRoom({ gameType, gameName, gameEmoji, onClose, onBack }: GameRoomProps) {
-  const handleBack = onBack || onClose;
+export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: GameRoomProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [gameRoom, setGameRoom] = useState<any>(null);
@@ -152,24 +151,22 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose, onBac
     }
   };
 
-  const handleGameEnd = (score: number, coins: number, kills: number = 0, rank: number = 1) => {
-    // Battle Royale results
+  const handleGameEnd = (score: number, coins: number) => {
+    // Simulate game results
     const results = players.map((player, index) => ({
       ...player,
-      position: index === 0 ? rank : Math.floor(Math.random() * 90) + 10,
-      pointsWon: index === 0 ? coins : Math.floor(Math.random() * 20) + 5,
-      score: index === 0 ? score : Math.floor(Math.random() * (score * 0.6)) + 100,
-      kills: index === 0 ? kills : Math.floor(Math.random() * 5)
-    })).sort((a, b) => a.position - b.position);
+      position: index + 1,
+      pointsWon: index === 0 ? coins : index === 1 ? Math.floor(coins * 0.7) : index === 2 ? Math.floor(coins * 0.5) : Math.floor(coins * 0.3),
+      score: index === 0 ? score : Math.floor(Math.random() * (score * 0.8)) + 200
+    })).sort((a, b) => b.score - a.score);
     
     setGameResults(results);
     setGameStarted(false);
     setActualGameStarted(false);
     
-    const rankText = rank === 1 ? "Victory Royale! 👑" : `المركز #${rank}`;
     toast({
-      title: "🏆 انتهت المعركة!",
-      description: `${rankText} - ${kills} قتلى، ${coins} عملة!`,
+      title: "🏆 انتهت اللعبة!",
+      description: `حصلت على ${score} نقطة و ${coins} عملة!`,
     });
   };
 
@@ -245,7 +242,7 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose, onBac
           </div>
           
           <div className="mt-6 space-y-2">
-            <Button onClick={handleBack} className="w-full">
+            <Button onClick={onClose} className="w-full">
               العودة للحديقة
             </Button>
             <Button 
@@ -275,12 +272,38 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose, onBac
             onToggle={() => setVoiceChatActive(!voiceChatActive)}
           />
           
-          {/* Battle Royale Game */}
-          <BattleRoyaleGame 
-            isMultiplayer={true}
-            playerCount={players.length}
-            onGameEnd={handleGameEnd}
-          />
+          {/* Game Content */}
+          {gameType === 'memory' && (
+            <MemoryGame 
+              isMultiplayer={true}
+              playerCount={players.length}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+          
+          {gameType === 'racing' && (
+            <RacingGame 
+              isMultiplayer={true}
+              playerCount={players.length}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+          
+          {/* Default fallback for other games */}
+          {!['memory', 'racing'].includes(gameType) && (
+            <div className="text-center">
+              <div className="text-6xl mb-4 animate-bounce">{gameEmoji}</div>
+              <h2 className="text-2xl font-bold mb-4 text-purple-600">{gameName}</h2>
+              <p className="text-gray-600 mb-6">اللعبة جارية...</p>
+              <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <Button 
+                onClick={() => handleGameEnd(500, 25)}
+                className="mt-6"
+              >
+                إنهاء اللعبة التجريبية
+              </Button>
+            </div>
+          )}
           
           <Button
             onClick={() => {
@@ -365,7 +388,7 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose, onBac
             )}
           </Button>
           
-          <Button onClick={handleBack} variant="outline" className="w-full">
+          <Button onClick={onClose} variant="outline" className="w-full">
             الخروج من الغرفة
           </Button>
         </div>
