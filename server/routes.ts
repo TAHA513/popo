@@ -392,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const interactionData = {
         userId: req.user.id,
-        memoryFragmentId: memoryId,
+        fragmentId: memoryId,
         type,
         giftCharacterId: giftCharacterId || null,
       };
