@@ -65,15 +65,14 @@ export default function TopNavigation() {
             </Link>
 
             {/* Live Streaming Button - Red */}
-            <Link href="/simple-live-streaming">
-              <Button 
-                className="bg-red-500 hover:bg-red-600 text-white flex items-center space-x-2 rtl:space-x-reverse animate-pulse"
-                size="sm"
-              >
-                <span className="text-lg">🔴</span>
-                <span>بث مباشر</span>
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => window.open('https://console.zegocloud.com/', '_blank')}
+              className="bg-red-500 hover:bg-red-600 text-white flex items-center space-x-2 rtl:space-x-reverse animate-pulse"
+              size="sm"
+            >
+              <span className="text-lg">🔴</span>
+              <span>بث مباشر</span>
+            </Button>
 
             <Link href="/messages">
               <Button 

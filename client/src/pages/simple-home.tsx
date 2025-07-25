@@ -90,9 +90,9 @@ export default function SimpleHome() {
             {/* Action Buttons - Right Side */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <Button 
-                onClick={() => setLocation('/simple-live-streaming')}
+                onClick={() => window.open('https://console.zegocloud.com/', '_blank')}
                 className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full shadow-lg"
-                title="بث مباشر"
+                title="بث مباشر - ZEGO Cloud"
               >
                 🔴
               </Button>

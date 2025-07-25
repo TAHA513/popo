@@ -19,6 +19,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import * as LazyComponents from "@/App.lazy";
 import SimpleLiveStreaming from '@/pages/simple-live-streaming';
+import ZegoRedirect from '@/pages/zego-redirect';
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -55,7 +56,7 @@ function Router() {
           <Route path="/explore" component={SimpleExplore} />
           <Route path="/start-streaming" component={LazyComponents.StartStreamingPage} />
           <Route path="/simple-live" component={() => <SimpleLiveStreaming />} />
-          <Route path="/simple-live-streaming" component={() => <SimpleLiveStreaming />} />
+          <Route path="/simple-live-streaming" component={() => <ZegoRedirect />} />
           <Route path="/zego-viewer" component={LazyComponents.ZegoViewer} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/messages" component={MessagesPage} />
