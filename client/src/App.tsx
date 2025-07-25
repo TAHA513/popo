@@ -51,18 +51,17 @@ function Router() {
         }>
           <Route path="/" component={SimpleHome} />
           <Route path="/home" component={SimpleHome} />
+          <Route path="/explore" component={SimpleExplore} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
-
           <Route path="/account" component={AccountPage} />
           <Route path="/create-memory" component={LazyComponents.CreateMemoryPage} />
           <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
           <Route path="/profile/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/explore" component={SimpleExplore} />
           <Route path="/gifts" component={LazyComponents.GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
           <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
@@ -70,9 +69,6 @@ function Router() {
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route>
-            <SimpleHome />
-          </Route>
         </Suspense>
       ) : (
         <>
