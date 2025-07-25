@@ -321,38 +321,27 @@ export default function MultiplayerGames() {
               </div>
 
               <div className="space-y-2">
-                {/* Quick Solo Play Button */}
+                {/* Play Button - Disabled */}
                 <Button
-                  onClick={() => {
-                    setSelectedGame(game);
-                    setShowSoloGame(true);
-                  }}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl py-3"
+                  disabled
+                  className="w-full bg-gray-300 text-gray-500 rounded-xl py-3 cursor-not-allowed"
                 >
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Gamepad2 className="w-4 h-4" />
-                    <span>العب بمفردك ⚡</span>
+                    <span>قريباً ⏳</span>
                   </div>
                 </Button>
                 
-                {/* Other Game Modes */}
+                {/* Other Game Modes - Disabled */}
                 <Button
-                  onClick={() => handleStartGame(game)}
-                  disabled={isCreatingRoom && selectedGame?.id === game.id}
+                  disabled
                   variant="outline"
-                  className="w-full rounded-xl py-3"
+                  className="w-full rounded-xl py-3 bg-gray-100 text-gray-500 cursor-not-allowed"
                 >
-                  {isCreatingRoom && selectedGame?.id === game.id ? (
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span>جاري التحضير...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <Users className="w-4 h-4" />
-                      <span>خيارات أخرى</span>
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Users className="w-4 h-4" />
+                    <span>خيارات أخرى - قريباً</span>
+                  </div>
                 </Button>
               </div>
             </div>
@@ -389,9 +378,9 @@ export default function MultiplayerGames() {
                   size="sm"
                   variant="outline"
                   className="text-xs"
-                  onClick={() => alert(`دعوة ${friend.name} للعب`)}
+                  disabled
                 >
-                  دعوة
+                  قريباً
                 </Button>
               </div>
             ))}
