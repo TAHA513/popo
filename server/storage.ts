@@ -10,6 +10,12 @@ import {
   memoryInteractions,
   memoryCollections,
   fragmentCollections,
+  virtualPets,
+  gardenItems,
+  userInventory,
+  gardenActivities,
+  gardenVisits,
+  petAchievements,
   type User,
   type UpsertUser,
   type Stream,
@@ -29,6 +35,18 @@ import {
   type InsertMemoryInteraction,
   type MemoryCollection,
   type InsertMemoryCollection,
+  type VirtualPet,
+  type InsertVirtualPet,
+  type GardenItem,
+  type InsertGardenItem,
+  type UserInventory,
+  type InsertUserInventory,
+  type GardenActivity,
+  type InsertGardenActivity,
+  type GardenVisit,
+  type InsertGardenVisit,
+  type PetAchievement,
+  type InsertPetAchievement,
   privateMessages,
   messageRequests,
   type PrivateMessage,
@@ -98,6 +116,19 @@ export interface IStorage {
     dailyRevenue: number;
     giftsSent: number;
   }>;
+
+  // Virtual Pet Garden operations
+  getUserPet(userId: string): Promise<VirtualPet | undefined>;
+  createPet(userId: string, name?: string): Promise<VirtualPet>;
+  feedPet(userId: string, itemId?: string): Promise<VirtualPet>;
+  playWithPet(userId: string): Promise<VirtualPet>;
+  getGardenItems(): Promise<GardenItem[]>;
+  buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory>;
+  getUserInventory(userId: string): Promise<UserInventory[]>;
+  visitGarden(visitorId: string, hostId: string, giftItemId?: string): Promise<GardenVisit>;
+  getFriendGarden(friendId: string): Promise<{ pet: VirtualPet; user: User } | undefined>;
+  getGardenActivities(userId: string): Promise<GardenActivity[]>;
+  getPetAchievements(userId: string): Promise<PetAchievement[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -682,6 +713,262 @@ export class DatabaseStorage implements IStorage {
         fragmentCount: sql`${memoryCollections.fragmentCount} + 1`
       })
       .where(eq(memoryCollections.id, collectionId));
+  }
+
+  // Virtual Pet Garden operations implementation
+  async getUserPet(userId: string): Promise<VirtualPet | undefined> {
+    const [pet] = await db
+      .select()
+      .from(virtualPets)
+      .where(eq(virtualPets.userId, userId));
+    return pet;
+  }
+
+  async createPet(userId: string, name: string = "أرنوب الصغير"): Promise<VirtualPet> {
+    const [pet] = await db
+      .insert(virtualPets)
+      .values({
+        userId,
+        name,
+        type: "rabbit",
+        health: 80,
+        happiness: 60,
+        level: 1,
+        experience: 0,
+        lastFed: new Date(),
+        lastPlayed: new Date(),
+      })
+      .returning();
+    return pet;
+  }
+
+  async feedPet(userId: string, itemId?: string): Promise<VirtualPet> {
+    const pet = await this.getUserPet(userId);
+    if (!pet) {
+      throw new Error("Pet not found");
+    }
+
+    // Calculate health and happiness boost
+    let healthBoost = 10;
+    let happinessBoost = 5;
+    let experienceGain = 5;
+
+    if (itemId) {
+      // Get item details for better boost
+      const [item] = await db
+        .select()
+        .from(gardenItems)
+        .where(eq(gardenItems.id, itemId));
+      
+      if (item) {
+        healthBoost += item.healthBoost || 0;
+        happinessBoost += item.happinessBoost || 0;
+        experienceGain += item.experienceBoost || 0;
+      }
+    }
+
+    // Update pet stats
+    const newHealth = Math.min(100, pet.health + healthBoost);
+    const newHappiness = Math.min(100, pet.happiness + happinessBoost);
+    const newExperience = pet.experience + experienceGain;
+    
+    // Check for level up
+    const newLevel = Math.floor(newExperience / 100) + 1;
+
+    const [updatedPet] = await db
+      .update(virtualPets)
+      .set({
+        health: newHealth,
+        happiness: newHappiness,
+        experience: newExperience,
+        level: newLevel,
+        lastFed: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(virtualPets.id, pet.id))
+      .returning();
+
+    // Log the activity
+    await db.insert(gardenActivities).values({
+      userId,
+      petId: pet.id,
+      activityType: "feed",
+      itemUsed: itemId,
+      healthChange: healthBoost,
+      happinessChange: happinessBoost,
+      experienceGained: experienceGain,
+    });
+
+    return updatedPet;
+  }
+
+  async playWithPet(userId: string): Promise<VirtualPet> {
+    const pet = await this.getUserPet(userId);
+    if (!pet) {
+      throw new Error("Pet not found");
+    }
+
+    // Playing increases happiness and experience
+    const happinessBoost = 15;
+    const experienceGain = 8;
+
+    const newHappiness = Math.min(100, pet.happiness + happinessBoost);
+    const newExperience = pet.experience + experienceGain;
+    const newLevel = Math.floor(newExperience / 100) + 1;
+
+    const [updatedPet] = await db
+      .update(virtualPets)
+      .set({
+        happiness: newHappiness,
+        experience: newExperience,
+        level: newLevel,
+        lastPlayed: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(virtualPets.id, pet.id))
+      .returning();
+
+    // Log the activity
+    await db.insert(gardenActivities).values({
+      userId,
+      petId: pet.id,
+      activityType: "play",
+      happinessChange: happinessBoost,
+      experienceGained: experienceGain,
+    });
+
+    return updatedPet;
+  }
+
+  async getGardenItems(): Promise<GardenItem[]> {
+    return await db
+      .select()
+      .from(gardenItems)
+      .orderBy(gardenItems.type, gardenItems.price);
+  }
+
+  async buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory> {
+    // Get item details
+    const [item] = await db
+      .select()
+      .from(gardenItems)
+      .where(eq(gardenItems.id, itemId));
+
+    if (!item) {
+      throw new Error("Item not found");
+    }
+
+    // Get user points
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const totalCost = item.price * quantity;
+    if (user.points < totalCost) {
+      throw new Error("Insufficient points");
+    }
+
+    // Deduct points
+    await db
+      .update(users)
+      .set({ points: user.points - totalCost })
+      .where(eq(users.id, userId));
+
+    // Add to inventory or update quantity
+    const [existingInventory] = await db
+      .select()
+      .from(userInventory)
+      .where(
+        and(
+          eq(userInventory.userId, userId),
+          eq(userInventory.itemId, itemId)
+        )
+      );
+
+    if (existingInventory) {
+      const [updatedInventory] = await db
+        .update(userInventory)
+        .set({ quantity: existingInventory.quantity + quantity })
+        .where(eq(userInventory.id, existingInventory.id))
+        .returning();
+      return updatedInventory;
+    } else {
+      const [newInventory] = await db
+        .insert(userInventory)
+        .values({
+          userId,
+          itemId,
+          quantity,
+        })
+        .returning();
+      return newInventory;
+    }
+  }
+
+  async getUserInventory(userId: string): Promise<UserInventory[]> {
+    return await db
+      .select({
+        id: userInventory.id,
+        userId: userInventory.userId,
+        itemId: userInventory.itemId,
+        quantity: userInventory.quantity,
+        createdAt: userInventory.createdAt,
+        item: gardenItems,
+      })
+      .from(userInventory)
+      .innerJoin(gardenItems, eq(userInventory.itemId, gardenItems.id))
+      .where(eq(userInventory.userId, userId));
+  }
+
+  async visitGarden(visitorId: string, hostId: string, giftItemId?: string): Promise<GardenVisit> {
+    const hostPet = await this.getUserPet(hostId);
+    if (!hostPet) {
+      throw new Error("Host pet not found");
+    }
+
+    const [visit] = await db
+      .insert(gardenVisits)
+      .values({
+        visitorId,
+        hostId,
+        petId: hostPet.id,
+        giftGiven: giftItemId,
+      })
+      .returning();
+
+    return visit;
+  }
+
+  async getFriendGarden(friendId: string): Promise<{ pet: VirtualPet; user: User } | undefined> {
+    const friend = await this.getUser(friendId);
+    if (!friend) {
+      return undefined;
+    }
+
+    const pet = await this.getUserPet(friendId);
+    if (!pet) {
+      return undefined;
+    }
+
+    return { pet, user: friend };
+  }
+
+  async getGardenActivities(userId: string): Promise<GardenActivity[]> {
+    return await db
+      .select()
+      .from(gardenActivities)
+      .where(eq(gardenActivities.userId, userId))
+      .orderBy(desc(gardenActivities.createdAt))
+      .limit(50);
+  }
+
+  async getPetAchievements(userId: string): Promise<PetAchievement[]> {
+    return await db
+      .select()
+      .from(petAchievements)
+      .where(eq(petAchievements.userId, userId))
+      .orderBy(desc(petAchievements.createdAt));
   }
 }
 

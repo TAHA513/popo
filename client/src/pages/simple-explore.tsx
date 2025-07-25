@@ -1,29 +1,72 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus } from "lucide-react";
+import { Plus, Heart, ShoppingBag, Sparkles } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
-import FlipCard from "@/components/flip-card";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function SimpleExplore() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
   
-  // لا نحتاج إلى المنشورات في حديقة LaaBoBo
+  // Fetch user's pet
+  const { data: pet, isLoading: petLoading } = useQuery({
+    queryKey: ['/api/garden/pet'],
+    enabled: !!user,
+  });
 
-  const handleLike = (id: string) => {
-    setLikedItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
+  // Fetch garden items/shop
+  const { data: gardenItems = [], isLoading: itemsLoading } = useQuery({
+    queryKey: ['/api/garden/shop'],
+    enabled: !!user,
+  });
+
+  // Fetch user's inventory
+  const { data: inventory = [], isLoading: inventoryLoading } = useQuery({
+    queryKey: ['/api/garden/inventory'],
+    enabled: !!user,
+  });
+
+  // Feed pet mutation
+  const feedPetMutation = useMutation({
+    mutationFn: (itemId?: string) => apiRequest('/api/garden/pet/feed', 'POST', { itemId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/pet'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/inventory'] });
+    }
+  });
+
+  // Play with pet mutation
+  const playPetMutation = useMutation({
+    mutationFn: () => apiRequest('/api/garden/pet/play', 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/pet'] });
+    }
+  });
+
+  // Buy item mutation
+  const buyItemMutation = useMutation({
+    mutationFn: ({ itemId, quantity }: { itemId: string; quantity: number }) => 
+      apiRequest('/api/garden/shop/buy', 'POST', { itemId, quantity }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); // Refresh user points
+    }
+  });
+
+  const handleFeedPet = () => {
+    feedPetMutation.mutate();
+  };
+
+  const handlePlayWithPet = () => {
+    playPetMutation.mutate();
+  };
+
+  const handleBuyItem = (itemId: string) => {
+    buyItemMutation.mutate({ itemId, quantity: 1 });
   };
 
   return (
@@ -61,122 +104,126 @@ export default function SimpleExplore() {
           </div>
           {/* الحديقة الشخصية */}
           <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-6 mb-6">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🐰</div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">أرنوب الصغير</h3>
-              <p className="text-sm text-gray-600 mb-4">شخصيتك الافتراضية</p>
-              
-              {/* شريط الصحة */}
-              <div className="bg-white/50 rounded-full p-1 mb-4">
-                <div className="bg-green-500 h-3 rounded-full w-4/5 relative">
-                  <span className="absolute inset-0 text-xs text-white font-bold flex items-center justify-center">
-                    صحة 80%
-                  </span>
+            {petLoading ? (
+              <div className="text-center">
+                <div className="animate-pulse">
+                  <div className="text-6xl mb-4">🐰</div>
+                  <div className="h-4 bg-gray-300 rounded w-32 mx-auto mb-2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-24 mx-auto mb-4"></div>
                 </div>
               </div>
-              
-              {/* شريط السعادة */}
-              <div className="bg-white/50 rounded-full p-1 mb-6">
-                <div className="bg-yellow-500 h-3 rounded-full w-3/5 relative">
-                  <span className="absolute inset-0 text-xs text-white font-bold flex items-center justify-center">
-                    سعادة 60%
-                  </span>
+            ) : (
+              <div className="text-center">
+                <div className="text-6xl mb-4">🐰</div>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">{pet?.name || "أرنوب الصغير"}</h3>
+                <p className="text-sm text-gray-600 mb-1">المستوى {pet?.level || 1}</p>
+                <p className="text-xs text-gray-500 mb-4">الخبرة: {pet?.experience || 0} نقطة</p>
+                
+                {/* شريط الصحة */}
+                <div className="bg-white/50 rounded-full p-1 mb-4">
+                  <div 
+                    className="bg-green-500 h-3 rounded-full relative transition-all duration-300"
+                    style={{ width: `${pet?.health || 80}%` }}
+                  >
+                    <span className="absolute inset-0 text-xs text-white font-bold flex items-center justify-center">
+                      صحة {pet?.health || 80}%
+                    </span>
+                  </div>
+                </div>
+                
+                {/* شريط السعادة */}
+                <div className="bg-white/50 rounded-full p-1 mb-6">
+                  <div 
+                    className="bg-yellow-500 h-3 rounded-full relative transition-all duration-300"
+                    style={{ width: `${pet?.happiness || 60}%` }}
+                  >
+                    <span className="absolute inset-0 text-xs text-white font-bold flex items-center justify-center">
+                      سعادة {pet?.happiness || 60}%
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={handleFeedPet}
+                    disabled={feedPetMutation.isPending}
+                  >
+                    {feedPetMutation.isPending ? "..." : "🍎 إطعام"}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    onClick={handlePlayWithPet}
+                    disabled={playPetMutation.isPending}
+                  >
+                    {playPetMutation.isPending ? "..." : "🎮 لعب"}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-purple-500 hover:bg-purple-600 text-white"
+                    onClick={() => {
+                      document.getElementById('shop-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    🛍️ تسوق
+                  </Button>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-3 gap-2">
-                <Button 
-                  size="sm" 
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={() => {
-                    alert("🍎 تم إطعام أرنوب الصغير! زادت الصحة +10");
-                  }}
-                >
-                  🍎 إطعام
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={() => {
-                    alert("🎮 لعبت مع أرنوب الصغير! زادت السعادة +15");
-                  }}
-                >
-                  🎮 لعب
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="bg-purple-500 hover:bg-purple-600 text-white"
-                  onClick={() => {
-                    alert("🛍️ مرحباً بك في متجر الهدايا!");
-                  }}
-                >
-                  🛍️ تسوق
-                </Button>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* متجر الهدايا */}
-          <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">🎁 متجر الهدايا</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">🍯</div>
-                <p className="text-sm font-semibold text-gray-700">عسل طبيعي</p>
-                <p className="text-xs text-gray-500 mb-2">يزيد الصحة +20</p>
-                <Button 
-                  size="sm" 
-                  className="bg-laa-pink hover:bg-laa-pink/90 w-full"
-                  onClick={() => {
-                    alert("🍯 تم شراء العسل الطبيعي! أرنوب سعيد جداً");
-                  }}
-                >
-                  10 نقاط
-                </Button>
-              </div>
-              <div className="bg-gradient-to-br from-blue-100 to-green-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">🎾</div>
-                <p className="text-sm font-semibold text-gray-700">كرة ملونة</p>
-                <p className="text-xs text-gray-500 mb-2">يزيد السعادة +30</p>
-                <Button 
-                  size="sm" 
-                  className="bg-blue-500 hover:bg-blue-600 w-full"
-                  onClick={() => {
-                    alert("🎾 تم شراء الكرة الملونة! أرنوب يحب اللعب");
-                  }}
-                >
-                  15 نقاط
-                </Button>
-              </div>
-              <div className="bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">👑</div>
-                <p className="text-sm font-semibold text-gray-700">تاج ذهبي</p>
-                <p className="text-xs text-gray-500 mb-2">اكسسوار فاخر</p>
-                <Button 
-                  size="sm" 
-                  className="bg-yellow-500 hover:bg-yellow-600 w-full"
-                  onClick={() => {
-                    alert("👑 تم شراء التاج الذهبي! أرنوب يبدو ملكياً الآن");
-                  }}
-                >
-                  50 نقاط
-                </Button>
-              </div>
-              <div className="bg-gradient-to-br from-red-100 to-pink-100 rounded-xl p-3 text-center">
-                <div className="text-3xl mb-2">💐</div>
-                <p className="text-sm font-semibold text-gray-700">باقة ورد</p>
-                <p className="text-xs text-gray-500 mb-2">هدية رومانسية</p>
-                <Button 
-                  size="sm" 
-                  className="bg-red-500 hover:bg-red-600 w-full"
-                  onClick={() => {
-                    alert("💐 تم شراء باقة الورد! هدية رومانسية جميلة");
-                  }}
-                >
-                  25 نقاط
-                </Button>
+          <div id="shop-section" className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">🎁 متجر الهدايا</h3>
+              <div className="text-sm text-gray-600">
+                💰 {user?.points || 0} نقطة
               </div>
             </div>
+            
+            {itemsLoading ? (
+              <div className="grid grid-cols-2 gap-3">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="bg-gray-100 rounded-xl p-3 animate-pulse">
+                    <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2"></div>
+                    <div className="h-3 bg-gray-300 rounded mb-1"></div>
+                    <div className="h-2 bg-gray-300 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {gardenItems.slice(0, 6).map((item: any) => (
+                  <div key={item.id} className={`rounded-xl p-3 text-center relative ${
+                    item.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300' :
+                    item.rarity === 'epic' ? 'bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300' :
+                    item.rarity === 'rare' ? 'bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-300' :
+                    'bg-gradient-to-br from-gray-100 to-gray-200'
+                  }`}>
+                    {item.rarity === 'legendary' && <Sparkles className="absolute top-1 right-1 w-3 h-3 text-yellow-500" />}
+                    <div className="text-2xl mb-2">{item.emoji}</div>
+                    <p className="text-xs font-semibold text-gray-700 mb-1">{item.name}</p>
+                    <p className="text-xs text-gray-500 mb-2">{item.price} نقطة</p>
+                    <Button 
+                      size="sm" 
+                      className={`text-xs w-full ${
+                        item.type === 'food' ? 'bg-orange-500 hover:bg-orange-600' :
+                        item.type === 'toy' ? 'bg-blue-500 hover:bg-blue-600' :
+                        item.type === 'decoration' ? 'bg-green-500 hover:bg-green-600' :
+                        'bg-purple-500 hover:bg-purple-600'
+                      } text-white`}
+                      onClick={() => handleBuyItem(item.id)}
+                      disabled={buyItemMutation.isPending || (user?.points || 0) < item.price}
+                    >
+                      {buyItemMutation.isPending ? "..." : 
+                       (user?.points || 0) < item.price ? "غير متاح" : "شراء"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* حدائق الأصدقاء */}

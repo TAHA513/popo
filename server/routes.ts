@@ -1147,6 +1147,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Virtual Pet Garden Routes
+  
+  // Get user's virtual pet
+  app.get("/api/garden/pet", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const pet = await storage.getUserPet(userId);
+      
+      if (!pet) {
+        // Create a new pet for the user
+        const newPet = await storage.createPet(userId);
+        return res.json(newPet);
+      }
+      
+      res.json(pet);
+    } catch (error) {
+      console.error("Error fetching user pet:", error);
+      res.status(500).json({ message: "Failed to fetch pet" });
+    }
+  });
+
+  // Feed the pet
+  app.post("/api/garden/pet/feed", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { itemId } = req.body;
+      
+      const result = await storage.feedPet(userId, itemId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error feeding pet:", error);
+      res.status(500).json({ message: "Failed to feed pet" });
+    }
+  });
+
+  // Play with the pet
+  app.post("/api/garden/pet/play", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      const result = await storage.playWithPet(userId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error playing with pet:", error);
+      res.status(500).json({ message: "Failed to play with pet" });
+    }
+  });
+
+  // Get garden items/shop
+  app.get("/api/garden/shop", requireAuth, async (req: any, res) => {
+    try {
+      const items = await storage.getGardenItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching garden items:", error);
+      res.status(500).json({ message: "Failed to fetch garden items" });
+    }
+  });
+
+  // Buy garden item
+  app.post("/api/garden/shop/buy", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { itemId, quantity = 1 } = req.body;
+      
+      const result = await storage.buyGardenItem(userId, itemId, quantity);
+      res.json(result);
+    } catch (error) {
+      console.error("Error buying garden item:", error);
+      res.status(500).json({ message: "Failed to buy item" });
+    }
+  });
+
+  // Get user's inventory
+  app.get("/api/garden/inventory", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const inventory = await storage.getUserInventory(userId);
+      res.json(inventory);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      res.status(500).json({ message: "Failed to fetch inventory" });
+    }
+  });
+
+  // Visit friend's garden
+  app.post("/api/garden/visit/:friendId", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { friendId } = req.params;
+      const { giftItemId } = req.body;
+      
+      const result = await storage.visitGarden(userId, friendId, giftItemId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error visiting garden:", error);
+      res.status(500).json({ message: "Failed to visit garden" });
+    }
+  });
+
+  // Get friend's garden
+  app.get("/api/garden/friend/:friendId", requireAuth, async (req: any, res) => {
+    try {
+      const { friendId } = req.params;
+      const garden = await storage.getFriendGarden(friendId);
+      res.json(garden);
+    } catch (error) {
+      console.error("Error fetching friend's garden:", error);
+      res.status(500).json({ message: "Failed to fetch friend's garden" });
+    }
+  });
+
+  // Get garden activities/feed
+  app.get("/api/garden/activities", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const activities = await storage.getGardenActivities(userId);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching garden activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+
+  // Get pet achievements
+  app.get("/api/garden/achievements", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const achievements = await storage.getPetAchievements(userId);
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket setup

@@ -10,6 +10,8 @@ import {
   boolean,
   decimal,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -271,6 +273,128 @@ export const commentLikes = pgTable("comment_likes", {
 // Schema exports
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Virtual Pets System
+export const virtualPets = pgTable("virtual_pets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  name: varchar("name").notNull().default("أرنوب الصغير"),
+  type: varchar("type").notNull().default("rabbit"), // rabbit, cat, dog, etc.
+  health: integer("health").notNull().default(80),
+  happiness: integer("happiness").notNull().default(60),
+  level: integer("level").notNull().default(1),
+  experience: integer("experience").notNull().default(0),
+  lastFed: timestamp("last_fed").defaultNow(),
+  lastPlayed: timestamp("last_played").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Garden Items that users can buy for their pets
+export const gardenItems = pgTable("garden_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: varchar("description"),
+  emoji: varchar("emoji").notNull(),
+  type: varchar("type").notNull(), // food, toy, decoration, clothing
+  price: integer("price").notNull(),
+  healthBoost: integer("health_boost").default(0),
+  happinessBoost: integer("happiness_boost").default(0),
+  experienceBoost: integer("experience_boost").default(0),
+  rarity: varchar("rarity").notNull().default("common"), // common, rare, epic, legendary
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User's inventory of garden items
+export const userInventory = pgTable("user_inventory", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  itemId: varchar("item_id").references(() => gardenItems.id).notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Garden activities log
+export const gardenActivities = pgTable("garden_activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  petId: varchar("pet_id").references(() => virtualPets.id).notNull(),
+  activityType: varchar("activity_type").notNull(), // feed, play, clean, visit
+  itemUsed: varchar("item_used"), // if applicable
+  healthChange: integer("health_change").default(0),
+  happinessChange: integer("happiness_change").default(0),
+  experienceGained: integer("experience_gained").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Garden visits between friends
+export const gardenVisits = pgTable("garden_visits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  visitorId: varchar("visitor_id").references(() => users.id).notNull(),
+  hostId: varchar("host_id").references(() => users.id).notNull(),
+  petId: varchar("pet_id").references(() => virtualPets.id).notNull(),
+  giftGiven: varchar("gift_given"), // item id if gift was given
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Pet achievements and milestones
+export const petAchievements = pgTable("pet_achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  petId: varchar("pet_id").references(() => virtualPets.id).notNull(),
+  achievementType: varchar("achievement_type").notNull(), // level_up, max_health, friendship, etc.
+  achievementValue: integer("achievement_value").notNull(),
+  unlocked: boolean("unlocked").notNull().default(false),
+  unlockedAt: timestamp("unlocked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations
+export const virtualPetsRelations = relations(virtualPets, ({ one, many }) => ({
+  owner: one(users, { fields: [virtualPets.userId], references: [users.id] }),
+  activities: many(gardenActivities),
+  achievements: many(petAchievements),
+  visits: many(gardenVisits),
+}));
+
+export const gardenItemsRelations = relations(gardenItems, ({ many }) => ({
+  inventory: many(userInventory),
+}));
+
+export const userInventoryRelations = relations(userInventory, ({ one }) => ({
+  user: one(users, { fields: [userInventory.userId], references: [users.id] }),
+  item: one(gardenItems, { fields: [userInventory.itemId], references: [gardenItems.id] }),
+}));
+
+export const gardenActivitiesRelations = relations(gardenActivities, ({ one }) => ({
+  user: one(users, { fields: [gardenActivities.userId], references: [users.id] }),
+  pet: one(virtualPets, { fields: [gardenActivities.petId], references: [virtualPets.id] }),
+}));
+
+export const gardenVisitsRelations = relations(gardenVisits, ({ one }) => ({
+  visitor: one(users, { fields: [gardenVisits.visitorId], references: [users.id] }),
+  host: one(users, { fields: [gardenVisits.hostId], references: [users.id] }),
+  pet: one(virtualPets, { fields: [gardenVisits.petId], references: [virtualPets.id] }),
+}));
+
+export const petAchievementsRelations = relations(petAchievements, ({ one }) => ({
+  user: one(users, { fields: [petAchievements.userId], references: [users.id] }),
+  pet: one(virtualPets, { fields: [petAchievements.petId], references: [virtualPets.id] }),
+}));
+
+// Types
+export type VirtualPet = typeof virtualPets.$inferSelect;
+export type InsertVirtualPet = typeof virtualPets.$inferInsert;
+export type GardenItem = typeof gardenItems.$inferSelect;
+export type InsertGardenItem = typeof gardenItems.$inferInsert;
+export type UserInventory = typeof userInventory.$inferSelect;
+export type InsertUserInventory = typeof userInventory.$inferInsert;
+export type GardenActivity = typeof gardenActivities.$inferSelect;
+export type InsertGardenActivity = typeof gardenActivities.$inferInsert;
+export type GardenVisit = typeof gardenVisits.$inferSelect;
+export type InsertGardenVisit = typeof gardenVisits.$inferInsert;
+export type PetAchievement = typeof petAchievements.$inferSelect;
+export type InsertPetAchievement = typeof petAchievements.$inferInsert;
 
 export type InsertStream = typeof streams.$inferInsert;
 export type Stream = typeof streams.$inferSelect;
