@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Radio } from "lucide-react";
+import { Plus } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 
@@ -44,13 +44,13 @@ export default function SimpleHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Live Stream Button - Right Side */}
+            {/* Create Memory Button - Right Side */}
             <Button 
-              onClick={() => setLocation('/start-stream')}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+              onClick={() => setLocation('/create-memory')}
+              className="bg-laa-pink hover:bg-laa-pink/90 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
             >
-              <Radio className="w-4 h-4" />
-              <span className="text-sm font-bold">بث مباشر</span>
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-bold">إنشاء ذكرى</span>
             </Button>
           </div>
         </div>
