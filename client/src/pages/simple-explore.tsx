@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Heart, ShoppingBag, Sparkles } from "lucide-react";
+import { Plus, Heart, ShoppingBag, Sparkles, Users, GamepadIcon } from "lucide-react";
+import CharacterSelector from "@/components/CharacterSelector";
 import BottomNavigation from "@/components/bottom-navigation";
 import { apiRequest } from "@/lib/queryClient";
 import FriendsGardens from "@/components/FriendsGardens";
@@ -13,6 +14,7 @@ export default function SimpleExplore() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const [showCharacters, setShowCharacters] = useState(false);
   
   // Fetch user's pet
   const { data: pet, isLoading: petLoading } = useQuery({
@@ -157,10 +159,9 @@ export default function SimpleExplore() {
                   <Button 
                     size="sm" 
                     className="bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={handlePlayWithPet}
-                    disabled={playPetMutation.isPending}
+                    onClick={() => setLocation('/games')}
                   >
-                    {playPetMutation.isPending ? "..." : "🎮 لعب"}
+                    🎮 ألعاب
                   </Button>
                   <Button 
                     size="sm" 

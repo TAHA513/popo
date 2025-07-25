@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 
@@ -44,24 +44,14 @@ export default function SimpleHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Action Buttons - Right Side */}
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Button 
-                onClick={() => setLocation('/characters')}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-3 py-2 rounded-full flex items-center space-x-1 rtl:space-x-reverse shadow-lg"
-              >
-                <Users className="w-4 h-4" />
-                <span className="text-xs font-bold">شخصيات</span>
-              </Button>
-              
-              <Button 
-                onClick={() => setLocation('/create-memory')}
-                className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-full flex items-center space-x-1 rtl:space-x-reverse shadow-lg"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-xs font-bold">ذكرى</span>
-              </Button>
-            </div>
+            {/* Create Memory Button - Right Side */}
+            <Button 
+              onClick={() => setLocation('/create-memory')}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-bold">إنشاء ذكرى</span>
+            </Button>
           </div>
         </div>
         {/* Colored Line */}

@@ -7,6 +7,7 @@ export const AdminPage = lazy(() => import('@/pages/admin'));
 export const StartStreamPage = lazy(() => import('@/pages/start-stream'));
 export const CreateMemoryPage = lazy(() => import('@/pages/create-memory'));
 export const CharacterSelectionPage = lazy(() => import('@/pages/CharacterSelection'));
+export const GamesPage = lazy(() => import('@/pages/games'));
 export const ProfileSimplePage = lazy(() => import('@/pages/profile-simple'));
 export const ExplorePage = lazy(() => import('@/pages/explore'));
 export const GiftsPage = lazy(() => import('@/pages/gifts'));

@@ -240,11 +240,6 @@ export default function CharacterSelector() {
     </div>
   );
 }
-        description: error.message || "فشل في شراء الشخصية",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Select character mutation
   const selectCharacterMutation = useMutation({
