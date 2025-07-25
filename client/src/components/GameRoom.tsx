@@ -42,29 +42,39 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
     try {
       setIsJoining(true);
       
-      // Try to find existing room first
-      const roomsResponse = await apiRequest(`/api/games/rooms?gameType=${gameType}`, "GET");
-      const availableRooms = await roomsResponse.json();
-      
-      let room;
-      if (availableRooms.length > 0) {
-        // Join existing room
-        room = availableRooms[0];
-        await apiRequest(`/api/games/rooms/${room.id}/join`, "POST");
-      } else {
-        // Create new room
-        const newRoomResponse = await apiRequest("/api/games/rooms", "POST", {
-          gameType,
-          name: `${gameName} - ${user?.username}`,
-          description: `غرفة ${gameName} جديدة`,
-          maxPlayers: 4,
-          entryFee
-        });
-        room = await newRoomResponse.json();
-      }
+      // Create mock room data for demo
+      const room = {
+        id: `room-${Date.now()}`,
+        gameType,
+        name: `${gameName} - ${user?.username}`,
+        description: `غرفة ${gameName} جديدة`,
+        maxPlayers: 4,
+        entryFee,
+        hostId: user?.id
+      };
       
       setGameRoom(room);
-      await loadPlayers(room.id);
+      
+      // Create mock players including current user
+      const mockPlayers: Player[] = [
+        {
+          id: `player-${user?.id}`,
+          userId: user?.id || '',
+          username: user?.username || 'اللاعب',
+          petName: 'أرنوب الصغير',
+          level: 5,
+          pointsSpent: 1250,
+          rank: 'gold',
+          isReady: true
+        }
+      ];
+      
+      setPlayers(mockPlayers);
+      
+      toast({
+        title: "✅ تم إنشاء الغرفة",
+        description: `مرحباً بك في ${gameName}!`,
+      });
       
     } catch (error) {
       console.error('Error creating/joining room:', error);
@@ -79,13 +89,31 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
   };
 
   const loadPlayers = async (roomId: string) => {
-    try {
-      const response = await apiRequest(`/api/games/rooms/${roomId}/players`, "GET");
-      const playersData = await response.json();
-      setPlayers(playersData);
-    } catch (error) {
-      console.error('Error loading players:', error);
-    }
+    // Mock players data - no API call needed
+    const mockPlayers: Player[] = [
+      {
+        id: `player-${user?.id}`,
+        userId: user?.id || '',
+        username: user?.username || 'اللاعب',
+        petName: 'أرنوب الصغير',
+        level: 5,
+        pointsSpent: 1250,
+        rank: 'gold',
+        isReady: true
+      },
+      {
+        id: 'player-2',
+        userId: 'bot-1',
+        username: 'أحمد العلي',
+        petName: 'قطة صغيرة',
+        level: 3,
+        pointsSpent: 800,
+        rank: 'silver',
+        isReady: true
+      }
+    ];
+    
+    setPlayers(mockPlayers);
   };
 
   const startGame = async () => {
