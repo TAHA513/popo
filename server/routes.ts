@@ -1283,6 +1283,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Game system API routes
+  app.post('/api/games/rooms', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const gameRoom = await storage.createGameRoom({
+        ...req.body,
+        hostId: userId
+      });
+      res.json(gameRoom);
+    } catch (error) {
+      console.error("Error creating game room:", error);
+      res.status(500).json({ message: "فشل في إنشاء غرفة اللعبة" });
+    }
+  });
+
+  app.get('/api/games/rooms', async (req: any, res) => {
+    try {
+      const gameType = req.query.gameType;
+      const rooms = await storage.getGameRooms(gameType);
+      res.json(rooms);
+    } catch (error) {
+      console.error("Error fetching game rooms:", error);
+      res.status(500).json({ message: "فشل في جلب غرف الألعاب" });
+    }
+  });
+
+  app.post('/api/games/rooms/:roomId/join', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { roomId } = req.params;
+      const { petId } = req.body;
+      
+      const participant = await storage.joinGameRoom(roomId, userId, petId);
+      res.json(participant);
+    } catch (error: any) {
+      console.error("Error joining game room:", error);
+      res.status(400).json({ message: error.message || "فشل في الانضمام للعبة" });
+    }
+  });
+
+  app.get('/api/games/rooms/:roomId/players', async (req: any, res) => {
+    try {
+      const { roomId } = req.params;
+      const players = [
+        {
+          id: "1",
+          userId: "user1",
+          username: "أحمد",
+          petName: "ثعلب ذكي",
+          level: 12,
+          pointsSpent: 50,
+          rank: "gold",
+          isReady: true
+        },
+        {
+          id: "2", 
+          userId: "user2",
+          username: "فاطمة",
+          petName: "قطة لطيفة",
+          level: 8,
+          pointsSpent: 50,
+          rank: "silver",
+          isReady: false
+        }
+      ];
+      res.json(players);
+    } catch (error) {
+      console.error("Error fetching players:", error);
+      res.status(500).json({ message: "فشل في جلب اللاعبين" });
+    }
+  });
+
+  app.post('/api/garden/support', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const support = await storage.supportGarden({
+        ...req.body,
+        supporterId: userId
+      });
+      res.json(support);
+    } catch (error) {
+      console.error("Error supporting garden:", error);
+      res.status(500).json({ message: "فشل في دعم الحديقة" });
+    }
+  });
+
+  app.get('/api/profiles/:userId', async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const profile = await storage.getUserProfile(userId);
+      const user = await storage.getUser(userId);
+      const pet = await storage.getUserPet(userId);
+      
+      res.json({
+        profile,
+        user,
+        pet
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "فشل في جلب الملف الشخصي" });
+    }
+  });
+
   // Get friends list (users with pets)
   app.get("/api/garden/friends", requireAuth, async (req: any, res) => {
     try {

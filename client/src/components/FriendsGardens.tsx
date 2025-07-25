@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import UserProfileModal from "./UserProfileModal";
 
 interface Friend {
   user: {
@@ -27,6 +28,7 @@ export default function FriendsGardens() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [visitingFriend, setVisitingFriend] = useState<string | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
 
   // Fetch friends list
   const { data: friends = [], isLoading } = useQuery<Friend[]>({

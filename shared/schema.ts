@@ -349,6 +349,90 @@ export const petAchievements = pgTable("pet_achievements", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Game rooms for multiplayer games
+export const gameRooms = pgTable("game_rooms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameType: varchar("game_type").notNull(), // pet-race, treasure-hunt, etc.
+  hostId: varchar("host_id").references(() => users.id).notNull(),
+  name: varchar("name").notNull(),
+  description: varchar("description"),
+  maxPlayers: integer("max_players").notNull().default(4),
+  currentPlayers: integer("current_players").notNull().default(1),
+  status: varchar("status").notNull().default("waiting"), // waiting, playing, finished
+  entryFee: integer("entry_fee").notNull().default(0), // points required to join
+  prizePool: integer("prize_pool").notNull().default(0),
+  isPrivate: boolean("is_private").notNull().default(false),
+  gameData: text("game_data"), // JSON data for game state
+  createdAt: timestamp("created_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+});
+
+// Game room participants
+export const gameParticipants = pgTable("game_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  roomId: varchar("room_id").references(() => gameRooms.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  petId: varchar("pet_id").references(() => virtualPets.id),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  score: integer("score").default(0),
+  position: integer("position"), // final ranking
+  pointsSpent: integer("points_spent").default(0),
+  pointsWon: integer("points_won").default(0),
+  isReady: boolean("is_ready").default(false),
+});
+
+// Player rankings and leaderboards
+export const playerRankings = pgTable("player_rankings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  gameType: varchar("game_type").notNull(),
+  totalGames: integer("total_games").notNull().default(0),
+  totalWins: integer("total_wins").notNull().default(0),
+  totalPointsSpent: integer("total_points_spent").notNull().default(0),
+  totalPointsWon: integer("total_points_won").notNull().default(0),
+  currentLevel: integer("current_level").notNull().default(1),
+  experience: integer("experience").notNull().default(0),
+  rank: varchar("rank").notNull().default("bronze"), // bronze, silver, gold, platinum, diamond
+  lastPlayed: timestamp("last_played"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Garden support system (monetization)
+export const gardenSupport = pgTable("garden_support", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").references(() => users.id).notNull(),
+  gardenOwnerId: varchar("garden_owner_id").references(() => users.id).notNull(),
+  supportType: varchar("support_type").notNull(), // monthly, one-time, gift
+  amount: integer("amount").notNull(), // points or real money amount
+  currency: varchar("currency").notNull().default("points"), // points, usd, etc.
+  message: text("message"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  endsAt: timestamp("ends_at"),
+});
+
+// Enhanced user profiles for gardens
+export const userProfiles = pgTable("user_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  bio: text("bio"),
+  favoriteGame: varchar("favorite_game"),
+  gardenTheme: varchar("garden_theme").default("default"),
+  totalSupportReceived: integer("total_support_received").default(0),
+  totalSupportGiven: integer("total_support_given").default(0),
+  gardenLevel: integer("garden_level").default(1),
+  gardenExperience: integer("garden_experience").default(0),
+  isPublic: boolean("is_public").default(true),
+  allowVisitors: boolean("allow_visitors").default(true),
+  allowGifts: boolean("allow_gifts").default(true),
+  customizations: text("customizations"), // JSON for garden decorations
+  achievements: text("achievements"), // JSON array of achievement IDs
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const virtualPetsRelations = relations(virtualPets, ({ one, many }) => ({
   owner: one(users, { fields: [virtualPets.userId], references: [users.id] }),
@@ -382,6 +466,30 @@ export const petAchievementsRelations = relations(petAchievements, ({ one }) => 
   pet: one(virtualPets, { fields: [petAchievements.petId], references: [virtualPets.id] }),
 }));
 
+export const gameRoomsRelations = relations(gameRooms, ({ one, many }) => ({
+  host: one(users, { fields: [gameRooms.hostId], references: [users.id] }),
+  participants: many(gameParticipants),
+}));
+
+export const gameParticipantsRelations = relations(gameParticipants, ({ one }) => ({
+  room: one(gameRooms, { fields: [gameParticipants.roomId], references: [gameRooms.id] }),
+  user: one(users, { fields: [gameParticipants.userId], references: [users.id] }),
+  pet: one(virtualPets, { fields: [gameParticipants.petId], references: [virtualPets.id] }),
+}));
+
+export const playerRankingsRelations = relations(playerRankings, ({ one }) => ({
+  user: one(users, { fields: [playerRankings.userId], references: [users.id] }),
+}));
+
+export const gardenSupportRelations = relations(gardenSupport, ({ one }) => ({
+  supporter: one(users, { fields: [gardenSupport.supporterId], references: [users.id] }),
+  gardenOwner: one(users, { fields: [gardenSupport.gardenOwnerId], references: [users.id] }),
+}));
+
+export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
+  user: one(users, { fields: [userProfiles.userId], references: [users.id] }),
+}));
+
 // Types
 export type VirtualPet = typeof virtualPets.$inferSelect;
 export type InsertVirtualPet = typeof virtualPets.$inferInsert;
@@ -395,6 +503,21 @@ export type GardenVisit = typeof gardenVisits.$inferSelect;
 export type InsertGardenVisit = typeof gardenVisits.$inferInsert;
 export type PetAchievement = typeof petAchievements.$inferSelect;
 export type InsertPetAchievement = typeof petAchievements.$inferInsert;
+
+export type GameRoom = typeof gameRooms.$inferSelect;
+export type InsertGameRoom = typeof gameRooms.$inferInsert;
+
+export type GameParticipant = typeof gameParticipants.$inferSelect;
+export type InsertGameParticipant = typeof gameParticipants.$inferInsert;
+
+export type PlayerRanking = typeof playerRankings.$inferSelect;
+export type InsertPlayerRanking = typeof playerRankings.$inferInsert;
+
+export type GardenSupport = typeof gardenSupport.$inferSelect;
+export type InsertGardenSupport = typeof gardenSupport.$inferInsert;
+
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = typeof userProfiles.$inferInsert;
 
 export type InsertStream = typeof streams.$inferInsert;
 export type Stream = typeof streams.$inferSelect;

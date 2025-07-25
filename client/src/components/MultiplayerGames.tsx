@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Gamepad2, Trophy, Users, Play } from "lucide-react";
+import GameRoom from "./GameRoom";
 
 interface Game {
   id: string;
@@ -81,17 +82,11 @@ export default function MultiplayerGames() {
   const { user } = useAuth();
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [showGameRoom, setShowGameRoom] = useState(false);
 
   const handleStartGame = (game: Game) => {
     setSelectedGame(game);
-    setIsCreatingRoom(true);
-    
-    // Simulate game room creation
-    setTimeout(() => {
-      alert(`🎮 تم إنشاء غرفة ${game.name}! ادع أصدقائك للانضمام`);
-      setIsCreatingRoom(false);
-      setSelectedGame(null);
-    }, 2000);
+    setShowGameRoom(true);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -113,11 +108,24 @@ export default function MultiplayerGames() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-purple-600 mb-2">🎮 الألعاب الجماعية</h2>
-        <p className="text-gray-600">العب مع أصدقائك وحيواناتهم الأليفة</p>
-      </div>
+    <>
+      {showGameRoom && selectedGame && (
+        <GameRoom
+          gameType={selectedGame.id}
+          gameName={selectedGame.name}
+          gameEmoji={selectedGame.emoji}
+          onClose={() => {
+            setShowGameRoom(false);
+            setSelectedGame(null);
+          }}
+        />
+      )}
+
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-purple-600 mb-2">🎮 الألعاب الجماعية</h2>
+          <p className="text-gray-600">العب مع أصدقائك وحيواناتهم الأليفة</p>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {multiplayerGames.map((game) => (
@@ -196,6 +204,7 @@ export default function MultiplayerGames() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

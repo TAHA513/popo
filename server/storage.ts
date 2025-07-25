@@ -47,6 +47,21 @@ import {
   type InsertGardenVisit,
   type PetAchievement,
   type InsertPetAchievement,
+  gameRooms,
+  gameParticipants,
+  playerRankings,
+  gardenSupport,
+  userProfiles,
+  type GameRoom,
+  type InsertGameRoom,
+  type GameParticipant,
+  type InsertGameParticipant,
+  type PlayerRanking,
+  type InsertPlayerRanking,
+  type GardenSupport,
+  type InsertGardenSupport,
+  type UserProfile,
+  type InsertUserProfile,
   privateMessages,
   messageRequests,
   type PrivateMessage,
@@ -130,6 +145,21 @@ export interface IStorage {
   getGardenActivities(userId: string): Promise<GardenActivity[]>;
   getPetAchievements(userId: string): Promise<PetAchievement[]>;
   getAllUsersWithPets(currentUserId: string): Promise<Array<{ user: User; pet: VirtualPet | null }>>;
+  
+  // Game system operations
+  createGameRoom(gameRoom: InsertGameRoom): Promise<GameRoom>;
+  joinGameRoom(roomId: string, userId: string, petId?: string): Promise<GameParticipant>;
+  getGameRooms(gameType?: string): Promise<GameRoom[]>;
+  getGameRoom(roomId: string): Promise<GameRoom | undefined>;
+  updateGameRoom(roomId: string, updates: Partial<GameRoom>): Promise<GameRoom>;
+  getPlayerRanking(userId: string, gameType: string): Promise<PlayerRanking | undefined>;
+  updatePlayerRanking(userId: string, gameType: string, updates: Partial<PlayerRanking>): Promise<PlayerRanking>;
+  
+  // Garden support operations
+  supportGarden(support: InsertGardenSupport): Promise<GardenSupport>;
+  getGardenSupport(gardenOwnerId: string): Promise<GardenSupport[]>;
+  getUserProfile(userId: string): Promise<UserProfile | undefined>;
+  upsertUserProfile(userId: string, profile: Partial<UserProfile>): Promise<UserProfile>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -984,6 +1014,177 @@ export class DatabaseStorage implements IStorage {
       .limit(10); // Get up to 10 friends
 
     return usersWithPets;
+  }
+
+  // Game system operations
+  async createGameRoom(gameRoom: InsertGameRoom): Promise<GameRoom> {
+    const [room] = await db.insert(gameRooms).values(gameRoom).returning();
+    return room;
+  }
+
+  async joinGameRoom(roomId: string, userId: string, petId?: string): Promise<GameParticipant> {
+    const room = await this.getGameRoom(roomId);
+    if (!room) {
+      throw new Error('Game room not found');
+    }
+    
+    if (room.currentPlayers >= room.maxPlayers) {
+      throw new Error('Game room is full');
+    }
+
+    const existingParticipant = await db
+      .select()
+      .from(gameParticipants)
+      .where(and(eq(gameParticipants.roomId, roomId), eq(gameParticipants.userId, userId)));
+    
+    if (existingParticipant.length > 0) {
+      return existingParticipant[0];
+    }
+
+    const [participant] = await db
+      .insert(gameParticipants)
+      .values({
+        roomId,
+        userId,
+        petId,
+        pointsSpent: room.entryFee
+      })
+      .returning();
+
+    await db
+      .update(gameRooms)
+      .set({ 
+        currentPlayers: room.currentPlayers + 1,
+        prizePool: room.prizePool + room.entryFee
+      })
+      .where(eq(gameRooms.id, roomId));
+
+    if (room.entryFee > 0) {
+      await db
+        .update(users)
+        .set({ points: sql`${users.points} - ${room.entryFee}` })
+        .where(eq(users.id, userId));
+    }
+
+    return participant;
+  }
+
+  async getGameRooms(gameType?: string): Promise<GameRoom[]> {
+    if (gameType) {
+      return await db
+        .select()
+        .from(gameRooms)
+        .where(and(eq(gameRooms.gameType, gameType), eq(gameRooms.status, 'waiting')))
+        .orderBy(desc(gameRooms.createdAt));
+    }
+    
+    return await db
+      .select()
+      .from(gameRooms)
+      .where(eq(gameRooms.status, 'waiting'))
+      .orderBy(desc(gameRooms.createdAt));
+  }
+
+  async getGameRoom(roomId: string): Promise<GameRoom | undefined> {
+    const [room] = await db.select().from(gameRooms).where(eq(gameRooms.id, roomId));
+    return room;
+  }
+
+  async updateGameRoom(roomId: string, updates: Partial<GameRoom>): Promise<GameRoom> {
+    const [room] = await db
+      .update(gameRooms)
+      .set(updates)
+      .where(eq(gameRooms.id, roomId))
+      .returning();
+    return room;
+  }
+
+  async getPlayerRanking(userId: string, gameType: string): Promise<PlayerRanking | undefined> {
+    const [ranking] = await db
+      .select()
+      .from(playerRankings)
+      .where(and(eq(playerRankings.userId, userId), eq(playerRankings.gameType, gameType)));
+    return ranking;
+  }
+
+  async updatePlayerRanking(userId: string, gameType: string, updates: Partial<PlayerRanking>): Promise<PlayerRanking> {
+    const existing = await this.getPlayerRanking(userId, gameType);
+    
+    if (existing) {
+      const [ranking] = await db
+        .update(playerRankings)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(and(eq(playerRankings.userId, userId), eq(playerRankings.gameType, gameType)))
+        .returning();
+      return ranking;
+    } else {
+      const [ranking] = await db
+        .insert(playerRankings)
+        .values({
+          userId,
+          gameType,
+          ...updates
+        })
+        .returning();
+      return ranking;
+    }
+  }
+
+  async supportGarden(support: InsertGardenSupport): Promise<GardenSupport> {
+    const [gardenSupportRecord] = await db.insert(gardenSupport).values(support).returning();
+    
+    await db
+      .update(userProfiles)
+      .set({ 
+        totalSupportReceived: sql`${userProfiles.totalSupportReceived} + ${support.amount}`,
+        updatedAt: new Date()
+      })
+      .where(eq(userProfiles.userId, support.gardenOwnerId));
+
+    await db
+      .update(userProfiles)
+      .set({ 
+        totalSupportGiven: sql`${userProfiles.totalSupportGiven} + ${support.amount}`,
+        updatedAt: new Date()
+      })
+      .where(eq(userProfiles.userId, support.supporterId));
+
+    return gardenSupportRecord;
+  }
+
+  async getGardenSupport(gardenOwnerId: string): Promise<GardenSupport[]> {
+    return await db
+      .select()
+      .from(gardenSupport)
+      .where(eq(gardenSupport.gardenOwnerId, gardenOwnerId))
+      .orderBy(desc(gardenSupport.createdAt));
+  }
+
+  async getUserProfile(userId: string): Promise<UserProfile | undefined> {
+    const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
+    return profile;
+  }
+
+  async upsertUserProfile(userId: string, profile: Partial<UserProfile>): Promise<UserProfile> {
+    const existing = await this.getUserProfile(userId);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(userProfiles)
+        .set({ ...profile, updatedAt: new Date() })
+        .where(eq(userProfiles.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(userProfiles)
+        .values({
+          userId,
+          ...profile
+        })
+        .returning();
+      return created;
+    }
   }
 }
 
