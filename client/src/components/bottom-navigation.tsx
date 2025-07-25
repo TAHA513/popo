@@ -38,6 +38,7 @@ export default function BottomNavigation() {
     { href: "/", icon: Home, label: "الرئيسية" },
     { href: "/explore", icon: Search, label: "استكشف" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
+    { href: "/simple-live-streaming", icon: () => <span className="text-lg">🔴</span>, label: "بث مباشر", isLive: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" },
     { action: "logout", icon: LogOut, label: "خروج", isLogout: true }
@@ -58,6 +59,19 @@ export default function BottomNavigation() {
                     <Icon className="w-7 h-7 text-white" />
                   </div>
                   <span className="text-xs mt-1 text-purple-600 font-medium">{item.label}</span>
+                </div>
+              </Link>
+            );
+          }
+          
+          if (item.isLive) {
+            return (
+              <Link key={item.href} href={item.href}>
+                <div className="flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 bg-red-500 text-white hover:bg-red-600 transform hover:scale-105 shadow-lg">
+                  <div className="relative">
+                    <span className="text-lg animate-pulse">🔴</span>
+                  </div>
+                  <span className="text-xs mt-1 font-bold">{item.label}</span>
                 </div>
               </Link>
             );

@@ -7,6 +7,7 @@ import { Link, useLocation } from "wouter";
 
 import BottomNavigation from "@/components/bottom-navigation";
 import LiveStreamCard from "@/components/LiveStreamCard";
+import TopNavigation from "@/components/TopNavigation";
 
 export default function SimpleHome() {
   const { user } = useAuth();
