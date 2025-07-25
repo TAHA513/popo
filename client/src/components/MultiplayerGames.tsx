@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Gamepad2, Trophy, Users, Play } from "lucide-react";
+import { Gamepad2, Trophy, Users, Play, UserPlus, Shuffle, Heart } from "lucide-react";
 import GameRoom from "./GameRoom";
 
 interface Game {
@@ -83,10 +83,33 @@ export default function MultiplayerGames() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [showGameRoom, setShowGameRoom] = useState(false);
+  const [gameMode, setGameMode] = useState<'solo' | 'random' | 'friends' | null>(null);
+  const [showModeSelection, setShowModeSelection] = useState(false);
 
   const handleStartGame = (game: Game) => {
     setSelectedGame(game);
+    setShowModeSelection(true);
+  };
+
+  const handleModeSelection = (mode: 'solo' | 'random' | 'friends') => {
+    setGameMode(mode);
+    setShowModeSelection(false);
     setShowGameRoom(true);
+    
+    // Show mode-specific message
+    let message = '';
+    switch(mode) {
+      case 'solo':
+        message = `بدء ${selectedGame?.name} في وضع منفرد`;
+        break;
+      case 'random':
+        message = `البحث عن لاعبين عشوائيين لـ ${selectedGame?.name}`;
+        break;
+      case 'friends':
+        message = `دعوة الأصدقاء للعب ${selectedGame?.name}`;
+        break;
+    }
+    alert(message);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -109,6 +132,7 @@ export default function MultiplayerGames() {
 
   return (
     <>
+      {/* Game Room */}
       {showGameRoom && selectedGame && (
         <GameRoom
           gameType={selectedGame.id}
@@ -117,93 +141,208 @@ export default function MultiplayerGames() {
           onClose={() => {
             setShowGameRoom(false);
             setSelectedGame(null);
+            setGameMode(null);
           }}
         />
       )}
 
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-purple-600 mb-2">🎮 الألعاب الجماعية</h2>
-          <p className="text-gray-600">العب مع أصدقائك وحيواناتهم الأليفة</p>
-        </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {multiplayerGames.map((game) => (
-          <div key={game.id} className="bg-white rounded-xl p-4 border-2 border-purple-200 hover:border-purple-400 transition-colors">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center space-x-3 space-x-reverse">
-                <div className="text-3xl">{game.emoji}</div>
-                <div>
-                  <h3 className="font-bold text-gray-800">{game.name}</h3>
-                  <p className="text-sm text-gray-600">{game.description}</p>
-                </div>
-              </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(game.difficulty)}`}>
-                {getDifficultyText(game.difficulty)}
-              </span>
+      {/* Game Mode Selection Modal */}
+      {showModeSelection && selectedGame && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 mx-4 max-w-md w-full">
+            <div className="text-center mb-6">
+              <div className="text-4xl mb-2">{selectedGame.emoji}</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{selectedGame.name}</h3>
+              <p className="text-gray-600">اختر طريقة اللعب</p>
             </div>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center space-x-2 space-x-reverse text-sm text-gray-600">
-                <Users className="w-4 h-4" />
-                <span>{game.minPlayers}-{game.maxPlayers} لاعبين</span>
-              </div>
-              <div className="flex items-center space-x-2 space-x-reverse text-sm text-gray-600">
-                <Trophy className="w-4 h-4" />
-                <span>المدة: {game.duration}</span>
-              </div>
+            <div className="space-y-3">
+              {/* Solo Mode */}
+              <Button
+                onClick={() => handleModeSelection('solo')}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white p-4 h-auto"
+              >
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <Gamepad2 className="w-6 h-6" />
+                  </div>
+                  <div className="text-right flex-1">
+                    <h4 className="font-bold">لعب منفرد</h4>
+                    <p className="text-sm opacity-90">العب بمفردك ضد الكمبيوتر</p>
+                  </div>
+                </div>
+              </Button>
+
+              {/* Random Match */}
+              <Button
+                onClick={() => handleModeSelection('random')}
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white p-4 h-auto"
+              >
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <Shuffle className="w-6 h-6" />
+                  </div>
+                  <div className="text-right flex-1">
+                    <h4 className="font-bold">مباراة عشوائية</h4>
+                    <p className="text-sm opacity-90">العب مع لاعبين عشوائيين</p>
+                  </div>
+                </div>
+              </Button>
+
+              {/* Friends Mode */}
+              <Button
+                onClick={() => handleModeSelection('friends')}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white p-4 h-auto"
+              >
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <Heart className="w-6 h-6" />
+                  </div>
+                  <div className="text-right flex-1">
+                    <h4 className="font-bold">لعب مع الأصدقاء</h4>
+                    <p className="text-sm opacity-90">ادع أصدقائك للعب معك</p>
+                  </div>
+                </div>
+              </Button>
             </div>
 
             <Button
-              onClick={() => handleStartGame(game)}
-              disabled={isCreatingRoom && selectedGame?.id === game.id}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+              onClick={() => {
+                setShowModeSelection(false);
+                setSelectedGame(null);
+              }}
+              variant="outline"
+              className="w-full mt-4"
             >
-              {isCreatingRoom && selectedGame?.id === game.id ? (
-                <div className="flex items-center space-x-2 space-x-reverse">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>إنشاء الغرفة...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2 space-x-reverse">
-                  <Play className="w-4 h-4" />
-                  <span>بدء اللعبة</span>
-                </div>
-              )}
+              إلغاء
             </Button>
           </div>
-        ))}
-      </div>
-
-      {/* Online Friends Status */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
-        <div className="flex items-center space-x-2 space-x-reverse mb-3">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <h3 className="font-bold text-gray-800">الأصدقاء المتاحون للعب</h3>
         </div>
-        
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center space-x-2 space-x-reverse bg-white rounded-lg p-2">
-            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-              <span className="text-purple-600 font-bold text-sm">أ</span>
+      )}
+
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
+          <h2 className="text-3xl font-bold text-purple-600 mb-2">🎮 مركز الألعاب الجماعية</h2>
+          <p className="text-gray-600">العب بمفردك أو مع الأصدقاء أو لاعبين عشوائيين</p>
+          
+          {/* Game Mode Stats */}
+          <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="bg-white rounded-xl p-3 border border-green-200">
+              <div className="text-green-600 font-bold text-lg">128</div>
+              <div className="text-xs text-gray-600">ألعاب منفردة</div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-800">أحمد</p>
-              <p className="text-xs text-green-600">متاح الآن</p>
+            <div className="bg-white rounded-xl p-3 border border-blue-200">
+              <div className="text-blue-600 font-bold text-lg">64</div>
+              <div className="text-xs text-gray-600">مباريات عشوائية</div>
             </div>
+            <div className="bg-white rounded-xl p-3 border border-purple-200">
+              <div className="text-purple-600 font-bold text-lg">92</div>
+              <div className="text-xs text-gray-600">ألعاب الأصدقاء</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Games Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {multiplayerGames.map((game) => (
+            <div key={game.id} className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300">
+              <div className="text-center mb-4">
+                <div className="text-5xl mb-3">{game.emoji}</div>
+                <h3 className="font-bold text-lg text-gray-800 mb-2">{game.name}</h3>
+                <p className="text-sm text-gray-600 mb-3">{game.description}</p>
+                
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${getDifficultyColor(game.difficulty)}`}>
+                  {getDifficultyText(game.difficulty)}
+                </span>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-center space-x-2 space-x-reverse text-sm text-gray-600">
+                  <Users className="w-4 h-4" />
+                  <span>{game.minPlayers}-{game.maxPlayers} لاعبين</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2 space-x-reverse text-sm text-gray-600">
+                  <Trophy className="w-4 h-4" />
+                  <span>{game.duration}</span>
+                </div>
+              </div>
+
+              {/* Game Modes Preview */}
+              <div className="grid grid-cols-3 gap-1 mb-4">
+                <div className="bg-green-100 rounded-lg p-2 text-center">
+                  <Gamepad2 className="w-4 h-4 text-green-600 mx-auto mb-1" />
+                  <div className="text-xs text-green-700">منفرد</div>
+                </div>
+                <div className="bg-blue-100 rounded-lg p-2 text-center">
+                  <Shuffle className="w-4 h-4 text-blue-600 mx-auto mb-1" />
+                  <div className="text-xs text-blue-700">عشوائي</div>
+                </div>
+                <div className="bg-purple-100 rounded-lg p-2 text-center">
+                  <Heart className="w-4 h-4 text-purple-600 mx-auto mb-1" />
+                  <div className="text-xs text-purple-700">أصدقاء</div>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => handleStartGame(game)}
+                disabled={isCreatingRoom && selectedGame?.id === game.id}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl py-3"
+              >
+                {isCreatingRoom && selectedGame?.id === game.id ? (
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>جاري التحضير...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Play className="w-4 h-4" />
+                    <span>اختيار اللعبة</span>
+                  </div>
+                )}
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        {/* Online Friends */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
+          <div className="flex items-center space-x-3 space-x-reverse mb-4">
+            <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+            <h3 className="font-bold text-lg text-gray-800">الأصدقاء المتاحون للعب</h3>
+            <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-bold">5 متاح</span>
           </div>
           
-          <div className="flex items-center space-x-2 space-x-reverse bg-white rounded-lg p-2">
-            <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
-              <span className="text-pink-600 font-bold text-sm">ف</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-800">فاطمة</p>
-              <p className="text-xs text-green-600">متاحة الآن</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { name: 'أحمد العلي', initial: 'أ', color: 'purple', status: 'يلعب سباق الحيوانات' },
+              { name: 'فاطمة محمد', initial: 'ف', color: 'pink', status: 'متاحة للعب' },
+              { name: 'محمد سعد', initial: 'م', color: 'blue', status: 'في البحث عن الكنز' },
+              { name: 'عائشة أحمد', initial: 'ع', color: 'green', status: 'متاحة للعب' },
+              { name: 'علي حسن', initial: 'ع', color: 'yellow', status: 'في تحدي المعرفة' }
+            ].map((friend, index) => (
+              <div key={index} className="flex items-center space-x-3 space-x-reverse bg-white rounded-xl p-3 border border-gray-200 hover:border-purple-300 transition-colors">
+                <div className={`w-10 h-10 bg-${friend.color}-100 rounded-full flex items-center justify-center`}>
+                  <span className={`text-${friend.color}-600 font-bold text-sm`}>{friend.initial}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">{friend.name}</p>
+                  <p className={`text-xs ${friend.status.includes('متاح') ? 'text-green-600' : 'text-orange-600'}`}>
+                    {friend.status}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() => alert(`دعوة ${friend.name} للعب`)}
+                >
+                  دعوة
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
       </div>
     </>
   );
