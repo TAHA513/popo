@@ -179,33 +179,22 @@ export default function SimpleExplore() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  <Button 
-                    size="sm" 
-                    className="bg-green-500 hover:bg-green-600 text-white"
-                    onClick={() => {
-                      handleFeedPet();
-                      alert("🍎 تم إطعام أرنوب مجاناً! الطعام دائماً مجاني في LaaBoBo");
-                    }}
-                    disabled={feedPetMutation.isPending}
-                  >
-                    {feedPetMutation.isPending ? "..." : "🍎 إطعام مجاني"}
-                  </Button>
+                <div className="grid grid-cols-2 gap-3 mb-4">
                   <Button 
                     size="sm" 
                     className="bg-blue-500 hover:bg-blue-600 text-white"
                     onClick={() => setShowCharacters(!showCharacters)}
                   >
-                    🎮 شخصيات
+                    🎮 شخصيات الألعاب
                   </Button>
                   <Button 
                     size="sm" 
                     className="bg-purple-500 hover:bg-purple-600 text-white"
                     onClick={() => {
-                      document.getElementById('upgrade-section')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('shopping-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   >
-                    ⬆️ تطوير
+                    🛒 متجر التسوق
                   </Button>
                 </div>
 
@@ -215,22 +204,31 @@ export default function SimpleExplore() {
                     <h5 className="text-lg font-bold text-purple-600 mb-4 text-center">🎭 اختر شخصيتك للألعاب</h5>
                     <div className="grid grid-cols-2 gap-2 mb-4 max-h-96 overflow-y-auto">
                       {[
-                        // شخصيات عادية
-                        { id: "1", name: "المحارب الشجاع", type: "warrior", emoji: "⚔️", rarity: "common", price: 0, badge: "" },
-                        { id: "2", name: "الساحر الحكيم", type: "mage", emoji: "🧙‍♂️", rarity: "rare", price: 100, badge: "" },
-                        { id: "3", name: "الرامي الماهر", type: "archer", emoji: "🏹", rarity: "epic", price: 500, badge: "" },
-                        { id: "4", name: "الأميرة الذهبية", type: "healer", emoji: "✨", rarity: "legendary", price: 1000, badge: "" },
-                        { id: "5", name: "الفارس النبيل", type: "knight", emoji: "🛡️", rarity: "rare", price: 200, badge: "" },
-                        { id: "6", name: "النينجا الخفي", type: "ninja", emoji: "🥷", rarity: "epic", price: 600, badge: "" },
-                        { id: "7", name: "الطبيب المعالج", type: "medic", emoji: "👨‍⚕️", rarity: "rare", price: 150, badge: "" },
-                        { id: "8", name: "الصياد البري", type: "hunter", emoji: "🏹", rarity: "common", price: 50, badge: "" },
+                        // شخصيات مجانية
+                        { id: "1", name: "علي المحارب", type: "warrior", emoji: "⚔️", rarity: "common", price: 0, badge: "" },
+                        { id: "2", name: "فاطمة الطبيبة", type: "medic", emoji: "👩‍⚕️", rarity: "common", price: 0, badge: "" },
                         
-                        // شخصيات غالية جداً - VIP
-                        { id: "9", name: "ملك التنانين", type: "dragon_king", emoji: "🐲", rarity: "mythic", price: 5000, badge: "👑" },
-                        { id: "10", name: "إمبراطور النجوم", type: "star_emperor", emoji: "⭐", rarity: "mythic", price: 7500, badge: "🌟" },
-                        { id: "11", name: "سيد الزمن", type: "time_lord", emoji: "⏰", rarity: "mythic", price: 10000, badge: "⚡" },
-                        { id: "12", name: "إله الحرب", type: "war_god", emoji: "💀", rarity: "mythic", price: 12500, badge: "🔥" },
-                        { id: "13", name: "ملكة الكون", type: "universe_queen", emoji: "🌌", rarity: "mythic", price: 15000, badge: "💎" }
+                        // شخصيات عادية
+                        { id: "3", name: "محمد الساحر", type: "mage", emoji: "🧙‍♂️", rarity: "rare", price: 200, badge: "" },
+                        { id: "4", name: "عائشة الرامية", type: "archer", emoji: "🏹", rarity: "rare", price: 300, badge: "" },
+                        { id: "5", name: "خالد الفارس", type: "knight", emoji: "🛡️", rarity: "rare", price: 250, badge: "" },
+                        { id: "6", name: "زينب النينجا", type: "ninja", emoji: "🥷", rarity: "epic", price: 800, badge: "" },
+                        { id: "7", name: "عمر الصياد", type: "hunter", emoji: "🏹", rarity: "epic", price: 700, badge: "" },
+                        { id: "8", name: "مريم الأميرة", type: "healer", emoji: "✨", rarity: "legendary", price: 1500, badge: "" },
+                        { id: "9", name: "يوسف البطل", type: "hero", emoji: "🦸‍♂️", rarity: "legendary", price: 1800, badge: "" },
+                        { id: "10", name: "ليلى السحرية", type: "witch", emoji: "🔮", rarity: "legendary", price: 2000, badge: "" },
+                        
+                        // شخصيات VIP غالية جداً
+                        { id: "11", name: "أسطورة التنانين", type: "dragon_lord", emoji: "🐲", rarity: "mythic", price: 8000, badge: "👑" },
+                        { id: "12", name: "إمبراطور الليل", type: "night_emperor", emoji: "🌙", rarity: "mythic", price: 12000, badge: "🌟" },
+                        { id: "13", name: "ملك الظلام", type: "shadow_king", emoji: "👤", rarity: "mythic", price: 15000, badge: "⚡" },
+                        { id: "14", name: "آلهة النور", type: "light_goddess", emoji: "☀️", rarity: "mythic", price: 20000, badge: "🔥" },
+                        { id: "15", name: "سلطان الكون", type: "universe_sultan", emoji: "🌌", rarity: "mythic", price: 25000, badge: "💎" },
+                        { id: "16", name: "ملكة الزمن", type: "time_queen", emoji: "⏳", rarity: "mythic", price: 30000, badge: "⭐" },
+                        { id: "17", name: "إمبراطور الجحيم", type: "hell_emperor", emoji: "🔥", rarity: "mythic", price: 35000, badge: "😈" },
+                        { id: "18", name: "آلهة الجنة", type: "heaven_goddess", emoji: "👼", rarity: "mythic", price: 40000, badge: "😇" },
+                        { id: "19", name: "سيد الأبعاد", type: "dimension_lord", emoji: "🌀", rarity: "mythic", price: 50000, badge: "🌈" },
+                        { id: "20", name: "ملك الملوك", type: "king_of_kings", emoji: "👑", rarity: "mythic", price: 100000, badge: "💫" }
                       ].map((character) => (
                         <div key={character.id} className={`p-3 rounded-lg border-2 transition-all hover:scale-105 relative ${
                           character.rarity === 'mythic' ? 'bg-gradient-to-br from-purple-200 via-pink-200 to-red-200 border-purple-500 shadow-lg animate-pulse' :
@@ -322,123 +320,175 @@ export default function SimpleExplore() {
             )}
           </div>
 
-          {/* Garden & Pet Upgrades */}
-          <div id="upgrade-section" className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800">⬆️ تطوير الحديقة والشخصية</h3>
+          {/* Complete Shopping Center */}
+          <div id="shopping-section" className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-800">🛒 مركز التسوق الشامل</h3>
               <div className="text-sm text-gray-600">
                 💰 {user?.points || 0} نقطة
               </div>
             </div>
             
-            <div className="grid grid-cols-1 gap-4 mb-6">
-              {/* Pet Upgrades */}
-              <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-4">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                  🐰 تطوير الشخصية
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    size="sm" 
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => alert("🔋 تطوير الطاقة بـ 500 نقطة!\nزيادة معدل النمو والسعادة")}
-                  >
-                    🔋 طاقة +1 (500)
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => alert("🧠 تطوير الذكاء بـ 750 نقطة!\nزيادة النقاط من الألعاب")}
-                  >
-                    🧠 ذكاء +1 (750)
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                    onClick={() => alert("💪 تطوير القوة بـ 600 نقطة!\nأداء أفضل في المعارك")}
-                  >
-                    💪 قوة +1 (600)
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                    onClick={() => alert("⚡ تطوير السرعة بـ 550 نقطة!\nحركة أسرع في الألعاب")}
-                  >
-                    ⚡ سرعة +1 (550)
-                  </Button>
-                </div>
+            {/* Pet Development */}
+            <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-4 mb-4">
+              <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                🐰 تطوير الشخصية
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  size="sm" 
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => alert("🔋 تطوير الطاقة بـ 800 نقطة!\nزيادة معدل النمو والسعادة")}
+                >
+                  🔋 طاقة +1 (800)
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => alert("🧠 تطوير الذكاء بـ 1200 نقطة!\nزيادة النقاط من الألعاب")}
+                >
+                  🧠 ذكاء +1 (1200)
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => alert("💪 تطوير القوة بـ 1000 نقطة!\nأداء أفضل في المعارك")}
+                >
+                  💪 قوة +1 (1000)
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  onClick={() => alert("⚡ تطوير السرعة بـ 900 نقطة!\nحركة أسرع في الألعاب")}
+                >
+                  ⚡ سرعة +1 (900)
+                </Button>
               </div>
+            </div>
 
-              {/* Garden Upgrades */}
-              <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-4">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                  🌸 تطوير الحديقة
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    size="sm" 
-                    className="bg-pink-600 hover:bg-pink-700 text-white"
-                    onClick={() => alert("🏠 توسيع الحديقة بـ 1000 نقطة!\nمساحة أكبر لزراعة النباتات")}
-                  >
-                    🏠 توسيع (1000)
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
-                    onClick={() => alert("✨ ديكورات خاصة بـ 800 نقطة!\nجمال إضافي ونقاط بونص")}
-                  >
-                    ✨ ديكور (800)
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                    onClick={() => alert("🌈 ألوان مميزة بـ 1200 نقطة!\nتخصيص ألوان الحديقة")}
-                  >
-                    🌈 ألوان (1200)
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="bg-teal-600 hover:bg-teal-700 text-white"
-                    onClick={() => alert("🎵 موسيقى خاصة بـ 900 نقطة!\nأصوات مريحة للحديقة")}
-                  >
-                    🎵 موسيقى (900)
-                  </Button>
-                </div>
+            {/* Garden Upgrades */}
+            <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-4 mb-4">
+              <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                🌸 تطوير الحديقة
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  size="sm" 
+                  className="bg-pink-600 hover:bg-pink-700 text-white"
+                  onClick={() => alert("🏠 توسيع الحديقة بـ 2000 نقطة!\nمساحة أكبر لزراعة النباتات")}
+                >
+                  🏠 توسيع (2000)
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={() => alert("✨ ديكورات خاصة بـ 1500 نقطة!\nجمال إضافي ونقاط بونص")}
+                >
+                  ✨ ديكور (1500)
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  onClick={() => alert("🌈 ألوان مميزة بـ 2500 نقطة!\nتخصيص ألوان الحديقة")}
+                >
+                  🌈 ألوان (2500)
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                  onClick={() => alert("🎵 موسيقى خاصة بـ 1800 نقطة!\nأصوات مريحة للحديقة")}
+                >
+                  🎵 موسيقى (1800)
+                </Button>
+              </div>
+            </div>
+
+            {/* Premium Memberships */}
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-xl p-4 mb-4">
+              <h4 className="font-bold mb-3 flex items-center">
+                👑 العضويات المميزة
+              </h4>
+              <div className="grid grid-cols-1 gap-3">
+                <Button 
+                  className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
+                  onClick={() => alert("🚀 عضوية VIP شهرية بـ 5000 نقطة!\n• نقاط مضاعفة\n• شخصيات حصرية\n• أولوية في الألعاب\n• دعم مميز")}
+                >
+                  🚀 عضوية VIP شهرية (5000)
+                </Button>
+                <Button 
+                  className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
+                  onClick={() => alert("💎 عضوية الماس سنوية بـ 50000 نقطة!\n• كل مزايا VIP\n• شخصيات خارقة\n• مكانة خاصة\n• مزايا دائمة")}
+                >
+                  💎 عضوية الماس سنوية (50000)
+                </Button>
+              </div>
+            </div>
+
+            {/* Point Packages */}
+            <div className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-xl p-4 mb-4">
+              <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                💰 حزم النقاط
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  size="sm" 
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                  onClick={() => alert("💰 حزمة صغيرة بـ 1000 نقطة!\n• 2000 نقطة إضافية\n• بونص 100%")}
+                >
+                  💰 صغيرة (1000) +2000
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => alert("💎 حزمة كبيرة بـ 5000 نقطة!\n• 12000 نقطة إضافية\n• بونص 140%")}
+                >
+                  💎 كبيرة (5000) +12000
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={() => alert("🏆 حزمة ملكية بـ 20000 نقطة!\n• 60000 نقطة إضافية\n• بونص 200%\n• شخصيات مجانية")}
+                >
+                  🏆 ملكية (20000) +60000
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  onClick={() => alert("👑 حزمة إمبراطورية بـ 100000 نقطة!\n• 500000 نقطة إضافية\n• بونص 400%\n• جميع الشخصيات\n• مزايا دائمة")}
+                >
+                  👑 إمبراطورية (100000) +500000
+                </Button>
+              </div>
+            </div>
+
+            {/* Special Titles */}
+            <div className="bg-gradient-to-r from-red-100 to-pink-100 rounded-xl p-4">
+              <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                🏅 الألقاب الخاصة
+              </h4>
+              <div className="grid grid-cols-1 gap-3">
+                <Button 
+                  size="sm" 
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => alert("🔥 لقب بطل الشهر بـ 15000 نقطة!\n• لقب خاص لمدة شهر\n• مظهر ذهبي للملف\n• مزايا حصرية")}
+                >
+                  🔥 بطل الشهر (15000)
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-pink-600 hover:bg-pink-700 text-white"
+                  onClick={() => alert("⚡ لقب أسطورة اللعبة بـ 75000 نقطة!\n• لقب دائم\n• مظهر فريد\n• احترام من جميع اللاعبين")}
+                >
+                  ⚡ أسطورة اللعبة (75000)
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Premium Features */}
-          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 mb-6 shadow-lg">
-            <h3 className="text-lg font-bold mb-4 flex items-center">
-              👑 المزايا المدفوعة الحصرية
-            </h3>
-            <div className="grid grid-cols-1 gap-3">
-              <Button 
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
-                onClick={() => alert("🚀 عضوية VIP شهرية بـ 2500 نقطة!\n• نقاط مضاعفة\n• شخصيات حصرية\n• أولوية في الألعاب\n• دعم مميز")}
-              >
-                🚀 عضوية VIP شهرية (2500)
-              </Button>
-              <Button 
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
-                onClick={() => alert("🎁 حزمة النقاط الذهبية بـ 5000 نقطة!\n• 10,000 نقطة إضافية\n• 3 شخصيات مجانية\n• ديكورات حصرية")}
-              >
-                🎁 حزمة النقاط الذهبية (5000)
-              </Button>
-              <Button 
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-0"
-                onClick={() => alert("🏆 بطل الشهر بـ 10000 نقطة!\n• لقب خاص لمدة شهر\n• مظهر ذهبي للملف الشخصي\n• مزايا حصرية في الألعاب")}
-              >
-                🏆 بطل الشهر (10000)
-              </Button>
-            </div>
-          </div>
-
-          {/* متجر الهدايا المجانية */}
-          <div id="shop-section" className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+          {/* Free Decorative Items */}
+          <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800">🎁 الهدايا والطعام المجاني</h3>
+              <h3 className="text-lg font-bold text-gray-800">🎁 الهدايا التزيينية</h3>
               <div className="text-sm text-green-600 font-bold">
                 🆓 مجاني للجميع
               </div>
