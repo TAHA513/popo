@@ -18,49 +18,50 @@ export default function SimpleHome() {
   const [currentStream, setCurrentStream] = useState<any>(null);
   const [allActiveStreams, setAllActiveStreams] = useState<any[]>([]);
 
-  // Check for active ZEGO streams from localStorage
+  // Fetch active streams from database
   useEffect(() => {
-    const checkZegoStreams = () => {
+    const fetchActiveStreams = async () => {
       try {
-        // Check if current user is streaming
-        const isPublisher = localStorage.getItem('isPublisher') === 'true';
-        const currentStreamID = localStorage.getItem('currentStreamID');
-        const zegoStreamTitle = localStorage.getItem('zegoStreamTitle');
-        const zegoRoomID = localStorage.getItem('zegoRoomID');
-        
-        if (isPublisher && currentStreamID && zegoStreamTitle && zegoRoomID) {
-          const zegoStream = {
-            id: currentStreamID,
-            streamId: currentStreamID,
-            roomId: zegoRoomID,
-            title: zegoStreamTitle,
-            hostName: user?.firstName || user?.username || 'مستخدم',
-            hostId: user?.id || 'unknown',
-            viewerCount: Math.floor(Math.random() * 50) + 1,
-            isPublisher: true,
-            isZegoStream: true // Mark as ZEGO stream
-          };
+        const response = await fetch('/api/streams');
+        if (response.ok) {
+          const streams = await response.json();
+          console.log('📡 Active streams from database:', streams);
           
-          setAllActiveStreams([zegoStream]);
-          setCurrentStream(zegoStream);
-          console.log('📡 ZEGO Stream detected:', zegoStream);
+          // Check if current user is publishing any stream
+          const currentStreamID = localStorage.getItem('currentStreamID');
+          const isPublisher = localStorage.getItem('isPublisher') === 'true';
+          
+          const enhancedStreams = streams.map((stream: any) => ({
+            ...stream,
+            isPublisher: isPublisher && stream.streamId === currentStreamID
+          }));
+          
+          setAllActiveStreams(enhancedStreams);
+          if (enhancedStreams.length > 0) {
+            setCurrentStream(enhancedStreams[0]);
+          } else {
+            setCurrentStream(null);
+          }
         } else {
+          console.error('❌ Failed to fetch streams');
           setAllActiveStreams([]);
           setCurrentStream(null);
         }
       } catch (error) {
-        console.error('Error checking ZEGO streams:', error);
+        console.error('Error fetching streams:', error);
+        setAllActiveStreams([]);
+        setCurrentStream(null);
       }
     };
 
-    // Initial check
-    checkZegoStreams();
+    // Initial fetch
+    fetchActiveStreams();
     
-    // Check every 2 seconds for ZEGO stream updates
-    const interval = setInterval(checkZegoStreams, 2000);
+    // Poll every 5 seconds for updates
+    const interval = setInterval(fetchActiveStreams, 5000);
 
     return () => clearInterval(interval);
-  }, [user]);
+  }, []);
   
   const handleLike = (id: string) => {
     setLikedItems(prev => {
@@ -89,9 +90,9 @@ export default function SimpleHome() {
             {/* Action Buttons - Right Side */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <Button 
-                onClick={() => setLocation('/simple-live-streaming')}
+                onClick={() => window.open('https://console.zegocloud.com/', '_blank')}
                 className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-full shadow-lg"
-                title="بث مباشر"
+                title="بث مباشر - ZEGO Cloud"
               >
                 🔴
               </Button>
