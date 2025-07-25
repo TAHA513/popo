@@ -1399,6 +1399,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Character System APIs
+  app.get('/api/characters/available', requireAuth, async (req: any, res) => {
+    try {
+      const characters = await storage.getAvailableCharacters();
+      res.json(characters);
+    } catch (error: any) {
+      console.error("Error fetching available characters:", error);
+      res.status(500).json({ message: "فشل في تحميل الشخصيات المتاحة" });
+    }
+  });
+
+  app.get('/api/characters/owned', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const userCharacters = await storage.getUserCharacters(userId);
+      res.json(userCharacters);
+    } catch (error: any) {
+      console.error("Error fetching user characters:", error);
+      res.status(500).json({ message: "فشل في تحميل شخصياتك" });
+    }
+  });
+
+  app.post('/api/characters/purchase', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { characterId } = req.body;
+
+      if (!characterId) {
+        return res.status(400).json({ message: "معرف الشخصية مطلوب" });
+      }
+
+      // Get character details
+      const character = await storage.getCharacterById(characterId);
+      if (!character) {
+        return res.status(404).json({ message: "الشخصية غير موجودة" });
+      }
+
+      // Get user details
+      const user = await storage.getUser(userId);
+      if (!user || !user.points || user.points < character.price) {
+        return res.status(400).json({ message: "نقاط غير كافية لشراء هذه الشخصية" });
+      }
+
+      // Purchase character
+      const userCharacter = await storage.purchaseCharacter(userId, characterId);
+      
+      // Deduct points
+      await storage.updateUser(userId, { 
+        points: user.points - character.price 
+      });
+
+      res.json(userCharacter);
+    } catch (error: any) {
+      console.error("Error purchasing character:", error);
+      res.status(500).json({ message: "فشل في شراء الشخصية" });
+    }
+  });
+
+  app.post('/api/characters/select', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { userCharacterId } = req.body;
+
+      if (!userCharacterId) {
+        return res.status(400).json({ message: "معرف الشخصية مطلوب" });
+      }
+
+      await storage.selectUserCharacter(userId, userCharacterId);
+      res.json({ message: "تم اختيار الشخصية بنجاح" });
+    } catch (error: any) {
+      console.error("Error selecting character:", error);
+      res.status(500).json({ message: "فشل في اختيار الشخصية" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket setup

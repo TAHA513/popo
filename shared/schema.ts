@@ -271,6 +271,94 @@ export const commentLikes = pgTable("comment_likes", {
 });
 
 // Schema exports
+// Character System - Customizable game characters
+export const gameCharacters = pgTable("game_characters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  type: varchar("type").notNull(), // warrior, mage, archer, etc.
+  rarity: varchar("rarity").notNull().default("common"), // common, rare, epic, legendary
+  baseStats: jsonb("base_stats"), // { strength, agility, intelligence, health }
+  appearance: jsonb("appearance"), // { skin, hair, clothes, accessories }
+  skills: text("skills").array(),
+  isPremium: boolean("is_premium").default(false),
+  price: integer("price").default(0), // in points
+  description: text("description"),
+  imageUrl: varchar("image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User owned characters and their upgrades
+export const userCharacters = pgTable("user_characters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  characterId: varchar("character_id").notNull().references(() => gameCharacters.id),
+  level: integer("level").default(1),
+  experience: integer("experience").default(0),
+  currentStats: jsonb("current_stats"), // upgraded stats
+  equipment: jsonb("equipment"), // equipped items
+  customization: jsonb("customization"), // user customizations
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+  lastUsed: timestamp("last_used"),
+});
+
+// Character equipment and items
+export const characterItems = pgTable("character_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  type: varchar("type").notNull(), // weapon, armor, accessory
+  rarity: varchar("rarity").notNull().default("common"),
+  stats: jsonb("stats"), // stat bonuses
+  isPremium: boolean("is_premium").default(false),
+  price: integer("price").default(0),
+  description: text("description"),
+  imageUrl: varchar("image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User inventory of character items
+export const userCharacterItems = pgTable("user_character_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  itemId: varchar("item_id").notNull().references(() => characterItems.id),
+  quantity: integer("quantity").default(1),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+});
+
+// Voice chat rooms for games
+export const voiceChatRooms = pgTable("voice_chat_rooms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameRoomId: varchar("game_room_id").references(() => gameRooms.id),
+  isActive: boolean("is_active").default(true),
+  maxParticipants: integer("max_participants").default(8),
+  currentParticipants: integer("current_participants").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Voice chat participants
+export const voiceChatParticipants = pgTable("voice_chat_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chatRoomId: varchar("chat_room_id").notNull().references(() => voiceChatRooms.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  isMuted: boolean("is_muted").default(false),
+  isDeafened: boolean("is_deafened").default(false),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  leftAt: timestamp("left_at"),
+});
+
+// Character System Types
+export type GameCharacter = typeof gameCharacters.$inferSelect;
+export type InsertGameCharacter = typeof gameCharacters.$inferInsert;
+export type UserCharacter = typeof userCharacters.$inferSelect;
+export type InsertUserCharacter = typeof userCharacters.$inferInsert;
+export type CharacterItem = typeof characterItems.$inferSelect;
+export type InsertCharacterItem = typeof characterItems.$inferInsert;
+export type UserCharacterItem = typeof userCharacterItems.$inferSelect;
+export type InsertUserCharacterItem = typeof userCharacterItems.$inferInsert;
+export type VoiceChatRoom = typeof voiceChatRooms.$inferSelect;
+export type InsertVoiceChatRoom = typeof voiceChatRooms.$inferInsert;
+export type VoiceChatParticipant = typeof voiceChatParticipants.$inferSelect;
+export type InsertVoiceChatParticipant = typeof voiceChatParticipants.$inferInsert;
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 

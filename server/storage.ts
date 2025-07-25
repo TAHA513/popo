@@ -68,6 +68,24 @@ import {
   type InsertPrivateMessage,
   type MessageRequest,
   type InsertMessageRequest,
+  gameCharacters,
+  type GameCharacter,
+  type InsertGameCharacter,
+  userCharacters,
+  type UserCharacter,
+  type InsertUserCharacter,
+  characterItems,
+  type CharacterItem,
+  type InsertCharacterItem,
+  userCharacterItems,
+  type UserCharacterItem,
+  type InsertUserCharacterItem,
+  voiceChatRooms,
+  type VoiceChatRoom,
+  type InsertVoiceChatRoom,
+  voiceChatParticipants,
+  type VoiceChatParticipant,
+  type InsertVoiceChatParticipant,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, count, ne } from "drizzle-orm";
@@ -1185,6 +1203,126 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Character System
+  async getAvailableCharacters(): Promise<GameCharacter[]> {
+    return db.select().from(gameCharacters);
+  }
+
+  async getUserCharacters(userId: string): Promise<any[]> {
+    const result = await db
+      .select({
+        id: userCharacters.id,
+        userId: userCharacters.userId,
+        characterId: userCharacters.characterId,
+        level: userCharacters.level,
+        experience: userCharacters.experience,
+        currentStats: userCharacters.currentStats,
+        equipment: userCharacters.equipment,
+        customization: userCharacters.customization,
+        purchasedAt: userCharacters.purchasedAt,
+        lastUsed: userCharacters.lastUsed,
+        character: gameCharacters,
+      })
+      .from(userCharacters)
+      .leftJoin(gameCharacters, eq(userCharacters.characterId, gameCharacters.id))
+      .where(eq(userCharacters.userId, userId));
+    
+    return result;
+  }
+
+  async purchaseCharacter(userId: string, characterId: string): Promise<UserCharacter> {
+    const [userCharacter] = await db
+      .insert(userCharacters)
+      .values({
+        userId,
+        characterId,
+        level: 1,
+        experience: 0,
+        currentStats: null,
+        equipment: null,
+        customization: null,
+      })
+      .returning();
+    return userCharacter;
+  }
+
+  async getCharacterById(characterId: string): Promise<GameCharacter | undefined> {
+    const [character] = await db.select().from(gameCharacters).where(eq(gameCharacters.id, characterId));
+    return character;
+  }
+
+  async selectUserCharacter(userId: string, userCharacterId: string): Promise<void> {
+    // Update user profile to set selected character
+    await db
+      .update(userProfiles)
+      .set({ selectedCharacterId: userCharacterId })
+      .where(eq(userProfiles.userId, userId));
+  }
+
+  // Voice Chat System
+  async createVoiceChatRoom(gameRoomId: string): Promise<VoiceChatRoom> {
+    const [chatRoom] = await db
+      .insert(voiceChatRooms)
+      .values({ gameRoomId })
+      .returning();
+    return chatRoom;
+  }
+
+  async getVoiceChatRoom(gameRoomId: string): Promise<VoiceChatRoom | undefined> {
+    const [room] = await db.select().from(voiceChatRooms)
+      .where(and(eq(voiceChatRooms.gameRoomId, gameRoomId), eq(voiceChatRooms.isActive, true)));
+    return room;
+  }
+
+  async joinVoiceChat(chatRoomId: string, userId: string): Promise<VoiceChatParticipant> {
+    const [participant] = await db
+      .insert(voiceChatParticipants)
+      .values({ chatRoomId, userId })
+      .returning();
+    
+    // Update participant count
+    await db
+      .update(voiceChatRooms)
+      .set({ currentParticipants: sql`${voiceChatRooms.currentParticipants} + 1` })
+      .where(eq(voiceChatRooms.id, chatRoomId));
+    
+    return participant;
+  }
+
+  async leaveVoiceChat(chatRoomId: string, userId: string): Promise<void> {
+    await db
+      .update(voiceChatParticipants)
+      .set({ leftAt: new Date() })
+      .where(and(
+        eq(voiceChatParticipants.chatRoomId, chatRoomId),
+        eq(voiceChatParticipants.userId, userId)
+      ));
+    
+    // Update participant count
+    await db
+      .update(voiceChatRooms)
+      .set({ currentParticipants: sql`${voiceChatRooms.currentParticipants} - 1` })
+      .where(eq(voiceChatRooms.id, chatRoomId));
+  }
+
+  async getVoiceChatParticipants(chatRoomId: string): Promise<VoiceChatParticipant[]> {
+    return db.select().from(voiceChatParticipants)
+      .where(and(
+        eq(voiceChatParticipants.chatRoomId, chatRoomId),
+        sql`${voiceChatParticipants.leftAt} IS NULL`
+      ));
+  }
+
+  async toggleVoiceMute(chatRoomId: string, userId: string, isMuted: boolean): Promise<void> {
+    await db
+      .update(voiceChatParticipants)
+      .set({ isMuted })
+      .where(and(
+        eq(voiceChatParticipants.chatRoomId, chatRoomId),
+        eq(voiceChatParticipants.userId, userId)
+      ));
   }
 }
 
