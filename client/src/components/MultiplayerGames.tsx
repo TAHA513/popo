@@ -1,403 +1,247 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { Gamepad2, Trophy, Users, Play, UserPlus, Shuffle, Heart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Users, Clock, Star, ArrowLeft, Sword, Target, Crown, Skull } from "lucide-react";
 import GameRoom from "./GameRoom";
 import SoloGameInterface from "./SoloGameInterface";
 
-interface Game {
-  id: string;
-  name: string;
-  emoji: string;
-  description: string;
-  minPlayers: number;
-  maxPlayers: number;
-  duration: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+interface MultiplayerGamesProps {
+  onBack: () => void;
 }
 
-const multiplayerGames: Game[] = [
+const games = [
   {
-    id: 'solo-training',
-    name: 'تدريب منفرد',
-    emoji: '🎯',
-    description: 'تدرب مع حيوانك الأليف بمفردك',
-    minPlayers: 1,
-    maxPlayers: 1,
-    duration: '2-5 دقائق',
-    difficulty: 'easy'
-  },
-  {
-    id: 'pet-race',
-    name: 'سباق الحيوانات',
-    emoji: '🏃‍♂️',
-    description: 'سباق ممتع بين الحيوانات الأليفة',
-    minPlayers: 1,
-    maxPlayers: 4,
-    duration: '3-5 دقائق',
-    difficulty: 'easy'
-  },
-  {
-    id: 'treasure-hunt',
-    name: 'البحث عن الكنز',
-    emoji: '🗺️',
-    description: 'ابحث عن الكنوز المخفية',
-    minPlayers: 1,
-    maxPlayers: 6,
-    duration: '10-15 دقيقة',
-    difficulty: 'medium'
-  },
-  {
-    id: 'garden-battle',
-    name: 'معركة الحدائق',
+    id: 'battle-royale',
+    name: 'LaaBoBo Battle Royale',
     emoji: '⚔️',
-    description: 'معركة استراتيجية ممتعة',
+    description: 'معركة البقاء الأقوى - 100 لاعب في معركة نهائية مثيرة مع أسلحة وقتال حقيقي مثل PUBG',
     minPlayers: 1,
-    maxPlayers: 4,
-    duration: '5-10 دقائق',
-    difficulty: 'hard'
-  },
-  {
-    id: 'feeding-contest',
-    name: 'مسابقة الإطعام',
-    emoji: '🍎',
-    description: 'أطعم حيوانك الأليف بسرعة',
-    minPlayers: 1,
-    maxPlayers: 8,
-    duration: '2-3 دقائق',
-    difficulty: 'easy'
-  },
-  {
-    id: 'quiz-challenge',
-    name: 'تحدي المعرفة',
-    emoji: '🧠',
-    description: 'أسئلة ممتعة حول الحيوانات والطبيعة',
-    minPlayers: 1,
-    maxPlayers: 10,
+    maxPlayers: 100,
+    difficulty: 'محترف',
     duration: '5-8 دقائق',
-    difficulty: 'medium'
-  },
-  {
-    id: 'dance-party',
-    name: 'حفلة الرقص',
-    emoji: '💃',
-    description: 'ارقص مع حيوانك الأليف وأصدقائك',
-    minPlayers: 1,
-    maxPlayers: 12,
-    duration: '3-5 دقائق',
-    difficulty: 'easy'
+    reward: '200-1000+ نقطة',
+    features: ['قتال بالأسلحة', 'منطقة آمنة متقلصة', 'معدات وذخيرة', 'ترتيب من 100 لاعب', 'نظام دردشة صوتية']
   }
 ];
 
-export default function MultiplayerGames() {
-  const { user } = useAuth();
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
-  const [showGameRoom, setShowGameRoom] = useState(false);
-  const [gameMode, setGameMode] = useState<'solo' | 'random' | 'friends' | null>(null);
-  const [showModeSelection, setShowModeSelection] = useState(false);
-  const [showSoloGame, setShowSoloGame] = useState(false);
+export default function MultiplayerGames({ onBack }: MultiplayerGamesProps) {
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [gameMode, setGameMode] = useState<'solo' | 'multiplayer' | null>(null);
 
-  const handleStartGame = (game: Game) => {
-    setSelectedGame(game);
-    setShowModeSelection(true);
-  };
+  if (selectedGame && gameMode) {
+    const game = games.find(g => g.id === selectedGame);
+    if (!game) return null;
 
-  const handleModeSelection = (mode: 'solo' | 'random' | 'friends') => {
-    setGameMode(mode);
-    setShowModeSelection(false);
-    
-    if (mode === 'solo') {
-      // For solo mode, open actual game interface
-      setShowSoloGame(true);
-    } else {
-      setShowGameRoom(true);
-      
-      // Show mode-specific message for multiplayer
-      let message = '';
-      switch(mode) {
-        case 'random':
-          message = `البحث عن لاعبين عشوائيين لـ ${selectedGame?.name}`;
-          break;
-        case 'friends':
-          message = `دعوة الأصدقاء للعب ${selectedGame?.name}`;
-          break;
-      }
-      alert(message);
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch(difficulty) {
-      case 'easy': return 'text-green-600 bg-green-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'hard': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getDifficultyText = (difficulty: string) => {
-    switch(difficulty) {
-      case 'easy': return 'سهل';
-      case 'medium': return 'متوسط';
-      case 'hard': return 'صعب';
-      default: return 'غير محدد';
-    }
-  };
-
-  return (
-    <>
-      {/* Solo Game Interface */}
-      {showSoloGame && selectedGame && (
-        <SoloGameInterface
-          gameId={selectedGame.id}
-          gameName={selectedGame.name}
-          gameEmoji={selectedGame.emoji}
-          onClose={() => {
-            setShowSoloGame(false);
-            setSelectedGame(null);
-          }}
-        />
-      )}
-
-      {/* Game Room */}
-      {showGameRoom && selectedGame && (
-        <GameRoom
-          gameType={selectedGame.id}
-          gameName={selectedGame.name}
-          gameEmoji={selectedGame.emoji}
-          onClose={() => {
-            setShowGameRoom(false);
+    if (gameMode === 'solo') {
+      return (
+        <SoloGameInterface 
+          gameId={selectedGame}
+          gameName={game.name}
+          onBack={() => {
             setSelectedGame(null);
             setGameMode(null);
           }}
         />
-      )}
+      );
+    }
 
-      {/* Game Mode Selection Modal */}
-      {showModeSelection && selectedGame && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 mx-4 max-w-md w-full">
-            <div className="text-center mb-6">
-              <div className="text-4xl mb-2">{selectedGame.emoji}</div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{selectedGame.name}</h3>
-              <p className="text-gray-600">اختر طريقة اللعب</p>
-            </div>
+    return (
+      <GameRoom
+        gameType={selectedGame}
+        gameName={game.name}
+        onBack={() => {
+          setSelectedGame(null);
+          setGameMode(null);
+        }}
+      />
+    );
+  }
 
-            <div className="space-y-3">
-              {/* Solo Mode */}
-              <Button
-                onClick={() => handleModeSelection('solo')}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white p-4 h-auto"
-              >
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <Gamepad2 className="w-6 h-6" />
-                  </div>
-                  <div className="text-right flex-1">
-                    <h4 className="font-bold">لعب منفرد ⚡</h4>
-                    <p className="text-sm opacity-90">ابدأ فوراً بدون انتظار!</p>
-                  </div>
-                </div>
-              </Button>
+  if (selectedGame) {
+    const game = games.find(g => g.id === selectedGame);
+    if (!game) return null;
 
-              {/* Random Match */}
-              <Button
-                onClick={() => handleModeSelection('random')}
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white p-4 h-auto"
-              >
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <Shuffle className="w-6 h-6" />
-                  </div>
-                  <div className="text-right flex-1">
-                    <h4 className="font-bold">مباراة عشوائية</h4>
-                    <p className="text-sm opacity-90">العب مع لاعبين عشوائيين</p>
-                  </div>
-                </div>
-              </Button>
-
-              {/* Friends Mode */}
-              <Button
-                onClick={() => handleModeSelection('friends')}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white p-4 h-auto"
-              >
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <Heart className="w-6 h-6" />
-                  </div>
-                  <div className="text-right flex-1">
-                    <h4 className="font-bold">لعب مع الأصدقاء</h4>
-                    <p className="text-sm opacity-90">ادع أصدقائك للعب معك</p>
-                  </div>
-                </div>
-              </Button>
-            </div>
-
-            <Button
-              onClick={() => {
-                setShowModeSelection(false);
-                setSelectedGame(null);
-              }}
-              variant="outline"
-              className="w-full mt-4"
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-purple-900 to-black p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Button 
+              onClick={() => setSelectedGame(null)}
+              variant="outline" 
+              className="text-white border-white/20 hover:bg-white/10"
             >
-              إلغاء
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              العودة
             </Button>
           </div>
-        </div>
-      )}
 
-      <div className="space-y-6">
+          {/* Game Details */}
+          <div className="bg-white bg-opacity-5 backdrop-blur-sm rounded-2xl p-8 mb-6">
+            <div className="text-center mb-8">
+              <div className="text-8xl mb-4">{game.emoji}</div>
+              <h1 className="text-4xl font-bold text-white mb-4">{game.name}</h1>
+              <p className="text-xl text-gray-300 mb-6">{game.description}</p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-red-500 bg-opacity-20 rounded-lg p-4 text-white">
+                  <Users className="w-6 h-6 mx-auto mb-2" />
+                  <div className="font-bold">{game.minPlayers}-{game.maxPlayers}</div>
+                  <div className="text-sm opacity-80">لاعبين</div>
+                </div>
+                
+                <div className="bg-blue-500 bg-opacity-20 rounded-lg p-4 text-white">
+                  <Clock className="w-6 h-6 mx-auto mb-2" />
+                  <div className="font-bold">{game.duration}</div>
+                  <div className="text-sm opacity-80">المدة</div>
+                </div>
+                
+                <div className="bg-purple-500 bg-opacity-20 rounded-lg p-4 text-white">
+                  <Star className="w-6 h-6 mx-auto mb-2" />
+                  <div className="font-bold">{game.difficulty}</div>
+                  <div className="text-sm opacity-80">الصعوبة</div>
+                </div>
+                
+                <div className="bg-yellow-500 bg-opacity-20 rounded-lg p-4 text-white">
+                  <Crown className="w-6 h-6 mx-auto mb-2" />
+                  <div className="font-bold">{game.reward}</div>
+                  <div className="text-sm opacity-80">المكافأة</div>
+                </div>
+              </div>
+
+              {/* Game Features */}
+              <div className="bg-black bg-opacity-30 rounded-xl p-6 mb-8">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center justify-center">
+                  <Target className="w-5 h-5 mr-2" />
+                  مميزات اللعبة
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {game.features.map((feature, index) => (
+                    <div key={index} className="flex items-center text-white">
+                      <Sword className="w-4 h-4 text-red-400 mr-3" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mode Selection */}
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-white mb-6">اختر نمط اللعب</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Solo Mode */}
+                  <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform"
+                       onClick={() => setGameMode('solo')}>
+                    <div className="text-center">
+                      <Skull className="w-12 h-12 mx-auto mb-4" />
+                      <h4 className="text-2xl font-bold mb-2">لعب منفرد</h4>
+                      <p className="text-sm opacity-90 mb-4">
+                        تحدى 99 منافس ذكي واثبت مهاراتك في المعركة
+                      </p>
+                      <Badge className="bg-white bg-opacity-20">
+                        1 ضد 99 بوت
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Multiplayer Mode */}
+                  <div className="bg-gradient-to-br from-red-600 to-orange-600 rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform"
+                       onClick={() => setGameMode('multiplayer')}>
+                    <div className="text-center">
+                      <Users className="w-12 h-12 mx-auto mb-4" />
+                      <h4 className="text-2xl font-bold mb-2">لعب جماعي</h4>
+                      <p className="text-sm opacity-90 mb-4">
+                        شارك أصدقاءك في معركة ملحمية مع دردشة صوتية
+                      </p>
+                      <Badge className="bg-white bg-opacity-20">
+                        حتى 100 لاعب
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
-          <h2 className="text-3xl font-bold text-purple-600 mb-2">🎮 مركز الألعاب الجماعية</h2>
-          <p className="text-gray-600">العب بمفردك أو مع الأصدقاء أو لاعبين عشوائيين</p>
-          <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full inline-block mt-3 font-medium">
-            ✨ جميع الألعاب مجانية بالكامل!
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <Button 
+            onClick={onBack}
+            variant="outline" 
+            className="text-white border-white/20 hover:bg-white/10"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            العودة
+          </Button>
           
-          {/* Game Mode Stats */}
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="bg-white rounded-xl p-3 border border-green-200">
-              <div className="text-green-600 font-bold text-lg">128</div>
-              <div className="text-xs text-gray-600">ألعاب منفردة</div>
-            </div>
-            <div className="bg-white rounded-xl p-3 border border-blue-200">
-              <div className="text-blue-600 font-bold text-lg">64</div>
-              <div className="text-xs text-gray-600">مباريات عشوائية</div>
-            </div>
-            <div className="bg-white rounded-xl p-3 border border-purple-200">
-              <div className="text-purple-600 font-bold text-lg">92</div>
-              <div className="text-xs text-gray-600">ألعاب الأصدقاء</div>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold text-white">🎮 الألعاب القوية</h1>
+          <div></div>
         </div>
 
         {/* Games Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {multiplayerGames.map((game) => (
-            <div key={game.id} className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300 relative">
-              {/* Free Badge */}
-              <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                مجاني
-              </div>
-              
-              <div className="text-center mb-4">
-                <div className="text-5xl mb-3">{game.emoji}</div>
-                <h3 className="font-bold text-lg text-gray-800 mb-2">{game.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{game.description}</p>
-                
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${getDifficultyColor(game.difficulty)}`}>
-                  {getDifficultyText(game.difficulty)}
-                </span>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center justify-center space-x-2 space-x-reverse text-sm text-gray-600">
-                  <Users className="w-4 h-4" />
-                  <span>{game.minPlayers}-{game.maxPlayers} لاعبين</span>
-                </div>
-                <div className="flex items-center justify-center space-x-2 space-x-reverse text-sm text-gray-600">
-                  <Trophy className="w-4 h-4" />
-                  <span>{game.duration}</span>
-                </div>
-              </div>
-
-              {/* Game Modes Preview */}
-              <div className="grid grid-cols-3 gap-1 mb-4">
-                <div className="bg-green-100 rounded-lg p-2 text-center">
-                  <Gamepad2 className="w-4 h-4 text-green-600 mx-auto mb-1" />
-                  <div className="text-xs text-green-700">منفرد</div>
-                </div>
-                <div className="bg-blue-100 rounded-lg p-2 text-center">
-                  <Shuffle className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-                  <div className="text-xs text-blue-700">عشوائي</div>
-                </div>
-                <div className="bg-purple-100 rounded-lg p-2 text-center">
-                  <Heart className="w-4 h-4 text-purple-600 mx-auto mb-1" />
-                  <div className="text-xs text-purple-700">أصدقاء</div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {/* Quick Solo Play Button */}
-                <Button
-                  onClick={() => {
-                    setSelectedGame(game);
-                    setShowSoloGame(true);
-                  }}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl py-3"
-                >
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <Gamepad2 className="w-4 h-4" />
-                    <span>العب بمفردك ⚡</span>
+        <div className="grid grid-cols-1 gap-6">
+          {games.map((game) => (
+            <div 
+              key={game.id}
+              onClick={() => setSelectedGame(game.id)}
+              className="bg-white bg-opacity-5 backdrop-blur-sm rounded-2xl p-8 cursor-pointer hover:bg-opacity-10 transition-all duration-300 border border-white/10 hover:border-white/20"
+            >
+              <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 md:space-x-reverse">
+                {/* Game Icon and Info */}
+                <div className="text-center md:text-right flex-1">
+                  <div className="text-6xl mb-4">{game.emoji}</div>
+                  <h3 className="text-2xl font-bold text-white mb-2">{game.name}</h3>
+                  <p className="text-gray-300 mb-4">{game.description}</p>
+                  
+                  <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+                    <Badge className="bg-red-500 bg-opacity-20 text-red-300 border-red-400">
+                      <Users className="w-3 h-3 mr-1" />
+                      {game.minPlayers}-{game.maxPlayers} لاعب
+                    </Badge>
+                    <Badge className="bg-blue-500 bg-opacity-20 text-blue-300 border-blue-400">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {game.duration}
+                    </Badge>
+                    <Badge className="bg-purple-500 bg-opacity-20 text-purple-300 border-purple-400">
+                      <Star className="w-3 h-3 mr-1" />
+                      {game.difficulty}
+                    </Badge>
                   </div>
-                </Button>
-                
-                {/* Other Game Modes */}
-                <Button
-                  onClick={() => handleStartGame(game)}
-                  disabled={isCreatingRoom && selectedGame?.id === game.id}
-                  variant="outline"
-                  className="w-full rounded-xl py-3"
-                >
-                  {isCreatingRoom && selectedGame?.id === game.id ? (
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span>جاري التحضير...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <Users className="w-4 h-4" />
-                      <span>خيارات أخرى</span>
-                    </div>
-                  )}
-                </Button>
+                  
+                  <div className="text-yellow-400 font-bold text-lg">
+                    💰 {game.reward}
+                  </div>
+                </div>
+
+                {/* Play Button */}
+                <div className="flex-shrink-0">
+                  <Button 
+                    size="lg"
+                    className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-xl px-8 py-4 shadow-lg"
+                  >
+                    ادخل المعركة! 🔥
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Online Friends */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
-          <div className="flex items-center space-x-3 space-x-reverse mb-4">
-            <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-            <h3 className="font-bold text-lg text-gray-800">الأصدقاء المتاحون للعب</h3>
-            <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-bold">5 متاح</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { name: 'أحمد العلي', initial: 'أ', color: 'purple', status: 'يلعب سباق الحيوانات' },
-              { name: 'فاطمة محمد', initial: 'ف', color: 'pink', status: 'متاحة للعب' },
-              { name: 'محمد سعد', initial: 'م', color: 'blue', status: 'في البحث عن الكنز' },
-              { name: 'عائشة أحمد', initial: 'ع', color: 'green', status: 'متاحة للعب' },
-              { name: 'علي حسن', initial: 'ع', color: 'yellow', status: 'في تحدي المعرفة' }
-            ].map((friend, index) => (
-              <div key={index} className="flex items-center space-x-3 space-x-reverse bg-white rounded-xl p-3 border border-gray-200 hover:border-purple-300 transition-colors">
-                <div className={`w-10 h-10 bg-${friend.color}-100 rounded-full flex items-center justify-center`}>
-                  <span className={`text-${friend.color}-600 font-bold text-sm`}>{friend.initial}</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{friend.name}</p>
-                  <p className={`text-xs ${friend.status.includes('متاح') ? 'text-green-600' : 'text-orange-600'}`}>
-                    {friend.status}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs"
-                  onClick={() => alert(`دعوة ${friend.name} للعب`)}
-                >
-                  دعوة
-                </Button>
-              </div>
-            ))}
-          </div>
+        {/* Footer Info */}
+        <div className="mt-8 text-center text-gray-400">
+          <p className="text-sm">
+            🎯 لعبة باتل رويال قوية مع قتال حقيقي وأسلحة متنوعة - مثل PUBG تماماً!
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
