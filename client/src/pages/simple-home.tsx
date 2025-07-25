@@ -98,31 +98,45 @@ export default function SimpleHome() {
           ) : (
             <div className="space-y-4">
               {memories.map((memory) => {
-                // تحويل البيانات للتوافق مع FlipCard  
+                // تحديد نوع المحتوى بناءً على البيانات الحقيقية
+                const hasVideo = memory.type === 'video' || 
+                  (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
+                    url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')
+                  )) ||
+                  (memory.imageUrl && (
+                    memory.imageUrl.includes('.mp4') || 
+                    memory.imageUrl.includes('.webm') || 
+                    memory.imageUrl.includes('.mov')
+                  ));
+                
+                const cardType = hasVideo ? 'video' : 'image';
+                
+                // إعداد URLs الوسائط بشكل صحيح
+                let mediaUrls = [];
+                if (memory.mediaUrls && Array.isArray(memory.mediaUrls)) {
+                  mediaUrls = memory.mediaUrls;
+                } else if (memory.imageUrl) {
+                  mediaUrls = [memory.imageUrl];
+                } else if (memory.thumbnailUrl) {
+                  mediaUrls = [memory.thumbnailUrl];
+                }
+                
                 const content = {
-                  id: memory.id,
-                  title: memory.title || memory.description || 'ذكرى',
-                  description: memory.description || '',
-                  image: memory.mediaUrls && memory.mediaUrls.length > 0 ? memory.mediaUrls[0] : null,
-                  video: memory.type === 'video' && memory.mediaUrls && memory.mediaUrls.length > 0 ? memory.mediaUrls[0] : null,
-                  author: {
-                    name: memory.author?.username || 'مستخدم',
-                    avatar: memory.author?.profileImage || null,
-                    id: memory.authorId
-                  },
-                  stats: {
-                    views: memory.viewCount || 0,
-                    likes: memory.likeCount || 0,
-                    comments: memory.commentCount || 0
-                  },
-                  createdAt: memory.createdAt
+                  ...memory,
+                  mediaUrls: mediaUrls,
+                  author: memory.author || {
+                    id: memory.authorId,
+                    firstName: memory.author?.firstName || 'مستخدم',
+                    username: memory.author?.username || 'LaaBoBo',
+                    profileImageUrl: memory.author?.profileImageUrl
+                  }
                 };
 
                 return (
                   <FlipCard
-                    key={memory.id}
+                    key={`memory-${memory.id}`}
                     content={content}
-                    type={memory.type === 'video' ? 'video' : 'image'}
+                    type={cardType}
                     onAction={(action) => {
                       if (action === 'like') handleLike(memory.id);
                       if (action === 'profile') setLocation(`/user/${memory.authorId}`);
