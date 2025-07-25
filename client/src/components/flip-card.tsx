@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RealTimeTimestamp } from "./real-time-timestamp";
-import { videoCache } from "@/utils/videoCache";
 import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,17 +33,6 @@ interface FlipCardProps {
 
 export default function FlipCard({ content, type, onAction, onLike, isLiked }: FlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoReady, setVideoReady] = useState(false);
-
-  // تحميل مسبق للفيديوهات
-  useEffect(() => {
-    if (type === 'video' && content.mediaUrls?.[0]) {
-      videoCache.preloadVideo(content.mediaUrls[0])
-        .then(() => setVideoReady(true))
-        .catch(() => console.log('فشل في تحميل الفيديو مسبقاً'));
-    }
-  }, [type, content.mediaUrls]);
   const [location, setLocation] = useLocation();
 
   const getCardStyle = () => {
@@ -91,61 +79,28 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           
           if (type === 'video' || type === 'live') {
             return (
-              <div className="relative w-full h-full">
-                <video
-                  ref={videoRef}
-                  src={mediaUrl}
-                  className="w-full h-full object-cover"
-                  muted
-                  autoPlay
-                  loop
-                  playsInline
-                  preload="auto"
-                  crossOrigin="anonymous"
-                  controls={false}
-                  poster={content.thumbnailUrl}
-                  style={{ 
-                    objectFit: 'cover',
-                    transition: 'opacity 0.2s ease',
-                    opacity: videoReady ? 1 : 0.7
-                  }}
-                  onLoadStart={() => {
-                    // تشغيل فوري عند بداية التحميل
-                    setTimeout(() => {
-                      if (videoRef.current) {
-                        videoRef.current.play().catch(() => {});
-                      }
-                    }, 50);
-                  }}
-                  onCanPlay={(e) => {
-                    // تشغيل فوري عند الجاهزية
-                    const video = e.currentTarget;
-                    video.currentTime = 0;
-                    video.play().catch(() => {});
-                    setVideoReady(true);
-                  }}
-                  onLoadedData={(e) => {
-                    // تشغيل فوري عند تحميل البيانات
-                    e.currentTarget.play().catch(() => {});
-                    setVideoReady(true);
-                  }}
-                  onError={(e) => {
-                    console.error('فشل تحميل الفيديو:', mediaUrl);
-                    // استخدام الصورة المصغرة كبديل
-                    const fallbackImg = document.createElement('img');
-                    fallbackImg.src = content.thumbnailUrl || content.imageUrl || '';
-                    fallbackImg.className = 'w-full h-full object-cover';
-                    fallbackImg.alt = 'فيديو';
-                    e.currentTarget.parentNode?.replaceChild(fallbackImg, e.currentTarget);
-                  }}
-                />
-                {/* مؤشر التحميل للفيديو */}
-                {!videoReady && (
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-              </div>
+              <video
+                src={mediaUrl}
+                className="w-full h-full object-cover"
+                muted
+                autoPlay
+                loop
+                playsInline
+                controls={false}
+                poster={content.thumbnailUrl}
+                onError={(e) => {
+                  console.error('فشل تحميل الفيديو:', mediaUrl);
+                  // استخدام الصورة المصغرة كبديل
+                  const target = e.currentTarget;
+                  const img = document.createElement('img');
+                  img.src = content.thumbnailUrl || content.imageUrl || '';
+                  img.className = 'w-full h-full object-cover';
+                  img.alt = 'فيديو';
+                  if (target.parentNode) {
+                    target.parentNode.replaceChild(img, target);
+                  }
+                }}
+              />
             );
           } else {
             return (
@@ -222,19 +177,17 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              // تشغيل الفيديو بسرعة البرق
+              // تشغيل الفيديو فوراً
               const video = e.currentTarget.parentElement?.querySelector('video');
               if (video) {
-                // تشغيل فوري مع عناصر التحكم
-                video.play().then(() => {
-                  video.controls = true;
-                  video.muted = false; // إلغاء كتم الصوت عند النقر
-                }).catch(() => {
-                  // إذا فشل، جرب مع كتم الصوت
-                  video.muted = true;
+                if (video.paused) {
                   video.play();
                   video.controls = true;
-                });
+                  video.muted = false;
+                } else {
+                  video.pause();
+                  video.controls = false;
+                }
               }
             }}
           >

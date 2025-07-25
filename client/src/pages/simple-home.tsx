@@ -3,34 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/bottom-navigation";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import FlipCard from "@/components/flip-card";
-import { useVideoPreloader } from "@/hooks/useVideoPreloader";
+import SimpleFlipCard from "@/components/simple-flip-card";
 
 export default function SimpleHome() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // المنشورات العامة (الفيديوهات والصور) - تحديث سريع
+  // المنشورات العامة (الفيديوهات والصور)
   const { data: memories = [] } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 5000, // تحديث أسرع
-    staleTime: 1000, // البيانات تصبح قديمة بسرعة
-    gcTime: 30000, // TanStack Query v5 استخدام gcTime بدلاً من cacheTime
+    refetchInterval: 10000,
   });
-
-  // استخراج روابط الفيديوهات للتحميل المسبق
-  const videoUrls = useMemo(() => {
-    return (memories as any[])
-      .filter((m: any) => m.type === 'video')
-      .map((m: any) => m.mediaUrls?.[0] || m.imageUrl || m.thumbnailUrl)
-      .filter(Boolean);
-  }, [memories]);
-
-  // تحميل مسبق للفيديوهات
-  useVideoPreloader(videoUrls);
 
   const handleLike = (id: string) => {
     setLikedItems(prev => {
@@ -148,7 +134,7 @@ export default function SimpleHome() {
                 };
 
                 return (
-                  <FlipCard
+                  <SimpleFlipCard
                     key={`memory-${memory.id}`}
                     content={content}
                     type={cardType}
