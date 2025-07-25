@@ -225,6 +225,9 @@ export default function MultiplayerGames() {
         <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
           <h2 className="text-3xl font-bold text-purple-600 mb-2">🎮 مركز الألعاب الجماعية</h2>
           <p className="text-gray-600">العب بمفردك أو مع الأصدقاء أو لاعبين عشوائيين</p>
+          <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full inline-block mt-3 font-medium">
+            ✨ جميع الألعاب مجانية بالكامل!
+          </div>
           
           {/* Game Mode Stats */}
           <div className="grid grid-cols-3 gap-4 mt-4">
@@ -246,7 +249,12 @@ export default function MultiplayerGames() {
         {/* Games Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {multiplayerGames.map((game) => (
-            <div key={game.id} className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300">
+            <div key={game.id} className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300 relative">
+              {/* Free Badge */}
+              <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                مجاني
+              </div>
+              
               <div className="text-center mb-4">
                 <div className="text-5xl mb-3">{game.emoji}</div>
                 <h3 className="font-bold text-lg text-gray-800 mb-2">{game.name}</h3>

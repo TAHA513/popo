@@ -32,7 +32,7 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
   const [isStarting, setIsStarting] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameResults, setGameResults] = useState<any>(null);
-  const [entryFee] = useState(50); // نقاط الدخول
+  const [entryFee] = useState(0); // لعب مجاني
 
   useEffect(() => {
     createOrJoinRoom();
@@ -273,7 +273,7 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
         <div className="text-center mb-6">
           <div className="text-4xl mb-4">{gameEmoji}</div>
           <h2 className="text-xl font-bold text-purple-600">{gameName}</h2>
-          <p className="text-sm text-gray-600">رسوم الدخول: {entryFee} نقطة</p>
+          <p className="text-sm text-green-600 font-medium">✨ لعب مجاني بالكامل!</p>
         </div>
 
         <div className="mb-6">
