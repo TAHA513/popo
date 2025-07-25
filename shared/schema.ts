@@ -216,24 +216,6 @@ export const fragmentCollections = pgTable("fragment_collections", {
   addedAt: timestamp("added_at").defaultNow(),
 });
 
-// Live Streams table for ZEGO Cloud integration
-export const streams = pgTable("streams", {
-  id: serial("id").primaryKey(),
-  streamId: varchar("stream_id").notNull().unique(), // ZEGO stream ID
-  roomId: varchar("room_id").notNull(), // ZEGO room ID
-  hostId: varchar("host_id").notNull().references(() => users.id),
-  hostName: varchar("host_name").notNull(),
-  hostAvatar: varchar("host_avatar").default("🐰"),
-  title: varchar("title").notNull(),
-  category: varchar("category").default("general"),
-  isActive: boolean("is_active").default(true),
-  viewerCount: integer("viewer_count").default(0),
-  startTime: timestamp("start_time").defaultNow(),
-  endTime: timestamp("end_time"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 // Comments table for memories
 export const comments = pgTable("comments", {
   id: serial("id").primaryKey(),
@@ -292,9 +274,6 @@ export type Comment = typeof comments.$inferSelect;
 export type InsertCommentLike = typeof commentLikes.$inferInsert;
 export type CommentLike = typeof commentLikes.$inferSelect;
 
-export type InsertStream = typeof streams.$inferInsert;
-export type Stream = typeof streams.$inferSelect;
-
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -350,13 +329,6 @@ export const insertCommentSchema = createInsertSchema(comments).omit({
 export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({
   id: true,
   createdAt: true,
-});
-
-export const insertStreamSchema = createInsertSchema(streams).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  viewerCount: true,
 });
 
 export const insertMemoryCollectionSchema = createInsertSchema(memoryCollections).omit({

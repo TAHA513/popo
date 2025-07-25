@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { users, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, streams } from "@shared/schema";
+import { users, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes } from "@shared/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
@@ -500,101 +500,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const server = createServer(app);
   
-  // Live Streams API Routes
-  app.post('/api/streams', requireAuth, async (req, res) => {
-    try {
-      const { streamId, roomId, title, category = 'general' } = req.body;
-      
-      if (!streamId || !roomId || !title) {
-        return res.status(400).json({ message: 'معرف البث، معرف الغرفة، والعنوان مطلوبان' });
-      }
-
-      // Check if stream already exists
-      const existingStream = await db.select().from(streams).where(eq(streams.streamId, streamId));
-      if (existingStream.length > 0) {
-        return res.status(409).json({ message: 'البث موجود بالفعل' });
-      }
-
-      // Create new stream
-      const user = req.user as any;
-      const newStream = await db.insert(streams).values({
-        streamId,
-        roomId,
-        hostId: user.id,
-        hostName: (user.firstName || '') + ' ' + (user.lastName || ''),
-        hostAvatar: user.profileImageUrl || '🐰',
-        title,
-        category,
-        isActive: true,
-        viewerCount: 0
-      }).returning();
-
-      res.json({ 
-        message: 'تم إنشاء البث بنجاح',
-        stream: newStream[0]
-      });
-    } catch (error) {
-      console.error('Error creating stream:', error);
-      res.status(500).json({ message: 'حدث خطأ في إنشاء البث' });
-    }
-  });
-
-  // Get all active streams
-  app.get('/api/streams', async (req, res) => {
-    try {
-      const activeStreams = await db.select().from(streams).where(eq(streams.isActive, true));
-      res.json(activeStreams);
-    } catch (error) {
-      console.error('Error fetching streams:', error);
-      res.status(500).json({ message: 'حدث خطأ في جلب البثوث' });
-    }
-  });
-
-  // End stream
-  app.delete('/api/streams/:streamId', requireAuth, async (req, res) => {
-    try {
-      const { streamId } = req.params;
-      
-      // Check if user owns the stream
-      const stream = await db.select().from(streams)
-        .where(eq(streams.streamId, streamId));
-      
-      if (stream.length === 0) {
-        return res.status(404).json({ message: 'البث غير موجود' });
-      }
-
-      const user = req.user as any;
-      if (stream[0].hostId !== user.id) {
-        return res.status(403).json({ message: 'غير مسموح لك بإنهاء هذا البث' });
-      }
-
-      // Delete the stream completely
-      await db.delete(streams).where(eq(streams.streamId, streamId));
-
-      res.json({ message: 'تم إنهاء البث بنجاح' });
-    } catch (error) {
-      console.error('Error ending stream:', error);
-      res.status(500).json({ message: 'حدث خطأ في إنهاء البث' });
-    }
-  });
-
-  // Update viewer count
-  app.patch('/api/streams/:streamId/viewers', async (req, res) => {
-    try {
-      const { streamId } = req.params;
-      const { viewerCount } = req.body;
-      
-      await db.update(streams)
-        .set({ viewerCount })
-        .where(eq(streams.streamId, streamId));
-
-      res.json({ message: 'تم تحديث عدد المشاهدين' });
-    } catch (error) {
-      console.error('Error updating viewer count:', error);
-      res.status(500).json({ message: 'حدث خطأ في تحديث عدد المشاهدين' });
-    }
-  });
-
   return server;
 }
 
