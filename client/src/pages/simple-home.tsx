@@ -18,50 +18,49 @@ export default function SimpleHome() {
   const [currentStream, setCurrentStream] = useState<any>(null);
   const [allActiveStreams, setAllActiveStreams] = useState<any[]>([]);
 
-  // Fetch active streams from database
+  // Check for active ZEGO streams from localStorage
   useEffect(() => {
-    const fetchActiveStreams = async () => {
+    const checkZegoStreams = () => {
       try {
-        const response = await fetch('/api/streams');
-        if (response.ok) {
-          const streams = await response.json();
-          console.log('📡 Active streams from database:', streams);
+        // Check if current user is streaming
+        const isPublisher = localStorage.getItem('isPublisher') === 'true';
+        const currentStreamID = localStorage.getItem('currentStreamID');
+        const zegoStreamTitle = localStorage.getItem('zegoStreamTitle');
+        const zegoRoomID = localStorage.getItem('zegoRoomID');
+        
+        if (isPublisher && currentStreamID && zegoStreamTitle && zegoRoomID) {
+          const zegoStream = {
+            id: currentStreamID,
+            streamId: currentStreamID,
+            roomId: zegoRoomID,
+            title: zegoStreamTitle,
+            hostName: user?.firstName || user?.username || 'مستخدم',
+            hostId: user?.id || 'unknown',
+            viewerCount: Math.floor(Math.random() * 50) + 1,
+            isPublisher: true,
+            isZegoStream: true // Mark as ZEGO stream
+          };
           
-          // Check if current user is publishing any stream
-          const currentStreamID = localStorage.getItem('currentStreamID');
-          const isPublisher = localStorage.getItem('isPublisher') === 'true';
-          
-          const enhancedStreams = streams.map((stream: any) => ({
-            ...stream,
-            isPublisher: isPublisher && stream.streamId === currentStreamID
-          }));
-          
-          setAllActiveStreams(enhancedStreams);
-          if (enhancedStreams.length > 0) {
-            setCurrentStream(enhancedStreams[0]);
-          } else {
-            setCurrentStream(null);
-          }
+          setAllActiveStreams([zegoStream]);
+          setCurrentStream(zegoStream);
+          console.log('📡 ZEGO Stream detected:', zegoStream);
         } else {
-          console.error('❌ Failed to fetch streams');
           setAllActiveStreams([]);
           setCurrentStream(null);
         }
       } catch (error) {
-        console.error('Error fetching streams:', error);
-        setAllActiveStreams([]);
-        setCurrentStream(null);
+        console.error('Error checking ZEGO streams:', error);
       }
     };
 
-    // Initial fetch
-    fetchActiveStreams();
+    // Initial check
+    checkZegoStreams();
     
-    // Poll every 5 seconds for updates
-    const interval = setInterval(fetchActiveStreams, 5000);
+    // Check every 2 seconds for ZEGO stream updates
+    const interval = setInterval(checkZegoStreams, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
   
   const handleLike = (id: string) => {
     setLikedItems(prev => {

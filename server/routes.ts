@@ -20,6 +20,7 @@ import multer from 'multer';
 import fs from 'fs/promises';
 import { setupMessageRoutes } from './routes/messages';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
+import zegoTokenRouter from './routes/zego-token';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -595,6 +596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Setup ZEGO token routes
+  app.use('/api', zegoTokenRouter);
+  
   return server;
 }
 
