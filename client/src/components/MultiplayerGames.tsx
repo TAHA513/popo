@@ -17,11 +17,21 @@ interface Game {
 
 const multiplayerGames: Game[] = [
   {
+    id: 'solo-training',
+    name: 'تدريب منفرد',
+    emoji: '🎯',
+    description: 'تدرب مع حيوانك الأليف بمفردك',
+    minPlayers: 1,
+    maxPlayers: 1,
+    duration: '2-5 دقائق',
+    difficulty: 'easy'
+  },
+  {
     id: 'pet-race',
     name: 'سباق الحيوانات',
     emoji: '🏃‍♂️',
     description: 'سباق ممتع بين الحيوانات الأليفة',
-    minPlayers: 2,
+    minPlayers: 1,
     maxPlayers: 4,
     duration: '3-5 دقائق',
     difficulty: 'easy'
@@ -30,8 +40,8 @@ const multiplayerGames: Game[] = [
     id: 'treasure-hunt',
     name: 'البحث عن الكنز',
     emoji: '🗺️',
-    description: 'ابحث مع أصدقائك عن الكنوز المخفية',
-    minPlayers: 2,
+    description: 'ابحث عن الكنوز المخفية',
+    minPlayers: 1,
     maxPlayers: 6,
     duration: '10-15 دقيقة',
     difficulty: 'medium'
@@ -40,8 +50,8 @@ const multiplayerGames: Game[] = [
     id: 'garden-battle',
     name: 'معركة الحدائق',
     emoji: '⚔️',
-    description: 'تحدى أصدقائك في معركة استراتيجية',
-    minPlayers: 2,
+    description: 'معركة استراتيجية ممتعة',
+    minPlayers: 1,
     maxPlayers: 4,
     duration: '5-10 دقائق',
     difficulty: 'hard'
@@ -50,8 +60,8 @@ const multiplayerGames: Game[] = [
     id: 'feeding-contest',
     name: 'مسابقة الإطعام',
     emoji: '🍎',
-    description: 'من يطعم حيوانه الأليف أسرع؟',
-    minPlayers: 2,
+    description: 'أطعم حيوانك الأليف بسرعة',
+    minPlayers: 1,
     maxPlayers: 8,
     duration: '2-3 دقائق',
     difficulty: 'easy'
@@ -61,7 +71,7 @@ const multiplayerGames: Game[] = [
     name: 'تحدي المعرفة',
     emoji: '🧠',
     description: 'أسئلة ممتعة حول الحيوانات والطبيعة',
-    minPlayers: 2,
+    minPlayers: 1,
     maxPlayers: 10,
     duration: '5-8 دقائق',
     difficulty: 'medium'
@@ -94,22 +104,32 @@ export default function MultiplayerGames() {
   const handleModeSelection = (mode: 'solo' | 'random' | 'friends') => {
     setGameMode(mode);
     setShowModeSelection(false);
-    setShowGameRoom(true);
     
-    // Show mode-specific message
-    let message = '';
-    switch(mode) {
-      case 'solo':
-        message = `بدء ${selectedGame?.name} في وضع منفرد`;
-        break;
-      case 'random':
-        message = `البحث عن لاعبين عشوائيين لـ ${selectedGame?.name}`;
-        break;
-      case 'friends':
-        message = `دعوة الأصدقاء للعب ${selectedGame?.name}`;
-        break;
+    if (mode === 'solo') {
+      // For solo mode, start game immediately without room interface
+      alert(`🎮 بدء ${selectedGame?.name} في وضع منفرد!`);
+      
+      // Simulate quick solo game
+      setTimeout(() => {
+        const randomScore = Math.floor(Math.random() * 100) + 50;
+        const randomCoins = Math.floor(Math.random() * 20) + 10;
+        alert(`🏆 انتهت اللعبة!\nالنتيجة: ${randomScore} نقطة\nربحت: ${randomCoins} عملة ذهبية!`);
+      }, 3000);
+    } else {
+      setShowGameRoom(true);
+      
+      // Show mode-specific message for multiplayer
+      let message = '';
+      switch(mode) {
+        case 'random':
+          message = `البحث عن لاعبين عشوائيين لـ ${selectedGame?.name}`;
+          break;
+        case 'friends':
+          message = `دعوة الأصدقاء للعب ${selectedGame?.name}`;
+          break;
+      }
+      alert(message);
     }
-    alert(message);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -167,8 +187,8 @@ export default function MultiplayerGames() {
                     <Gamepad2 className="w-6 h-6" />
                   </div>
                   <div className="text-right flex-1">
-                    <h4 className="font-bold">لعب منفرد</h4>
-                    <p className="text-sm opacity-90">العب بمفردك ضد الكمبيوتر</p>
+                    <h4 className="font-bold">لعب منفرد ⚡</h4>
+                    <p className="text-sm opacity-90">ابدأ فوراً بدون انتظار!</p>
                   </div>
                 </div>
               </Button>

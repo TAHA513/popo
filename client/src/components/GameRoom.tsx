@@ -130,10 +130,10 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
       
       setGameStarted(true);
       
-      // Simulate game duration (5 seconds for demo)
+      // Simulate game duration (3 seconds for demo)
       setTimeout(() => {
         finishGame();
-      }, 5000);
+      }, 3000);
       
     } catch (error) {
       console.error('Error starting game:', error);
@@ -318,7 +318,7 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
         <div className="space-y-3">
           <Button 
             onClick={startGame}
-            disabled={players.length < 2 || isStarting}
+            disabled={players.length < 1 || isStarting}
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
           >
             {isStarting ? (
