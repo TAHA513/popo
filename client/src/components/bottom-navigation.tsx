@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuthFixed";
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 
 import { 
@@ -9,7 +9,8 @@ import {
   MessageCircle,
   User,
   LogOut,
-  GamepadIcon
+  GamepadIcon,
+  Lock
 } from "lucide-react";
 
 export default function BottomNavigation() {
@@ -38,7 +39,7 @@ export default function BottomNavigation() {
   const navItems = [
     { href: "/", icon: Home, label: "الرئيسية" },
     { href: "/explore", icon: GamepadIcon, label: "صالة الألعاب" },
-    { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
+    { href: "/albums", icon: Lock, label: "الألبومات" },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" },
     { action: "logout", icon: LogOut, label: "خروج", isLogout: true }

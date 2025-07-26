@@ -1324,6 +1324,217 @@ export class DatabaseStorage implements IStorage {
         eq(voiceChatParticipants.userId, userId)
       ));
   }
+
+  // Locked Albums System
+  async createLockedAlbum(album: any): Promise<any> {
+    try {
+      const [newAlbum] = await db.insert(lockedAlbums)
+        .values(album)
+        .returning();
+      return newAlbum;
+    } catch (error) {
+      console.error("Error creating locked album:", error);
+      throw error;
+    }
+  }
+
+  async getLockedAlbumsByOwner(ownerId: string): Promise<any[]> {
+    try {
+      return await db.select()
+        .from(lockedAlbums)
+        .where(and(
+          eq(lockedAlbums.ownerId, ownerId),
+          eq(lockedAlbums.isActive, true)
+        ))
+        .orderBy(desc(lockedAlbums.createdAt));
+    } catch (error) {
+      console.error("Error fetching user's locked albums:", error);
+      throw error;
+    }
+  }
+
+  async getPublicLockedAlbums(): Promise<any[]> {
+    try {
+      return await db.select({
+        id: lockedAlbums.id,
+        ownerId: lockedAlbums.ownerId,
+        title: lockedAlbums.title,
+        description: lockedAlbums.description,
+        price: lockedAlbums.price,
+        coverImage: lockedAlbums.coverImage,
+        createdAt: lockedAlbums.createdAt,
+        ownerUsername: users.username,
+        ownerProfileImage: users.profileImageUrl,
+      })
+        .from(lockedAlbums)
+        .leftJoin(users, eq(lockedAlbums.ownerId, users.id))
+        .where(eq(lockedAlbums.isActive, true))
+        .orderBy(desc(lockedAlbums.createdAt));
+    } catch (error) {
+      console.error("Error fetching public locked albums:", error);
+      throw error;
+    }
+  }
+
+  async addAlbumContent(content: any): Promise<any> {
+    try {
+      const [newContent] = await db.insert(lockedAlbumContent)
+        .values(content)
+        .returning();
+      return newContent;
+    } catch (error) {
+      console.error("Error adding album content:", error);
+      throw error;
+    }
+  }
+
+  async getAlbumContent(albumId: string): Promise<any[]> {
+    try {
+      return await db.select()
+        .from(lockedAlbumContent)
+        .where(eq(lockedAlbumContent.albumId, albumId))
+        .orderBy(lockedAlbumContent.order);
+    } catch (error) {
+      console.error("Error fetching album content:", error);
+      throw error;
+    }
+  }
+
+  async purchaseAlbum(purchase: any): Promise<any> {
+    try {
+      const [newPurchase] = await db.insert(albumPurchases)
+        .values(purchase)
+        .returning();
+      return newPurchase;
+    } catch (error) {
+      console.error("Error purchasing album:", error);
+      throw error;
+    }
+  }
+
+  async hasUserPurchasedAlbum(albumId: string, userId: string): Promise<boolean> {
+    try {
+      const [purchase] = await db.select()
+        .from(albumPurchases)
+        .where(and(
+          eq(albumPurchases.albumId, albumId),
+          eq(albumPurchases.buyerId, userId)
+        ));
+      return !!purchase;
+    } catch (error) {
+      console.error("Error checking album purchase:", error);
+      throw error;
+    }
+  }
+
+  async getAlbumPurchases(albumId: string): Promise<any[]> {
+    try {
+      return await db.select({
+        id: albumPurchases.id,
+        buyerId: albumPurchases.buyerId,
+        price: albumPurchases.price,
+        purchasedAt: albumPurchases.purchasedAt,
+        buyerUsername: users.username,
+        buyerProfileImage: users.profileImageUrl,
+      })
+        .from(albumPurchases)
+        .leftJoin(users, eq(albumPurchases.buyerId, users.id))
+        .where(eq(albumPurchases.albumId, albumId))
+        .orderBy(desc(albumPurchases.purchasedAt));
+    } catch (error) {
+      console.error("Error fetching album purchases:", error);
+      throw error;
+    }
+  }
+
+  // Private Content Request System
+  async createPrivateContentRequest(request: any): Promise<any> {
+    try {
+      const [newRequest] = await db.insert(privateContentRequests)
+        .values(request)
+        .returning();
+      return newRequest;
+    } catch (error) {
+      console.error("Error creating private content request:", error);
+      throw error;
+    }
+  }
+
+  async getPrivateContentRequests(userId: string): Promise<any[]> {
+    try {
+      return await db.select({
+        id: privateContentRequests.id,
+        fromUserId: privateContentRequests.fromUserId,
+        toUserId: privateContentRequests.toUserId,
+        type: privateContentRequests.type,
+        description: privateContentRequests.description,
+        offeredPrice: privateContentRequests.offeredPrice,
+        status: privateContentRequests.status,
+        createdAt: privateContentRequests.createdAt,
+        requesterUsername: users.username,
+        requesterProfileImage: users.profileImageUrl,
+      })
+        .from(privateContentRequests)
+        .leftJoin(users, eq(privateContentRequests.fromUserId, users.id))
+        .where(eq(privateContentRequests.toUserId, userId))
+        .orderBy(desc(privateContentRequests.createdAt));
+    } catch (error) {
+      console.error("Error fetching private content requests:", error);
+      throw error;
+    }
+  }
+
+  async updatePrivateContentRequestStatus(requestId: string, status: string, contentUrl?: string): Promise<any> {
+    try {
+      const updateData: any = { 
+        status, 
+        respondedAt: new Date() 
+      };
+      
+      if (contentUrl) {
+        updateData.contentUrl = contentUrl;
+        if (status === 'completed') {
+          updateData.completedAt = new Date();
+        }
+      }
+
+      const [updatedRequest] = await db.update(privateContentRequests)
+        .set(updateData)
+        .where(eq(privateContentRequests.id, requestId))
+        .returning();
+      
+      return updatedRequest;
+    } catch (error) {
+      console.error("Error updating content request status:", error);
+      throw error;
+    }
+  }
+
+  async getSentContentRequests(userId: string): Promise<any[]> {
+    try {
+      return await db.select({
+        id: privateContentRequests.id,
+        fromUserId: privateContentRequests.fromUserId,
+        toUserId: privateContentRequests.toUserId,
+        type: privateContentRequests.type,
+        description: privateContentRequests.description,
+        offeredPrice: privateContentRequests.offeredPrice,
+        status: privateContentRequests.status,
+        contentUrl: privateContentRequests.contentUrl,
+        createdAt: privateContentRequests.createdAt,
+        respondedAt: privateContentRequests.respondedAt,
+        recipientUsername: users.username,
+        recipientProfileImage: users.profileImageUrl,
+      })
+        .from(privateContentRequests)
+        .leftJoin(users, eq(privateContentRequests.toUserId, users.id))
+        .where(eq(privateContentRequests.fromUserId, userId))
+        .orderBy(desc(privateContentRequests.createdAt));
+    } catch (error) {
+      console.error("Error fetching sent content requests:", error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

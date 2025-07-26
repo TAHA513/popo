@@ -1474,6 +1474,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Locked Albums Routes
+  app.get('/api/albums/public', async (req, res) => {
+    try {
+      const albums = await storage.getPublicLockedAlbums();
+      res.json(albums);
+    } catch (error: any) {
+      console.error("Error fetching public albums:", error);
+      res.status(500).json({ message: "فشل في تحميل الألبومات" });
+    }
+  });
+
+  app.get('/api/albums/my', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const albums = await storage.getLockedAlbumsByOwner(userId);
+      res.json(albums);
+    } catch (error: any) {
+      console.error("Error fetching user albums:", error);
+      res.status(500).json({ message: "فشل في تحميل ألبوماتك" });
+    }
+  });
+
+  app.post('/api/albums/create', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { title, description, price } = req.body;
+
+      if (!title || !title.trim()) {
+        return res.status(400).json({ message: "عنوان الألبوم مطلوب" });
+      }
+
+      const albumData = {
+        ownerId: userId,
+        title: title.trim(),
+        description: description || '',
+        price: Math.max(50, parseInt(price) || 100),
+      };
+
+      const album = await storage.createLockedAlbum(albumData);
+      res.json(album);
+    } catch (error: any) {
+      console.error("Error creating album:", error);
+      res.status(500).json({ message: "فشل في إنشاء الألبوم" });
+    }
+  });
+
+  app.post('/api/albums/purchase', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { albumId } = req.body;
+
+      if (!albumId) {
+        return res.status(400).json({ message: "معرف الألبوم مطلوب" });
+      }
+
+      // Check if already purchased
+      const alreadyPurchased = await storage.hasUserPurchasedAlbum(albumId, userId);
+      if (alreadyPurchased) {
+        return res.status(400).json({ message: "لقد اشتريت هذا الألبوم مسبقاً" });
+      }
+
+      // Get album details
+      const albums = await storage.getPublicLockedAlbums();
+      const album = albums.find(a => a.id === albumId);
+      if (!album) {
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+
+      if (album.ownerId === userId) {
+        return res.status(400).json({ message: "لا يمكنك شراء ألبومك الخاص" });
+      }
+
+      // Check user points
+      const user = await storage.getUser(userId);
+      if (!user || (user.points || 0) < album.price) {
+        return res.status(400).json({ message: "نقاط غير كافية لشراء هذا الألبوم" });
+      }
+
+      // Create purchase
+      const purchaseData = {
+        albumId,
+        buyerId: userId,
+        price: album.price,
+      };
+      
+      const purchase = await storage.purchaseAlbum(purchaseData);
+
+      // Deduct points from buyer
+      await storage.updateUser(userId, { 
+        points: (user.points || 0) - album.price 
+      });
+
+      // Add points to seller
+      const owner = await storage.getUser(album.ownerId);
+      if (owner) {
+        await storage.updateUser(album.ownerId, { 
+          points: (owner.points || 0) + album.price 
+        });
+      }
+
+      res.json(purchase);
+    } catch (error: any) {
+      console.error("Error purchasing album:", error);
+      res.status(500).json({ message: "فشل في شراء الألبوم" });
+    }
+  });
+
+  app.get('/api/albums/:albumId/content', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const albumId = req.params.albumId;
+
+      // Check if user owns or purchased the album
+      const albums = await storage.getPublicLockedAlbums();
+      const album = albums.find(a => a.id === albumId);
+      
+      if (!album) {
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+
+      const isOwner = album.ownerId === userId;
+      const hasPurchased = await storage.hasUserPurchasedAlbum(albumId, userId);
+
+      if (!isOwner && !hasPurchased) {
+        return res.status(403).json({ message: "يجب شراء الألبوم أولاً لعرض المحتوى" });
+      }
+
+      const content = await storage.getAlbumContent(albumId);
+      res.json(content);
+    } catch (error: any) {
+      console.error("Error fetching album content:", error);
+      res.status(500).json({ message: "فشل في تحميل محتوى الألبوم" });
+    }
+  });
+
+  // Private Content Request Routes
+  app.post('/api/content-requests/create', requireAuth, async (req: any, res) => {
+    try {
+      const fromUserId = req.user.id;
+      const { toUserId, type, description, offeredPrice } = req.body;
+
+      if (!toUserId || !type || !description || !offeredPrice) {
+        return res.status(400).json({ message: "جميع الحقول مطلوبة" });
+      }
+
+      if (fromUserId === toUserId) {
+        return res.status(400).json({ message: "لا يمكنك طلب محتوى من نفسك" });
+      }
+
+      // Check user points
+      const user = await storage.getUser(fromUserId);
+      if (!user || (user.points || 0) < offeredPrice) {
+        return res.status(400).json({ message: "نقاط غير كافية لهذا الطلب" });
+      }
+
+      const requestData = {
+        fromUserId,
+        toUserId,
+        type,
+        description: description.trim(),
+        offeredPrice: parseInt(offeredPrice),
+      };
+
+      const request = await storage.createPrivateContentRequest(requestData);
+      res.json(request);
+    } catch (error: any) {
+      console.error("Error creating content request:", error);
+      res.status(500).json({ message: "فشل في إرسال الطلب" });
+    }
+  });
+
+  app.get('/api/content-requests/received', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const requests = await storage.getPrivateContentRequests(userId);
+      res.json(requests);
+    } catch (error: any) {
+      console.error("Error fetching received requests:", error);
+      res.status(500).json({ message: "فشل في تحميل الطلبات" });
+    }
+  });
+
+  app.get('/api/content-requests/sent', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const requests = await storage.getSentContentRequests(userId);
+      res.json(requests);
+    } catch (error: any) {
+      console.error("Error fetching sent requests:", error);
+      res.status(500).json({ message: "فشل في تحميل الطلبات المرسلة" });
+    }
+  });
+
+  app.post('/api/content-requests/:requestId/respond', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const requestId = req.params.requestId;
+      const { status, contentUrl } = req.body;
+
+      if (!['accepted', 'rejected', 'completed'].includes(status)) {
+        return res.status(400).json({ message: "حالة غير صحيحة" });
+      }
+
+      // Check if user owns this request
+      const requests = await storage.getPrivateContentRequests(userId);
+      const request = requests.find(r => r.id === requestId);
+      
+      if (!request) {
+        return res.status(404).json({ message: "الطلب غير موجود" });
+      }
+
+      if (status === 'completed' && !contentUrl) {
+        return res.status(400).json({ message: "رابط المحتوى مطلوب عند الإكمال" });
+      }
+
+      const updatedRequest = await storage.updatePrivateContentRequestStatus(requestId, status, contentUrl);
+
+      // If completed, transfer points
+      if (status === 'completed') {
+        const requester = await storage.getUser(request.fromUserId);
+        const recipient = await storage.getUser(userId);
+
+        if (requester && recipient) {
+          // Deduct points from requester
+          await storage.updateUser(request.fromUserId, { 
+            points: (requester.points || 0) - request.offeredPrice 
+          });
+
+          // Add points to recipient
+          await storage.updateUser(userId, { 
+            points: (recipient.points || 0) + request.offeredPrice 
+          });
+        }
+      }
+
+      res.json(updatedRequest);
+    } catch (error: any) {
+      console.error("Error responding to content request:", error);
+      res.status(500).json({ message: "فشل في الرد على الطلب" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket setup

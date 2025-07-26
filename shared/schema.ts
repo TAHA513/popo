@@ -9,11 +9,13 @@ import {
   integer,
   boolean,
   decimal,
+  unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 
 // Session storage table (required for Replit Auth)
 export const sessions = pgTable(
@@ -803,3 +805,84 @@ export type UserWithSupporter = typeof users.$inferSelect & {
   totalGiftsReceived: string;
   supporterBadge: string | null;
 };
+
+// Locked Albums Schema
+export const lockedAlbums = pgTable("locked_albums", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  ownerId: text("owner_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  price: integer("price").notNull().default(100), // Price in points
+  coverImage: text("cover_image"), // Optional cover image
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Locked Album Content Schema
+export const lockedAlbumContent = pgTable("locked_album_content", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  albumId: text("album_id").notNull().references(() => lockedAlbums.id, { onDelete: "cascade" }),
+  type: text("type", { enum: ["image", "video", "audio", "text"] }).notNull(),
+  url: text("url"), // For media files
+  content: text("content"), // For text content
+  thumbnail: text("thumbnail"), // For video thumbnails
+  caption: text("caption"),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Album Purchases Schema
+export const albumPurchases = pgTable("album_purchases", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  albumId: text("album_id").notNull().references(() => lockedAlbums.id, { onDelete: "cascade" }),
+  buyerId: text("buyer_id").notNull().references(() => users.id),
+  price: integer("price").notNull(), // Price paid at time of purchase
+  purchasedAt: timestamp("purchased_at").defaultNow().notNull(),
+}, (table) => ({
+  uniquePurchase: unique().on(table.albumId, table.buyerId), // One purchase per user per album
+}));
+
+// Private Content Requests Schema
+export const privateContentRequests = pgTable("private_content_requests", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  fromUserId: text("from_user_id").notNull().references(() => users.id),
+  toUserId: text("to_user_id").notNull().references(() => users.id),
+  type: text("type", { enum: ["image", "video", "audio", "text"] }).notNull(),
+  description: text("description").notNull(),
+  offeredPrice: integer("offered_price").notNull(), // Points offered
+  status: text("status", { enum: ["pending", "accepted", "rejected", "completed"] }).notNull().default("pending"),
+  contentUrl: text("content_url"), // Filled when content is delivered
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  respondedAt: timestamp("responded_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertLockedAlbumSchema = createInsertSchema(lockedAlbums).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertLockedAlbum = z.infer<typeof insertLockedAlbumSchema>;
+export type LockedAlbum = typeof lockedAlbums.$inferSelect;
+
+export const insertLockedAlbumContentSchema = createInsertSchema(lockedAlbumContent).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertLockedAlbumContent = z.infer<typeof insertLockedAlbumContentSchema>;
+export type LockedAlbumContent = typeof lockedAlbumContent.$inferSelect;
+
+export const insertAlbumPurchaseSchema = createInsertSchema(albumPurchases).omit({
+  id: true,
+  purchasedAt: true,
+});
+export type InsertAlbumPurchase = z.infer<typeof insertAlbumPurchaseSchema>;
+export type AlbumPurchase = typeof albumPurchases.$inferSelect;
+
+export const insertPrivateContentRequestSchema = createInsertSchema(privateContentRequests).omit({
+  id: true,
+  createdAt: true,
+  respondedAt: true,
+  completedAt: true,
+});
+export type InsertPrivateContentRequest = z.infer<typeof insertPrivateContentRequestSchema>;
+export type PrivateContentRequest = typeof privateContentRequests.$inferSelect;

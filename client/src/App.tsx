@@ -16,6 +16,7 @@ import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
 import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
+import LockedAlbums from "@/components/LockedAlbums";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
 
@@ -53,6 +54,7 @@ function Router() {
           <Route path="/home" component={SimpleHome} />
           <Route path="/explore" component={SimpleExplore} />
           <Route path="/feed" component={FeedPage} />
+          <Route path="/albums" component={LockedAlbums} />
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
           <Route path="/games" component={LazyComponents.GamesPage} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
