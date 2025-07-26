@@ -121,18 +121,27 @@ class GameScene extends Phaser.Scene {
     // Set camera background color to sky blue
     this.cameras.main.setBackgroundColor('#87CEEB');
     
-    // Create visible background
-    this.background = this.add.rectangle(400, 300, 800, 600, 0x87CEEB);
+    // Create visible background using graphics for proper TileSprite compatibility
+    const backgroundGraphics = this.add.graphics();
+    backgroundGraphics.fillStyle(0x87CEEB);
+    backgroundGraphics.fillRect(0, 0, 800, 600);
+    this.background = this.add.tileSprite(0, 0, 800, 600, 'zone');
+    this.background.setTint(0x87CEEB);
     
-    // Add ground
-    const ground = this.add.rectangle(400, 550, 800, 100, 0x228B22);
+    // Add ground using graphics
+    const groundGraphics = this.add.graphics();
+    groundGraphics.fillStyle(0x228B22);
+    groundGraphics.fillRect(0, 500, 800, 100);
     
-    // Add simple buildings as rectangles
+    // Add simple buildings using graphics
     for (let i = 0; i < 8; i++) {
       const x = (i * 100) + 50;
       const height = 80 + Math.random() * 100;
-      const building = this.add.rectangle(x, 500 - height/2, 80, height, 0x696969);
-      building.setStroke(2, 0x000000);
+      const buildingGraphics = this.add.graphics();
+      buildingGraphics.fillStyle(0x696969);
+      buildingGraphics.lineStyle(2, 0x000000);
+      buildingGraphics.fillRect(x - 40, 500 - height, 80, height);
+      buildingGraphics.strokeRect(x - 40, 500 - height, 80, height);
     }
 
     // Create player
@@ -464,7 +473,13 @@ const RealReclaimCity: React.FC<RealReclaimCityProps> = ({
         width: 800,
         height: 600,
         parent: gameRef.current,
-        backgroundColor: '#2c3e50',
+        backgroundColor: '#87CEEB',
+        scale: {
+          mode: Phaser.Scale.FIT,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+          width: 800,
+          height: 600
+        },
         physics: {
           default: 'arcade',
           arcade: {
