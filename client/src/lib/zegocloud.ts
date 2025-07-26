@@ -89,12 +89,13 @@ export function createZegoEngine(): ZegoExpressEngine {
 // Login to room
 export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamConfig): Promise<void> {
   try {
-    // ZegoCloud expects specific format for loginRoom
-    await engine.loginRoom(
-      config.roomID,
-      config.userID,
-      config.userName
-    );
+    console.log('🚪 Attempting to login to room:', config.roomID);
+    console.log('👤 User info:', { userID: config.userID, userName: config.userName });
+    
+    const user = { userID: config.userID, userName: config.userName };
+    
+    // Use correct loginRoom parameters with userUpdate option
+    await engine.loginRoom(config.roomID, user, { userUpdate: true });
     console.log('✅ Successfully logged into room:', config.roomID);
   } catch (error) {
     console.error('❌ Failed to login room:', error);
