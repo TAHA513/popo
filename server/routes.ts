@@ -816,15 +816,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("⚠️ Stream not found:", streamId);
         return res.status(404).json({ message: "البث المباشر غير موجود" });
       }
+
+      // Get host information
+      const host = await storage.getUserById(stream.hostId);
+      const streamWithHost = {
+        ...stream,
+        hostName: host ? `${host.firstName} ${host.lastName}`.trim() || host.username : 'مضيف غير معروف'
+      };
       
       console.log("✅ Stream found:", {
         id: stream.id,
         title: stream.title,
         isLive: stream.isLive,
-        hostId: stream.hostId
+        hostId: stream.hostId,
+        hostName: streamWithHost.hostName
       });
       
-      res.json(stream);
+      res.json(streamWithHost);
     } catch (error) {
       console.error("❌ Error fetching stream:", error);
       res.status(500).json({ message: "فشل في جلب بيانات البث" });
