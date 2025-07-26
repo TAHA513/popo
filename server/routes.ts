@@ -1078,8 +1078,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🗑️ Ending all streams for user: ${userId}`);
       
       // Get all active streams for this user
-      const streams = await storage.getStreams();
-      const userStreams = streams.filter((stream: any) => stream.hostId === userId);
+      const allStreams = await storage.getActiveStreams();
+      const userStreams = allStreams.filter((stream: any) => stream.hostId === userId);
       
       // Delete each stream
       for (const stream of userStreams) {
