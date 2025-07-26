@@ -111,6 +111,7 @@ export default function StartStreamPage() {
   };
 
   const startZegoStream = async () => {
+    console.log("🎬 ===== STREAM START REQUEST =====");
     console.log("🎬 startZegoStream called - checking conditions...");
     
     // Prevent multiple simultaneous calls
@@ -136,6 +137,7 @@ export default function StartStreamPage() {
     setIsLoading(true);
     setError('');
     console.log("🎬 Starting stream with title:", streamTitle);
+    console.log("🔄 Current states:", { isLoading: true, isStreaming, error: '' });
 
     try {
       // Performance monitoring for stream start
@@ -309,8 +311,10 @@ export default function StartStreamPage() {
       }
       
       setError(errorMessage);
+      console.log("🔴 Stream start failed - final error state:", errorMessage);
     } finally {
       setIsLoading(false);
+      console.log("🔄 Stream process completed - isLoading set to false");
     }
   };
 
@@ -497,7 +501,10 @@ export default function StartStreamPage() {
                 <div className="flex flex-col gap-4">
                   {!isStreaming ? (
                     <Button
-                      onClick={startZegoStream}
+                      onClick={() => {
+                        console.log("🖱️ START STREAM BUTTON CLICKED!");
+                        startZegoStream();
+                      }}
                       disabled={isLoading || !streamTitle.trim()}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 disabled:opacity-50"
                       size="lg"
