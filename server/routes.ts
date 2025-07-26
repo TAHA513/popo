@@ -76,6 +76,51 @@ function getSecureZegoConfig() {
   };
 }
 
+// Clean expired tokens periodically - using Array.from to avoid iterator issues
+setInterval(() => {
+  const now = Date.now();
+  let cleanedCount = 0;
+  const expiredTokens: string[] = [];
+  
+  // Convert to array first to avoid iterator issues
+  for (const [token, tokenData] of Array.from(secureTokens.entries())) {
+    if (tokenData.expires < now) {
+      expiredTokens.push(token);
+      cleanedCount++;
+    }
+  }
+  
+  // Delete expired tokens
+  expiredTokens.forEach(token => secureTokens.delete(token));
+  
+  if (cleanedCount > 0) {
+    console.log(`🧹 Cleaned ${cleanedCount} expired security tokens`);
+  }
+}, 10 * 60 * 1000); // Every 10 minutes
+
+// Fix iterator issue by using Array.from for Map entries
+function cleanupUserTokens(userId: string): number {
+  let cleanedCount = 0;
+  const tokensToDelete: string[] = [];
+  
+  // Convert Map entries to array to avoid iterator issues
+  for (const [token, tokenData] of Array.from(secureTokens.entries())) {
+    if (tokenData.userId === userId) {
+      tokensToDelete.push(token);
+      cleanedCount++;
+    }
+  }
+  
+  // Delete the tokens
+  tokensToDelete.forEach(token => secureTokens.delete(token));
+  
+  if (cleanedCount > 0) {
+    console.log(`🧹 Cleaned ${cleanedCount} security tokens for user ${userId}`);
+  }
+  
+  return cleanedCount;
+}
+
 // Configure multer for file uploads
 const upload = multer({
   dest: 'uploads/',
@@ -759,19 +804,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/streams/:id/end', requireAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
-      console.log("🛑 Ending stream:", streamId);
+      const userId = req.user.id;
+      console.log("🛑 Ending stream:", { streamId, userId });
       
       const stream = await storage.getStreamById(streamId);
       
-      if (!stream || stream.hostId !== req.user.id) {
+      if (!stream || stream.hostId !== userId) {
         return res.status(403).json({ message: "غير مصرح لك بإنهاء هذا البث" });
       }
       
-      // Delete the stream from database completely
-      await storage.deleteStream(streamId);
-      console.log("✅ Stream deleted successfully:", streamId);
+      // 1. Clean up security tokens for this user
+      const tokensCleared = cleanupUserTokens(userId);
       
-      res.json({ success: true, message: "تم إنهاء البث وحذفه بنجاح" });
+      // 2. Delete the stream from database completely
+      await storage.deleteStream(streamId);
+      
+      // 3. Broadcast stream ended to all connected clients
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'stream_ended',
+            streamId: streamId,
+            hostId: userId
+          }));
+        }
+      });
+      
+      console.log("✅ Stream ended with cleanup:", { 
+        streamId, 
+        userId, 
+        tokensCleared 
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "تم إنهاء البث وحذفه بنجاح",
+        tokensCleared: tokensCleared
+      });
     } catch (error) {
       console.error("❌ Error ending stream:", error);
       res.status(500).json({ message: "فشل في إنهاء البث" });

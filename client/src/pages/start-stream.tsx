@@ -64,6 +64,9 @@ export default function StartStreamPage() {
     }
 
     try {
+      // Performance monitoring for stream start
+      console.time('🏃‍♂️ Stream initialization time');
+      
       // Initialize secure ZegoCloud configuration
       console.log('🔒 Initializing secure ZegoCloud configuration...');
       await initializeZegoConfig();
@@ -95,6 +98,13 @@ export default function StartStreamPage() {
       console.log('📹 Starting camera and publishing stream...');
       await startCamera();
       await zegoStreamManager.startPublishing(zegoStreamId, videoRef.current || undefined);
+      
+      // End performance monitoring
+      console.timeEnd('🏃‍♂️ Stream initialization time');
+      console.log('📊 Memory usage:', {
+        used: Math.round(performance.memory?.usedJSHeapSize / 1024 / 1024) || 'N/A',
+        total: Math.round(performance.memory?.totalJSHeapSize / 1024 / 1024) || 'N/A'
+      });
 
       // Create stream record in our database
       const response = await apiRequest('/api/streams', 'POST', {

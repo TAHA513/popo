@@ -32,11 +32,7 @@ export async function initializeZegoConfig() {
     CONFIG_HASH = data.configHash || '';
     USER_ID = data.userId || '';
     
-    console.log('🔒 ZegoCloud secure config initialized:', { 
-      appId: ZEGO_APP_ID,
-      hasToken: !!SECURE_TOKEN,
-      userId: USER_ID 
-    });
+    console.log('🔒 ZegoCloud secure config initialized successfully');
   } catch (error) {
     console.error('❌ Failed to load secure ZegoCloud config:', error);
     throw new Error('فشل في تحميل إعدادات البث الآمنة');
@@ -92,7 +88,7 @@ export class ZegoStreamManager {
       // Create ZegoExpressEngine instance with secure configuration
       this.engine = new ZegoExpressEngine(ZEGO_APP_ID, 'wss://webliveroom-api.zego.im/ws');
       
-      console.log('🔒 ZegoCloud Engine initialized securely:', ZEGO_APP_ID);
+      console.log('🔒 ZegoCloud Engine initialized securely');
 
       this.isInitialized = true;
       console.log('✅ ZegoCloud Engine initialized successfully');
