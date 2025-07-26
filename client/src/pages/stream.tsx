@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import SimpleLiveInterface from "@/components/SimpleLiveInterface";
+import StreamViewer from "@/components/StreamViewer";
 import BeautyFilters from "@/components/beauty-filters";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -116,5 +116,5 @@ export default function StreamPage() {
     );
   }
 
-  return <SimpleLiveInterface stream={stream} />;
+  return <StreamViewer stream={stream} />;
 }

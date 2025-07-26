@@ -56,6 +56,15 @@ export default function SimpleLiveInterface({ stream }: SimpleLiveInterfaceProps
           // للمشاهدين: إنشاء بث محاكي
           createViewerStream();
           setStatus('live');
+          
+          // Simulate viewer experience with dynamic updates
+          const updateViewers = () => {
+            if (mounted) {
+              setViewerCount(prev => Math.max(1, prev + Math.floor(Math.random() * 3) - 1));
+              setTimeout(updateViewers, 5000 + Math.random() * 10000);
+            }
+          };
+          updateViewers();
         }
       } catch (error) {
         console.error('❌ خطأ في البث:', error);
@@ -64,72 +73,16 @@ export default function SimpleLiveInterface({ stream }: SimpleLiveInterfaceProps
     };
 
     const createViewerStream = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1280;
-      canvas.height = 720;
-      const ctx = canvas.getContext('2d');
-      
-      let frame = 0;
-      const animate = () => {
-        if (!mounted || !ctx) return;
-        frame++;
+      // For viewers, don't use complex canvas - use simpler approach
+      if (videoRef.current && mounted) {
+        // Create a placeholder stream instead of complex canvas
+        videoRef.current.poster = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23a855f7;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23ec4899;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%233b82f6;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grad)' /%3E%3Ccircle cx='640' cy='260' r='100' fill='%23ffffff' opacity='0.9'/%3E%3Ctext x='640' y='270' font-family='Arial' font-size='60' fill='%23a855f7' text-anchor='middle' font-weight='bold'%3E${((stream as any).hostName || 'S')[0]}%3C/text%3E%3Ctext x='640' y='450' font-family='Arial' font-size='36' fill='white' text-anchor='middle' font-weight='bold'%3E🔴 ${(stream as any).hostName || 'مضيف البث'}%3C/text%3E%3Ctext x='640' y='500' font-family='Arial' font-size='24' fill='white' text-anchor='middle'%3E${stream.title || 'بث مباشر'}%3C/text%3E%3Ctext x='640' y='550' font-family='Arial' font-size='28' fill='%23ffffff' text-anchor='middle'%3Eيتحدث الآن مباشرة%3C/text%3E%3C/svg%3E";
         
-        // خلفية متدرجة
-        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        gradient.addColorStop(0, `hsl(${(frame * 0.5) % 360}, 70%, 50%)`);
-        gradient.addColorStop(1, `hsl(${(frame * 0.3 + 180) % 360}, 60%, 30%)`);
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // رسم شخص بسيط
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        
-        // الرأس
-        ctx.fillStyle = '#ffdbac';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY - 100, 80, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // العيون
-        ctx.fillStyle = 'black';
-        ctx.beginPath();
-        ctx.arc(centerX - 25, centerY - 120, 5, 0, Math.PI * 2);
-        ctx.arc(centerX + 25, centerY - 120, 5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // الفم المتحرك
-        ctx.strokeStyle = '#8B4513';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        const mouthY = centerY - 80;
-        const mouthWidth = 15 + Math.abs(Math.sin(frame * 0.1)) * 10;
-        ctx.ellipse(centerX, mouthY, mouthWidth, 8, 0, 0, Math.PI);
-        ctx.stroke();
-        
-        // الجسم
-        ctx.fillStyle = '#4169E1';
-        ctx.fillRect(centerX - 50, centerY - 20, 100, 120);
-        
-        // نص البث
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 32px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(`🔴 ${(stream as any).hostName || 'مضيف البث'} - بث مباشر`, centerX, canvas.height - 60);
-        
-        // معلومات إضافية
-        ctx.font = '20px Arial';
-        ctx.fillText(`${stream.title || 'بث مباشر'}`, centerX, canvas.height - 25);
-        
-        if (videoRef.current && mounted) {
-          const videoStream = canvas.captureStream(30);
-          videoRef.current.srcObject = videoStream;
-        }
-        
-        requestAnimationFrame(animate);
-      };
-      
-      animate();
+        // Hide controls for clean experience
+        videoRef.current.controls = false;
+        videoRef.current.autoplay = false;
+        videoRef.current.load();
+      }
     };
 
     initStream();
