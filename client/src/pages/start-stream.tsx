@@ -103,22 +103,38 @@ export default function StartStreamPage() {
       };
 
       // Initialize ZegoCloud manager with security validation
+      console.log('🔧 Initializing ZegoCloud manager...');
       await zegoStreamManager.initialize(zegoConfig);
+      console.log('✅ ZegoCloud manager initialized');
+      
+      console.log('🚪 Logging into room:', zegoRoomId);
       await zegoStreamManager.loginRoom(zegoConfig);
+      console.log('✅ Successfully logged into room');
       
       // Start local camera and publishing
       console.log('📹 Starting camera and publishing stream...');
       await startCamera();
+      console.log('✅ Camera started successfully');
+      
+      console.log('📡 Starting to publish stream:', zegoStreamId);
       await zegoStreamManager.startPublishing(zegoStreamId, videoRef.current || undefined);
+      console.log('✅ Stream publishing started successfully');
       
       // End performance monitoring
       console.timeEnd('🏃‍♂️ Stream initialization time');
-      console.log('📊 Memory usage:', {
-        used: Math.round((performance as any).memory?.usedJSHeapSize / 1024 / 1024) || 'N/A',
-        total: Math.round((performance as any).memory?.totalJSHeapSize / 1024 / 1024) || 'N/A'
-      });
+      
+      // Memory monitoring (only if supported)
+      if (typeof (performance as any).memory !== 'undefined') {
+        console.log('📊 Memory usage:', {
+          used: Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024) + 'MB',
+          total: Math.round((performance as any).memory.totalJSHeapSize / 1024 / 1024) + 'MB'
+        });
+      } else {
+        console.log('📊 Memory monitoring not available in this browser');
+      }
 
       // Create stream record in our database
+      console.log('💾 Creating stream record in database...');
       const response = await apiRequest('/api/streams', 'POST', {
         title: streamTitle,
         description: streamDescription,
@@ -132,6 +148,14 @@ export default function StartStreamPage() {
         setIsStreaming(true);
         setViewerCount(1);
         console.log("🎥 ZegoCloud stream started successfully!");
+        console.log("📋 Stream details:", {
+          streamId: response.data.id,
+          zegoRoomId,
+          zegoStreamId,
+          title: streamTitle
+        });
+      } else {
+        throw new Error('فشل في إنشاء سجل البث في قاعدة البيانات');
       }
     } catch (error) {
       console.error("Failed to start ZegoCloud stream:", error);

@@ -1,0 +1,117 @@
+✅ ما هي مرحلة "جاري بدء البث"؟
+هي اللحظة التي تبدأ فيها بـ:
+
+تحميل إعدادات ZegoCloud
+
+تسجيل الدخول إلى الغرفة (loginRoom)
+
+بدء النشر (startPublishing)
+
+أي خطأ في واحدة منها = يبقى النظام معلق في "جاري بدء البث"
+
+❌ 1. الخطأ الأساسي: loginRoom() غير مكتمل
+ts
+Copy
+Edit
+// الخطأ هنا في السطر التالي:
+await this.engine.loginRoom(config.roomID, user);
+🔴 هذا الكود ينقصه البراميترات الإلزامية.
+الطريقة الصحيحة وفق ZegoCloud:
+
+ts
+Copy
+Edit
+await this.engine.loginRoom(
+  config.roomID,           // string
+  {
+    userID: user.id,       // string
+    userName: user.name,   // string
+  },
+  {
+    userUpdate: true       // اختياري، لتحديث المستخدمين
+  }
+);
+✅ الحل: تأكد أن تستدعي loginRoom بثلاثة باراميترات على الأقل:
+
+roomID
+
+user object
+
+config object (اختياري لكنه مهم)
+
+❌ 2. أحداث غير معرفة: streamAdded و streamRemoved
+ts
+Copy
+Edit
+// في هذا السطر:
+this.engine.on('streamAdded', callback);
+🟥 هذه الأحداث قد تكون غير معرفة في نوع ZegoEvent في نسخة TypeScript.
+
+✅ الحل:
+
+تأكد أن مكتبة zego-express-engine-webrtc محدثة.
+
+استخدم:
+
+ts
+Copy
+Edit
+this.engine.on("roomStreamUpdate", (roomID, updateType, streamList) => {
+  if (updateType === "ADD") {
+    // بث جديد
+  }
+  if (updateType === "DELETE") {
+    // بث انتهى
+  }
+});
+❌ 3. مشكلة: performance.memory غير مدعومة في المتصفح
+ts
+Copy
+Edit
+performance.memory // غير مدعومة في بعض المتصفحات أو بيئات التطوير
+✅ الحل:
+
+بدلًا من استخدامها، احذف هذه الأسطر مؤقتًا أو تأكد من وجود دعم لها:
+
+ts
+Copy
+Edit
+if (performance && performance.memory) {
+  const used = performance.memory.usedJSHeapSize;
+  console.log("Memory used:", used);
+}
+🛠️ كيف تصحح الأخطاء بالكامل؟
+في zegocloud.ts:
+ts
+Copy
+Edit
+await this.engine.loginRoom(
+  config.roomID,
+  {
+    userID: user.id,
+    userName: user.name,
+  },
+  {
+    userUpdate: true
+  }
+);
+
+// استخدم event الصحيح
+this.engine.on("roomStreamUpdate", (roomID, updateType, streamList) => {
+  if (updateType === "ADD") {
+    // handle stream added
+  }
+});
+في start-stream.tsx:
+احذف أو علّق performance.memory مؤقتًا.
+
+أضف console.log بعد loginRoom و startPublishing لتتبع توقف التنفيذ.
+
+✅ خطوات تأكيد نجاح "بدء البث":
+الخطوة	التحقق
+تحميل config من السيرفر	✅
+استدعاء loginRoom بثلاثة باراميتر	✅
+تنفيذ startPublishing بعد نجاح loginRoom	✅
+التحقق من ظهور الفيديو على الصفحة	✅
+حفظ البث في قاعدة البيانات	✅
+
