@@ -591,6 +591,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
 
+  // ZegoCloud configuration endpoint
+  app.get('/api/zego-config', (req, res) => {
+    res.json({
+      appId: process.env.ZEGO_APP_ID || '',
+      serverSecret: process.env.ZEGO_SERVER_SECRET || ''
+    });
+  });
+
   app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
       console.log("🎥 Creating new stream for user:", req.user.id);

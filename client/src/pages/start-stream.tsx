@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, VideoOff, Mic, MicOff, Radio, Users, Eye } from "lucide-react";
 import { useLocation } from "wouter";
+import { zegoStreamManager, generateStreamID, generateRoomID, initializeZegoConfig, type ZegoStreamConfig } from "@/lib/zegocloud";
 
 export default function StartStreamPage() {
   const { user } = useAuth();
@@ -50,7 +51,7 @@ export default function StartStreamPage() {
     }
   };
 
-  const startStream = async () => {
+  const startZegoStream = async () => {
     if (!streamTitle.trim()) {
       alert("يرجى إدخال عنوان للبث");
       return;
@@ -63,54 +64,81 @@ export default function StartStreamPage() {
     }
 
     try {
-      await startCamera();
+      // Initialize ZegoCloud if needed
+      await initializeZegoConfig();
       
-      const streamData = await apiRequest("/api/streams", "POST", {
+      // Generate unique IDs for this stream
+      const zegoStreamId = generateStreamID(user.id);
+      const zegoRoomId = generateRoomID(streamTitle);
+      
+      // Create ZegoCloud stream configuration
+      const zegoConfig: ZegoStreamConfig = {
+        userID: user.id,
+        userName: user.firstName || user.username || 'User',
+        roomID: zegoRoomId,
+        streamID: zegoStreamId
+      };
+
+      // Initialize ZegoCloud manager
+      await zegoStreamManager.initialize(zegoConfig);
+      await zegoStreamManager.loginRoom(zegoConfig);
+      
+      // Start local camera and publishing
+      await startCamera();
+      await zegoStreamManager.startPublishing(zegoStreamId, videoRef.current || undefined);
+
+      // Create stream record in our database
+      const response = await apiRequest('/api/streams', 'POST', {
         title: streamTitle,
         description: streamDescription,
-        category: "general",
-        hostId: user.id
+        hostId: user.id,
+        zegoRoomId,
+        zegoStreamId
       });
 
-      setCurrentStreamId(streamData.id);
-      setIsStreaming(true);
-      setViewerCount(1); // Start with the streamer as first viewer
-      
-      alert("تم بدء البث بنجاح!");
+      if (response.success) {
+        setCurrentStreamId(response.data.id);
+        setIsStreaming(true);
+        setViewerCount(1);
+        console.log("🎥 ZegoCloud stream started successfully!");
+      }
     } catch (error) {
-      console.error("خطأ في بدء البث:", error);
-      alert("فشل في بدء البث. يرجى المحاولة مرة أخرى.");
+      console.error("Failed to start ZegoCloud stream:", error);
+      alert("فشل في بدء البث المباشر. يرجى المحاولة مرة أخرى.");
     }
   };
 
-  const stopStream = async () => {
+  const stopZegoStream = async () => {
     try {
       if (currentStreamId) {
-        await apiRequest(`/api/streams/${currentStreamId}`, "DELETE");
+        // Stop ZegoCloud publishing
+        const zegoStreamId = generateStreamID(user?.id || '');
+        await zegoStreamManager.stopPublishing(zegoStreamId);
+        await zegoStreamManager.logoutRoom();
+        await zegoStreamManager.destroy();
+
+        // Stop local camera
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+
+        // End stream in database
+        await apiRequest(`/api/streams/${currentStreamId}/end`, 'POST');
+        
+        setIsStreaming(false);
+        setCurrentStreamId(null);
+        setViewerCount(0);
+        setStreamTitle("");
+        setStreamDescription("");
+        console.log("🛑 ZegoCloud stream stopped successfully!");
+        
+        // Redirect to streams page
+        setLocation("/");
       }
-      
-      // Stop all media tracks
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-      
-      setIsStreaming(false);
-      setCurrentStreamId(null);
-      setViewerCount(0);
-      setStreamTitle("");
-      setStreamDescription("");
-      
-      alert("تم إنهاء البث");
-      setLocation("/");
     } catch (error) {
-      console.error("خطأ في إنهاء البث:", error);
-      alert("تم إنهاء البث");
-      setLocation("/");
+      console.error("Failed to stop ZegoCloud stream:", error);
+      alert("فشل في إيقاف البث");
     }
   };
 
@@ -156,9 +184,9 @@ export default function StartStreamPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
             <Radio className="w-8 h-8" />
-            البث المباشر
+            البث المباشر مع ZegoCloud
           </h1>
-          <p className="text-purple-200">شارك لحظاتك مع الأصدقاء</p>
+          <p className="text-purple-200">شارك لحظاتك مع الأصدقاء بجودة عالية</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -186,8 +214,9 @@ export default function StartStreamPage() {
                     playsInline
                     muted
                   />
+                  
                   {!isVideoEnabled && (
-                    <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
                       <VideoOff className="w-16 h-16 text-gray-400" />
                     </div>
                   )}
@@ -256,7 +285,7 @@ export default function StartStreamPage() {
                 <div className="flex flex-col gap-4">
                   {!isStreaming ? (
                     <Button
-                      onClick={startStream}
+                      onClick={startZegoStream}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3"
                       size="lg"
                     >
@@ -265,7 +294,7 @@ export default function StartStreamPage() {
                     </Button>
                   ) : (
                     <Button
-                      onClick={stopStream}
+                      onClick={stopZegoStream}
                       variant="destructive"
                       className="w-full font-bold py-3"
                       size="lg"
