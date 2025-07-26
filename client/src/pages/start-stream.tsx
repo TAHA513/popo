@@ -68,6 +68,7 @@ export default function StartStreamPage() {
       const streamData = await apiRequest("/api/streams", "POST", {
         title: streamTitle,
         description: streamDescription,
+        category: "general",
         hostId: user.id
       });
 

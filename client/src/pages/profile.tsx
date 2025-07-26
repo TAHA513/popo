@@ -1,411 +1,215 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import MemoryCard from "@/components/memory-card";
-import PrivacySettings from "@/components/privacy-settings";
+import { useLocation } from "wouter";
 import { 
   User, 
-  MapPin, 
-  Calendar, 
-  Heart, 
-  Eye, 
-  Share2, 
+  Lock, 
+  Settings, 
+  LogOut, 
+  ArrowLeft,
+  Heart,
+  MessageSquare,
+  Share,
   Gift,
-  Sparkles,
-  Clock,
-  Star,
-  Settings,
-  Plus,
-  Grid,
-  List,
-  Zap,
-  TrendingUp,
   Camera,
-  Shield,
-  Lock
+  Video
 } from "lucide-react";
-import SimpleNavigation from "@/components/simple-navigation";
-
-type ViewMode = 'grid' | 'list';
-type FilterType = 'all' | 'fleeting' | 'precious' | 'legendary';
-
-interface MemoryFragment {
-  id: string;
-  type: string;
-  title?: string;
-  caption?: string;
-  mediaUrls: string[];
-  thumbnailUrl?: string;
-  currentEnergy: number;
-  initialEnergy: number;
-  memoryType: 'fleeting' | 'precious' | 'legendary';
-  viewCount: number;
-  likeCount: number;
-  shareCount: number;
-  giftCount: number;
-  visibilityLevel: 'public' | 'followers' | 'private';
-  allowComments: boolean;
-  allowSharing: boolean;
-  allowGifts: boolean;
-  expiresAt: string;
-  createdAt: string;
-  author: {
-    id: string;
-    username: string;
-    profileImageUrl?: string;
-    firstName?: string;
-  };
-}
+import BottomNavigation from "@/components/bottom-navigation";
 
 export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuth();
-  const { toast } = useToast();
-  
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [filter, setFilter] = useState<FilterType>('all');
-  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
-  // Mock privacy settings
-  const [privacySettings, setPrivacySettings] = useState({
-    isPrivateAccount: false,
-    visibilityLevel: 'public' as 'public' | 'followers' | 'private',
-    allowComments: true,
-    allowSharing: true,
-    allowGifts: true,
-    allowDirectMessages: true,
-    allowGiftsFromStrangers: true,
+  // جلب بيانات المستخدم
+  const { data: userProfile } = useQuery({
+    queryKey: ['/api/auth/user'],
+    enabled: !!user
   });
 
-  // Fetch real memory data from server
-  const { data: memories = [], isLoading: memoriesLoading } = useQuery({
-    queryKey: ['/api/memories/user', user?.id],
-    enabled: !!user?.id,
+  // جلب الألبومات المحمية للمستخدم
+  const { data: lockedAlbums = [] } = useQuery({
+    queryKey: ['/api/locked-albums/my-albums'],
+    enabled: !!user
   });
 
-  // Type-safe memories
-  const typedMemories = (memories as any[]);
-
-  const stats = {
-    totalViews: typedMemories.reduce((sum: number, m: any) => sum + (m.viewCount || 0), 0),
-    totalLikes: typedMemories.reduce((sum: number, m: any) => sum + (m.likeCount || 0), 0),
-    totalGifts: typedMemories.reduce((sum: number, m: any) => sum + (m.giftCount || 0), 0),
-  };
-
-  const handlePrivacyUpdate = (newSettings: any) => {
-    setPrivacySettings(newSettings);
-    toast({
-      title: "تم تحديث إعدادات الخصوصية",
-      description: "تم حفظ تفضيلاتك بنجاح",
-    });
-  };
-
-  // User stats based on real data
-  const userStats = {
-    totalMemories: typedMemories.length,
-    totalViews: stats.totalViews,
-    totalLikes: stats.totalLikes,
-    totalGifts: stats.totalGifts,
-    followersCount: 245,
-    followingCount: 89
-  };
-
-  // Memory interaction functions
-  const handleLike = (memory: any) => {
-    toast({
-      title: "أعجبك هذا!",
-      description: "تم إضافة إعجابك للذكرى",
-    });
-  };
-
-  const handleComment = (memory: any) => {
-    if (!memory.allowComments) {
-      toast({
-        title: "التعليقات معطلة",
-        description: "صاحب الذكرى لا يسمح بالتعليقات",
-        variant: "destructive",
-      });
-      return;
-    }
-  };
-
-  const handleShare = (memory: any) => {
-    if (!memory.allowSharing) {
-      toast({
-        title: "المشاركة معطلة",
-        description: "صاحب الذكرى لا يسمح بالمشاركة",
-        variant: "destructive",
-      });
-      return;
-    }
-    toast({
-      title: "تم مشاركة الذكرى",
-      description: "تم نسخ رابط الذكرى للحافظة",
-    });
-  };
-
-  const handleSendGift = (memory: MemoryFragment) => {
-    if (!memory.allowGifts) {
-      toast({
-        title: "الهدايا معطلة",
-        description: "صاحب الذكرى لا يسمح بالهدايا",
-        variant: "destructive",
-      });
-      return;
-    }
-    window.location.href = '/gifts';
-  };
-
-  const handleEditMemory = (memory: MemoryFragment) => {
-    setShowPrivacySettings(true);
-  };
-
-  const handleDeleteMemory = (memory: MemoryFragment) => {
-    toast({
-      title: "تم حذف الذكرى",
-      description: "تم حذف الذكرى بنجاح",
-    });
-  };
-
-  const filteredMemories = typedMemories.filter((memory: any) => {
-    if (filter === 'all') return true;
-    return memory.memoryType === filter;
-  });
-
-  if (!isAuthenticated || !user) {
-    return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold mb-4">يجب تسجيل الدخول</h2>
+            <Button onClick={() => setLocation("/login")} className="w-full">
+              تسجيل الدخول
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      window.location.replace("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      window.location.replace("/login");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <SimpleNavigation />
-      
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header */}
+      <div className="bg-white shadow-sm sticky top-0 z-40">
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => setLocation('/')}
+              className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-gray-800"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>العودة</span>
+            </button>
+            <h1 className="text-xl font-bold text-gray-800">الملف الشخصي</h1>
+            <div className="w-16"></div>
+          </div>
+        </div>
+        <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
+      </div>
+
+      <div className="max-w-md mx-auto p-4 space-y-6">
         {/* Profile Header */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm mb-8">
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6 rtl:md:space-x-reverse">
-              
-              {/* Profile Image */}
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-bold">
-                  {user?.profileImageUrl ? (
-                    <img 
-                      src={user.profileImageUrl} 
-                      alt="Profile" 
-                      className="w-24 h-24 rounded-full object-cover"
-                    />
-                  ) : (
-                    <User className="w-12 h-12" />
-                  )}
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">
-                  ✨ {user?.role === 'super_admin' ? 'مدير' : user?.role === 'admin' ? 'مشرف' : 'عضو'}
-                </div>
+        <Card className="bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4 rtl:space-x-reverse">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                <User className="w-8 h-8" />
               </div>
-
-              {/* Profile Info */}
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 rtl:space-x-reverse mb-2">
-                  <h1 className="text-2xl font-bold text-gray-800">
-                    {user?.firstName || user?.lastName ? 
-                      `${user.firstName || ''} ${user.lastName || ''}`.trim() : 
-                      user?.username || 'مستخدم مجهول'
-                    }
-                  </h1>
-                  {user?.isStreamer && (
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      بثاث
-                    </Badge>
-                  )}
+              <div>
+                <h2 className="text-xl font-bold">{user.username}</h2>
+                <p className="text-white/80">مستخدم LaaBoBo</p>
+                <div className="flex items-center space-x-4 rtl:space-x-reverse mt-2">
+                  <span className="text-sm">النقاط: {user.points || 0}</span>
+                  <span className="text-sm">المتابعون: 0</span>
                 </div>
-                
-                <p className="text-gray-600 mb-3">{user?.bio || 'لا يوجد وصف متاح'}</p>
-                
-                {/* Stats */}
-                <div className="flex flex-wrap gap-6 text-sm">
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <Zap className="w-4 h-4 text-yellow-500" />
-                    <span>{user?.points || 0} نقطة</span>
-                  </div>
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span>${user?.totalEarnings || '0.00'} أرباح</span>
-                  </div>
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <Calendar className="w-4 h-4 text-blue-500" />
-                    <span>انضم {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('ar') : 'غير محدد'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col space-y-2">
-                <Button 
-                  onClick={() => window.location.href = '/create-memory'}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  ذكرى جديدة
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowPrivacySettings(true)}
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  الخصوصية
-                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
-            <Sparkles className="w-8 h-8 mx-auto text-purple-600 mb-2" />
-            <h3 className="font-semibold text-lg">{userStats.totalMemories}</h3>
-            <p className="text-gray-600 text-sm">ذكريات</p>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-4 gap-2">
+          <Card className="text-center p-3">
+            <Heart className="w-6 h-6 mx-auto text-red-500 mb-1" />
+            <div className="text-sm font-bold">0</div>
+            <div className="text-xs text-gray-500">الإعجابات</div>
           </Card>
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
-            <Eye className="w-8 h-8 mx-auto text-blue-600 mb-2" />
-            <h3 className="font-semibold text-lg">{userStats.totalViews}</h3>
-            <p className="text-gray-600 text-sm">مشاهدة</p>
+          <Card className="text-center p-3">
+            <MessageSquare className="w-6 h-6 mx-auto text-blue-500 mb-1" />
+            <div className="text-sm font-bold">0</div>
+            <div className="text-xs text-gray-500">التعليقات</div>
           </Card>
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
-            <Heart className="w-8 h-8 mx-auto text-red-600 mb-2" />
-            <h3 className="font-semibold text-lg">{userStats.totalLikes}</h3>
-            <p className="text-gray-600 text-sm">إعجاب</p>
+          <Card className="text-center p-3">
+            <Share className="w-6 h-6 mx-auto text-green-500 mb-1" />
+            <div className="text-sm font-bold">0</div>
+            <div className="text-xs text-gray-500">المشاركات</div>
           </Card>
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow">
-            <Gift className="w-8 h-8 mx-auto text-green-600 mb-2" />
-            <h3 className="font-semibold text-lg">{userStats.totalGifts}</h3>
-            <p className="text-gray-600 text-sm">هدية</p>
+          <Card className="text-center p-3">
+            <Gift className="w-6 h-6 mx-auto text-yellow-500 mb-1" />
+            <div className="text-sm font-bold">0</div>
+            <div className="text-xs text-gray-500">الهدايا</div>
           </Card>
         </div>
 
-        {/* Account Privacy Status */}
-        {privacySettings.isPrivateAccount && (
-          <Card className="mb-6 border-l-4 border-l-yellow-500 bg-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                <Lock className="w-5 h-5 text-yellow-600" />
-                <div>
-                  <h3 className="font-semibold text-yellow-800">حساب خاص</h3>
-                  <p className="text-yellow-700 text-sm">حسابك خاص، يجب على الأشخاص طلب متابعتك لرؤية ذكرياتك</p>
+        {/* Locked Albums Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Lock className="w-5 h-5 text-purple-600" />
+              <span>الألبومات المحمية</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <Button 
+                onClick={() => setLocation('/albums')}
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                إدارة الألبومات المحمية
+              </Button>
+              
+              {lockedAlbums.length > 0 ? (
+                <div className="text-sm text-gray-600">
+                  لديك {lockedAlbums.length} ألبوم محمي
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Memories Filter */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">شظايا الذكريات</h2>
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="w-4 h-4" />
-              </Button>
+              ) : (
+                <div className="text-sm text-gray-500 text-center py-4">
+                  لا توجد ألبومات محمية بعد
+                </div>
+              )}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Filter Buttons */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {[
-              { key: 'all', label: 'الكل', icon: Sparkles },
-              { key: 'fleeting', label: 'عابر', icon: Clock },
-              { key: 'precious', label: 'ثمين', icon: Heart },
-              { key: 'legendary', label: 'أسطوري', icon: Star },
-            ].map(({ key, label, icon: Icon }) => (
-              <Button
-                key={key}
-                variant={filter === key ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter(key as FilterType)}
-                className="flex items-center space-x-2 rtl:space-x-reverse"
-              >
-                <Icon className="w-4 h-4" />
-                <span>{label}</span>
-                {key !== 'all' && (
-                  <Badge variant="secondary" className="ml-1">
-                    {typedMemories.filter((m: any) => m.memoryType === key).length}
-                  </Badge>
-                )}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Memories Grid/List */}
-        {memoriesLoading ? (
-          <div className="text-center py-12">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">جاري تحميل الذكريات...</p>
-          </div>
-        ) : filteredMemories.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Camera className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">لا توجد ذكريات</h3>
-            <p className="text-gray-600 mb-6">
-              {filter === 'all' 
-                ? 'لم تقم بإنشاء أي ذكريات بعد. ابدأ بمشاركة لحظاتك المميزة!'
-                : `لا توجد ذكريات من نوع "${filter === 'fleeting' ? 'عابر' : filter === 'precious' ? 'ثمين' : 'أسطوري'}"`
-              }
-            </p>
+        {/* Content Creation */}
+        <Card>
+          <CardHeader>
+            <CardTitle>إنشاء المحتوى</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             <Button 
-              onClick={() => window.location.href = '/create-memory'}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              onClick={() => setLocation('/create-memory')}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Camera className="w-4 h-4 mr-2" />
               إنشاء ذكرى جديدة
             </Button>
-          </Card>
-        ) : (
-          <div className={
-            viewMode === 'grid' 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "space-y-4"
-          }>
-            {filteredMemories.map((memory) => (
-              <MemoryCard
-                key={memory.id}
-                memory={memory}
-                isOwner={true}
-                onLike={() => handleLike(memory)}
-                onComment={() => handleComment(memory)}
-                onShare={() => handleShare(memory)}
-                onSendGift={() => handleSendGift(memory)}
-                onEdit={() => handleEditMemory(memory)}
-                onDelete={() => handleDeleteMemory(memory)}
-              />
-            ))}
-          </div>
-        )}
+            <Button 
+              onClick={() => setLocation('/start-stream')}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
+            >
+              <Video className="w-4 h-4 mr-2" />
+              بدء بث مباشر
+            </Button>
+          </CardContent>
+        </Card>
 
-        {/* Privacy Settings Dialog */}
-        <PrivacySettings
-          isOpen={showPrivacySettings}
-          onOpenChange={setShowPrivacySettings}
-          settings={privacySettings}
-          onSave={handlePrivacyUpdate}
-        />
+        {/* Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Settings className="w-5 h-5" />
+              <span>الإعدادات</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => setLocation('/account')}
+            >
+              <User className="w-4 h-4 mr-2" />
+              إعدادات الحساب
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              تسجيل الخروج
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+
+      <BottomNavigation />
     </div>
   );
 }
