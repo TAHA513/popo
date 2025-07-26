@@ -1,8 +1,8 @@
-# GameHub - Social Gaming and Live Streaming Platform
+# LaaBoBo Live - Live Streaming and Gift Platform
 
 ## Overview
 
-GameHub is an innovative social gaming platform that revolutionizes social media interaction through live streaming, multiplayer gaming, and community engagement. The platform focuses on real-time gaming experiences, social interaction, gift economies, and interactive community features. Users can stream their gameplay, participate in multiplayer games, and engage with friends through various social features.
+LaaBoBo Garden (حديقة LaaBoBo) is an innovative social virtual pet platform that revolutionizes social media interaction through virtual pet care and community engagement. The platform focuses on virtual pet ownership, social gardens, gift economies, and interactive community features without the complexity of live streaming. Each user owns a virtual pet (like "أرنوب الصغير") in their digital garden, creating an emotional connection and encouraging daily engagement through care activities, social visits, and gift exchanges.
 
 ## User Preferences
 

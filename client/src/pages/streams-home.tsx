@@ -26,8 +26,8 @@ export default function StreamsHome() {
             <div className="w-20"></div>
             {/* Logo - Center */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <div className="text-2xl animate-bounce">🎮</div>
-              <h1 className="text-xl font-bold text-laa-pink">GameHub</h1>
+              <div className="text-2xl animate-bounce">🐰</div>
+              <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             {/* Live Stream Button */}
             <Button
