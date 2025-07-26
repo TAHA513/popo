@@ -114,8 +114,8 @@ export default function StartStreamPage() {
       // End performance monitoring
       console.timeEnd('🏃‍♂️ Stream initialization time');
       console.log('📊 Memory usage:', {
-        used: Math.round(performance.memory?.usedJSHeapSize / 1024 / 1024) || 'N/A',
-        total: Math.round(performance.memory?.totalJSHeapSize / 1024 / 1024) || 'N/A'
+        used: Math.round((performance as any).memory?.usedJSHeapSize / 1024 / 1024) || 'N/A',
+        total: Math.round((performance as any).memory?.totalJSHeapSize / 1024 / 1024) || 'N/A'
       });
 
       // Create stream record in our database

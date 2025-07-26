@@ -33,12 +33,14 @@ function generateSecureToken(userId: string): string {
   const token = crypto.randomBytes(32).toString('hex');
   const expires = Date.now() + (30 * 60 * 1000); // 30 minutes expiry
   
-  // Clean expired tokens
-  for (const [key, value] of secureTokens.entries()) {
+  // Clean expired tokens using Array.from to fix iterator issue
+  const expiredTokens: string[] = [];
+  for (const [key, value] of Array.from(secureTokens.entries())) {
     if (value.expires < Date.now()) {
-      secureTokens.delete(key);
+      expiredTokens.push(key);
     }
   }
+  expiredTokens.forEach(key => secureTokens.delete(key));
   
   // Store new token
   secureTokens.set(token, { token, expires, userId });

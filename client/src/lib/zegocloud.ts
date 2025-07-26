@@ -109,7 +109,7 @@ export class ZegoStreamManager {
         userName: config.userName,
       };
 
-      await this.engine.loginRoom(config.roomID, user);
+      await this.engine.loginRoom(config.roomID, '', user);
       console.log('Logged into room:', config.roomID);
     } catch (error) {
       console.error('Failed to login room:', error);
@@ -224,15 +224,15 @@ export class ZegoStreamManager {
     }
   }
 
-  onStreamAdded(callback: (roomID: string, streamList: any[]) => void): void {
+  onRoomStreamUpdate(callback: (roomID: string, updateType: string, streamList: any[]) => void): void {
     if (this.engine) {
-      this.engine.on('streamAdded', callback);
+      this.engine.on('roomStreamUpdate', callback);
     }
   }
 
-  onStreamRemoved(callback: (roomID: string, streamList: any[]) => void): void {
+  onPlayerStateUpdate(callback: (streamID: string, state: string, errorCode: number) => void): void {
     if (this.engine) {
-      this.engine.on('streamRemoved', callback);
+      this.engine.on('playerStateUpdate', callback);
     }
   }
 }
