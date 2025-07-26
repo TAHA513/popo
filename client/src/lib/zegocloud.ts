@@ -1,19 +1,68 @@
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 
-// ZegoCloud configuration
+// ZegoCloud configuration - SECURE VERSION
 let ZEGO_APP_ID: number = 0;
-let ZEGO_SERVER_SECRET: string = '';
+let SECURE_TOKEN: string = '';
+let CONFIG_HASH: string = '';
+let USER_ID: string = '';
 
-// Initialize with app ID from server
+// Initialize with secure configuration from server
 export async function initializeZegoConfig() {
   try {
-    const response = await fetch('/api/zego-config');
+    const response = await fetch('/api/zego-config', {
+      method: 'GET',
+      credentials: 'include', // Include authentication cookies
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
     ZEGO_APP_ID = parseInt(data.appId || '0');
-    ZEGO_SERVER_SECRET = data.serverSecret || '';
-    console.log('ZegoCloud config initialized:', { appId: ZEGO_APP_ID });
+    SECURE_TOKEN = data.tempToken || '';
+    CONFIG_HASH = data.configHash || '';
+    USER_ID = data.userId || '';
+    
+    console.log('🔒 ZegoCloud secure config initialized:', { 
+      appId: ZEGO_APP_ID,
+      hasToken: !!SECURE_TOKEN,
+      userId: USER_ID 
+    });
   } catch (error) {
-    console.error('Failed to load ZegoCloud config:', error);
+    console.error('❌ Failed to load secure ZegoCloud config:', error);
+    throw new Error('فشل في تحميل إعدادات البث الآمنة');
+  }
+}
+
+// Validate stream with server before starting
+export async function validateStreamSecurity(zegoStreamId: string): Promise<boolean> {
+  try {
+    const response = await fetch('/api/streams/validate', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tempToken: SECURE_TOKEN,
+        zegoStreamId: zegoStreamId
+      })
+    });
+    
+    const data = await response.json();
+    return data.validated === true;
+  } catch (error) {
+    console.error('❌ Stream validation failed:', error);
+    return false;
   }
 }
 
@@ -36,15 +85,19 @@ export class ZegoStreamManager {
     }
 
     try {
-      // Create ZegoExpressEngine instance
+      if (ZEGO_APP_ID === 0) {
+        throw new Error('ZegoCloud App ID not configured');
+      }
+
+      // Create ZegoExpressEngine instance with secure configuration
       this.engine = new ZegoExpressEngine(ZEGO_APP_ID, 'wss://webliveroom-api.zego.im/ws');
       
-      console.log('ZegoCloud App ID:', ZEGO_APP_ID);
+      console.log('🔒 ZegoCloud Engine initialized securely:', ZEGO_APP_ID);
 
       this.isInitialized = true;
-      console.log('ZegoCloud Engine initialized successfully');
+      console.log('✅ ZegoCloud Engine initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize ZegoCloud:', error);
+      console.error('❌ Failed to initialize ZegoCloud:', error);
       throw new Error('فشل في تهيئة خدمة البث المباشر');
     }
   }

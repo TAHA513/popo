@@ -20,9 +20,61 @@ import multer from 'multer';
 import fs from 'fs/promises';
 import { setupMessageRoutes } from './routes/messages';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Security functions for ZegoCloud protection
+const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
+
+function generateSecureToken(userId: string): string {
+  // Generate a secure temporary token
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = Date.now() + (30 * 60 * 1000); // 30 minutes expiry
+  
+  // Clean expired tokens
+  for (const [key, value] of secureTokens.entries()) {
+    if (value.expires < Date.now()) {
+      secureTokens.delete(key);
+    }
+  }
+  
+  // Store new token
+  secureTokens.set(token, { token, expires, userId });
+  
+  return token;
+}
+
+function validateSecureToken(token: string, userId: string): boolean {
+  const tokenData = secureTokens.get(token);
+  
+  if (!tokenData) return false;
+  if (tokenData.expires < Date.now()) {
+    secureTokens.delete(token);
+    return false;
+  }
+  if (tokenData.userId !== userId) return false;
+  
+  return true;
+}
+
+// Encrypted ZegoCloud configuration - never expose raw secrets
+function getSecureZegoConfig() {
+  const appId = process.env.ZEGO_APP_ID;
+  const serverSecret = process.env.ZEGO_SERVER_SECRET;
+  
+  if (!appId || !serverSecret) {
+    throw new Error('ZegoCloud credentials not configured');
+  }
+  
+  // Only return app ID, server secret stays on server
+  return {
+    appId: appId,
+    // Generate hash for validation without exposing secret
+    configHash: crypto.createHash('sha256').update(serverSecret + appId).digest('hex').substring(0, 16)
+  };
+}
 
 // Configure multer for file uploads
 const upload = multer({
@@ -591,12 +643,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
 
-  // ZegoCloud configuration endpoint
-  app.get('/api/zego-config', (req, res) => {
-    res.json({
-      appId: process.env.ZEGO_APP_ID || '',
-      serverSecret: process.env.ZEGO_SERVER_SECRET || ''
-    });
+  // ZegoCloud configuration endpoint - MAXIMUM SECURITY
+  app.get('/api/zego-config', requireAuth, (req: any, res) => {
+    try {
+      // Only provide App ID to authenticated users, never the server secret
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized access' });
+      }
+      
+      // Get secure configuration without exposing secrets
+      const secureConfig = getSecureZegoConfig();
+      
+      // Generate temporary token for this session
+      const tempToken = generateSecureToken(req.user.id);
+      
+      res.json({
+        appId: secureConfig.appId,
+        // Temporary token for stream authentication
+        tempToken: tempToken,
+        userId: req.user.id,
+        // Configuration hash for validation (no secret exposed)
+        configHash: secureConfig.configHash,
+        expires: Date.now() + (30 * 60 * 1000) // 30 minutes
+      });
+    } catch (error) {
+      console.error('Security error in zego-config:', error);
+      res.status(500).json({ error: 'Configuration unavailable' });
+    }
+  });
+
+  // Secure stream validation endpoint
+  app.post('/api/streams/validate', requireAuth, (req: any, res) => {
+    try {
+      const { tempToken, zegoStreamId } = req.body;
+      
+      if (!validateSecureToken(tempToken, req.user.id)) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+      
+      // Generate server-side stream token
+      const streamValidation = crypto.createHash('sha256')
+        .update(req.user.id + zegoStreamId + Date.now().toString())
+        .digest('hex')
+        .substring(0, 32);
+      
+      res.json({
+        validated: true,
+        streamToken: streamValidation,
+        userId: req.user.id
+      });
+    } catch (error) {
+      console.error('Stream validation error:', error);
+      res.status(500).json({ error: 'Validation failed' });
+    }
   });
 
   app.post('/api/streams', requireAuth, async (req: any, res) => {

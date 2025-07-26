@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, VideoOff, Mic, MicOff, Radio, Users, Eye } from "lucide-react";
 import { useLocation } from "wouter";
-import { zegoStreamManager, generateStreamID, generateRoomID, initializeZegoConfig, type ZegoStreamConfig } from "@/lib/zegocloud";
+import { zegoStreamManager, generateStreamID, generateRoomID, initializeZegoConfig, validateStreamSecurity, type ZegoStreamConfig } from "@/lib/zegocloud";
 
 export default function StartStreamPage() {
   const { user } = useAuth();
@@ -64,12 +64,20 @@ export default function StartStreamPage() {
     }
 
     try {
-      // Initialize ZegoCloud if needed
+      // Initialize secure ZegoCloud configuration
+      console.log('🔒 Initializing secure ZegoCloud configuration...');
       await initializeZegoConfig();
       
       // Generate unique IDs for this stream
       const zegoStreamId = generateStreamID(user.id);
       const zegoRoomId = generateRoomID(streamTitle);
+      
+      // Validate stream security with server
+      console.log('🔐 Validating stream security...');
+      const isSecure = await validateStreamSecurity(zegoStreamId);
+      if (!isSecure) {
+        throw new Error('فشل في التحقق من أمان البث');
+      }
       
       // Create ZegoCloud stream configuration
       const zegoConfig: ZegoStreamConfig = {
@@ -79,11 +87,12 @@ export default function StartStreamPage() {
         streamID: zegoStreamId
       };
 
-      // Initialize ZegoCloud manager
+      // Initialize ZegoCloud manager with security validation
       await zegoStreamManager.initialize(zegoConfig);
       await zegoStreamManager.loginRoom(zegoConfig);
       
       // Start local camera and publishing
+      console.log('📹 Starting camera and publishing stream...');
       await startCamera();
       await zegoStreamManager.startPublishing(zegoStreamId, videoRef.current || undefined);
 
