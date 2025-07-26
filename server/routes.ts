@@ -1061,6 +1061,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // End all streams for current user
+  app.post('/api/streams/end-all', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      console.log(`🗑️ Ending all streams for user: ${userId}`);
+      
+      // Get all active streams for this user
+      const streams = await storage.getStreams();
+      const userStreams = streams.filter((stream: any) => stream.hostId === userId);
+      
+      // Delete each stream
+      for (const stream of userStreams) {
+        await storage.deleteStream(stream.id);
+        console.log(`✅ Deleted stream: ${stream.id}`);
+      }
+      
+      res.json({ 
+        message: 'All streams ended successfully',
+        deletedCount: userStreams.length 
+      });
+    } catch (error) {
+      console.error("Error ending streams:", error);
+      res.status(500).json({ message: "Failed to end streams" });
+    }
+  });
+
   // Chat routes
   app.get('/api/streams/:id/chat', async (req, res) => {
     try {

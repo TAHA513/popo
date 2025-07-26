@@ -53,12 +53,34 @@ export default function SimpleStreamPage() {
       // Start camera first
       await startCamera();
       
+      // Create stream in database so it appears to viewers
+      console.log('💾 Creating stream in database...');
+      const response = await fetch('/api/streams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: streamTitle || 'بث مباشر جديد',
+          description: 'بث مباشر من البث السريع',
+          zegoRoomId: `room_${user.id}_${Date.now()}`,
+          zegoStreamId: `stream_${user.id}_${Date.now()}`
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('فشل في إنشاء البث في قاعدة البيانات');
+      }
+
+      const streamData = await response.json();
+      console.log('✅ Stream created in database:', streamData);
+      
       // Show success message
       setIsStreaming(true);
-      console.log('🎉 Stream simulation started successfully!');
+      console.log('🎉 Stream started successfully and visible to viewers!');
       
-      // Simulate stream ID for display
-      alert("تم بدء البث بنجاح! (محاكاة)");
+      alert("تم بدء البث بنجاح! الآن يمكن للمشاهدين رؤيتك في الصفحة الرئيسية");
       
     } catch (error) {
       console.error('❌ Stream failed:', error);
@@ -66,18 +88,33 @@ export default function SimpleStreamPage() {
     }
   };
 
-  const stopStream = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+  const stopStream = async () => {
+    try {
+      // Stop camera
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      
+      // Delete stream from database
+      console.log('🗑️ Deleting stream from database...');
+      await fetch('/api/streams/end-all', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      setIsStreaming(false);
+      console.log('⏹️ Stream stopped and removed from database');
+      alert("تم إنهاء البث بنجاح");
+      
+    } catch (error) {
+      console.error('❌ Error stopping stream:', error);
+      setIsStreaming(false);
     }
-    
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    
-    setIsStreaming(false);
-    console.log('⏹️ Stream stopped');
   };
 
   useEffect(() => {
