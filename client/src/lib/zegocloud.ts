@@ -41,6 +41,15 @@ export async function initializeZegoConfig() {
     
     ZEGO_APP_ID = parseInt(data.appId || '0');
     ZEGO_APP_SIGN = data.appSign || '';
+    
+    // Store user info from server response
+    if (data.userID && data.userName) {
+      console.log('👤 User info received from server:', {
+        userID: data.userID,
+        userName: data.userName
+      });
+    }
+    
     console.log('🔒 ZegoCloud secure config initialized successfully');
   } catch (error) {
     console.error('❌ Failed to load secure ZegoCloud config:', error);

@@ -156,9 +156,20 @@ export default function StartStreamPage() {
         throw new Error('فشل في التحقق من أمان البث');
       }
       
-      // Create ZegoCloud stream configuration with guaranteed non-empty userID
-      const uniqueUserID = user.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const displayName = user.firstName || user.username || 'User';
+      // Get ZegoCloud configuration from server (includes correct userID)
+      const zegoConfigResponse = await fetch('/api/zego-config', {
+        credentials: 'include'
+      });
+      
+      if (!zegoConfigResponse.ok) {
+        throw new Error('فشل في الحصول على إعدادات البث');
+      }
+      
+      const serverConfig = await zegoConfigResponse.json();
+      
+      // Use server-provided userID and userName for consistency
+      const uniqueUserID = serverConfig.userID || user.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const displayName = serverConfig.userName || user.firstName || user.username || 'User';
       
       console.log('👤 User details for stream:', {
         originalUserId: user.id,

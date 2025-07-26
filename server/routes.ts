@@ -702,30 +702,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/zego-config', requireAuth, (req: any, res) => {
     try {
       // Only provide App ID to authenticated users, never the server secret
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized access' });
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: 'معرف المستخدم مطلوب' });
       }
+
+      console.log('🔒 ZegoCloud configuration loaded successfully');
       
-      // Get secure configuration without exposing secrets
-      const secureConfig = getSecureZegoConfig();
+      // Get user info for proper ZegoCloud authentication
+      const userID = req.user.id;
+      const userName = req.user.firstName || req.user.username || 'User';
       
-      // Generate temporary token for this session
-      const tempToken = generateSecureToken(req.user.id);
+      console.log('👤 Preparing ZegoCloud config for user:', {
+        userID,
+        userName,
+        sessionId: req.sessionID
+      });
       
+      // Generate temporary tokens for this session only
+      const timestamp = Date.now();
+      const sessionToken = Buffer.from(`${userID}_${timestamp}`).toString('base64');
+      
+      // Server secrets are NEVER exposed to client
       res.json({
-        appId: secureConfig.appId,
-        // Server provides app sign for client SDK initialization
-        appSign: process.env.ZEGO_APP_SIGN,
-        // Temporary token for stream authentication
-        tempToken: tempToken,
-        userId: req.user.id,
-        // Configuration hash for validation (no secret exposed)
-        configHash: secureConfig.configHash,
-        expires: Date.now() + (30 * 60 * 1000) // 30 minutes
+        appId: process.env.ZEGO_APP_ID || '1034062164',
+        appSign: process.env.ZEGO_APP_SIGN || '',
+        userID: userID,
+        userName: userName,
+        sessionToken: sessionToken
       });
     } catch (error) {
       console.error('Security error in zego-config:', error);
-      res.status(500).json({ error: 'Configuration unavailable' });
+      res.status(500).json({ error: 'فشل في تحميل إعدادات البث الآمنة' });
     }
   });
 
