@@ -117,23 +117,12 @@ export default function MultiplayerGames() {
     setGameMode(mode);
     setShowModeSelection(false);
     
-    // All game modes currently disabled - show coming soon message
-    alert(`🚧 وضع "${mode === 'solo' ? 'اللعب المنفرد' : mode === 'random' ? 'العشوائي' : 'مع الأصدقاء'}" قيد التطوير\n\n⏳ سيتم إطلاق الألعاب قريباً جداً!\n🎮 استعد لتجربة ألعاب مذهلة!`);
-    
-    if (false) { // Disabled for now
+    // Enable "Reclaim City" game, disable others
+    if (selectedGame?.id === 'reclaim-city') {
       setShowGameRoom(true);
-      
-      // Show mode-specific message for multiplayer
-      let message = '';
-      switch(mode) {
-        case 'random':
-          message = `البحث عن لاعبين عشوائيين لـ ${selectedGame?.name}`;
-          break;
-        case 'friends':
-          message = `دعوة الأصدقاء للعب ${selectedGame?.name}`;
-          break;
-      }
-      alert(message);
+    } else {
+      // Other games still in development
+      alert(`🚧 لعبة "${selectedGame?.name}" قيد التطوير\n\n✅ متاح الآن: "استعادة المدينة"\n⏳ ألعاب أخرى قريباً!`);
     }
   };
 
@@ -319,28 +308,26 @@ export default function MultiplayerGames() {
               </div>
 
               <div className="space-y-2">
-                {/* Play Button - Disabled */}
+                {/* Play Button - Enable for Reclaim City only */}
                 <Button
-                  disabled
-                  className="w-full bg-gray-300 text-gray-500 rounded-xl py-3 cursor-not-allowed"
+                  onClick={() => handleStartGame(game)}
+                  disabled={game.id !== 'reclaim-city'}
+                  className={`w-full rounded-xl py-3 ${game.id === 'reclaim-city' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                 >
                   <div className="flex items-center space-x-2 space-x-reverse">
-                    <Gamepad2 className="w-4 h-4" />
-                    <span>قريباً ⏳</span>
+                    <Play className="w-4 h-4" />
+                    <span>
+                      {game.id === 'reclaim-city' ? '🎮 العب الآن!' : 'قريباً ⏳'}
+                    </span>
                   </div>
                 </Button>
                 
-                {/* Other Game Modes - Disabled */}
-                <Button
-                  disabled
-                  variant="outline"
-                  className="w-full rounded-xl py-3 bg-gray-100 text-gray-500 cursor-not-allowed"
-                >
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <Users className="w-4 h-4" />
-                    <span>خيارات أخرى - قريباً</span>
+                {game.id === 'reclaim-city' && (
+                  <div className="bg-red-100 border border-red-300 rounded-lg p-2 text-center">
+                    <p className="text-red-700 text-xs font-bold">✨ متاح الآن!</p>
+                    <p className="text-red-600 text-xs">استعد لمحاربة الذكاء الاصطناعي!</p>
                   </div>
-                </Button>
+                )}
               </div>
             </div>
           ))}
