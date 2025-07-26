@@ -85,7 +85,7 @@ export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamCon
       userName: config.userName,
     };
 
-    await engine.loginRoom(config.roomID, user, { userUpdate: true });
+    await engine.loginRoom(config.roomID, user);
     console.log('✅ Successfully logged into room:', config.roomID);
   } catch (error) {
     console.error('❌ Failed to login room:', error);
