@@ -12,6 +12,7 @@ import Landing from "@/pages/landing";
 import StreamsHome from "@/pages/streams-home";
 import SimpleHome from "@/pages/simple-home";
 import SimpleExplore from "@/pages/simple-explore";
+import SimpleStreamPage from "@/pages/simple-stream";
 import AccountPage from "@/pages/account";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
@@ -59,6 +60,7 @@ function Router() {
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
           <Route path="/games" component={LazyComponents.GamesPage} />
           <Route path="/start-stream" component={LazyComponents.NewStreamPage} />
+          <Route path="/simple-stream" component={() => <SimpleStreamPage />} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
