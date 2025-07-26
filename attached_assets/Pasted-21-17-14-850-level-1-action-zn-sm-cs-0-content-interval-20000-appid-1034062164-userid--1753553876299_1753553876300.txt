@@ -1,0 +1,93 @@
+21:17:14.850","level":1,"action":"zn.sm.cs.0","content":"interval 20000","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:14.850","level":1,"action":"zn.sm.bsh","content":"call wss://accesshub-wss.coolgcloud.com/accesshub","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:14.850","level":1,"action":"zn.nss.0","content":"wss://accesshub-wss.coolgcloud.com/accesshub 20000","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:14.852","level":1,"action":"zn.sm.cps","content":"bypass time 3000","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:14.853","level":1,"action":"zn.zca.oce","content":"call","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.740","level":1,"action":"zn.sm.bsh","content":"wss://accesshub-wss.coolgcloud.com/accesshub open probing","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.741","level":1,"action":"zn.wl.c.0","content":"ip stack detection {\"ipStackType\":0,\"detection\":2}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.741","level":1,"action":"zn.wl.sidr","content":"{\"ipStackType\":0,\"detection\":2}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.742","level":1,"action":"zn.wl.sidr","content":"res {\"IPv4\":2,\"IPv6\":1}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.743","level":1,"action":"zsc.cs.0","content":"ip detection {\"linkConnectDetection\":{\"IPv4\":2,\"IPv6\":1}}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.745","level":1,"action":"zsc.gsinm","content":"call, proxy: false, mode: IPv4Prefer ","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.746","level":1,"action":"zsc.gi4nt","content":"connected: undefined, detection: {\"IPv4\":2,\"IPv6\":1}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.747","level":1,"action":"zsc.gsinm","content":"prefer: 0, nodeType: 0","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.748","level":1,"action":"zm.cna","content":"ip detection v4: reachable, v6: unknown","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.749","level":1,"action":"zn.wl.c.0","content":"main server wss://accesshub-wss.coolgcloud.com/accesshub open socket","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.750","level":1,"action":"zn.wl.ssoh.0","content":"server connected: wss://accesshub-wss.coolgcloud.com/accesshub open time: 903","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.751","level":1,"action":"zn.wl.osso.0","content":"call","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.751","level":1,"action":"zn.rlh.at","content":"suc","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.752","level":1,"action":"zn.rlh.sm.1","content":"call","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.752","level":1,"action":"zn.rlh.ivd","content":"end retry","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.753","level":1,"action":"zn.nab.gc","content":"call","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.756","level":1,"action":"zn.wl.sm","content":"type: 14-get_config_request streamID: 3 txid: 1 no1: true","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.763","level":1,"action":"zm.cna","content":"dispatch","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.764","level":1,"action":"zn.nab.du","content":"call","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.764","level":1,"action":"zn.wl.sm","content":"type: 35-accesshub_dispatch_request2 streamID: 7 txid: 2 no1: true","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.765","level":1,"action":"zn.nab.gsa","content":"call","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.766","level":1,"action":"zn.wl.sm","content":"type: 39-get_svraddr_request streamID: 9 txid: 3 no1: true","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.767","level":1,"action":"zsc.cs.0","content":"netAgent connect stack IPv4","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.767","level":1,"action":"zm.cna","content":"netAgent connect stack IPv4","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1  {"time":"2025/07/26 21:17:15.769","level":2,"action":"zm.fac","content":"user not exist","appid":1034062164,"userid":""}
+Z.warn @ ZegoExpressLogger.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+ds @ ZegoExpressWebRTC.js:1
+t3.fetchAppConfig @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+t5.emit @ ZegoExpressWebRTC.js:1
+jt @ ZegoExpressWebRTC.js:1
+i5.Ut @ ZegoExpressWebRTC.js:1
+Ht @ ZegoExpressWebRTC.js:1
+socketDetectManager.onSocketOpen @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+t5.emit @ ZegoExpressWebRTC.js:1
+lt.lt.onopen @ ZegoExpressWebRTC.js:1
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.769","level":1,"action":"zm.rr","content":"retryNow:true roomid:undefined, resetSession:false","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.771","level":1,"action":"zm.cna","content":"connect","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.848","level":1,"action":"zn.wl.om","content":"streamID: 3, msgType: 15-get_config_response, txid: 1","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.851","level":1,"action":"zn.zca.gc","content":"suc {\"code\":0,\"message\":\"\",\"data\":{\"txid\":1,\"quic_hb_interval\":10,\"quic_hb_timeout\":30,\"logic_hb_interval\":5,\"logic_hb_timeout\":10,\"pc_establish_timeout\":15,\"sdk_link_detect_interval\":2,\"sdk_link_detect_duration\":10,\"client_outer_ip\":\"185.239.177.140\",\"ntp_time\":1753553836757,\"root_rsa_certs_ver\":2,\"geofencing_id\":1,\"svraddr_ver\":1679239993,\"root_ecc_certs_ver\":1}}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.853","level":1,"action":"zn.nhb.ii","content":"call. ","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.857","level":1,"action":"zsc.cs.0","content":"ip detection {\"ipList\":{\"ipv4\":[\"185.239.177.140\"],\"ipv6\":[]}}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.859","level":1,"action":"zc.sr.cisn","content":"use ntp. gap: 951","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.862","level":1,"action":"zn.wl.om","content":"streamID: 9, msgType: 40-get_svraddr_response, txid: 3","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.863","level":1,"action":"zn.nab.gsa","content":"suc","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.864","level":1,"action":"zn.nab.gsa","content":"domains: accesshub-wss.coolzcloud.com weblogger-wss.coolzcloud.com detaillog-global.coolzcloud.com accesshub-wss-v6.coolzcloud.com accesshub-h3-v6.coolzcloud.com weblogger-wss-v6.coolzcloud.com detaillog-global-v6.coolzcloud.com","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.869","level":1,"action":"zm.hlu","content":"call","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.870","level":1,"action":"zl.net.opws","content":"log url change to: wss://weblogger-wss.coolzcloud.com/zglog/ws","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1  WebSocket connection to 'wss://weblogger-wss.coolgcloud.com/zglog/ws' failed: WebSocket is closed before the connection is established.
+E.stopWebSocketServer @ ZegoExpressLogger.js:1
+i3 @ ZegoExpressLogger.js:1
+E.openWebSocketLogServer @ ZegoExpressLogger.js:1
+Z.setLogServer @ ZegoExpressLogger.js:1
+t3.handleLogUpload @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+t5.emit @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+Promise.then
+jt @ ZegoExpressWebRTC.js:1
+i5.Ut @ ZegoExpressWebRTC.js:1
+Ht @ ZegoExpressWebRTC.js:1
+socketDetectManager.onSocketOpen @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+(anonymous) @ ZegoExpressWebRTC.js:1
+t5.emit @ ZegoExpressWebRTC.js:1
+lt.lt.onopen @ ZegoExpressWebRTC.js:1
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.871","level":1,"action":"zl.net.wsc","content":"log ws state change: first_connecting -> reconnecting","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.872","level":1,"action":"zm.zpl.url","content":"set detaillog domain by svr detaillog-global.coolzcloud.com detaillog-global-v6.coolzcloud.com","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.875","level":1,"action":"zn.wl.om","content":"streamID: 7, msgType: 36-accesshub_dispatch_response2, txid: 2","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.877","level":1,"action":"zn.nab.du","content":"suc ","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.879","level":1,"action":"zn.nab.du","content":"wss_groups: [{\"group\":\"wss-group-region-0\",\"host\":\"accesshub-wss.coolfcloud.com\"},{\"group\":\"wss-group-global\",\"host\":\"accesshub-wss.coolfcloud.com\"}] http3_groups:[{\"group\":\"http3-group-region-0\",\"host\":\"accesshub-h3.coolfcloud.com:8503\"},{\"group\":\"http3-group-global\",\"host\":\"accesshub-h3.coolfcloud.com:8503\"}] wss_v6_groups:[{\"group\":\"wss-v6-group-region-0\",\"host\":\"accesshub-wss-v6.coolfcloud.com\"},{\"group\":\"wss-v6-group-global\",\"host\":\"accesshub-wss-v6.coolfcloud.com\"}] http3_v6_groups:[{\"group\":\"http3-v6-group-region-0\",\"host\":\"accesshub-h3-v6.coolfcloud.com:8503\"},{\"group\":\"http3-v6-group-global\",\"host\":\"accesshub-h3-v6.coolfcloud.com:8503\"}]","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.881","level":1,"action":"zn.wl.shs","content":"[\"https://accesshub-h3.coolfcloud.com:8503/accesshub\",\"https://accesshub-h3.coolfcloud.com:8503/accesshub\"] []","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.881","level":1,"action":"zn.wl.sls","content":"set ipv4","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.881","level":1,"action":"zn.wl.shs","content":"[] [\"https://accesshub-h3-v6.coolfcloud.com:8503/accesshub\",\"https://accesshub-h3-v6.coolfcloud.com:8503/accesshub\"]","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.881","level":1,"action":"zn.wl.sls","content":"set ipv4","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.881","level":1,"action":"zm.cna","content":"dispatch","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:15.882","level":1,"action":"zm.cna","content":"dispatchResult {\"servers\":[\"wss://accesshub-wss.coolfcloud.com/accesshub\",\"wss://accesshub-wss.coolfcloud.com/accesshub\"],\"http3Servers\":[\"https://accesshub-h3.coolfcloud.com:8503/accesshub\",\"https://accesshub-h3.coolfcloud.com:8503/accesshub\"],\"domains\":[\"accesshub-wss.coolfcloud.com\",\"accesshub-wss.coolfcloud.com\"],\"http3Domains\":[\"accesshub-h3.coolfcloud.com:8503\",\"accesshub-h3.coolfcloud.com:8503\"],\"wssV6Servers\":[\"wss://accesshub-wss-v6.coolfcloud.com/accesshub\",\"wss://accesshub-wss-v6.coolfcloud.com/accesshub\"],\"http3V6Servers\":[\"https://accesshub-h3-v6.coolfcloud.com:8503/accesshub\",\"https://accesshub-h3-v6.coolfcloud.com:8503/accesshub\"]}","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:16.744","level":1,"action":"zm.0","content":"log connected wss://weblogger-wss.coolzcloud.com/zglog/ws","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:16.745","level":1,"action":"zm.0","content":"event url wss://weblogger-wss.coolzcloud.com/zglog/tlog","appid":1034062164,"userid":""}
+ZegoExpressLogger.js:1 {"time":"2025/07/26 21:17:16.747","level":1,"action":"zl.net.wsc","content":"log ws state change: reconnecting -> connected","appid":1034062164,"userid":""}

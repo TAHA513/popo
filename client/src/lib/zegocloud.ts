@@ -21,6 +21,7 @@ let zegoEngine: ZegoExpressEngine | null = null;
 // Initialize with secure configuration from server
 export async function initializeZegoConfig() {
   try {
+    console.log('🔄 Initializing ZegoCloud config from server...');
     const response = await fetch('/api/zego-config', {
       method: 'GET',
       credentials: 'include',
@@ -29,11 +30,19 @@ export async function initializeZegoConfig() {
       }
     });
     
+    console.log('📡 Server response status:', response.status);
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const data = await response.json();
+    console.log('📋 Received config data:', {
+      appId: data.appId,
+      userID: data.userID,
+      userName: data.userName,
+      hasAppSign: !!data.appSign
+    });
     
     if (data.error) {
       throw new Error(data.error);
@@ -90,6 +99,10 @@ export function createZegoEngine(): ZegoExpressEngine {
   }
 
   // Create engine with both App ID and App Sign
+  console.log('🔧 Creating ZegoExpressEngine with:', {
+    ZEGO_APP_ID,
+    appSignLength: ZEGO_APP_SIGN?.length
+  });
   zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, ZEGO_APP_SIGN);
   
   // Set up engine logging with correct event handlers
@@ -126,6 +139,12 @@ export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamCon
     console.log('🔑 Final user object:', user);
     
     // Use correct ZegoCloud loginRoom method signature with proper parameters
+    console.log('🔑 Attempting loginRoom with parameters:', {
+      roomID: config.roomID,
+      userID: userID,
+      userName: userName
+    });
+    
     const loginResult = await (engine as any).loginRoom(config.roomID, {
       userID: userID,
       userName: userName,

@@ -171,6 +171,13 @@ export default function StartStreamPage() {
       const uniqueUserID = serverConfig.userID || user.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const displayName = serverConfig.userName || user.firstName || user.username || 'User';
       
+      console.log('🔍 Server config received:', serverConfig);
+      console.log('🔍 Final user credentials for ZegoCloud:', {
+        uniqueUserID,
+        displayName,
+        originalUserId: user.id
+      });
+      
       console.log('👤 User details for stream:', {
         originalUserId: user.id,
         uniqueUserID,
@@ -269,7 +276,6 @@ export default function StartStreamPage() {
       console.error("❌ Detailed error:", {
         message: error instanceof Error ? error.message : error,
         stack: error instanceof Error ? error.stack : undefined,
-        zegoConfig,
         streamTitle,
         streamDescription
       });
