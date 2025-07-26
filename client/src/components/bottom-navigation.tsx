@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   Play, 
   Search,
+  Plus,
   MessageCircle,
   User,
   LogOut,
@@ -37,10 +38,9 @@ export default function BottomNavigation() {
   const navItems = [
     { href: "/", icon: Play, label: "الرئيسية" },
     { href: "/explore", icon: Search, label: "استكشاف" },
-    { href: "/games", icon: GamepadIcon, label: "الألعاب" },
+    { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
-    { href: "/profile", icon: User, label: "الملف" },
-    { action: "logout", icon: LogOut, label: "خروج", isLogout: true }
+    { href: "/profile", icon: User, label: "الملف" }
   ];
 
   return (
@@ -54,7 +54,7 @@ export default function BottomNavigation() {
             return (
               <Link key={item.href} href={item.href}>
                 <div className="flex flex-col items-center justify-center -mt-4 relative">
-                  <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-white">
+                  <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-white">
                     <Icon className="w-7 h-7 text-white" />
                   </div>
                   <span className="text-xs mt-1 text-purple-600 font-medium">{item.label}</span>

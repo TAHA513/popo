@@ -34,15 +34,7 @@ export default function StreamsHome() {
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
-      {/* Create Memory Button - Floating Center */}
-      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50">
-        <Button 
-          onClick={() => setLocation('/create-memory')}
-          className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-full flex items-center justify-center shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 border-4 border-white"
-        >
-          <Plus className="w-8 h-8" />
-        </Button>
-      </div>
+
 
       <div className="max-w-sm mx-auto">
         {/* الصفحة الرئيسية - البثوث المباشرة */}
