@@ -40,7 +40,7 @@ export default function StreamsHome() {
         {/* الصفحة الرئيسية - البثوث المباشرة */}
         <div className="p-2">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">📺 البثوث المباشرة</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">🏠 الرئيسية</h2>
             <p className="text-gray-600 text-sm">شاهد البثوث المباشرة من الأصدقاء</p>
           </div>
           

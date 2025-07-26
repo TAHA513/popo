@@ -3,7 +3,8 @@ import StartStreamPage from "@/pages/start-stream";
 import ProfilePage from "@/pages/profile";
 
 export const CharacterSelectionPage = () => React.createElement("div", null, "Character");
-export const GamesPage = () => React.createElement("div", null, "Games");
+import GamesPage from "@/pages/games";
+export { GamesPage };
 export const NewStreamPage = StartStreamPage;
 export const StreamPage = () => React.createElement("div", null, "Stream");
 export const AdminPage = () => React.createElement("div", null, "Admin");

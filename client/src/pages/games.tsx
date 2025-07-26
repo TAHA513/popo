@@ -1,222 +1,270 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Users, GamepadIcon, ArrowLeft, Trophy, Zap, Crown } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { Plus, Heart, ShoppingBag, Sparkles, Users, GamepadIcon, ArrowLeft } from "lucide-react";
 import CharacterSelector from "@/components/CharacterSelector";
+import BottomNavigation from "@/components/bottom-navigation";
+import { apiRequest } from "@/lib/queryClient";
+import FriendsGardens from "@/components/FriendsGardens";
+import MultiplayerGames from "@/components/MultiplayerGames";
 
-export default function Games() {
+export default function GamesPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [showCharacters, setShowCharacters] = useState(false);
-  const [activeSection, setActiveSection] = useState('characters');
+  const [showGiftSending, setShowGiftSending] = useState(false);
+  const [showShopping, setShowShopping] = useState(false);
+  
+  // Fetch user's pet
+  const { data: pet, isLoading: petLoading } = useQuery({
+    queryKey: ['/api/garden/pet'],
+    enabled: !!user,
+  });
+
+  // Fetch garden items/shop
+  const { data: gardenItems = [], isLoading: itemsLoading } = useQuery({
+    queryKey: ['/api/garden/shop'],
+    enabled: !!user,
+  });
+
+  // Fetch user's inventory
+  const { data: inventory = [], isLoading: inventoryLoading } = useQuery({
+    queryKey: ['/api/garden/inventory'],
+    enabled: !!user,
+  });
+
+  // Fetch user's friends
+  const { data: friends = [] } = useQuery({
+    queryKey: ['/api/friends'],
+    enabled: !!user,
+  });
+
+  // Feed pet mutation
+  const feedPetMutation = useMutation({
+    mutationFn: (itemId?: string) => apiRequest('/api/garden/pet/feed', 'POST', { itemId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/pet'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/inventory'] });
+    }
+  });
+
+  // Play with pet mutation
+  const playPetMutation = useMutation({
+    mutationFn: () => apiRequest('/api/garden/pet/play', 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/pet'] });
+    }
+  });
+
+  // Buy item mutation
+  const buyItemMutation = useMutation({
+    mutationFn: ({ itemId, quantity }: { itemId: string; quantity: number }) => 
+      apiRequest('/api/garden/shop/buy', 'POST', { itemId, quantity }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/garden/inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); // Refresh user points
+    }
+  });
+
+  const handleFeedPet = () => {
+    feedPetMutation.mutate(undefined);
+    toast({
+      title: "🍎 تم إطعام الحيوان الأليف!",
+      description: "أرنوب الصغير سعيد جداً",
+    });
+  };
+
+  const handlePlayWithPet = () => {
+    playPetMutation.mutate();
+    toast({
+      title: "🎾 وقت اللعب!",
+      description: "أرنوب الصغير يستمتع باللعب معك",
+    });
+  };
+
+  const handleBuyItem = (itemId: string, quantity: number = 1) => {
+    buyItemMutation.mutate({ itemId, quantity });
+    toast({
+      title: "🛒 تم الشراء بنجاح!",
+      description: "تم إضافة العنصر إلى مخزنك",
+    });
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-4">يجب تسجيل الدخول أولاً</h2>
+          <Button onClick={() => setLocation("/login")}>تسجيل الدخول</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="p-4">
           <div className="flex items-center justify-between">
-            <Button 
-              onClick={() => setLocation('/explore')}
-              variant="ghost"
-              className="flex items-center space-x-2 space-x-reverse"
+            <button 
+              onClick={() => setLocation('/')}
+              className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-gray-800"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>العودة للاستكشاف</span>
-            </Button>
-            
-            <div className="text-center">
-              <h1 className="text-xl font-bold text-purple-600">🎮 منطقة الألعاب</h1>
+              <ArrowLeft className="w-5 h-5" />
+              <span>العودة</span>
+            </button>
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <div className="text-2xl animate-bounce">🐰</div>
+              <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
-            
-            <div className="w-32"></div>
+            <div className="w-16"></div>
           </div>
         </div>
-        <div className="h-0.5 bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 opacity-60"></div>
+        <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Navigation Tabs */}
-        <div className="flex bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
-          <Button 
-            onClick={() => setActiveSection('characters')}
-            variant={activeSection === 'characters' ? 'default' : 'ghost'}
-            className={`flex-1 rounded-none ${
-              activeSection === 'characters' 
-                ? 'bg-purple-500 text-white' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Users className="w-4 h-4 ml-2" />
-            الشخصيات
-          </Button>
-          
-          <Button 
-            onClick={() => setActiveSection('multiplayer')}
-            variant={activeSection === 'multiplayer' ? 'default' : 'ghost'}
-            className={`flex-1 rounded-none ${
-              activeSection === 'multiplayer' 
-                ? 'bg-purple-500 text-white' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <GamepadIcon className="w-4 h-4 ml-2" />
-            الألعاب الجماعية
-          </Button>
-          
-          <Button 
-            onClick={() => setActiveSection('rankings')}
-            variant={activeSection === 'rankings' ? 'default' : 'ghost'}
-            className={`flex-1 rounded-none ${
-              activeSection === 'rankings' 
-                ? 'bg-purple-500 text-white' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Trophy className="w-4 h-4 ml-2" />
-            التصنيفات
-          </Button>
-        </div>
-
-        {/* Content Sections */}
-        {activeSection === 'characters' && (
-          <div>
-            <CharacterSelector />
+      <div className="max-w-sm mx-auto">
+        {/* الألعاب - نظام الحديقة والألعاب */}
+        <div className="p-2">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">🎮 صالة الألعاب</h2>
+            <p className="text-gray-600 text-sm">اعتني بحيوانك الأليف والعب مع الأصدقاء</p>
           </div>
-        )}
 
-        {activeSection === 'multiplayer' && (
-          <div className="space-y-6">
-            {/* Game Rooms */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <GamepadIcon className="w-6 h-6 ml-2 text-purple-500" />
-                الألعاب المتاحة
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { id: 1, name: "لعبة الذاكرة", players: "2-4 لاعبين", emoji: "🧠", difficulty: "سهل" },
-                  { id: 2, name: "سباق الألغاز", players: "2-6 لاعبين", emoji: "🧩", difficulty: "متوسط" },
-                  { id: 3, name: "مغامرة السرعة", players: "2-8 لاعبين", emoji: "⚡", difficulty: "صعب" },
-                  { id: 4, name: "البحث عن الكنز", players: "4-10 لاعبين", emoji: "🏴‍☠️", difficulty: "متوسط" },
-                ].map((game) => (
-                  <div key={game.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3 space-x-reverse">
-                        <span className="text-3xl">{game.emoji}</span>
-                        <div>
-                          <h3 className="font-bold text-gray-800">{game.name}</h3>
-                          <p className="text-sm text-gray-600">{game.players}</p>
-                        </div>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        game.difficulty === 'سهل' ? 'bg-green-100 text-green-800' :
-                        game.difficulty === 'متوسط' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {game.difficulty}
-                      </span>
-                    </div>
-                    
-                    <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
-                      انضم للعبة
-                    </Button>
-                  </div>
-                ))}
-              </div>
+          {/* My Pet Section */}
+          {petLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+              <p className="mt-2 text-gray-500">جاري تحميل حيوانك الأليف...</p>
             </div>
-
-            {/* Voice Chat Info */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl p-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">🎤 المحادثة الصوتية</h2>
-                <p className="text-lg opacity-90 mb-4">
-                  تحدث مع فريقك أثناء اللعب واستمتع بتجربة أكثر تفاعلية
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="bg-white bg-opacity-20 rounded-lg p-4">
-                    <div className="text-2xl mb-2">🗣️</div>
-                    <h3 className="font-bold mb-1">صوت واضح</h3>
-                    <p>جودة صوت عالية للتواصل</p>
+          ) : pet ? (
+            <div className="bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 p-6 rounded-2xl mb-6 shadow-xl">
+              <div className="text-center mb-4">
+                <div className="text-6xl mb-2">{pet.character?.emoji || '🐰'}</div>
+                <h3 className="text-white text-xl font-bold">{pet.name || 'أرنوب الصغير'}</h3>
+                <p className="text-white/80 text-sm">المستوى {pet.level || 1}</p>
+              </div>
+              
+              <div className="space-y-3 mb-4">
+                <div className="bg-white/20 rounded-full p-2">
+                  <div className="flex justify-between text-white text-sm mb-1">
+                    <span>الصحة</span>
+                    <span>{pet.health || 80}/100</span>
                   </div>
-                  <div className="bg-white bg-opacity-20 rounded-lg p-4">
-                    <div className="text-2xl mb-2">🤝</div>
-                    <h3 className="font-bold mb-1">عمل جماعي</h3>
-                    <p>تنسيق أفضل مع الفريق</p>
+                  <div className="bg-white/30 rounded-full h-2">
+                    <div 
+                      className="bg-red-400 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${pet.health || 80}%` }}
+                    ></div>
                   </div>
-                  <div className="bg-white bg-opacity-20 rounded-lg p-4">
-                    <div className="text-2xl mb-2">🎮</div>
-                    <h3 className="font-bold mb-1">متعة أكبر</h3>
-                    <p>تجربة لعب اجتماعية</p>
+                </div>
+                
+                <div className="bg-white/20 rounded-full p-2">
+                  <div className="flex justify-between text-white text-sm mb-1">
+                    <span>السعادة</span>
+                    <span>{pet.happiness || 75}/100</span>
+                  </div>
+                  <div className="bg-white/30 rounded-full h-2">
+                    <div 
+                      className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${pet.happiness || 75}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
 
-        {activeSection === 'rankings' && (
-          <div className="space-y-6">
-            {/* Top Players */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Trophy className="w-6 h-6 ml-2 text-yellow-500" />
-                أفضل اللاعبين
-              </h2>
-              
-              <div className="space-y-3">
-                {[
-                  { rank: 1, name: "محمد الصقر", points: 2850, badge: "👑", level: "أسطوري" },
-                  { rank: 2, name: "فاطمة النجمة", points: 2420, badge: "🥈", level: "محترف" },
-                  { rank: 3, name: "أحمد البطل", points: 2180, badge: "🥉", level: "محترف" },
-                  { rank: 4, name: "نور القمر", points: 1950, badge: "⭐", level: "متقدم" },
-                  { rank: 5, name: "خالد السريع", points: 1720, badge: "💫", level: "متقدم" },
-                ].map((player) => (
-                  <div key={player.rank} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3 space-x-reverse">
-                      <span className="text-2xl font-bold text-purple-600">#{player.rank}</span>
-                      <span className="text-2xl">{player.badge}</span>
-                      <div>
-                        <h3 className="font-bold text-gray-800">{player.name}</h3>
-                        <p className="text-sm text-gray-600">{player.level}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-purple-600">{player.points}</div>
-                      <div className="text-xs text-gray-500">نقطة</div>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  onClick={handleFeedPet}
+                  className="bg-green-500 hover:bg-green-600 text-white text-xs py-2 px-3 rounded-lg"
+                  disabled={feedPetMutation.isPending}
+                >
+                  <Heart className="w-3 h-3 mr-1" />
+                  إطعام
+                </Button>
+                <Button
+                  onClick={handlePlayWithPet}
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 px-3 rounded-lg"
+                  disabled={playPetMutation.isPending}
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  لعب
+                </Button>
+                <Button
+                  onClick={() => setShowShopping(!showShopping)}
+                  className="bg-purple-500 hover:bg-purple-600 text-white text-xs py-2 px-3 rounded-lg"
+                >
+                  <ShoppingBag className="w-3 h-3 mr-1" />
+                  تسوق
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">🐰</div>
+              <p className="text-gray-500 mb-4">لم يتم العثور على حيوان أليف</p>
+              <Button onClick={() => setShowCharacters(true)}>
+                اختر حيوانك الأليف
+              </Button>
+            </div>
+          )}
+
+          {/* Character Selection Modal */}
+          {showCharacters && (
+            <CharacterSelector
+              isOpen={showCharacters}
+              onClose={() => setShowCharacters(false)}
+              onSelectCharacter={(character) => {
+                console.log('Selected character:', character);
+                setShowCharacters(false);
+              }}
+            />
+          )}
+
+          {/* Shopping Section */}
+          {showShopping && (
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                <ShoppingBag className="w-5 h-5 mr-2 text-purple-600" />
+                متجر الحديقة
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {gardenItems.slice(0, 8).map((item: any) => (
+                  <div key={item.id} className="bg-white p-3 rounded-lg shadow-sm border">
+                    <div className="text-2xl mb-2 text-center">{item.emoji || '🎁'}</div>
+                    <h4 className="font-semibold text-sm text-gray-800 mb-1">{item.name}</h4>
+                    <p className="text-xs text-gray-600 mb-2">{item.description}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-purple-600 font-bold text-sm">{item.cost} نقطة</span>
+                      <Button
+                        onClick={() => handleBuyItem(item.id)}
+                        className="bg-purple-500 hover:bg-purple-600 text-white text-xs py-1 px-2 rounded"
+                        disabled={buyItemMutation.isPending}
+                      >
+                        شراء
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+          )}
 
-            {/* User Stats */}
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl p-6">
-              <h2 className="text-xl font-bold mb-4">📊 إحصائياتك</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{user?.points || 0}</div>
-                  <div className="text-sm opacity-80">النقاط</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">127</div>
-                  <div className="text-sm opacity-80">الترتيب</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">24</div>
-                  <div className="text-sm opacity-80">المباريات</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">18</div>
-                  <div className="text-sm opacity-80">الانتصارات</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          {/* Multiplayer Games Section */}
+          <MultiplayerGames />
+
+          {/* Friends Gardens Section */}
+          <FriendsGardens friends={friends} />
+        </div>
       </div>
+
+      <BottomNavigation />
     </div>
   );
 }
