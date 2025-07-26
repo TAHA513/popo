@@ -35,7 +35,7 @@ export default function StreamsHome() {
               className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
             >
               <Radio className="w-4 h-4" />
-              <span>بث</span>
+              <span>ابدأ البث</span>
             </Button>
           </div>
         </div>
@@ -59,16 +59,9 @@ export default function StreamsHome() {
               <h3 className="text-lg font-semibold text-gray-700 mb-2">
                 لا توجد بثوث مباشرة
               </h3>
-              <p className="text-gray-500 mb-6">
-                لا يوجد أحد يبث الآن، كن أول من يبدأ بثاً مباشراً!
+              <p className="text-gray-500">
+                لا يوجد أحد يبث الآن، انتظر حتى يبدأ أحد الأصدقاء بثاً مباشراً
               </p>
-              <Button 
-                onClick={() => setLocation('/start-stream')}
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6 py-3 rounded-full shadow-lg"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                ابدأ بث مباشر
-              </Button>
             </div>
           ) : (
             <div className="space-y-4">
