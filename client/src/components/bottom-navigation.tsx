@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   Home, 
   Search,
-  Plus,
+  Radio,
   MessageCircle,
   User,
   LogOut,
@@ -39,6 +39,7 @@ export default function BottomNavigation() {
   const navItems = [
     { href: "/", icon: Home, label: "الرئيسية" },
     { href: "/explore", icon: GamepadIcon, label: "صالة الألعاب" },
+    { href: "/start-stream", icon: Radio, label: "بث مباشر", isSpecial: true },
     { href: "/albums", icon: Lock, label: "الألبومات" },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" },
