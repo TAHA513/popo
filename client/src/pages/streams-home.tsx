@@ -23,12 +23,12 @@ export default function StreamsHome() {
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="p-4">
           <div className="flex items-center justify-between">
-            <div className="w-20"></div>
-            {/* Logo - Center */}
+            {/* Logo - Left */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <div className="text-2xl animate-bounce">🐰</div>
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
+            <div className="flex-1"></div>
             {/* Live Stream Button */}
             <Button
               onClick={() => setLocation('/start-stream')}
