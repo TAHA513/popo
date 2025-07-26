@@ -1438,7 +1438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get user details
       const user = await storage.getUser(userId);
-      if (!user || !user.points || user.points < character.price) {
+      if (!user || !user.points || user.points < (character.price || 0)) {
         return res.status(400).json({ message: "نقاط غير كافية لشراء هذه الشخصية" });
       }
 
@@ -1447,7 +1447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Deduct points
       await storage.updateUser(userId, { 
-        points: user.points - character.price 
+        points: user.points - (character.price || 0)
       });
 
       res.json(userCharacter);
