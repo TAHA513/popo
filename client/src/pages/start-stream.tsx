@@ -111,6 +111,8 @@ export default function StartStreamPage() {
   };
 
   const startZegoStream = async () => {
+    console.log("🎬 startZegoStream called - checking conditions...");
+    
     // Prevent multiple simultaneous calls
     if (isLoading || isStreaming) {
       console.log("⚠️ Stream already starting or active, ignoring request");
@@ -118,16 +120,19 @@ export default function StartStreamPage() {
     }
 
     if (!streamTitle.trim()) {
+      console.log("❌ No stream title provided");
       setError("يرجى إدخال عنوان للبث");
       return;
     }
 
     if (!user) {
+      console.log("❌ User not authenticated");
       alert("يجب تسجيل الدخول لبدء البث");
       setLocation("/login");
       return;
     }
 
+    console.log("✅ All conditions met, starting stream process...");
     setIsLoading(true);
     setError('');
     console.log("🎬 Starting stream with title:", streamTitle);
@@ -160,27 +165,40 @@ export default function StartStreamPage() {
       };
 
       // Start camera first to ensure we have stream
-      console.log('📹 Starting camera...');
+      console.log('📹 Step 1: Starting camera...');
       await startCamera();
-      console.log('✅ Camera started successfully');
+      console.log('✅ Step 1 complete: Camera started successfully');
+      
+      if (!streamRef.current) {
+        console.error('❌ Camera stream not available after startCamera()');
+        throw new Error('فشل في تشغيل الكاميرا');
+      }
 
       // Create ZegoCloud engine
-      console.log('🔧 Creating ZegoCloud engine...');
+      console.log('🔧 Step 2: Creating ZegoCloud engine...');
       const engine = createZegoEngine();
       zegoEngineRef.current = engine;
-      console.log('✅ ZegoCloud engine created');
+      console.log('✅ Step 2 complete: ZegoCloud engine created');
       
-      console.log('🚪 Logging into room:', zegoRoomId);
+      console.log('🚪 Step 3: Logging into room:', zegoRoomId);
       console.log('🔍 ZegoConfig being passed:', zegoConfig);
       await loginRoom(engine, zegoConfig);
-      console.log('✅ Successfully logged into room');
+      console.log('✅ Step 3 complete: Successfully logged into room');
       
       // Start publishing with existing camera stream
-      console.log('📡 Starting stream publishing...');
+      console.log('📡 Step 4: Starting stream publishing...');
       if (streamRef.current) {
+        console.log('📹 Stream details:', {
+          streamId: zegoStreamId,
+          videoTracks: streamRef.current.getVideoTracks().length,
+          audioTracks: streamRef.current.getAudioTracks().length,
+          streamActive: streamRef.current.active
+        });
+        
         await engine.startPublishingStream(zegoStreamId, streamRef.current);
-        console.log('✅ Started publishing stream:', zegoStreamId);
+        console.log('✅ Step 4 complete: Started publishing stream successfully:', zegoStreamId);
       } else {
+        console.error('❌ No camera stream available for publishing');
         throw new Error('لا يوجد تدفق كاميرا متاح للبث');
       }
       
@@ -198,7 +216,7 @@ export default function StartStreamPage() {
       }
 
       // Create stream record in our database
-      console.log('💾 Creating stream record in database...');
+      console.log('💾 Step 5: Creating stream record in database...');
       const response = await apiRequest('/api/streams', 'POST', {
         title: streamTitle,
         description: streamDescription,
@@ -212,20 +230,41 @@ export default function StartStreamPage() {
         setCurrentStreamId(response.id);
         setIsStreaming(true);
         setViewerCount(1);
-        console.log("🎥 ZegoCloud stream started successfully!");
-        console.log("📋 Stream details:", {
+        console.log("🎥 Step 5 complete: ZegoCloud stream started successfully!");
+        console.log("📋 Final stream details:", {
           streamId: response.id,
           zegoRoomId,
           zegoStreamId,
           title: streamTitle
         });
+        console.log("🎉 STREAM FULLY OPERATIONAL! All steps completed successfully.");
       } else {
         console.error('❌ Unexpected response format:', response);
         throw new Error('فشل في إنشاء سجل البث في قاعدة البيانات');
       }
     } catch (error) {
-      console.error("Failed to start ZegoCloud stream:", error);
-      setError("فشل في بدء البث المباشر. يرجى المحاولة مرة أخرى.");
+      console.error("❌ Failed to start ZegoCloud stream:", error);
+      console.error("❌ Detailed error:", {
+        message: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        zegoConfig,
+        streamTitle,
+        streamDescription
+      });
+      
+      let errorMessage = "فشل في بدء البث المباشر. يرجى المحاولة مرة أخرى.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('camera') || error.message.includes('Camera')) {
+          errorMessage = "فشل في الوصول إلى الكاميرا. يرجى التأكد من السماح بالوصول للكاميرا والمايكروفون.";
+        } else if (error.message.includes('room') || error.message.includes('Room')) {
+          errorMessage = "فشل في الاتصال بغرفة البث. يرجى التحقق من الاتصال بالإنترنت.";
+        } else if (error.message.includes('stream') || error.message.includes('Stream')) {
+          errorMessage = "فشل في بدء البث. يرجى المحاولة مرة أخرى.";
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
