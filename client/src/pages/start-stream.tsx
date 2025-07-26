@@ -19,6 +19,8 @@ export default function StartStreamPage() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [viewerCount, setViewerCount] = useState(0);
   const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -52,8 +54,14 @@ export default function StartStreamPage() {
   };
 
   const startZegoStream = async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoading || isStreaming) {
+      console.log("⚠️ Stream already starting or active, ignoring request");
+      return;
+    }
+
     if (!streamTitle.trim()) {
-      alert("يرجى إدخال عنوان للبث");
+      setError("يرجى إدخال عنوان للبث");
       return;
     }
 
@@ -62,6 +70,10 @@ export default function StartStreamPage() {
       setLocation("/login");
       return;
     }
+
+    setIsLoading(true);
+    setError('');
+    console.log("🎬 Starting stream with title:", streamTitle);
 
     try {
       // Performance monitoring for stream start
@@ -123,7 +135,9 @@ export default function StartStreamPage() {
       }
     } catch (error) {
       console.error("Failed to start ZegoCloud stream:", error);
-      alert("فشل في بدء البث المباشر. يرجى المحاولة مرة أخرى.");
+      setError("فشل في بدء البث المباشر. يرجى المحاولة مرة أخرى.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -301,15 +315,31 @@ export default function StartStreamPage() {
                   />
                 </div>
 
+                {error && (
+                  <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-200 text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-4">
                   {!isStreaming ? (
                     <Button
                       onClick={startZegoStream}
-                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3"
+                      disabled={isLoading || !streamTitle.trim()}
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 disabled:opacity-50"
                       size="lg"
                     >
-                      <Radio className="w-5 h-5 mr-2" />
-                      بدء البث المباشر
+                      {isLoading ? (
+                        <>
+                          <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          جاري بدء البث...
+                        </>
+                      ) : (
+                        <>
+                          <Radio className="w-5 h-5 mr-2" />
+                          بدء البث المباشر
+                        </>
+                      )}
                     </Button>
                   ) : (
                     <Button
