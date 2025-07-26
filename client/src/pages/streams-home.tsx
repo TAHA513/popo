@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Play, Users, Eye } from "lucide-react";
+import { Plus, Play, Users, Eye, Radio } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 
 export default function StreamsHome() {
@@ -22,12 +22,21 @@ export default function StreamsHome() {
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="p-4">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-between">
+            <div className="w-20"></div>
             {/* Logo - Center */}
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <div className="text-2xl animate-bounce">🐰</div>
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
+            {/* Live Stream Button */}
+            <Button
+              onClick={() => setLocation('/start-stream')}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
+            >
+              <Radio className="w-4 h-4" />
+              <span>بث</span>
+            </Button>
           </div>
         </div>
         {/* Colored Line */}
