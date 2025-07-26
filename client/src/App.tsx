@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
 import Landing from "@/pages/landing";
+import StreamsHome from "@/pages/streams-home";
 import SimpleHome from "@/pages/simple-home";
 import SimpleExplore from "@/pages/simple-explore";
 import AccountPage from "@/pages/account";
@@ -39,10 +40,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? <SimpleHome /> : <LoginPage />}
+        {isAuthenticated ? <StreamsHome /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isAuthenticated ? <SimpleHome /> : <RegisterPage />}
+        {isAuthenticated ? <StreamsHome /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
         <Suspense fallback={
@@ -50,9 +51,9 @@ function Router() {
             <div className="text-white text-lg">جاري التحميل...</div>
           </div>
         }>
-          <Route path="/" component={SimpleHome} />
-          <Route path="/home" component={SimpleHome} />
-          <Route path="/explore" component={SimpleExplore} />
+          <Route path="/" component={StreamsHome} />
+          <Route path="/home" component={StreamsHome} />
+          <Route path="/explore" component={SimpleHome} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />

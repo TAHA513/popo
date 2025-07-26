@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Radio } from "lucide-react";
+import { Plus } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 
@@ -44,34 +44,28 @@ export default function SimpleHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             
-            {/* Action Buttons - Right Side */}
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Button 
-                onClick={() => setLocation('/start-stream')}
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
-              >
-                <Radio className="w-4 h-4" />
-                <span className="text-sm font-bold">بث مباشر</span>
-              </Button>
-              <Button 
-                onClick={() => setLocation('/create-memory')}
-                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm font-bold">إنشاء ذكرى</span>
-              </Button>
-            </div>
+            <div className="w-16"></div>
           </div>
         </div>
         {/* Colored Line */}
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
+      {/* Create Memory Button - Floating Center */}
+      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50">
+        <Button 
+          onClick={() => setLocation('/create-memory')}
+          className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-full flex items-center justify-center shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 border-4 border-white"
+        >
+          <Plus className="w-8 h-8" />
+        </Button>
+      </div>
+
       <div className="max-w-sm mx-auto">
         {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}
         <div className="p-2">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">🏠 الرئيسية</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">🔍 الاستكشاف</h2>
             <p className="text-gray-600 text-sm">اكتشف المنشورات والذكريات</p>
           </div>
           {memories.length === 0 ? (

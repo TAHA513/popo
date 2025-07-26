@@ -3,14 +3,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 
 import { 
-  Home, 
+  Play, 
   Search,
-  Radio,
   MessageCircle,
   User,
   LogOut,
-  GamepadIcon,
-  Lock
+  GamepadIcon
 } from "lucide-react";
 
 export default function BottomNavigation() {
@@ -37,8 +35,9 @@ export default function BottomNavigation() {
   );
 
   const navItems = [
-    { href: "/", icon: Home, label: "الرئيسية" },
-    { href: "/explore", icon: GamepadIcon, label: "صالة الألعاب" },
+    { href: "/", icon: Play, label: "الرئيسية" },
+    { href: "/explore", icon: Search, label: "استكشاف" },
+    { href: "/games", icon: GamepadIcon, label: "الألعاب" },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" },
     { action: "logout", icon: LogOut, label: "خروج", isLogout: true }
