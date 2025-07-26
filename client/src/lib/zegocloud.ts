@@ -1,5 +1,11 @@
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 
+// Define ZegoUser interface for proper type checking
+interface ZegoUser {
+  userID: string;
+  userName: string;
+}
+
 export interface ZegoStreamConfig {
   userID: string;
   userName: string;
@@ -92,13 +98,24 @@ export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamCon
     console.log('🚪 Attempting to login to room:', config.roomID);
     console.log('👤 User info:', { userID: config.userID, userName: config.userName });
     
-    const user = { userID: config.userID, userName: config.userName };
+    // Ensure userID is not empty - generate random ID if needed
+    const userID = config.userID || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const userName = config.userName || 'Guest';
     
-    // Use correct loginRoom parameters with userUpdate option
-    await engine.loginRoom(config.roomID, user, { userUpdate: true });
+    const user: ZegoUser = { userID, userName };
+    console.log('🔑 Final user object:', user);
+    
+    // Use correct ZegoCloud loginRoom method signature: loginRoom(roomID, user, config)
+    await (engine as any).loginRoom(config.roomID, user, { userUpdate: true });
     console.log('✅ Successfully logged into room:', config.roomID);
   } catch (error) {
     console.error('❌ Failed to login room:', error);
+    console.error('❌ Error details:', {
+      roomID: config.roomID,
+      userID: config.userID,
+      userName: config.userName,
+      errorMessage: error instanceof Error ? error.message : error
+    });
     throw new Error('فشل في الدخول إلى غرفة البث');
   }
 }

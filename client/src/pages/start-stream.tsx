@@ -171,6 +171,7 @@ export default function StartStreamPage() {
       console.log('✅ ZegoCloud engine created');
       
       console.log('🚪 Logging into room:', zegoRoomId);
+      console.log('🔍 ZegoConfig being passed:', zegoConfig);
       await loginRoom(engine, zegoConfig);
       console.log('✅ Successfully logged into room');
       
