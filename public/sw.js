@@ -1,4 +1,4 @@
-// LaaBoBo Live - Simple Service Worker
+// GameHub - Simple Service Worker
 // Minimal service worker to avoid network errors
 
 const CACHE_NAME = 'laababo-live-v1';

@@ -78,13 +78,13 @@ export default function SimpleNavigation() {
           <div className="flex-1 flex justify-center">
             <Link href="/">
               <div className="text-center flex items-center space-x-2 rtl:space-x-reverse">
-                <div className="text-2xl animate-bounce">🐰</div>
+                <div className="text-2xl animate-bounce">🎮</div>
                 <div>
                   <div className="text-xl font-bold text-white tracking-wide">
-                    LaaBoBo Live
+                    GameHub Live
                   </div>
                   <div className="text-xs text-white/80 font-medium">
-                    لايف بوبو
+                    هاب الألعاب
                   </div>
                 </div>
               </div>

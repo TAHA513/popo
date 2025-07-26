@@ -120,8 +120,8 @@ export default function GamesPage() {
               <span>العودة</span>
             </button>
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <div className="text-2xl animate-bounce">🐰</div>
-              <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
+              <div className="text-2xl animate-bounce">🎮</div>
+              <h1 className="text-xl font-bold text-laa-pink">GameHub</h1>
             </div>
             <div className="w-16"></div>
           </div>

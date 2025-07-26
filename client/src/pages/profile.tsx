@@ -92,7 +92,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold">{user.username}</h2>
-                <p className="text-white/80">مستخدم LaaBoBo</p>
+                <p className="text-white/80">مستخدم GameHub</p>
                 <div className="flex items-center space-x-4 rtl:space-x-reverse mt-2">
                   <span className="text-sm">النقاط: {user.points || 0}</span>
                   <span className="text-sm">المتابعون: 0</span>
