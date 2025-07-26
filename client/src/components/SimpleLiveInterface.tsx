@@ -113,9 +113,13 @@ export default function SimpleLiveInterface({ stream }: SimpleLiveInterfaceProps
         
         // نص البث
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 24px Arial';
+        ctx.font = 'bold 32px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('🔴 بث مباشر', centerX, canvas.height - 40);
+        ctx.fillText(`🔴 ${(stream as any).hostName || 'مضيف البث'} - بث مباشر`, centerX, canvas.height - 60);
+        
+        // معلومات إضافية
+        ctx.font = '20px Arial';
+        ctx.fillText(`${stream.title || 'بث مباشر'}`, centerX, canvas.height - 25);
         
         if (videoRef.current && mounted) {
           const videoStream = canvas.captureStream(30);
@@ -208,16 +212,26 @@ export default function SimpleLiveInterface({ stream }: SimpleLiveInterfaceProps
 
   // واجهة البث الرئيسية
   return (
-    <div className="fixed inset-0 bg-black z-50">
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-black z-50">
       {/* الفيديو */}
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
-        className="w-full h-full object-cover"
-        style={{ transform: isStreamer ? 'scaleX(-1)' : 'none' }}
-      />
+      {isStreamer ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+          style={{ transform: 'scaleX(-1)' }}
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      )}
 
       {/* تراكب إيقاف الفيديو للصاميمر */}
       {isStreamer && !isVideoEnabled && (
