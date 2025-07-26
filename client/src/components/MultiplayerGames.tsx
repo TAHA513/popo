@@ -18,6 +18,16 @@ interface Game {
 
 const multiplayerGames: Game[] = [
   {
+    id: 'reclaim-city',
+    name: 'استعادة المدينة',
+    emoji: '🏙️',
+    description: 'لعبة إستراتيجية تعاونية ضد الذكاء الاصطناعي',
+    minPlayers: 1,
+    maxPlayers: 8,
+    duration: '5-10 دقائق',
+    difficulty: 'hard'
+  },
+  {
     id: 'solo-training',
     name: 'تدريب منفرد',
     emoji: '🎯',

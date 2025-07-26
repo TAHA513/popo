@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Trophy, Users, Play, Star, Crown, Gift } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import ReclaimCity from "./games/ReclaimCity";
 
 
 interface GameRoomProps {
@@ -256,6 +257,20 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
   }
 
   if (gameStarted) {
+    // استعادة المدينة - اللعبة الاحترافية
+    if (gameType === 'reclaim-city') {
+      return (
+        <div className="fixed inset-0 bg-black z-50">
+          <ReclaimCity 
+            isMultiplayer={players.length > 1}
+            playerCount={players.length}
+            onGameEnd={handleGameEnd}
+          />
+        </div>
+      );
+    }
+
+    // الألعاب الأخرى - قيد التطوير
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl p-8 w-96">
