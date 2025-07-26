@@ -356,10 +356,13 @@ export default function StartStreamPage() {
   const startSimpleStreamMethod = async () => {
     console.log("🎬 ===== SIMPLE STREAM START =====");
     
-    if (isLoading || isStreaming) return;
-    if (!streamTitle.trim()) {
-      setError("يرجى إدخال عنوان للبث");
+    if (isLoading || isStreaming) {
+      console.log("🛑 Already loading or streaming, stopping");
       return;
+    }
+    if (!streamTitle.trim()) {
+      console.log("🛑 No stream title, setting default");
+      setStreamTitle("بث مباشر جديد");
     }
     if (!user) {
       alert("يجب تسجيل الدخول لبدء البث");
@@ -570,7 +573,10 @@ export default function StartStreamPage() {
                   <label className="block text-purple-200 mb-2">عنوان البث</label>
                   <Input
                     value={streamTitle}
-                    onChange={(e) => setStreamTitle(e.target.value)}
+                    onChange={(e) => {
+                      console.log("📝 Title changed to:", e.target.value);
+                      setStreamTitle(e.target.value);
+                    }}
                     placeholder="أدخل عنوان البث..."
                     className="bg-white/20 border-purple-500/30 text-white placeholder:text-purple-300"
                     disabled={isStreaming}
@@ -599,10 +605,11 @@ export default function StartStreamPage() {
                     <Button
                       onClick={() => {
                         console.log("🖱️ START STREAM BUTTON CLICKED!");
+                        console.log("🔍 Button state:", { isLoading, streamTitle: streamTitle.trim(), disabled: isLoading || !streamTitle.trim() });
                         // Use simple method instead
                         startSimpleStreamMethod();
                       }}
-                      disabled={isLoading || !streamTitle.trim()}
+                      disabled={false}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 disabled:opacity-50"
                       size="lg"
                     >
