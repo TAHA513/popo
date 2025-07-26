@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ export default function SimpleStreamPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamTitle, setStreamTitle] = useState("");
   const [error, setError] = useState('');
+  const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -53,12 +55,25 @@ export default function SimpleStreamPage() {
       // Start camera first
       await startCamera();
       
-      // Show success message
-      setIsStreaming(true);
-      console.log('🎉 Stream simulation started successfully!');
+      // Create stream in database
+      console.log('💾 Creating stream in database...');
+      const streamData = {
+        title: streamTitle || "بث مباشر جديد",
+        description: "بث سريع من الكاميرا",
+        zegoRoomId: `room_${user.id}_${Date.now()}`,
+        zegoStreamId: `stream_${user.id}_${Date.now()}`
+      };
       
-      // Simulate stream ID for display
-      alert("تم بدء البث بنجاح! (محاكاة)");
+      const response = await apiRequest('/api/streams', 'POST', streamData);
+      
+      if (response?.id) {
+        setCurrentStreamId(response.id);
+        setIsStreaming(true);
+        console.log('🎉 Stream created successfully with ID:', response.id);
+        alert("تم بدء البث بنجاح! الآن مرئي للجميع");
+      } else {
+        throw new Error('فشل في إنشاء البث في قاعدة البيانات');
+      }
       
     } catch (error) {
       console.error('❌ Stream failed:', error);
@@ -66,27 +81,49 @@ export default function SimpleStreamPage() {
     }
   };
 
-  const stopStream = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+  const stopStream = async () => {
+    try {
+      // Stop camera
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      
+      // Delete stream from database
+      if (currentStreamId) {
+        console.log('🗑️ Deleting stream from database...');
+        await apiRequest(`/api/streams/${currentStreamId}`, 'DELETE');
+        console.log('✅ Stream deleted from database');
+      }
+      
+      setIsStreaming(false);
+      setCurrentStreamId(null);
+      console.log('⏹️ Stream stopped completely');
+      alert("تم إيقاف البث بنجاح");
+      
+    } catch (error) {
+      console.error('❌ Error stopping stream:', error);
+      setError('حدث خطأ أثناء إيقاف البث');
     }
-    
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    
-    setIsStreaming(false);
-    console.log('⏹️ Stream stopped');
   };
 
   useEffect(() => {
     return () => {
+      // Cleanup on component unmount
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
+      
+      // Delete stream from database if still active
+      if (currentStreamId) {
+        apiRequest(`/api/streams/${currentStreamId}`, 'DELETE').catch(console.error);
+      }
     };
-  }, []);
+  }, [currentStreamId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -177,7 +214,12 @@ export default function SimpleStreamPage() {
 
                 {isStreaming && (
                   <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 text-green-200 text-sm">
-                    ✅ البث يعمل! الكاميرا تعمل بشكل صحيح
+                    ✅ البث نشط! مرئي في الصفحة الرئيسية
+                    {currentStreamId && (
+                      <div className="text-xs mt-1 opacity-75">
+                        معرف البث: {currentStreamId}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
