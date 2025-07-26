@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ZegoCloud Test</title>
+    <script src="https://unpkg.com/zego-express-engine-webrtc@3.10.0/index.js"></script>
+</head>
+<body>
+    <h1>ZegoCloud Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <div id="result"></div>
+    
+    <script>
+    async function testConnection() {
+        const result = document.getElementById('result');
+        result.innerHTML = 'Testing...';
+        
+        try {
+            // Use your actual credentials
+            const appID = 1034062164;
+            const appSign = 'aacad673867b6a3e02b6b65c61f6d6c6f5b2e1c5b7a0e5f9c3d8b4a1e2f7g9h8';
+            
+            console.log('Creating engine with:', { appID, appSignLength: appSign.length });
+            
+            const engine = new ZegoExpressEngine(appID, appSign);
+            
+            // Test loginRoom with simple config
+            const testUser = {
+                userID: 'test_' + Date.now(),
+                userName: 'TestUser'
+            };
+            
+            const roomID = 'test_room_' + Date.now();
+            
+            console.log('Attempting loginRoom with:', { roomID, testUser });
+            
+            const loginResult = await engine.loginRoom(roomID, testUser, { userUpdate: true });
+            
+            console.log('Login result:', loginResult);
+            
+            result.innerHTML = `
+                <p>✅ Success!</p>
+                <p>Room ID: ${roomID}</p>
+                <p>User ID: ${testUser.userID}</p>
+                <p>Login Result: ${JSON.stringify(loginResult)}</p>
+            `;
+            
+            // Cleanup
+            setTimeout(() => {
+                engine.logoutRoom(roomID);
+                engine.destroyEngine();
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Test failed:', error);
+            result.innerHTML = `
+                <p>❌ Failed: ${error.message}</p>
+                <p>Details: ${JSON.stringify(error)}</p>
+            `;
+        }
+    }
+    </script>
+</body>
+</html>

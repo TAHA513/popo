@@ -103,7 +103,14 @@ export function createZegoEngine(): ZegoExpressEngine {
     ZEGO_APP_ID,
     appSignLength: ZEGO_APP_SIGN?.length
   });
-  zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, ZEGO_APP_SIGN);
+  
+  try {
+    zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, ZEGO_APP_SIGN);
+    console.log('✅ ZegoExpressEngine created successfully');
+  } catch (engineError) {
+    console.error('❌ Failed to create ZegoExpressEngine:', engineError);
+    throw new Error(`فشل في إنشاء محرك ZegoCloud: ${engineError}`);
+  }
   
   // Set up engine logging with correct event handlers
   zegoEngine.on('roomStateUpdate', (roomID: string, state: string, errorCode: number, extendedData: string) => {

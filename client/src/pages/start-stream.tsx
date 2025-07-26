@@ -21,6 +21,40 @@ import {
   type ZegoStreamConfig 
 } from "@/lib/zegocloud";
 
+// Simple ZegoCloud function that bypasses complex setup
+async function startSimpleZegoStream(userID: string, userName: string, streamTitle: string, mediaStream: MediaStream) {
+  try {
+    console.log('🚀 Starting SIMPLE ZegoCloud stream...');
+    
+    // Get server config
+    const response = await fetch('/api/zego-config', { credentials: 'include' });
+    const data = await response.json();
+    
+    // Create engine directly
+    const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
+    const engine = new ZegoExpressEngine(parseInt(data.appId), data.appSign);
+    
+    // Simple room and stream IDs
+    const roomID = `room_${userID}_${Date.now()}`;
+    const streamID = `stream_${userID}_${Date.now()}`;
+    
+    console.log('🔑 Direct login with:', { roomID, userID, userName });
+    
+    // Direct login
+    await engine.loginRoom(roomID, { userID, userName });
+    console.log('✅ Logged in successfully');
+    
+    // Direct publishing
+    await engine.startPublishingStream(streamID, mediaStream);
+    console.log('✅ Publishing successful!');
+    
+    return { engine, roomID, streamID };
+  } catch (error) {
+    console.error('❌ Simple stream failed:', error);
+    throw error;
+  }
+}
+
 export default function StartStreamPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -318,6 +352,68 @@ export default function StartStreamPage() {
     }
   };
 
+  // Simple streaming method that works
+  const startSimpleStreamMethod = async () => {
+    console.log("🎬 ===== SIMPLE STREAM START =====");
+    
+    if (isLoading || isStreaming) return;
+    if (!streamTitle.trim()) {
+      setError("يرجى إدخال عنوان للبث");
+      return;
+    }
+    if (!user) {
+      alert("يجب تسجيل الدخول لبدء البث");
+      setLocation("/login");
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Start camera
+      console.log('📹 Starting camera...');
+      await startCamera();
+      
+      if (!streamRef.current) {
+        throw new Error('فشل في تشغيل الكاميرا');
+      }
+
+      // Start simple stream
+      console.log('🚀 Starting simple ZegoCloud stream...');
+      const result = await startSimpleZegoStream(
+        user.id, 
+        user.firstName || user.username || 'User',
+        streamTitle,
+        streamRef.current
+      );
+
+      if (result) {
+        zegoEngineRef.current = result.engine;
+        
+        // Save to database
+        const response = await apiRequest('/api/streams', 'POST', {
+          title: streamTitle,
+          description: streamDescription,
+          zegoRoomId: result.roomID,
+          zegoStreamId: result.streamID
+        });
+
+        if (response?.id) {
+          setCurrentStreamId(response.id);
+          setIsStreaming(true);
+          setViewerCount(1);
+          console.log("🎉 STREAM STARTED SUCCESSFULLY!");
+        }
+      }
+    } catch (error) {
+      console.error("❌ Simple stream failed:", error);
+      setError(error instanceof Error ? error.message : "فشل في بدء البث");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const stopZegoStream = async () => {
     try {
       if (currentStreamId && zegoEngineRef.current) {
@@ -503,7 +599,8 @@ export default function StartStreamPage() {
                     <Button
                       onClick={() => {
                         console.log("🖱️ START STREAM BUTTON CLICKED!");
-                        startZegoStream();
+                        // Use simple method instead
+                        startSimpleStreamMethod();
                       }}
                       disabled={isLoading || !streamTitle.trim()}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 disabled:opacity-50"
