@@ -761,26 +761,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🎥 Creating new stream for user:", req.user.id);
       console.log("📊 Stream data:", req.body);
       
-      const streamData = insertStreamSchema.parse({
-        ...req.body,
+      const streamData = {
+        title: req.body.title || 'بث مباشر',
+        description: req.body.description || '',
         hostId: req.user.id,
-      });
+        zegoRoomId: req.body.zegoRoomId,
+        zegoStreamId: req.body.zegoStreamId,
+        isLive: true,
+        viewerCount: 0,
+        startedAt: new Date()
+      };
+      
+      console.log("📋 Final stream data:", streamData);
       
       const stream = await storage.createStream(streamData);
-      console.log("✅ Stream created successfully with ID:", stream.id);
+      console.log("✅ Stream created successfully:", stream);
       
-      res.json(stream);
+      res.json({
+        success: true,
+        data: stream,
+        ...stream
+      });
     } catch (error) {
       console.error("❌ Error creating stream:", error);
-      if ((error as any).name === 'ZodError') {
-        console.error("🚫 Validation errors:", (error as any).errors);
-        res.status(400).json({ 
-          message: "بيانات البث غير صحيحة", 
-          errors: (error as any).errors 
-        });
-      } else {
-        res.status(500).json({ message: "فشل في إنشاء البث المباشر" });
-      }
+      res.status(500).json({ 
+        success: false,
+        message: "فشل في إنشاء البث المباشر",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

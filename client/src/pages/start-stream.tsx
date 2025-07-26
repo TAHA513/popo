@@ -201,23 +201,25 @@ export default function StartStreamPage() {
       const response = await apiRequest('/api/streams', 'POST', {
         title: streamTitle,
         description: streamDescription,
-        hostId: user.id,
         zegoRoomId,
         zegoStreamId
       });
 
-      if (response.success) {
-        setCurrentStreamId(response.data.id);
+      console.log('📋 Stream creation response:', response);
+
+      if (response && response.id) {
+        setCurrentStreamId(response.id);
         setIsStreaming(true);
         setViewerCount(1);
         console.log("🎥 ZegoCloud stream started successfully!");
         console.log("📋 Stream details:", {
-          streamId: response.data.id,
+          streamId: response.id,
           zegoRoomId,
           zegoStreamId,
           title: streamTitle
         });
       } else {
+        console.error('❌ Unexpected response format:', response);
         throw new Error('فشل في إنشاء سجل البث في قاعدة البيانات');
       }
     } catch (error) {
