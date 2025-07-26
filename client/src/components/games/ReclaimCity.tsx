@@ -295,13 +295,22 @@ const ReclaimCity: React.FC<ReclaimCityProps> = ({
 
         {/* Mission Briefing */}
         <Card className="bg-black/50 border-blue-500 p-4 mb-6">
-          <h3 className="text-xl font-bold mb-4 text-blue-400">📋 مهمة اليوم</h3>
+          <h3 className="text-xl font-bold mb-4 text-blue-400">📋 مهمة استعادة المدينة</h3>
+          <div className="bg-red-900/30 border border-red-500 rounded p-3 mb-4">
+            <p className="text-red-300 text-sm font-bold">⚠️ تحذير: الذكاء الاصطناعي سيطر على المدينة!</p>
+          </div>
           <ul className="space-y-2 text-gray-300">
-            <li>• تحرير منطقة المدينة من سيطرة الذكاء الاصطناعي</li>
-            <li>• القضاء على الروبوتات والمخلوقات الهجينة</li>
-            <li>• التعاون مع الفريق لحماية المدنيين</li>
-            <li>• جمع الموارد لبناء قاعدة محصنة</li>
+            <li>🎯 تحرير المناطق المحتلة من سيطرة الذكاء الاصطناعي</li>
+            <li>⚔️ القضاء على جيش الروبوتات والمخلوقات الهجينة</li>
+            <li>🛡️ التعاون مع فريق المقاومة لحماية الناجين</li>
+            <li>🏗️ جمع الموارد لبناء مدينة ذكية جديدة آمنة</li>
+            <li>🔥 مواجهة البشر الخونة المتحالفين مع الآلات</li>
           </ul>
+          <div className="mt-4 p-3 bg-blue-900/30 border border-blue-400 rounded">
+            <p className="text-blue-300 text-sm">
+              <strong>الهدف النهائي:</strong> الوصول لنسبة تحرير 100% خلال الوقت المحدد
+            </p>
+          </div>
         </Card>
 
         {/* Voice Chat Setup */}
@@ -333,14 +342,78 @@ const ReclaimCity: React.FC<ReclaimCityProps> = ({
           </Card>
         )}
 
-        <div className="text-center">
+        {/* Alliance & Invitation System */}
+        <Card className="bg-black/50 border-yellow-500 p-4 mb-6">
+          <h3 className="text-xl font-bold mb-4 text-yellow-400">👑 نظام التحالفات</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <p className="text-gray-300 text-sm">ادع أصدقاءك للانضمام للمقاومة:</p>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(window.location.href);
+                    alert("تم نسخ رابط الدعوة!");
+                  }}
+                  className="flex-1"
+                >
+                  📋 نسخ رابط الدعوة
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const shareData = {
+                      title: 'استعادة المدينة - LaaBoBo',
+                      text: 'انضم لي في مقاومة الذكاء الاصطناعي!',
+                      url: window.location.href
+                    };
+                    if (navigator.share) {
+                      navigator.share(shareData);
+                    }
+                  }}
+                  className="flex-1"
+                >
+                  📤 مشاركة
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-gray-300 text-sm">مكافآت التحالف:</p>
+              <div className="text-xs space-y-1">
+                <div className="text-green-400">• +50 نقطة لكل صديق منضم</div>
+                <div className="text-blue-400">• +25% موارد إضافية في الفريق</div>
+                <div className="text-purple-400">• فتح قدرات خاصة جماعية</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <div className="flex flex-col space-y-4">
           <Button 
             onClick={startBattle}
             size="lg"
             className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-xl"
           >
-            🚀 بدء المعركة
+            🚀 بدء المعركة ({playerCount} مقاتل)
           </Button>
+          
+          {isMultiplayer && (
+            <div className="text-center">
+              <p className="text-sm text-gray-400 mb-2">
+                في انتظار اللاعبين الآخرين... ({playerCount}/8)
+              </p>
+              <div className="flex justify-center space-x-2">
+                <Button variant="outline" size="sm">
+                  🎮 دعوة أصدقاء
+                </Button>
+                <Button variant="outline" size="sm">
+                  🔀 البحث عن لاعبين
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -417,30 +490,111 @@ const ReclaimCity: React.FC<ReclaimCityProps> = ({
           )}
         </Card>
 
-        {/* Special Abilities */}
-        <div className="flex justify-center space-x-4 mb-6">
-          <Button
-            onClick={() => useSpecialAbility('airstrike')}
-            disabled={gameState.resources.energy < 30}
-            className="bg-red-600 hover:bg-red-700"
-          >
-            💥 ضربة جوية (30 طاقة)
-          </Button>
-          <Button
-            onClick={() => useSpecialAbility('shield')}
-            disabled={gameState.resources.energy < 20}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            🛡️ درع جماعي (20 طاقة)
-          </Button>
-          <Button
-            onClick={() => useSpecialAbility('heal')}
-            disabled={gameState.resources.energy < 15}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            ❤️ شفاء شامل (15 طاقة)
-          </Button>
-        </div>
+        {/* Special Abilities & Upgrades */}
+        <Card className="bg-black/50 border-purple-500 p-4 mb-6">
+          <h3 className="text-lg font-bold mb-3 text-purple-400">⚡ قدرات خاصة وترقيات</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Combat Abilities */}
+            <div>
+              <h4 className="text-sm font-bold text-red-400 mb-2">🔥 قدرات قتالية</h4>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => useSpecialAbility('airstrike')}
+                  disabled={gameState.resources.energy < 30}
+                  className="w-full bg-red-600 hover:bg-red-700 text-xs"
+                  size="sm"
+                >
+                  💥 ضربة جوية (30 طاقة)
+                </Button>
+                <Button
+                  onClick={() => useSpecialAbility('shield')}
+                  disabled={gameState.resources.energy < 20}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-xs"
+                  size="sm"
+                >
+                  🛡️ درع جماعي (20 طاقة)
+                </Button>
+                <Button
+                  onClick={() => useSpecialAbility('heal')}
+                  disabled={gameState.resources.energy < 15}
+                  className="w-full bg-green-600 hover:bg-green-700 text-xs"
+                  size="sm"
+                >
+                  ❤️ شفاء شامل (15 طاقة)
+                </Button>
+              </div>
+            </div>
+
+            {/* Building & Upgrades */}
+            <div>
+              <h4 className="text-sm font-bold text-yellow-400 mb-2">🏗️ البناء والتطوير</h4>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => {
+                    if (gameState.resources.gold >= 50 && gameState.resources.tech >= 5) {
+                      setGameState(prev => ({
+                        ...prev,
+                        resources: {
+                          ...prev.resources,
+                          gold: prev.resources.gold - 50,
+                          tech: prev.resources.tech - 5
+                        },
+                        cityProgress: Math.min(100, prev.cityProgress + 10)
+                      }));
+                    }
+                  }}
+                  disabled={gameState.resources.gold < 50 || gameState.resources.tech < 5}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-xs"
+                  size="sm"
+                >
+                  🏢 بناء قاعدة (50 ذهب، 5 تقنية)
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (gameState.resources.gold >= 30) {
+                      setGameState(prev => ({
+                        ...prev,
+                        resources: {
+                          ...prev.resources,
+                          gold: prev.resources.gold - 30,
+                          energy: Math.min(100, prev.resources.energy + 20)
+                        }
+                      }));
+                    }
+                  }}
+                  disabled={gameState.resources.gold < 30}
+                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-xs"
+                  size="sm"
+                >
+                  🔋 مولد طاقة (30 ذهب)
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (gameState.resources.tech >= 8) {
+                      setGameState(prev => ({
+                        ...prev,
+                        resources: {
+                          ...prev.resources,
+                          tech: prev.resources.tech - 8
+                        }
+                      }));
+                      // Upgrade all players
+                      setPlayers(prev => prev.map(player => ({
+                        ...player,
+                        weapons: [...player.weapons, "سلاح متقدم"]
+                      })));
+                    }
+                  }}
+                  disabled={gameState.resources.tech < 8}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-xs"
+                  size="sm"
+                >
+                  🔧 ترقية الأسلحة (8 تقنية)
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
 
         {/* Voice Chat Status */}
         {isMultiplayer && voiceActive && (
