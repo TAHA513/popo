@@ -1,17 +1,22 @@
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 
-// ZegoCloud configuration - SECURE VERSION
-let ZEGO_APP_ID: number = 0;
-let SECURE_TOKEN: string = '';
-let CONFIG_HASH: string = '';
-let USER_ID: string = '';
+export interface ZegoStreamConfig {
+  userID: string;
+  userName: string;
+  roomID: string;
+  streamID: string;
+}
+
+// ZegoCloud configuration - loaded from secure server endpoint
+let ZEGO_APP_ID: number | null = null;
+let zegoEngine: ZegoExpressEngine | null = null;
 
 // Initialize with secure configuration from server
 export async function initializeZegoConfig() {
   try {
     const response = await fetch('/api/zego-config', {
       method: 'GET',
-      credentials: 'include', // Include authentication cookies
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       }
@@ -28,10 +33,6 @@ export async function initializeZegoConfig() {
     }
     
     ZEGO_APP_ID = parseInt(data.appId || '0');
-    SECURE_TOKEN = data.tempToken || '';
-    CONFIG_HASH = data.configHash || '';
-    USER_ID = data.userId || '';
-    
     console.log('🔒 ZegoCloud secure config initialized successfully');
   } catch (error) {
     console.error('❌ Failed to load secure ZegoCloud config:', error);
@@ -49,213 +50,105 @@ export async function validateStreamSecurity(zegoStreamId: string): Promise<bool
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        tempToken: SECURE_TOKEN,
         zegoStreamId: zegoStreamId
       })
     });
-    
+
+    if (!response.ok) {
+      return false;
+    }
+
     const data = await response.json();
     return data.validated === true;
   } catch (error) {
-    console.error('❌ Stream validation failed:', error);
+    console.error('Stream validation failed:', error);
     return false;
   }
 }
 
-let zegoEngine: ZegoExpressEngine | null = null;
+// Create ZegoCloud Engine
+export function createZegoEngine(): ZegoExpressEngine {
+  if (!ZEGO_APP_ID) {
+    throw new Error('ZegoCloud App ID not configured');
+  }
 
-export interface ZegoStreamConfig {
-  userID: string;
-  userName: string;
-  roomID: string;
-  streamID: string;
+  zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, 'wss://webliveroom-api.zego.im/ws');
+  console.log('🔧 ZegoCloud Engine created successfully');
+  return zegoEngine;
 }
 
-export class ZegoStreamManager {
-  private engine: ZegoExpressEngine | null = null;
-  private isInitialized = false;
+// Login to room
+export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamConfig): Promise<void> {
+  try {
+    const user = {
+      userID: config.userID,
+      userName: config.userName,
+    };
 
-  async initialize(config: ZegoStreamConfig): Promise<void> {
-    if (this.isInitialized && this.engine) {
-      return;
-    }
-
-    try {
-      if (ZEGO_APP_ID === 0) {
-        throw new Error('ZegoCloud App ID not configured');
-      }
-
-      // Create ZegoExpressEngine instance with secure configuration
-      this.engine = new ZegoExpressEngine(ZEGO_APP_ID, 'wss://webliveroom-api.zego.im/ws');
-      
-      console.log('🔒 ZegoCloud Engine initialized securely');
-
-      this.isInitialized = true;
-      console.log('✅ ZegoCloud Engine initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize ZegoCloud:', error);
-      throw new Error('فشل في تهيئة خدمة البث المباشر');
-    }
+    await engine.loginRoom(config.roomID, user, { userUpdate: true });
+    console.log('✅ Successfully logged into room:', config.roomID);
+  } catch (error) {
+    console.error('❌ Failed to login room:', error);
+    throw new Error('فشل في الدخول إلى غرفة البث');
   }
+}
 
-  async loginRoom(config: ZegoStreamConfig): Promise<void> {
-    if (!this.engine) {
-      throw new Error('Engine not initialized');
-    }
+// Start publishing stream
+export async function startPublishing(engine: ZegoExpressEngine, streamID: string, videoElement?: HTMLVideoElement): Promise<void> {
+  try {
+    // Get user media
+    const localStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
 
-    try {
-      const user = {
-        userID: config.userID,
-        userName: config.userName,
-      };
-
-      await this.engine.loginRoom(
-        config.roomID,
-        {
-          userID: config.userID,
-          userName: config.userName,
-        },
-        {
-          userUpdate: true
-        }
-      );
-      console.log('Logged into room:', config.roomID);
-    } catch (error) {
-      console.error('Failed to login room:', error);
-      throw new Error('فشل في الدخول إلى غرفة البث');
-    }
-  }
-
-  async startPublishing(streamID: string, videoElement?: HTMLVideoElement): Promise<void> {
-    if (!this.engine) {
-      throw new Error('Engine not initialized');
-    }
-
-    try {
-      // Get user media
-      const localStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-      });
-
-      // Display local video if element provided
-      if (videoElement) {
-        videoElement.srcObject = localStream;
-        videoElement.autoplay = true;
-        videoElement.playsInline = true;
-        videoElement.muted = true;
-      }
-
-      // Start publishing stream
-      await this.engine.startPublishingStream(streamID, localStream);
-      console.log('Started publishing stream:', streamID);
-    } catch (error) {
-      console.error('Failed to start publishing:', error);
-      throw new Error('فشل في بدء البث المباشر');
-    }
-  }
-
-  async stopPublishing(streamID: string): Promise<void> {
-    if (!this.engine) {
-      return;
-    }
-
-    try {
-      await this.engine.stopPublishingStream(streamID);
-      console.log('Stopped publishing stream:', streamID);
-    } catch (error) {
-      console.error('Failed to stop publishing:', error);
-    }
-  }
-
-  async startPlaying(streamID: string, videoElement: HTMLVideoElement): Promise<void> {
-    if (!this.engine) {
-      throw new Error('Engine not initialized');
-    }
-
-    try {
-      const remoteStream = await this.engine.startPlayingStream(streamID);
-      videoElement.srcObject = remoteStream;
+    // Display local video if element provided
+    if (videoElement) {
+      videoElement.srcObject = localStream;
       videoElement.autoplay = true;
       videoElement.playsInline = true;
-      console.log('Started playing stream:', streamID);
-    } catch (error) {
-      console.error('Failed to start playing:', error);
-      throw new Error('فشل في تشغيل البث');
-    }
-  }
-
-  async stopPlaying(streamID: string): Promise<void> {
-    if (!this.engine) {
-      return;
+      videoElement.muted = true;
     }
 
-    try {
-      await this.engine.stopPlayingStream(streamID);
-      console.log('Stopped playing stream:', streamID);
-    } catch (error) {
-      console.error('Failed to stop playing:', error);
-    }
-  }
-
-  async logoutRoom(): Promise<void> {
-    if (!this.engine) {
-      return;
-    }
-
-    try {
-      await this.engine.logoutRoom();
-      console.log('Logged out from room');
-    } catch (error) {
-      console.error('Failed to logout room:', error);
-    }
-  }
-
-  async destroy(): Promise<void> {
-    if (!this.engine) {
-      return;
-    }
-
-    try {
-      await this.engine.destroyEngine();
-      this.engine = null;
-      this.isInitialized = false;
-      console.log('ZegoCloud Engine destroyed');
-    } catch (error) {
-      console.error('Failed to destroy engine:', error);
-    }
-  }
-
-  // Event listeners
-  onRoomStateChanged(callback: (roomID: string, state: string, errorCode: number) => void): void {
-    if (this.engine) {
-      this.engine.on('roomStateChanged', callback);
-    }
-  }
-
-  onRoomStreamUpdate(callback: (roomID: string, updateType: string, streamList: any[]) => void): void {
-    if (this.engine) {
-      this.engine.on('roomStreamUpdate', (roomID: string, updateType: string, streamList: any[]) => {
-        console.log(`🔄 Stream update in room ${roomID}: ${updateType}`, streamList);
-        if (updateType === "ADD") {
-          console.log("➕ New stream added");
-        } else if (updateType === "DELETE") {
-          console.log("➖ Stream removed");
-        }
-        callback(roomID, updateType, streamList);
-      });
-    }
-  }
-
-  onPlayerStateUpdate(callback: (streamID: string, state: string, errorCode: number) => void): void {
-    if (this.engine) {
-      this.engine.on('playerStateUpdate', callback);
-    }
+    // Start publishing stream
+    await engine.startPublishingStream(streamID, localStream);
+    console.log('✅ Started publishing stream:', streamID);
+  } catch (error) {
+    console.error('❌ Failed to start publishing:', error);
+    throw new Error('فشل في بدء البث المباشر');
   }
 }
 
-// Create singleton instance
-export const zegoStreamManager = new ZegoStreamManager();
+// Stop publishing stream
+export async function stopPublishing(engine: ZegoExpressEngine, streamID: string): Promise<void> {
+  try {
+    await engine.stopPublishingStream(streamID);
+    console.log('✅ Stopped publishing stream:', streamID);
+  } catch (error) {
+    console.error('❌ Failed to stop publishing:', error);
+  }
+}
+
+// Logout from room
+export async function logoutRoom(engine: ZegoExpressEngine): Promise<void> {
+  try {
+    await engine.logoutRoom();
+    console.log('✅ Logged out from room');
+  } catch (error) {
+    console.error('❌ Failed to logout room:', error);
+  }
+}
+
+// Destroy engine
+export async function destroyEngine(engine: ZegoExpressEngine): Promise<void> {
+  try {
+    await engine.destroyEngine();
+    zegoEngine = null;
+    console.log('✅ ZegoCloud Engine destroyed');
+  } catch (error) {
+    console.error('❌ Failed to destroy engine:', error);
+  }
+}
 
 // Utility functions
 export function generateStreamID(userID: string): string {
@@ -265,4 +158,22 @@ export function generateStreamID(userID: string): string {
 export function generateRoomID(streamTitle: string): string {
   const sanitized = streamTitle.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
   return `room_${sanitized}_${Date.now()}`;
+}
+
+// Room event listener
+export function onRoomStateChanged(engine: ZegoExpressEngine, callback: (roomID: string, state: string, errorCode: number) => void): void {
+  engine.on('roomStateChanged', callback);
+}
+
+// Stream update listener
+export function onRoomStreamUpdate(engine: ZegoExpressEngine, callback: (roomID: string, updateType: string, streamList: any[]) => void): void {
+  engine.on('roomStreamUpdate', (roomID: string, updateType: string, streamList: any[]) => {
+    console.log(`🔄 Stream update in room ${roomID}: ${updateType}`, streamList);
+    if (updateType === "ADD") {
+      console.log("➕ New stream added");
+    } else if (updateType === "DELETE") {
+      console.log("➖ Stream removed");
+    }
+    callback(roomID, updateType, streamList);
+  });
 }

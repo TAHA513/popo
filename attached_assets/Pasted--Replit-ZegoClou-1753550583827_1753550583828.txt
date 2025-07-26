@@ -1,0 +1,110 @@
+✅ جميع الملفات والبيانات التي يجب أن تكون موجودة لكي يعمل البث المباشر داخل Replit باستخدام ZegoCloud دون حفظ البث
+1. المتغيرات البيئية (Env) — يجب أن تكون مضافة في .env داخل Replit
+env
+Copy
+Edit
+VITE_ZEGOCLOUD_APP_ID=123456789
+VITE_ZEGOCLOUD_APP_SIGN=your_app_sign_here
+ZEGO_SERVER_SECRET=your_server_secret_here
+ZEGO_APP_ID=123456789
+✅ ملاحظة:
+
+VITE_ هو للمستخدم في الواجهة الأمامية (client).
+
+ZEGO_ فقط للخادم الخلفي (server) ويجب أن يبقى آمن.
+
+2. الربط مع ZegoCloud SDK في client/src/lib/zegocloud.ts
+ts
+Copy
+Edit
+import { ZegoExpressEngine } from "zego-express-engine-webrtc";
+
+const appID = import.meta.env.VITE_ZEGOCLOUD_APP_ID;
+const appSign = import.meta.env.VITE_ZEGOCLOUD_APP_SIGN;
+
+export const createZegoEngine = () => {
+  const engine = new ZegoExpressEngine(appID, appSign);
+  return engine;
+};
+3. بدء البث في client/src/pages/start-stream.tsx
+ts
+Copy
+Edit
+const startStream = async () => {
+  const engine = createZegoEngine();
+
+  const user = {
+    userID: currentUser.id,
+    userName: currentUser.name,
+  };
+
+  await engine.loginRoom("room123", user, { userUpdate: true });
+  
+  await engine.startPublishingStream("stream_123", localStream);
+
+  // إرسال بيانات البث إلى السيرفر لحفظها مؤقتًا
+  await api.post("/api/streams", {
+    title: "بث مباشر",
+    zegoRoomId: "room123",
+    zegoStreamId: "stream_123"
+  });
+};
+4. حفظ بيانات البث فقط وليس الفيديو — في قاعدة البيانات PostgreSQL
+sql
+Copy
+Edit
+CREATE TABLE streams (
+  id SERIAL PRIMARY KEY,
+  title TEXT,
+  zegoRoomId TEXT,
+  zegoStreamId TEXT,
+  isActive BOOLEAN DEFAULT true,
+  createdAt TIMESTAMP DEFAULT NOW()
+);
+✅ لا تحفظ الفيديو أو الصور
+
+❌ لا حاجة لتخزين ملفات Media
+
+5. في نهاية البث — حذف السجل تلقائيًا
+ts
+Copy
+Edit
+await db.update(streams)
+  .set({ isActive: false })
+  .where(eq(streams.zegoStreamId, "stream_123"));
+أو:
+
+ts
+Copy
+Edit
+await db.delete(streams)
+  .where(eq(streams.zegoStreamId, "stream_123"));
+6. عرض البث في الصفحة الرئيسية فقط أثناء النشاط
+ts
+Copy
+Edit
+const res = await api.get("/api/streams");
+
+const activeStreams = res.data.filter(stream => stream.isActive);
+
+// فقط البثوث النشطة تُعرض في الصفحة الرئيسية
+7. حذف البث عند الانتهاء تلقائيًا
+ts
+Copy
+Edit
+engine.on("roomStateUpdate", (roomID, state, errorCode) => {
+  if (state === "DISCONNECTED") {
+    // البث انتهى → حذف من قاعدة البيانات
+    api.delete(`/api/streams/${roomID}`);
+  }
+});
+✅ هل تحتاج أخذ شيء آخر من ZegoCloud؟
+لا، المفاتيح التي استخدمتها صحيحة ✅
+
+فقط تأكد من:
+تم تفعيل Web SDK من ZegoCloud Console
+
+لم تتجاوز الحد المجاني للبث
+
+لا تستخدم "Test App ID" في الإنتاج
+

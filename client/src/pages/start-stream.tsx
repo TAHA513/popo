@@ -7,7 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, VideoOff, Mic, MicOff, Radio, Users, Eye } from "lucide-react";
 import { useLocation } from "wouter";
-import { zegoStreamManager, generateStreamID, generateRoomID, initializeZegoConfig, validateStreamSecurity, type ZegoStreamConfig } from "@/lib/zegocloud";
+import { 
+  initializeZegoConfig, 
+  validateStreamSecurity, 
+  createZegoEngine,
+  loginRoom,
+  startPublishing,
+  stopPublishing,
+  logoutRoom,
+  destroyEngine,
+  generateStreamID, 
+  generateRoomID, 
+  type ZegoStreamConfig 
+} from "@/lib/zegocloud";
 
 export default function StartStreamPage() {
   const { user } = useAuth();
@@ -23,6 +35,7 @@ export default function StartStreamPage() {
   const [error, setError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const zegoEngineRef = useRef<any>(null);
 
   useEffect(() => {
     return () => {
@@ -102,13 +115,14 @@ export default function StartStreamPage() {
         streamID: zegoStreamId
       };
 
-      // Initialize ZegoCloud manager with security validation
-      console.log('🔧 Initializing ZegoCloud manager...');
-      await zegoStreamManager.initialize(zegoConfig);
-      console.log('✅ ZegoCloud manager initialized');
+      // Create ZegoCloud engine
+      console.log('🔧 Creating ZegoCloud engine...');
+      const engine = createZegoEngine();
+      zegoEngineRef.current = engine;
+      console.log('✅ ZegoCloud engine created');
       
       console.log('🚪 Logging into room:', zegoRoomId);
-      await zegoStreamManager.loginRoom(zegoConfig);
+      await loginRoom(engine, zegoConfig);
       console.log('✅ Successfully logged into room');
       
       // Start local camera and publishing
@@ -117,7 +131,7 @@ export default function StartStreamPage() {
       console.log('✅ Camera started successfully');
       
       console.log('📡 Starting to publish stream:', zegoStreamId);
-      await zegoStreamManager.startPublishing(zegoStreamId, videoRef.current || undefined);
+      await startPublishing(engine, zegoStreamId, videoRef.current || undefined);
       console.log('✅ Stream publishing started successfully');
       
       // End performance monitoring
@@ -167,12 +181,13 @@ export default function StartStreamPage() {
 
   const stopZegoStream = async () => {
     try {
-      if (currentStreamId) {
+      if (currentStreamId && zegoEngineRef.current) {
         // Stop ZegoCloud publishing
         const zegoStreamId = generateStreamID(user?.id || '');
-        await zegoStreamManager.stopPublishing(zegoStreamId);
-        await zegoStreamManager.logoutRoom();
-        await zegoStreamManager.destroy();
+        await stopPublishing(zegoEngineRef.current, zegoStreamId);
+        await logoutRoom(zegoEngineRef.current);
+        await destroyEngine(zegoEngineRef.current);
+        zegoEngineRef.current = null;
 
         // Stop local camera
         if (streamRef.current) {
@@ -194,8 +209,7 @@ export default function StartStreamPage() {
         setLocation("/");
       }
     } catch (error) {
-      console.error("Failed to stop ZegoCloud stream:", error);
-      alert("فشل في إيقاف البث");
+      console.error("Failed to stop stream:", error);
     }
   };
 
