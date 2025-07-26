@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Trophy, Users, Play, Star, Crown, Gift } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import ReclaimCity from "./games/ReclaimCity";
+import AdvancedReclaimCity from "./games/AdvancedReclaimCity";
 
 
 interface GameRoomProps {
@@ -261,7 +261,7 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
     if (gameType === 'reclaim-city') {
       return (
         <div className="fixed inset-0 bg-black z-50">
-          <ReclaimCity 
+          <AdvancedReclaimCity 
             isMultiplayer={players.length > 1}
             playerCount={players.length}
             onGameEnd={handleGameEnd}

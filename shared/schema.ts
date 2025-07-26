@@ -124,6 +124,72 @@ export const pointTransactions = pgTable("point_transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+
+
+// Alliances - Player groups for cooperative gameplay
+export const alliances = pgTable("alliances", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").unique().notNull(),
+  description: text("description"),
+  leaderId: varchar("leader_id").notNull().references(() => users.id),
+  maxMembers: integer("max_members").default(50),
+  currentMembers: integer("current_members").default(1),
+  allianceLevel: integer("alliance_level").default(1),
+  totalScore: integer("total_score").default(0),
+  isPublic: boolean("is_public").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Alliance Members
+export const allianceMembers = pgTable("alliance_members", {
+  id: serial("id").primaryKey(),
+  allianceId: integer("alliance_id").notNull().references(() => alliances.id),
+  memberId: varchar("member_id").notNull().references(() => users.id),
+  role: varchar("role").default("member"), // member, officer, leader
+  joinedAt: timestamp("joined_at").defaultNow(),
+  contributionScore: integer("contribution_score").default(0),
+});
+
+// City Zones - Map areas for Reclaim City game
+export const cityZones = pgTable("city_zones", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  difficulty: varchar("difficulty").notNull(), // easy, medium, hard, extreme
+  isLiberated: boolean("is_liberated").default(false),
+  liberationProgress: integer("liberation_progress").default(0), // 0-100%
+  requiredPlayers: integer("required_players").default(1),
+  rewards: jsonb("rewards"), // XP, gold, items
+  enemyTypes: jsonb("enemy_types"), // Array of enemy configurations
+  positionX: integer("position_x").notNull(),
+  positionY: integer("position_y").notNull(),
+  unlockLevel: integer("unlock_level").default(1),
+});
+
+// Daily Missions
+export const dailyMissions = pgTable("daily_missions", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description").notNull(),
+  gameType: varchar("game_type").notNull(),
+  targetValue: integer("target_value").notNull(), // e.g., kill 10 enemies
+  rewardPoints: integer("reward_points").notNull(),
+  rewardItems: jsonb("reward_items"), // Additional rewards
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Player Mission Progress
+export const playerMissionProgress = pgTable("player_mission_progress", {
+  id: serial("id").primaryKey(),
+  playerId: varchar("player_id").notNull().references(() => users.id),
+  missionId: integer("mission_id").notNull().references(() => dailyMissions.id),
+  currentProgress: integer("current_progress").default(0),
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Followers table
 export const followers = pgTable("followers", {
   id: serial("id").primaryKey(),
