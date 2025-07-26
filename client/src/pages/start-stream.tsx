@@ -142,8 +142,14 @@ export default function StartStreamPage() {
       console.time('🏃‍♂️ Stream initialization time');
       
       // Initialize secure ZegoCloud configuration
-      console.log('🔒 Initializing secure ZegoCloud configuration...');
-      await initializeZegoConfig();
+      console.log('🔒 Step 2.1: Initializing secure ZegoCloud configuration...');
+      try {
+        await initializeZegoConfig();
+        console.log('✅ Step 2.1 complete: ZegoCloud config initialized');
+      } catch (initError) {
+        console.error('❌ ZegoCloud initialization failed:', initError);
+        throw new Error(`فشل في تهيئة ZegoCloud: ${initError instanceof Error ? initError.message : initError}`);
+      }
       
       // Generate unique IDs for this stream
       const zegoStreamId = generateStreamID(user.id);
@@ -209,9 +215,15 @@ export default function StartStreamPage() {
       console.log('✅ Step 2 complete: ZegoCloud engine created');
       
       console.log('🚪 Step 3: Logging into room:', zegoRoomId);
-      console.log('🔍 ZegoConfig being passed:', zegoConfig);
-      await loginRoom(engine, zegoConfig);
-      console.log('✅ Step 3 complete: Successfully logged into room');
+      console.log('🔍 ZegoConfig being passed to loginRoom:', zegoConfig);
+      
+      try {
+        await loginRoom(engine, zegoConfig);
+        console.log('✅ Step 3 complete: Successfully logged into room');
+      } catch (loginError) {
+        console.error('❌ loginRoom failed:', loginError);
+        throw new Error(`فشل في تسجيل الدخول لغرفة البث: ${loginError instanceof Error ? loginError.message : loginError}`);
+      }
       
       // Start publishing with existing camera stream
       console.log('📡 Step 4: Starting stream publishing...');

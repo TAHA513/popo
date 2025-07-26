@@ -145,10 +145,18 @@ export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamCon
       userName: userName
     });
     
+    // Check if userID is actually filled
+    if (!userID || userID.trim() === '') {
+      console.error('❌ userID is empty or null:', { userID, config });
+      throw new Error('معرف المستخدم فارغ - يجب إعادة تسجيل الدخول');
+    }
+    
     const loginResult = await (engine as any).loginRoom(config.roomID, {
       userID: userID,
       userName: userName,
     }, { userUpdate: true });
+    
+    console.log('🔑 loginRoom result:', loginResult);
     
     // Check for login errors
     if (loginResult && loginResult.errorCode !== 0) {
