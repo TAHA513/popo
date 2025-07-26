@@ -48,21 +48,65 @@ export default function StartStreamPage() {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: isVideoEnabled,
-        audio: isAudioEnabled
-      });
+      console.log("🎥 Requesting camera and microphone access...");
       
+      const constraints = {
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.autoplay = true;
         videoRef.current.playsInline = true;
-        videoRef.current.muted = true; // Prevent feedback
+        videoRef.current.muted = true;
+        
+        // Wait for video to load
+        await new Promise<void>((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => resolve();
+          } else {
+            resolve();
+          }
+        });
       }
-    } catch (error) {
-      console.error("خطأ في الوصول للكاميرا:", error);
-      alert("فشل في الوصول للكاميرا. يرجى التأكد من أن المتصفح لديه صلاحية الوصول للكاميرا والميكروفون.");
+      
+      console.log("📹 Camera and microphone access granted successfully");
+      console.log("📊 Stream details:", {
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length,
+        videoLabel: stream.getVideoTracks()[0]?.label || 'No video',
+        audioLabel: stream.getAudioTracks()[0]?.label || 'No audio'
+      });
+      
+    } catch (error: any) {
+      console.error("❌ Failed to access camera:", error);
+      
+      let errorMessage = "فشل في الوصول إلى الكاميرا";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "يجب السماح بالوصول إلى الكاميرا والمايكروفون من إعدادات المتصفح";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "لم يتم العثور على كاميرا أو مايكروفون متصل بالجهاز";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "الكاميرا أو المايكروفون قيد الاستخدام من تطبيق آخر";
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = "إعدادات الكاميرا المطلوبة غير مدعومة";
+      }
+      
+      alert(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
@@ -115,6 +159,11 @@ export default function StartStreamPage() {
         streamID: zegoStreamId
       };
 
+      // Start camera first to ensure we have stream
+      console.log('📹 Starting camera...');
+      await startCamera();
+      console.log('✅ Camera started successfully');
+
       // Create ZegoCloud engine
       console.log('🔧 Creating ZegoCloud engine...');
       const engine = createZegoEngine();
@@ -125,14 +174,14 @@ export default function StartStreamPage() {
       await loginRoom(engine, zegoConfig);
       console.log('✅ Successfully logged into room');
       
-      // Start local camera and publishing
-      console.log('📹 Starting camera and publishing stream...');
-      await startCamera();
-      console.log('✅ Camera started successfully');
-      
-      console.log('📡 Starting to publish stream:', zegoStreamId);
-      await startPublishing(engine, zegoStreamId, videoRef.current || undefined);
-      console.log('✅ Stream publishing started successfully');
+      // Start publishing with existing camera stream
+      console.log('📡 Starting stream publishing...');
+      if (streamRef.current) {
+        await engine.startPublishingStream(zegoStreamId, streamRef.current);
+        console.log('✅ Started publishing stream:', zegoStreamId);
+      } else {
+        throw new Error('لا يوجد تدفق كاميرا متاح للبث');
+      }
       
       // End performance monitoring
       console.timeEnd('🏃‍♂️ Stream initialization time');
