@@ -64,6 +64,7 @@ export default function SimpleStreamPage() {
         body: JSON.stringify({
           title: streamTitle || 'بث مباشر جديد',
           description: 'بث مباشر من البث السريع',
+          category: 'بث سريع',
           zegoRoomId: `room_${user.id}_${Date.now()}`,
           zegoStreamId: `stream_${user.id}_${Date.now()}`
         })

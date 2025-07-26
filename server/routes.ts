@@ -774,6 +774,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hostId: req.user.id,
         zegoRoomId: req.body.zegoRoomId,
         zegoStreamId: req.body.zegoStreamId,
+        category: 'بث سريع', // Add required category field
+        thumbnailUrl: null, // Add optional thumbnail field
         isLive: true,
         viewerCount: 0,
         startedAt: new Date()
