@@ -118,22 +118,10 @@ class GameScene extends Phaser.Scene {
     this.audioManager = new SimpleAudioManager();
     this.audioManager.play('background');
     
-    // Set camera background color to sky blue
-    this.cameras.main.setBackgroundColor('#87CEEB');
-    
-    // Create visible background
-    this.background = this.add.rectangle(400, 300, 800, 600, 0x87CEEB);
-    
-    // Add ground
-    const ground = this.add.rectangle(400, 550, 800, 100, 0x228B22);
-    
-    // Add simple buildings as rectangles
-    for (let i = 0; i < 8; i++) {
-      const x = (i * 100) + 50;
-      const height = 80 + Math.random() * 100;
-      const building = this.add.rectangle(x, 500 - height/2, 80, height, 0x696969);
-      building.setStroke(2, 0x000000);
-    }
+    // Create scrolling background
+    this.background = this.add.tileSprite(0, 0, 800, 600, 'zone');
+    this.background.setOrigin(0, 0);
+    this.background.setTint(0x333333);
 
     // Create player
     this.player = this.physics.add.sprite(400, 500, 'player');
@@ -197,13 +185,13 @@ class GameScene extends Phaser.Scene {
     // UI Text
     this.add.text(10, 10, 'استعادة المدينة', {
       fontSize: '24px',
-      color: '#000000',
+      color: '#ffffff',
       fontFamily: 'Arial'
     });
 
     this.add.text(10, 40, 'WASD أو الأسهم للحركة | مسطرة أو النقر للرماية', {
       fontSize: '12px',
-      color: '#333333',
+      color: '#cccccc',
       fontFamily: 'Arial'
     });
   }
