@@ -72,8 +72,9 @@ export function createZegoEngine(): ZegoExpressEngine {
     throw new Error('ZegoCloud App ID not configured');
   }
 
+  // Use proper ZegoCloud server URL format
   zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, 'wss://webliveroom-api.zego.im/ws');
-  console.log('🔧 ZegoCloud Engine created successfully');
+  console.log('🔧 ZegoCloud Engine created successfully with App ID:', ZEGO_APP_ID);
   return zegoEngine;
 }
 

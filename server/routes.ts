@@ -64,17 +64,25 @@ function validateSecureToken(token: string, userId: string): boolean {
 // Encrypted ZegoCloud configuration - never expose raw secrets
 function getSecureZegoConfig() {
   const appId = process.env.ZEGO_APP_ID;
+  const appSign = process.env.ZEGO_APP_SIGN;
   const serverSecret = process.env.ZEGO_SERVER_SECRET;
   
-  if (!appId || !serverSecret) {
+  if (!appId || !appSign || !serverSecret) {
+    console.error('Missing ZegoCloud credentials:', {
+      appId: !!appId,
+      appSign: !!appSign,
+      serverSecret: !!serverSecret
+    });
     throw new Error('ZegoCloud credentials not configured');
   }
   
-  // Only return app ID, server secret stays on server
+  console.log('🔒 ZegoCloud configuration loaded successfully');
+  
+  // Only return app ID, all secrets stay on server
   return {
     appId: appId,
     // Generate hash for validation without exposing secret
-    configHash: crypto.createHash('sha256').update(serverSecret + appId).digest('hex').substring(0, 16)
+    configHash: crypto.createHash('sha256').update(serverSecret + appId + appSign).digest('hex').substring(0, 16)
   };
 }
 
