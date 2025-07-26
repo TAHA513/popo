@@ -5,7 +5,6 @@ import { Trophy, Users, Play, Star, Crown, Gift } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import RealReclaimCity from "./games/RealReclaimCity";
-import SimpleGame from "./games/SimpleGame";
 
 
 
@@ -259,15 +258,14 @@ export default function GameRoom({ gameType, gameName, gameEmoji, onClose }: Gam
   }
 
   if (gameStarted) {
-    // استعادة المدينة - اللعبة البسيطة للاختبار
+    // استعادة المدينة - اللعبة الاحترافية
     if (gameType === 'reclaim-city') {
       return (
         <div className="fixed inset-0 bg-black z-50">
-          <SimpleGame 
-            onClose={() => {
-              setGameStarted(false);
-              onClose();
-            }}
+          <RealReclaimCity 
+            isMultiplayer={players.length > 1}
+            playerCount={players.length}
+            onGameEnd={handleGameEnd}
           />
         </div>
       );

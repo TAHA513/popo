@@ -121,51 +121,24 @@ class GameScene extends Phaser.Scene {
     // Set camera background color to sky blue
     this.cameras.main.setBackgroundColor('#87CEEB');
     
-    // Create large visible background
-    const backgroundGraphics = this.add.graphics();
-    backgroundGraphics.fillStyle(0x87CEEB); // Sky blue
-    backgroundGraphics.fillRect(0, 0, 800, 600);
+    // Create visible background
+    this.background = this.add.rectangle(400, 300, 800, 600, 0x87CEEB);
     
-    // Add large ground
-    const groundGraphics = this.add.graphics();
-    groundGraphics.fillStyle(0x228B22); // Green
-    groundGraphics.fillRect(0, 500, 800, 100);
+    // Add ground
+    const ground = this.add.rectangle(400, 550, 800, 100, 0x228B22);
     
-    // Add large buildings
-    for (let i = 0; i < 6; i++) {
-      const x = i * 130 + 65;
-      const height = 150 + Math.random() * 200;
-      const buildingGraphics = this.add.graphics();
-      buildingGraphics.fillStyle(0x696969); // Gray
-      buildingGraphics.lineStyle(3, 0x000000); // Black border
-      buildingGraphics.fillRect(x - 50, 500 - height, 100, height);
-      buildingGraphics.strokeRect(x - 50, 500 - height, 100, height);
+    // Add simple buildings as rectangles
+    for (let i = 0; i < 8; i++) {
+      const x = (i * 100) + 50;
+      const height = 80 + Math.random() * 100;
+      const building = this.add.rectangle(x, 500 - height/2, 80, height, 0x696969);
+      building.setStroke(2, 0x000000);
     }
-    
-    // Add large title text
-    this.add.text(400, 50, 'استعادة المدينة', {
-      fontSize: '48px',
-      color: '#000000',
-      fontFamily: 'Arial'
-    }).setOrigin(0.5);
-    
-    // Add visible controls text
-    this.add.text(400, 100, 'WASD للحركة - SPACE للرماية', {
-      fontSize: '24px',
-      color: '#FFFFFF',
-      fontFamily: 'Arial'
-    }).setOrigin(0.5);
-    
-    // Use existing tileSprite for scrolling effect
-    this.background = this.add.tileSprite(0, 0, 800, 600, 'zone');
-    this.background.setTint(0x87CEEB);
-    this.background.setAlpha(0.3); // Make it semi-transparent
 
-    // Create large visible player
-    this.player = this.physics.add.sprite(400, 450, 'player');
+    // Create player
+    this.player = this.physics.add.sprite(400, 500, 'player');
     this.player.setCollideWorldBounds(true);
-    this.player.setScale(3); // Much larger player
-    this.player.setTint(0x0000FF); // Blue color
+    this.player.setScale(1.2);
 
     // Create groups
     this.enemies = this.physics.add.group();
@@ -173,15 +146,14 @@ class GameScene extends Phaser.Scene {
     this.explosions = this.physics.add.group();
     this.cityZones = this.physics.add.group();
 
-    // Create large visible city zones to liberate
-    for (let i = 0; i < 3; i++) {
+    // Create city zones to liberate
+    for (let i = 0; i < 5; i++) {
       const zone = this.cityZones.create(
-        150 + (i * 250),
-        300,
+        Phaser.Math.Between(50, 750),
+        Phaser.Math.Between(50, 200),
         'zone'
       );
-      zone.setTint(0xFF0000); // Red color for visibility
-      zone.setScale(2); // Larger zones
+      zone.setTint(0x444444);
       zone.body.setImmovable(true);
     }
 
@@ -492,13 +464,7 @@ const RealReclaimCity: React.FC<RealReclaimCityProps> = ({
         width: 800,
         height: 600,
         parent: gameRef.current,
-        backgroundColor: '#87CEEB',
-        scale: {
-          mode: Phaser.Scale.FIT,
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-          width: 800,
-          height: 600
-        },
+        backgroundColor: '#2c3e50',
         physics: {
           default: 'arcade',
           arcade: {
