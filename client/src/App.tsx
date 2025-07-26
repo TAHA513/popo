@@ -55,6 +55,7 @@ function Router() {
           <Route path="/feed" component={FeedPage} />
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
           <Route path="/games" component={LazyComponents.GamesPage} />
+          <Route path="/gaming-hall" component={LazyComponents.GamingHallPage} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
