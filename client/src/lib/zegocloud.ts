@@ -9,6 +9,7 @@ export interface ZegoStreamConfig {
 
 // ZegoCloud configuration - loaded from secure server endpoint
 let ZEGO_APP_ID: number | null = null;
+let ZEGO_APP_SIGN: string | null = null;
 let zegoEngine: ZegoExpressEngine | null = null;
 
 // Initialize with secure configuration from server
@@ -33,6 +34,7 @@ export async function initializeZegoConfig() {
     }
     
     ZEGO_APP_ID = parseInt(data.appId || '0');
+    ZEGO_APP_SIGN = data.appSign || '';
     console.log('🔒 ZegoCloud secure config initialized successfully');
   } catch (error) {
     console.error('❌ Failed to load secure ZegoCloud config:', error);
@@ -66,14 +68,20 @@ export async function validateStreamSecurity(zegoStreamId: string): Promise<bool
   }
 }
 
-// Create ZegoCloud Engine
+// Create ZegoCloud Engine  
 export function createZegoEngine(): ZegoExpressEngine {
-  if (!ZEGO_APP_ID) {
-    throw new Error('ZegoCloud App ID not configured');
+  if (!ZEGO_APP_ID || !ZEGO_APP_SIGN) {
+    throw new Error('ZegoCloud credentials not configured');
   }
 
-  // Use proper ZegoCloud server URL format
-  zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, 'wss://webliveroom-api.zego.im/ws');
+  // Create engine with both App ID and App Sign
+  zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, ZEGO_APP_SIGN);
+  
+  // Set up engine logging
+  zegoEngine.on('roomStateUpdate', (roomID: string, state: string, errorCode: number, extendedData: string) => {
+    console.log(`🏠 Room state update: ${roomID} - ${state} (${errorCode})`);
+  });
+  
   console.log('🔧 ZegoCloud Engine created successfully with App ID:', ZEGO_APP_ID);
   return zegoEngine;
 }
@@ -81,12 +89,12 @@ export function createZegoEngine(): ZegoExpressEngine {
 // Login to room
 export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamConfig): Promise<void> {
   try {
-    const user = {
-      userID: config.userID,
-      userName: config.userName,
-    };
-
-    await engine.loginRoom(config.roomID, user);
+    // ZegoCloud expects specific format for loginRoom
+    await engine.loginRoom(
+      config.roomID,
+      config.userID,
+      config.userName
+    );
     console.log('✅ Successfully logged into room:', config.roomID);
   } catch (error) {
     console.error('❌ Failed to login room:', error);

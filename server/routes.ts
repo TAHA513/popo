@@ -714,6 +714,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         appId: secureConfig.appId,
+        // Server provides app sign for client SDK initialization
+        appSign: process.env.ZEGO_APP_SIGN,
         // Temporary token for stream authentication
         tempToken: tempToken,
         userId: req.user.id,
