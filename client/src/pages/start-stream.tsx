@@ -156,10 +156,20 @@ export default function StartStreamPage() {
         throw new Error('فشل في التحقق من أمان البث');
       }
       
-      // Create ZegoCloud stream configuration
+      // Create ZegoCloud stream configuration with guaranteed non-empty userID
+      const uniqueUserID = user.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const displayName = user.firstName || user.username || 'User';
+      
+      console.log('👤 User details for stream:', {
+        originalUserId: user.id,
+        uniqueUserID,
+        displayName,
+        userObject: user
+      });
+      
       const zegoConfig: ZegoStreamConfig = {
-        userID: user.id,
-        userName: user.firstName || user.username || 'User',
+        userID: uniqueUserID,
+        userName: displayName,
         roomID: zegoRoomId,
         streamID: zegoStreamId
       };
@@ -195,8 +205,9 @@ export default function StartStreamPage() {
           streamActive: streamRef.current.active
         });
         
-        await engine.startPublishingStream(zegoStreamId, streamRef.current);
+        const publishResult = await engine.startPublishingStream(zegoStreamId, streamRef.current);
         console.log('✅ Step 4 complete: Started publishing stream successfully:', zegoStreamId);
+        console.log('📊 Publish result:', publishResult);
       } else {
         console.error('❌ No camera stream available for publishing');
         throw new Error('لا يوجد تدفق كاميرا متاح للبث');
@@ -257,10 +268,14 @@ export default function StartStreamPage() {
       if (error instanceof Error) {
         if (error.message.includes('camera') || error.message.includes('Camera')) {
           errorMessage = "فشل في الوصول إلى الكاميرا. يرجى التأكد من السماح بالوصول للكاميرا والمايكروفون.";
-        } else if (error.message.includes('room') || error.message.includes('Room')) {
-          errorMessage = "فشل في الاتصال بغرفة البث. يرجى التحقق من الاتصال بالإنترنت.";
-        } else if (error.message.includes('stream') || error.message.includes('Stream')) {
+        } else if (error.message.includes('room') || error.message.includes('Room') || error.message.includes('الغرفة')) {
+          errorMessage = "فشل في الاتصال بغرفة البث. يرجى التحقق من الاتصال بالإنترنت والمحاولة مرة أخرى.";
+        } else if (error.message.includes('stream') || error.message.includes('Stream') || error.message.includes('البث')) {
           errorMessage = "فشل في بدء البث. يرجى المحاولة مرة أخرى.";
+        } else if (error.message.includes('network timeout') || error.message.includes('timeout')) {
+          errorMessage = "انقطع الاتصال بالإنترنت. يرجى التحقق من الاتصال والمحاولة مرة أخرى.";
+        } else if (error.message.includes('userID') || error.message.includes('معرف')) {
+          errorMessage = "خطأ في معرف المستخدم. يرجى تسجيل الخروج وإعادة تسجيل الدخول.";
         }
       }
       

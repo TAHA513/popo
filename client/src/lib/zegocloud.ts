@@ -83,9 +83,20 @@ export function createZegoEngine(): ZegoExpressEngine {
   // Create engine with both App ID and App Sign
   zegoEngine = new ZegoExpressEngine(ZEGO_APP_ID, ZEGO_APP_SIGN);
   
-  // Set up engine logging
+  // Set up engine logging with correct event handlers
   zegoEngine.on('roomStateUpdate', (roomID: string, state: string, errorCode: number, extendedData: string) => {
     console.log(`🏠 Room state update: ${roomID} - ${state} (${errorCode})`);
+    if (errorCode !== 0) {
+      console.error(`❌ Room state error: ${errorCode} - ${extendedData}`);
+    }
+  });
+  
+  // Use correct event for stream updates (not streamAdded)
+  zegoEngine.on('roomStreamUpdate', (roomID: string, updateType: string, streamList: any[]) => {
+    console.log(`📡 Stream update in room ${roomID}: ${updateType}`, streamList);
+    if (updateType === 'ADD') {
+      console.log('✅ Stream successfully added to room');
+    }
   });
   
   console.log('🔧 ZegoCloud Engine created successfully with App ID:', ZEGO_APP_ID);
@@ -105,8 +116,17 @@ export async function loginRoom(engine: ZegoExpressEngine, config: ZegoStreamCon
     const user: ZegoUser = { userID, userName };
     console.log('🔑 Final user object:', user);
     
-    // Use correct ZegoCloud loginRoom method signature: loginRoom(roomID, user, config)
-    await (engine as any).loginRoom(config.roomID, user, { userUpdate: true });
+    // Use correct ZegoCloud loginRoom method signature with proper parameters
+    const loginResult = await (engine as any).loginRoom(config.roomID, {
+      userID: userID,
+      userName: userName,
+    }, { userUpdate: true });
+    
+    // Check for login errors
+    if (loginResult && loginResult.errorCode !== 0) {
+      console.error('❌ Login failed with error:', loginResult.errorMessage);
+      throw new Error(`فشل الاتصال بالغرفة: ${loginResult.errorMessage}`);
+    }
     console.log('✅ Successfully logged into room:', config.roomID);
   } catch (error) {
     console.error('❌ Failed to login room:', error);
