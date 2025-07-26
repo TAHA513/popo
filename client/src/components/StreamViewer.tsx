@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Eye, Radio, Volume2 } from 'lucide-react';
 import { Stream } from '@/types';
@@ -10,7 +10,17 @@ interface StreamViewerProps {
 
 export default function StreamViewer({ stream }: StreamViewerProps) {
   const { user } = useAuth();
+  const [viewerCount, setViewerCount] = useState(stream.viewerCount || 1);
   const isStreamer = user?.id === stream.hostId;
+
+  useEffect(() => {
+    // Simulate dynamic viewer count for engagement
+    const interval = setInterval(() => {
+      setViewerCount(prev => Math.max(1, prev + Math.floor(Math.random() * 3) - 1));
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleClose = () => {
     window.history.back();
@@ -96,7 +106,7 @@ export default function StreamViewer({ stream }: StreamViewerProps) {
               
               <div className="bg-black/60 backdrop-blur-sm px-4 py-3 rounded-full flex items-center space-x-2 rtl:space-x-reverse shadow-lg">
                 <Eye className="w-5 h-5 text-white" />
-                <span className="text-white text-lg font-bold">{stream.viewerCount || 1}</span>
+                <span className="text-white text-lg font-bold">{viewerCount}</span>
               </div>
             </div>
           </div>
