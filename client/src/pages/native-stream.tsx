@@ -86,14 +86,10 @@ export default function NativeStreamPage() {
         showLayoutButton: false,
         showLeaveRoomConfirmDialog: false,
         
-        // إعدادات البث المحسنة للمشاهدين
+        // إعدادات البث
         layout: "Grid",
-        maxUsers: 50,
+        maxUsers: 10,
         videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
-        enableAutoPlayVideoInSafariWebView: true,
-        enableAutoPlayAudioInSafariWebView: true,
-        preloadVideo: true,
-        preloadAudio: true,
         
         onJoinRoom: () => {
           console.log('✅ Host joined room successfully!');

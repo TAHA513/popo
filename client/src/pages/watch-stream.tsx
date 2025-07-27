@@ -142,10 +142,7 @@ export default function WatchStreamPage() {
           layout: "Grid",
           maxUsers: 50,
           videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
-          enableAutoPlayVideoInSafariWebView: true,
-          enableAutoPlayAudioInSafariWebView: true,
-          preloadVideo: true,
-          preloadAudio: true,
+          facingMode: "user",
           onJoinRoom: () => {
             setIsConnected(true);
           },

@@ -66,8 +66,6 @@ function Router() {
           <Route path="/simple-stream" component={() => <SimpleStreamPage />} />
           <Route path="/unified-stream" component={UnifiedStreamPage} />
           <Route path="/native-stream" component={() => import('./pages/native-stream')} />
-          <Route path="/simple-native-stream" component={() => import('./pages/simple-native-stream')} />
-          <Route path="/simple-watch" component={() => import('./pages/simple-watch')} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/stream-test" component={StreamTestPage} />
