@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "./db";

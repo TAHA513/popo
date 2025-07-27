@@ -42,7 +42,7 @@ export default function WatchStreamPage() {
   const { data: realComments, refetch: refetchComments } = useQuery<any[]>({
     queryKey: ['/api/streams', id, 'messages'],
     enabled: !!id,
-    refetchInterval: 2000, // تحديث كل ثانيتين لعرض التعليقات مباشرة
+    refetchInterval: 1000, // تحديث كل ثانية لعرض التعليقات مباشرة
   });
 
   // جلب بيانات البث
@@ -151,44 +151,36 @@ export default function WatchStreamPage() {
     };
   }, [id, user]);
 
-  // إضافة تعليق جديد عبر WebSocket
-  const addComment = () => {
+  // إضافة تعليق جديد عبر API
+  const addComment = async () => {
     if (!newComment.trim() || !user || !id) return;
     
     try {
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
-      const ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        ws.send(JSON.stringify({
-          type: 'chat_message',
-          streamId: parseInt(id),
-          userId: user.id,
-          text: newComment.trim(),
-          user: {
-            id: user.id,
-            username: user.username,
-            firstName: user.firstName,
-            profileImageUrl: user.profileImageUrl
-          }
-        }));
-        
-        // إضافة التعليق محلياً أيضاً
-        const localComment = {
-          id: Date.now(),
-          username: user.username || 'مستخدم',
-          text: newComment.trim(),
-          timestamp: Date.now(),
-          userId: user.id
-        };
-        setComments(prev => [...prev, localComment]);
-        setNewComment('');
-        
-        ws.close();
+      console.log('💬 إرسال تعليق جديد:', { streamId: id, message: newComment.trim() });
+      
+      const response = await apiRequest(`/api/streams/${id}/messages`, 'POST', {
+        message: newComment.trim()
+      });
+      
+      console.log('✅ تم إرسال التعليق بنجاح:', response);
+      
+      // إضافة التعليق محلياً للعرض الفوري
+      const localComment = {
+        id: response.id || Date.now(),
+        username: user.username || user.firstName || 'مستخدم',
+        text: newComment.trim(),
+        timestamp: Date.now(),
+        userId: user.id
       };
+      
+      setComments(prev => [...prev, localComment]);
+      setNewComment('');
+      
+      // تحديث فوري للتعليقات
+      refetchComments();
+      
     } catch (error) {
-      console.error('خطأ في إرسال التعليق:', error);
+      console.error('❌ خطأ في إرسال التعليق:', error);
     }
   };
 
