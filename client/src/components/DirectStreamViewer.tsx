@@ -117,7 +117,7 @@ export default function DirectStreamViewer({ stream }: DirectStreamViewerProps) 
       await zg.loginRoom(roomId, {
         userID: config.userID || 'viewer_' + Date.now(),
         userName: config.userName || 'مشاهد'
-      }, config.token);
+      }, config.token || '');
 
       console.log('✅ Successfully logged into ZegoCloud room');
 
@@ -125,10 +125,7 @@ export default function DirectStreamViewer({ stream }: DirectStreamViewerProps) 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // بدء تشغيل البث مع تحديد عنصر الفيديو
-      const remoteStream = await zg.startPlayingStream(streamId, {
-        video: videoRef.current,
-        audio: true
-      });
+      const remoteStream = await zg.startPlayingStream(streamId);
         
       if (videoRef.current && remoteStream) {
         // تطبيق خصائص الفيديو

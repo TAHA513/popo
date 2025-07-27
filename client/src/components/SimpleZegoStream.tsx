@@ -75,7 +75,7 @@ export default function SimpleZegoStream({ stream, isStreamer }: SimpleZegoStrea
       await zg.loginRoom(roomId, {
         userID: config.userID || (isStreamer ? `host_${stream.hostId}` : `viewer_${Date.now()}`),
         userName: config.userName || (isStreamer ? user?.username || 'مضيف' : 'مشاهد')
-      });
+      }, config.token || '');
 
       console.log('✅ Successfully logged into ZegoCloud room');
 
@@ -223,7 +223,7 @@ export default function SimpleZegoStream({ stream, isStreamer }: SimpleZegoStrea
       
       ctx.font = '80px Arial';
       ctx.fillStyle = '#34D399';
-      ctx.fillText(stream.title || 'بث مباشر', canvas.width / 2, canvas.height / 2 + 40);
+      ctx.fillText((stream as any).title || 'بث مباشر', canvas.width / 2, canvas.height / 2 + 40);
       
       // مؤشر نشط
       const pulseSize = 60 + Math.sin(frame * 0.15) * 30;
@@ -242,9 +242,9 @@ export default function SimpleZegoStream({ stream, isStreamer }: SimpleZegoStrea
     
     animate();
     
-    const stream = canvas.captureStream(30);
+    const canvasStream = canvas.captureStream(30);
     if (videoRef.current) {
-      videoRef.current.srcObject = stream;
+      videoRef.current.srcObject = canvasStream;
       videoRef.current.muted = false;
     }
   };

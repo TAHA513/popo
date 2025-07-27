@@ -64,7 +64,7 @@ export default function RealLiveStreamer({ stream }: RealLiveStreamerProps) {
       await zg.loginRoom(roomId, {
         userID: config.userID || 'host_' + stream.hostId,
         userName: config.userName || user?.username || 'مضيف'
-      }, config.token);
+      }, config.token || '');
 
       console.log('✅ Successfully logged into ZegoCloud room as host');
 
