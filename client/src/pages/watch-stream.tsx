@@ -94,7 +94,7 @@ export default function WatchStreamPage() {
     }
   };
 
-  // الاتصال بـ ZegoCloud لمشاهدة البث
+  // الاتصال التلقائي بـ ZegoCloud لمشاهدة البث مباشرة
   useEffect(() => {
     if (!stream || !user || !streamContainerRef.current || zegoInstance || isConnected) {
       return;
@@ -102,10 +102,11 @@ export default function WatchStreamPage() {
 
     const connectToStream = async () => {
       try {
+        console.log('🔄 بدء الاتصال التلقائي بالبث...');
         const config = await apiRequest('/api/zego-config', 'GET');
         if (!config.appId || !stream.zegoRoomId) return;
 
-        const viewerUserId = String(user.id); // استخدام user ID مباشرة كـ string
+        const viewerUserId = String(user.id);
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
           parseInt(config.appId),
           config.appSign,
@@ -117,6 +118,7 @@ export default function WatchStreamPage() {
         const zp = ZegoUIKitPrebuilt.create(kitToken);
         setZegoInstance(zp);
 
+        // الانضمام التلقائي للبث
         await zp.joinRoom({
           container: streamContainerRef.current,
           scenario: {
@@ -139,10 +141,14 @@ export default function WatchStreamPage() {
           showLeaveRoomConfirmDialog: false,
           enableVideoAutoplay: true,
           enableAudioAutoplay: true,
+          autoStart: true, // البدء التلقائي
           layout: "Grid",
           maxUsers: 50,
           videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
           facingMode: "user",
+          preJoinViewConfig: {
+            title: '', // إخفاء شاشة ما قبل الانضمام
+          },
           onJoinRoom: () => {
             console.log('✅ Viewer joined room successfully!');
             console.log('Room ID:', stream.zegoRoomId);
@@ -166,6 +172,7 @@ export default function WatchStreamPage() {
       }
     };
 
+    // الاتصال التلقائي والفوري
     connectToStream();
 
     return () => {
@@ -177,7 +184,7 @@ export default function WatchStreamPage() {
         }
       }
     };
-  }, [stream, user]);
+  }, [stream, user]); // التشغيل التلقائي بمجرد توفر البيانات
 
   // تنسيق مدة البث
   const formatDuration = (seconds: number) => {

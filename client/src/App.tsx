@@ -72,6 +72,7 @@ function Router() {
         <Route path="/test-zego" component={() => import('./pages/test-zego-stream')} />
         <Route path="/test-transmission" component={() => import('./pages/test-stream-transmission')} />
         <Route path="/enhanced-stream" component={() => import('./pages/enhanced-unified-stream')} />
+        <Route path="/simple-live" component={() => import('./pages/simple-live-stream')} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />
