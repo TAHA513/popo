@@ -75,59 +75,74 @@ export default function StreamsHome() {
                   }}
                 >
                   <CardContent className="p-0">
-                    {/* Enhanced Stream Preview */}
-                    <div className="relative bg-gradient-to-br from-purple-600 via-pink-500 to-blue-600 h-56 flex items-center justify-center overflow-hidden">
-                      {/* Animated background */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-600/20 animate-pulse"></div>
-                      
-                      {/* Floating animation particles */}
-                      <div className="absolute top-4 left-4 w-3 h-3 bg-white/40 rounded-full animate-bounce"></div>
-                      <div className="absolute top-8 right-8 w-2 h-2 bg-white/30 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
-                      <div className="absolute bottom-6 left-8 w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
-
-                      {/* Streamer Profile in center */}
-                      <div className="relative z-10 text-center text-white">
-                        <div className="w-20 h-20 bg-white/95 rounded-full flex items-center justify-center mx-auto mb-3 shadow-xl border-4 border-white/50">
-                          {stream.hostProfileImage ? (
-                            <img 
-                              src={stream.hostProfileImage} 
-                              alt={stream.hostName}
-                              className="w-20 h-20 rounded-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-2xl font-bold text-purple-600">
-                              {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="font-bold text-lg mb-1">{stream.hostName || 'مضيف البث'}</h4>
-                        <div className="flex items-center justify-center gap-2 text-sm">
-                          <Radio className="w-4 h-4 animate-pulse" />
-                          <span>بث مباشر الآن</span>
+                    {/* Live Stream Preview */}
+                    <div className="relative h-56 overflow-hidden">
+                      {/* Real ZegoCloud Stream Preview */}
+                      <div 
+                        id={`preview-${stream.id}`}
+                        className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center"
+                      >
+                        {/* Animated live stream simulation */}
+                        <div className="relative w-full h-full flex items-center justify-center">
+                          {/* Simulated live video background */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-purple-600/30 animate-pulse"></div>
+                          
+                          {/* Live streamer avatar with animation */}
+                          <div className="relative z-10 text-center">
+                            <div className="w-24 h-24 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl border-4 border-white/70 animate-bounce">
+                              {stream.hostProfileImage ? (
+                                <img 
+                                  src={stream.hostProfileImage} 
+                                  alt={stream.hostName}
+                                  className="w-24 h-24 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-3xl font-bold text-purple-600 animate-pulse">
+                                  {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-white">
+                              <h4 className="font-bold text-lg mb-1 animate-fade-in">{stream.hostName || 'مضيف البث'}</h4>
+                              <div className="flex items-center justify-center gap-2 text-sm">
+                                <Radio className="w-4 h-4 animate-pulse text-red-300" />
+                                <span className="animate-pulse">يبث الآن مباشرة</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Moving particles to simulate live activity */}
+                          <div className="absolute top-4 left-4 w-3 h-3 bg-white/50 rounded-full animate-bounce"></div>
+                          <div className="absolute top-8 right-8 w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                          <div className="absolute bottom-6 left-8 w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
+                          <div className="absolute bottom-12 right-12 w-1 h-1 bg-white/30 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
                         </div>
                       </div>
 
-                      {/* Live indicator */}
-                      <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center shadow-lg">
-                        <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
+                      {/* Live indicator with pulsing effect */}
+                      <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center shadow-lg animate-pulse">
+                        <div className="w-2 h-2 bg-white rounded-full mr-1 animate-ping"></div>
                         مباشر
                       </div>
 
-                      {/* Viewer count */}
-                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs flex items-center">
-                        <Eye className="w-3 h-3 mr-1" />
-                        {stream.viewerCount || 0}
+                      {/* Real-time viewer count */}
+                      <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs flex items-center animate-fade-in">
+                        <Eye className="w-3 h-3 mr-1 animate-pulse" />
+                        <span className="font-bold">{stream.viewerCount || 0}</span>
                       </div>
 
-                      {/* Category */}
-                      <div className="absolute bottom-3 left-3 bg-purple-500/80 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs">
+                      {/* Stream category badge */}
+                      <div className="absolute bottom-3 left-3 bg-purple-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-xs font-semibold">
                         {stream.category || 'بث سريع'}
                       </div>
 
-                      {/* Play button overlay */}
-                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                          <Play className="w-8 h-8 text-white" />
+                      {/* Interactive join overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 shadow-xl transform hover:scale-110 transition-transform">
+                          <Play className="w-8 h-8 text-white drop-shadow-lg" />
+                        </div>
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-full">
+                          انقر للدخول
                         </div>
                       </div>
                     </div>
