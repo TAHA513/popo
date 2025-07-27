@@ -7,20 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, VideoOff, Mic, MicOff, Radio, Users, Eye } from "lucide-react";
 import { useLocation } from "wouter";
-import QuickStreamInterface from "@/components/QuickStreamInterface";
-import { 
-  initializeZegoConfig, 
-  validateStreamSecurity, 
-  createZegoEngine,
-  loginRoom,
-  startPublishing,
-  stopPublishing,
-  logoutRoom,
-  destroyEngine,
-  generateStreamID, 
-  generateRoomID, 
-  type ZegoStreamConfig 
-} from "@/lib/zegocloud";
+import InstantFullScreenStream from "@/components/InstantFullScreenStream";
+
 
 // Simple ZegoCloud function that bypasses complex setup
 async function startSimpleZegoStream(userID: string, userName: string, streamTitle: string, mediaStream: MediaStream) {
@@ -42,7 +30,7 @@ async function startSimpleZegoStream(userID: string, userName: string, streamTit
     console.log('🔑 Direct login with:', { roomID, userID, userName });
     
     // Direct login
-    await engine.loginRoom(roomID, { userID, userName }, '');
+    await engine.loginRoom(roomID, userID, userName, '');
     console.log('✅ Logged in successfully');
     
     // Direct publishing
@@ -60,8 +48,8 @@ export default function StartStreamPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [isStreaming, setIsStreaming] = useState(false);
-  const [streamTitle, setStreamTitle] = useState("");
-  const [streamDescription, setStreamDescription] = useState("");
+  const [streamTitle, setStreamTitle] = useState("بث سريع جديد");
+  const [streamDescription, setStreamDescription] = useState("بث مباشر من البث السريع");
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [viewerCount, setViewerCount] = useState(0);
@@ -491,22 +479,20 @@ export default function StartStreamPage() {
     );
   }
 
-  // إذا كان البث نشطاً، عرض الواجهة الاحترافية
+  // إذا كان البث نشطاً، عرض الواجهة الاحترافية الجديدة
   if (isStreaming && currentStreamData) {
     return (
-      <div className="fixed inset-0 bg-black z-50">
-        <QuickStreamInterface 
-          streamData={currentStreamData} 
-          onStreamEnd={() => {
-            setIsStreaming(false);
-            setCurrentStreamId(null);
-            setCurrentStreamData(null);
-            setViewerCount(0);
-            setStreamTitle("");
-            setStreamDescription("");
-          }}
-        />
-      </div>
+      <InstantFullScreenStream 
+        streamData={currentStreamData} 
+        onStreamEnd={() => {
+          setIsStreaming(false);
+          setCurrentStreamId(null);
+          setCurrentStreamData(null);
+          setViewerCount(0);
+          setStreamTitle("");
+          setStreamDescription("");
+        }}
+      />
     );
   }
 
