@@ -62,7 +62,7 @@ function Router() {
           <Route path="/start-stream" component={() => <SimpleStreamPage />} />
           <Route path="/simple-stream" component={() => <SimpleStreamPage />} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
-          <Route path="/stream/:id" component={LazyComponents.StreamPage} />
+          <Route path="/stream/:id" component={LazyComponents.WatchStreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />
