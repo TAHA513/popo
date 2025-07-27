@@ -105,7 +105,7 @@ export default function WatchStreamPage() {
         const config = await apiRequest('/api/zego-config', 'GET');
         if (!config.appId || !stream.zegoRoomId) return;
 
-        const viewerUserId = `viewer_${user.id}_${Date.now()}`;
+        const viewerUserId = `viewer_${user.id}`; // viewer ID ثابت بدون timestamp
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
           parseInt(config.appId),
           config.appSign,
@@ -123,6 +123,7 @@ export default function WatchStreamPage() {
             mode: ZegoUIKitPrebuilt.LiveStreaming,
             config: {
               role: ZegoUIKitPrebuilt.Audience,
+              streamID: stream.zegoStreamId, // مهم جداً لاستقبال البث من المذيع
             }
           },
           turnOnMicrophoneWhenJoining: false,
@@ -144,6 +145,8 @@ export default function WatchStreamPage() {
           videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
           facingMode: "user",
           onJoinRoom: () => {
+            console.log('✅ Viewer joined room successfully!');
+            console.log('📡 Receiving stream with ID:', stream.zegoStreamId);
             setIsConnected(true);
           },
           onLeaveRoom: () => {

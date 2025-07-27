@@ -55,8 +55,8 @@ export default function UnifiedStreamPage() {
         title: streamTitle.trim() || 'بث مباشر جديد',
         description: 'بث مباشر من LaaBoBo',
         category: 'بث مباشر',
-        zegoRoomId: `room_${user.id}_${Date.now()}`,
-        zegoStreamId: `stream_${user.id}_${Date.now()}`
+        zegoRoomId: `room_${user.id}`, // غرفة ثابتة للمستخدم
+        zegoStreamId: `stream_${user.id}` // stream ID ثابت للمستخدم
       };
 
       console.log('🎥 Creating stream:', streamData);
@@ -75,8 +75,8 @@ export default function UnifiedStreamPage() {
         throw new Error('فشل في تحميل إعدادات البث');
       }
 
-      // إنشاء token للمذيع
-      const hostUserId = `host_${user.id}_${Date.now()}`;
+      // إنشاء token للمذيع - استخدم user ID ثابت
+      const hostUserId = user.id; // استخدم user ID الحقيقي بدون timestamp
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
         parseInt(config.appId),
         config.appSign,
@@ -106,6 +106,7 @@ export default function UnifiedStreamPage() {
           mode: ZegoUIKitPrebuilt.LiveStreaming,
           config: {
             role: ZegoUIKitPrebuilt.Host,
+            streamID: streamData.zegoStreamId, // مهم جداً لنقل البث للمشاهدين
           }
         },
         turnOnMicrophoneWhenJoining: true,
@@ -126,6 +127,7 @@ export default function UnifiedStreamPage() {
         videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
         onJoinRoom: () => {
           console.log('✅ Host joined room successfully!');
+          console.log('📡 Publishing stream with ID:', streamData.zegoStreamId);
           setIsStreaming(true);
         },
         onLeaveRoom: () => {
