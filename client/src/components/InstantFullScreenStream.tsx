@@ -273,13 +273,7 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
           </div>
         </div>
 
-        {/* رسالة ترحيب */}
-        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-          <div className="bg-purple-600/90 backdrop-blur-sm text-white px-8 py-4 rounded-2xl shadow-2xl">
-            <h2 className="text-2xl font-bold mb-2">🎉 مرحباً بك في البث المباشر!</h2>
-            <p className="text-lg">الواجهة الاحترافية الجديدة مع عداد الوقت الحقيقي</p>
-          </div>
-        </div>
+
       </div>
     </div>
   );

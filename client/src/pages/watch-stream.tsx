@@ -86,13 +86,6 @@ export default function WatchStreamPage() {
         userId: msg.userId
       }));
       setComments(formattedComments);
-    } else {
-      // إضافة تعليقات تجريبية إذا لم توجد تعليقات حقيقية
-      setComments([
-        { id: 1, username: 'أحمد محمد', text: 'بث رائع! أحب المحتوى 🎉', timestamp: Date.now() - 120000 },
-        { id: 2, username: 'فاطمة علي', text: 'مرحباً من مصر 🇪🇬', timestamp: Date.now() - 90000 },
-        { id: 3, username: 'محمد سعد', text: 'استمر كذا! ممتاز', timestamp: Date.now() - 60000 },
-      ]);
     }
   }, [realComments]);
 
