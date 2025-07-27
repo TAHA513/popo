@@ -6,16 +6,99 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Plus, Play, Users, Eye, Radio, Clock, Heart, Video } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
+import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
+import { apiRequest } from "@/lib/queryClient";
 
 export default function StreamsHome() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const previewRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  const [zegoConfig, setZegoConfig] = useState<any>(null);
+  const [previewInstances, setPreviewInstances] = useState<{[key: string]: any}>({});
   
   // جلب البثوث المباشرة
   const { data: streams = [] } = useQuery<any[]>({
     queryKey: ['/api/streams'], 
     refetchInterval: 5000,
   });
+
+  // جلب إعدادات ZegoCloud
+  useEffect(() => {
+    const fetchZegoConfig = async () => {
+      try {
+        if (user) {
+          const config = await apiRequest('/api/zego-config', 'GET');
+          setZegoConfig(config);
+        }
+      } catch (error) {
+        console.error('Failed to load ZegoCloud config:', error);
+      }
+    };
+
+    fetchZegoConfig();
+  }, [user]);
+
+  // إنشاء معاينة البث الحقيقي لكل بث
+  useEffect(() => {
+    if (!zegoConfig || !streams.length || !user) return;
+
+    streams.forEach((stream: any) => {
+      const previewElement = previewRefs.current[`preview-${stream.id}`];
+      if (previewElement && stream.zegoRoomId && !previewInstances[stream.id]) {
+        try {
+          // إنشاء معاينة البث المباشر الحقيقي
+          const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+            parseInt(zegoConfig.appId),
+            zegoConfig.appSign,
+            stream.zegoRoomId,
+            `preview_${user.id}_${Date.now()}`,
+            user.username || 'مشاهد'
+          );
+
+          const zp = ZegoUIKitPrebuilt.create(kitToken);
+          
+          // إعداد معاينة البث (مشاهدة فقط بدون تفاعل)
+          zp.joinRoom({
+            container: previewElement,
+            scenario: {
+              mode: ZegoUIKitPrebuilt.LiveStreaming,
+              config: {
+                role: ZegoUIKitPrebuilt.Audience,
+              }
+            },
+            onJoinRoom: () => {
+              console.log(`Preview joined room: ${stream.zegoRoomId}`);
+            },
+            onLeaveRoom: () => {
+              console.log(`Preview left room: ${stream.zegoRoomId}`);
+            }
+          });
+
+          setPreviewInstances(prev => ({
+            ...prev,
+            [stream.id]: zp
+          }));
+
+        } catch (error) {
+          console.error('Error creating stream preview:', error);
+        }
+      }
+    });
+
+    // تنظيف المعاينات المنتهية
+    return () => {
+      Object.keys(previewInstances).forEach(streamId => {
+        const currentStreamExists = streams.find(s => s.id.toString() === streamId);
+        if (!currentStreamExists && previewInstances[streamId]) {
+          try {
+            previewInstances[streamId].destroy();
+          } catch (error) {
+            console.error('Error destroying preview:', error);
+          }
+        }
+      });
+    };
+  }, [zegoConfig, streams, user, previewInstances]);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -77,70 +160,35 @@ export default function StreamsHome() {
                   <CardContent className="p-0">
                     {/* Live Stream Preview */}
                     <div className="relative h-56 overflow-hidden">
-                      {/* Enhanced Live Stream Preview with Bright Colors */}
-                      <div className="w-full h-full bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 relative overflow-hidden">
-                        {/* Bright colorful background instead of black */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/90 via-pink-600/90 to-blue-600/90">
-                          
-                          {/* Multiple moving gradients for dynamic effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-                          <div className="absolute inset-0 bg-gradient-to-l from-purple-400/20 via-transparent to-pink-400/20 animate-pulse" style={{animationDelay: '1s'}}></div>
-                          
-                          {/* Live Streamer in Action */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="relative z-20 text-center">
-                              {/* Large prominent streamer avatar */}
-                              <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl border-4 border-yellow-300 relative overflow-hidden animate-bounce">
-                                {stream.hostProfileImage ? (
-                                  <img 
-                                    src={stream.hostProfileImage} 
-                                    alt={stream.hostName}
-                                    className="w-28 h-28 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <span className="text-3xl font-bold text-purple-600">
-                                    {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
-                                  </span>
-                                )}
-                                
-                                {/* Multiple animated indicators */}
-                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full animate-ping"></div>
-                                <div className="absolute -bottom-2 -left-2 w-5 h-5 bg-green-500 rounded-full animate-pulse"></div>
-                                <div className="absolute -top-2 -left-2 w-4 h-4 bg-yellow-400 rounded-full animate-bounce"></div>
-                              </div>
-                              
-                              {/* Clear bright text */}
-                              <div className="text-white">
-                                <h4 className="font-bold text-xl mb-2 drop-shadow-2xl bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm">
-                                  {stream.hostName || 'مضيف البث'}
-                                </h4>
-                                <div className="flex items-center justify-center gap-2 text-sm bg-red-500 px-4 py-2 rounded-full shadow-xl border-2 border-white/50">
-                                  <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
-                                  <span className="font-bold">يبث الآن مباشرة</span>
-                                </div>
-                              </div>
+                      {/* Real ZegoCloud Stream Preview Container */}
+                      <div 
+                        ref={(el) => previewRefs.current[`preview-${stream.id}`] = el}
+                        className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-blue-600 relative overflow-hidden"
+                        style={{
+                          borderRadius: '0px',
+                          position: 'relative'
+                        }}
+                      >
+                        {/* Loading/Fallback state while real stream loads */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-pink-600/80 to-blue-600/80 flex items-center justify-center z-10">
+                          <div className="text-center text-white">
+                            <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl border-4 border-yellow-300 animate-pulse">
+                              {stream.hostProfileImage ? (
+                                <img 
+                                  src={stream.hostProfileImage} 
+                                  alt={stream.hostName}
+                                  className="w-20 h-20 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-2xl font-bold text-purple-600">
+                                  {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
+                                </span>
+                              )}
                             </div>
-                            
-                            {/* Animated floating elements */}
-                            <div className="absolute top-4 left-4 w-4 h-4 bg-yellow-300 rounded-full animate-bounce opacity-80"></div>
-                            <div className="absolute top-8 right-6 w-3 h-3 bg-pink-300 rounded-full animate-bounce opacity-70" style={{animationDelay: '0.3s'}}></div>
-                            <div className="absolute bottom-8 left-8 w-5 h-5 bg-blue-300 rounded-full animate-bounce opacity-60" style={{animationDelay: '0.6s'}}></div>
-                            <div className="absolute bottom-12 right-12 w-2 h-2 bg-purple-300 rounded-full animate-bounce opacity-80" style={{animationDelay: '0.9s'}}></div>
-                            <div className="absolute top-16 left-1/2 w-3 h-3 bg-green-300 rounded-full animate-bounce opacity-70" style={{animationDelay: '1.2s'}}></div>
-                            
-                            {/* Live activity indicators */}
-                            <div className="absolute bottom-4 left-4 right-4">
-                              <div className="bg-black/40 backdrop-blur-sm rounded-lg p-3 text-white text-sm border border-white/20">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Eye className="w-4 h-4 text-blue-300" />
-                                  <span className="text-blue-300 font-semibold">{stream.viewerCount || 0} مشاهد</span>
-                                  <Heart className="w-4 h-4 text-red-300 ml-2" />
-                                  <span className="text-red-300 font-semibold">125 إعجاب</span>
-                                </div>
-                                <div className="text-xs opacity-80">
-                                  <span className="text-yellow-300">💬</span> النشاط مرتفع الآن!
-                                </div>
-                              </div>
+                            <h4 className="font-bold text-lg mb-1 drop-shadow-lg">{stream.hostName || 'مضيف البث'}</h4>
+                            <div className="flex items-center justify-center gap-2 text-sm bg-red-500/80 px-3 py-1 rounded-full backdrop-blur-sm">
+                              <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                              <span className="font-semibold">يبث الآن...</span>
                             </div>
                           </div>
                         </div>
