@@ -96,28 +96,20 @@ export default function WatchStreamPage() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
-    
-    setWsConnection(ws);
 
     ws.onopen = () => {
       console.log('💬 اتصال WebSocket للتعليقات متصل');
-      // الانضمام لغرفة البث مع البيانات الصحيحة
+      // الانضمام لغرفة البث
       ws.send(JSON.stringify({
         type: 'join_stream',
         streamId: parseInt(id),
         userId: user.id
       }));
-      
-      console.log('📤 تم إرسال طلب الانضمام للبث:', {
-        streamId: parseInt(id),
-        userId: user.id
-      });
     };
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('📨 رسالة WebSocket واردة:', data);
         
         if (data.type === 'chat_message') {
           console.log('💬 تعليق جديد وصل:', data);
@@ -132,8 +124,7 @@ export default function WatchStreamPage() {
           setComments(prev => {
             // تجنب التعليقات المكررة
             const exists = prev.find(c => c.id === newComment.id || 
-              (c.text === newComment.text && c.userId === newComment.userId && 
-               Math.abs(c.timestamp - newComment.timestamp) < 1000));
+              (c.text === newComment.text && c.userId === newComment.userId));
             if (exists) return prev;
             
             return [...prev, newComment];
@@ -146,7 +137,6 @@ export default function WatchStreamPage() {
 
     ws.onclose = () => {
       console.log('💬 اتصال WebSocket للتعليقات منقطع');
-      setWsConnection(null);
     };
 
     return () => {
@@ -158,48 +148,45 @@ export default function WatchStreamPage() {
         }));
       }
       ws.close();
-      setWsConnection(null);
     };
   }, [id, user]);
 
-  // متغير WebSocket مشترك
-  const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
-
   // إضافة تعليق جديد عبر WebSocket
   const addComment = () => {
-    if (!newComment.trim() || !user || !id || !wsConnection) return;
+    if (!newComment.trim() || !user || !id) return;
     
     try {
-      console.log('💬 إرسال تعليق جديد:', {
-        streamId: parseInt(id),
-        userId: user.id,
-        text: newComment.trim()
-      });
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      const ws = new WebSocket(wsUrl);
 
-      // إرسال عبر WebSocket الموجود
-      wsConnection.send(JSON.stringify({
-        type: 'chat_message',
-        streamId: parseInt(id),
-        userId: user.id,
-        text: newComment.trim(),
-        user: {
-          id: user.id,
-          username: user.username,
-          firstName: user.firstName,
-          profileImageUrl: user.profileImageUrl
-        }
-      }));
-      
-      // إضافة التعليق محلياً أيضاً
-      const localComment = {
-        id: Date.now(),
-        username: user.username || 'مستخدم',
-        text: newComment.trim(),
-        timestamp: Date.now(),
-        userId: user.id
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'chat_message',
+          streamId: parseInt(id),
+          userId: user.id,
+          text: newComment.trim(),
+          user: {
+            id: user.id,
+            username: user.username,
+            firstName: user.firstName,
+            profileImageUrl: user.profileImageUrl
+          }
+        }));
+        
+        // إضافة التعليق محلياً أيضاً
+        const localComment = {
+          id: Date.now(),
+          username: user.username || 'مستخدم',
+          text: newComment.trim(),
+          timestamp: Date.now(),
+          userId: user.id
+        };
+        setComments(prev => [...prev, localComment]);
+        setNewComment('');
+        
+        ws.close();
       };
-      setComments(prev => [...prev, localComment]);
-      setNewComment('');
     } catch (error) {
       console.error('خطأ في إرسال التعليق:', error);
     }
