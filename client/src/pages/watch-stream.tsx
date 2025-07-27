@@ -38,6 +38,13 @@ export default function WatchStreamPage() {
   const [newComment, setNewComment] = useState('');
   const [showComments, setShowComments] = useState(true);
 
+  // جلب الرسائل الحقيقية من قاعدة البيانات
+  const { data: realComments, refetch: refetchComments } = useQuery<any[]>({
+    queryKey: ['/api/streams', id, 'messages'],
+    enabled: !!id && !!user,
+    refetchInterval: 3000, // تحديث كل 3 ثوان
+  });
+
   // جلب بيانات البث
   const { data: stream, isLoading, error } = useQuery<Stream>({
     queryKey: ['/api/streams', id],
@@ -58,58 +65,131 @@ export default function WatchStreamPage() {
     return () => clearInterval(timer);
   }, [stream]);
 
-  // تحديث الإحصائيات وإضافة تعليقات تجريبية
+  // تحديث الإحصائيات
   useEffect(() => {
-    // إضافة تعليقات تجريبية عند التحميل
-    const sampleComments = [
-      { id: 1, username: 'أحمد محمد', text: 'بث رائع! أحب المحتوى 🎉', timestamp: Date.now() - 120000 },
-      { id: 2, username: 'فاطمة علي', text: 'مرحباً من مصر 🇪🇬', timestamp: Date.now() - 90000 },
-      { id: 3, username: 'محمد سعد', text: 'استمر كذا! ممتاز', timestamp: Date.now() - 60000 },
-      { id: 4, username: 'سارة أحمد', text: 'موفق إن شاء الله', timestamp: Date.now() - 30000 },
-      { id: 5, username: 'علي حسن', text: 'تحياتي من السعودية 🇸🇦', timestamp: Date.now() - 15000 }
-    ];
-    setComments(sampleComments);
-    
     const statsTimer = setInterval(() => {
       setViewerCount(prev => Math.max(1, prev + Math.floor(Math.random() * 3) - 1));
       setLikes(prev => prev + Math.floor(Math.random() * 2));
-      
-      // إضافة تعليق تلقائي كل 15 ثانية
-      if (Math.random() > 0.7) {
-        const randomComments = [
-          'رائع!', 'ممتاز', 'تحياتي', 'موفق', 'استمر', 'جميل جداً', 'أحسنت', 'مبدع'
-        ];
-        const randomNames = [
-          'نور', 'سلمى', 'كريم', 'ياسمين', 'عمر', 'ريم', 'حسام', 'دينا'
-        ];
-        
-        const newComment = {
-          id: Date.now(),
-          username: randomNames[Math.floor(Math.random() * randomNames.length)],
-          text: randomComments[Math.floor(Math.random() * randomComments.length)],
-          timestamp: Date.now()
-        };
-        
-        setComments(prev => [newComment, ...prev.slice(0, 19)]); // الاحتفاظ بآخر 20 تعليق
-      }
     }, 5000);
 
     return () => clearInterval(statsTimer);
   }, []);
 
-  // إضافة تعليق جديد
-  const addComment = () => {
-    if (!newComment.trim() || !user) return;
-    
-    const comment = {
-      id: Date.now(),
-      username: user.username || 'مستخدم',
-      text: newComment.trim(),
-      timestamp: Date.now()
+  // تحديث التعليقات عند وصول بيانات جديدة
+  useEffect(() => {
+    if (realComments && realComments.length > 0) {
+      const formattedComments = realComments.map(msg => ({
+        id: msg.id,
+        username: msg.username || msg.firstName || 'مستخدم',
+        text: msg.message,
+        timestamp: new Date(msg.sentAt).getTime(),
+        userId: msg.userId
+      }));
+      setComments(formattedComments);
+    }
+  }, [realComments]);
+
+  // WebSocket للتعليقات المباشرة
+  useEffect(() => {
+    if (!id || !user) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      console.log('💬 اتصال WebSocket للتعليقات متصل');
+      // الانضمام لغرفة البث
+      ws.send(JSON.stringify({
+        type: 'join_stream',
+        streamId: parseInt(id),
+        userId: user.id
+      }));
     };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'chat_message') {
+          console.log('💬 تعليق جديد وصل:', data);
+          const newComment = {
+            id: data.message?.id || Date.now(),
+            username: data.user?.username || data.user?.firstName || 'مستخدم',
+            text: data.message?.message || data.text || '',
+            timestamp: new Date(data.message?.sentAt || Date.now()).getTime(),
+            userId: data.message?.userId || data.user?.id
+          };
+          
+          setComments(prev => {
+            // تجنب التعليقات المكررة
+            const exists = prev.find(c => c.id === newComment.id || 
+              (c.text === newComment.text && c.userId === newComment.userId));
+            if (exists) return prev;
+            
+            return [...prev, newComment];
+          });
+        }
+      } catch (error) {
+        console.error('خطأ في معالجة رسالة WebSocket:', error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('💬 اتصال WebSocket للتعليقات منقطع');
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'leave_stream',
+          streamId: parseInt(id),
+          userId: user.id
+        }));
+      }
+      ws.close();
+    };
+  }, [id, user]);
+
+  // إضافة تعليق جديد عبر WebSocket
+  const addComment = () => {
+    if (!newComment.trim() || !user || !id) return;
     
-    setComments(prev => [comment, ...prev]);
-    setNewComment('');
+    try {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'chat_message',
+          streamId: parseInt(id),
+          userId: user.id,
+          text: newComment.trim(),
+          user: {
+            id: user.id,
+            username: user.username,
+            firstName: user.firstName,
+            profileImageUrl: user.profileImageUrl
+          }
+        }));
+        
+        // إضافة التعليق محلياً أيضاً
+        const localComment = {
+          id: Date.now(),
+          username: user.username || 'مستخدم',
+          text: newComment.trim(),
+          timestamp: Date.now(),
+          userId: user.id
+        };
+        setComments(prev => [...prev, localComment]);
+        setNewComment('');
+        
+        ws.close();
+      };
+    } catch (error) {
+      console.error('خطأ في إرسال التعليق:', error);
+    }
   };
 
   // تحديد وقت التعليق
