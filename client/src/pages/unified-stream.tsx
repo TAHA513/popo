@@ -117,34 +117,23 @@ export default function UnifiedStreamPage() {
         showTextChat: true,
         showUserCount: true,
         showUserList: true,
-        showRemoveUserButton: true,
+        showRemoveUserButton: false,
         showPinButton: true,
         showLayoutButton: true,
-        showLeaveRoomConfirmDialog: true,
-        layout: "Auto",
-        enableVideoAutoplay: true,
-        enableAudioAutoplay: true,
+        showLeaveRoomConfirmDialog: false,
+        layout: "Grid",
         maxUsers: 50,
         videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
         onJoinRoom: () => {
           console.log('✅ Host joined room successfully!');
           setIsStreaming(true);
-          
-          // تأكد من تشغيل الكاميرا والميكروفون فوراً
-          setTimeout(() => {
-            try {
-              console.log('🎥 Ensuring camera and microphone are active...');
-            } catch (error) {
-              console.log('📹 Camera/mic setup error:', error);
-            }
-          }, 1000);
         },
         onLeaveRoom: () => {
           console.log('❌ Host left room');
           endStream();
         },
         onUserJoin: (users: any[]) => {
-          console.log('👥 Users joined:', users);
+          console.log('👥 New users joined:', users);
         },
         onUserLeave: (users: any[]) => {
           console.log('👥 Users left:', users);

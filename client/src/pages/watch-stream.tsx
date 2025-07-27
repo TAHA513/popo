@@ -139,9 +139,10 @@ export default function WatchStreamPage() {
           showLeaveRoomConfirmDialog: false,
           enableVideoAutoplay: true,
           enableAudioAutoplay: true,
-          layout: "Auto",
+          layout: "Grid",
           maxUsers: 50,
           videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
+          facingMode: "user",
           onJoinRoom: () => {
             setIsConnected(true);
           },
