@@ -190,8 +190,8 @@ export default function SimpleStreamPage() {
                       className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold py-3"
                       size="lg"
                     >
-                      <Plus className="w-5 h-5 mr-2" />
-                      إنشاء
+                      <Radio className="w-5 h-5 mr-2" />
+                      تجربة البث السريع
                     </Button>
                   ) : (
                     <Button
