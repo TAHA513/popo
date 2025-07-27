@@ -34,13 +34,9 @@ export default function WatchStreamPage() {
   const [likes, setLikes] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [streamDuration, setStreamDuration] = useState(0);
-  const [comments, setComments] = useState<any[]>([
-    { id: 1, username: 'أحمد محمد', text: 'بث رائع! أحب المحتوى', timestamp: Date.now() - 60000 },
-    { id: 2, username: 'فاطمة علي', text: 'مرحباً من مصر 🇪🇬', timestamp: Date.now() - 30000 },
-    { id: 3, username: 'محمد سعد', text: 'استمر كذا!', timestamp: Date.now() - 10000 }
-  ]);
+  const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(true);
 
   // جلب بيانات البث
   const { data: stream, isLoading, error } = useQuery<Stream>({
@@ -62,11 +58,40 @@ export default function WatchStreamPage() {
     return () => clearInterval(timer);
   }, [stream]);
 
-  // تحديث الإحصائيات
+  // تحديث الإحصائيات وإضافة تعليقات تجريبية
   useEffect(() => {
+    // إضافة تعليقات تجريبية عند التحميل
+    const sampleComments = [
+      { id: 1, username: 'أحمد محمد', text: 'بث رائع! أحب المحتوى 🎉', timestamp: Date.now() - 120000 },
+      { id: 2, username: 'فاطمة علي', text: 'مرحباً من مصر 🇪🇬', timestamp: Date.now() - 90000 },
+      { id: 3, username: 'محمد سعد', text: 'استمر كذا! ممتاز', timestamp: Date.now() - 60000 },
+      { id: 4, username: 'سارة أحمد', text: 'موفق إن شاء الله', timestamp: Date.now() - 30000 },
+      { id: 5, username: 'علي حسن', text: 'تحياتي من السعودية 🇸🇦', timestamp: Date.now() - 15000 }
+    ];
+    setComments(sampleComments);
+    
     const statsTimer = setInterval(() => {
       setViewerCount(prev => Math.max(1, prev + Math.floor(Math.random() * 3) - 1));
       setLikes(prev => prev + Math.floor(Math.random() * 2));
+      
+      // إضافة تعليق تلقائي كل 15 ثانية
+      if (Math.random() > 0.7) {
+        const randomComments = [
+          'رائع!', 'ممتاز', 'تحياتي', 'موفق', 'استمر', 'جميل جداً', 'أحسنت', 'مبدع'
+        ];
+        const randomNames = [
+          'نور', 'سلمى', 'كريم', 'ياسمين', 'عمر', 'ريم', 'حسام', 'دينا'
+        ];
+        
+        const newComment = {
+          id: Date.now(),
+          username: randomNames[Math.floor(Math.random() * randomNames.length)],
+          text: randomComments[Math.floor(Math.random() * randomComments.length)],
+          timestamp: Date.now()
+        };
+        
+        setComments(prev => [newComment, ...prev.slice(0, 19)]); // الاحتفاظ بآخر 20 تعليق
+      }
     }, 5000);
 
     return () => clearInterval(statsTimer);
@@ -394,7 +419,7 @@ export default function WatchStreamPage() {
             </div>
 
             {/* قائمة التعليقات */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-64">
               {comments.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">
                   <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -402,20 +427,22 @@ export default function WatchStreamPage() {
                   <p className="text-sm mt-1">كن أول من يعلق!</p>
                 </div>
               ) : (
-                comments.map((comment) => (
-                  <div key={comment.id} className="flex items-start space-x-3 space-x-reverse group hover:bg-white/5 rounded-lg p-2 transition-colors">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      {comment.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 space-x-reverse mb-1">
-                        <span className="text-white text-sm font-bold truncate">{comment.username}</span>
-                        <span className="text-gray-400 text-xs flex-shrink-0">{getTimeAgo(comment.timestamp)}</span>
+                <div className="space-y-3">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex items-start space-x-3 space-x-reverse group hover:bg-white/10 rounded-lg p-3 transition-all duration-200 animate-fadeIn">
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-lg">
+                        {comment.username.charAt(0).toUpperCase()}
                       </div>
-                      <p className="text-gray-300 text-sm leading-relaxed break-words">{comment.text}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 space-x-reverse mb-1">
+                          <span className="text-white text-sm font-semibold truncate">{comment.username}</span>
+                          <span className="text-gray-400 text-xs flex-shrink-0">{getTimeAgo(comment.timestamp)}</span>
+                        </div>
+                        <p className="text-gray-200 text-sm leading-relaxed break-words">{comment.text}</p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
 
