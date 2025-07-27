@@ -73,35 +73,77 @@ export default function WatchStreamPage() {
           userName: config.userName || user.username || 'مشاهد'
         }, config.token || '');
 
-        // مشاهدة البث
-        engine.on('roomStreamUpdate', (roomID: string, updateType: any, streamList: any[]) => {
+        // محاولة الاتصال المباشر بالبث
+        const attemptConnection = async () => {
+          try {
+            console.log('📺 Attempting to connect to stream:', stream.zegoStreamId);
+            
+            // محاولة تشغيل البث مباشرة
+            await engine.startPlayingStream(stream.zegoStreamId, {
+              camera: true,
+              microphone: true
+            });
+            
+            console.log('✅ Stream play command sent successfully');
+            setIsConnected(true);
+            
+          } catch (directError) {
+            console.warn('⚠️ Direct play failed:', directError);
+          }
+        };
+
+        // تسجيل الأحداث لاستقبال البث
+        engine.on('roomStreamUpdate', async (roomID: string, updateType: any, streamList: any[]) => {
+          console.log('🔄 Stream update:', { roomID, updateType, streamList });
+          
           if (updateType === 'ADD' && streamList.length > 0) {
-            streamList.forEach(streamInfo => {
+            for (const streamInfo of streamList) {
               if (streamInfo.streamID === stream.zegoStreamId) {
-                const remoteView = engine.createRemoteStreamView(streamInfo.streamID);
-                if (videoRef.current && remoteView) {
-                  videoRef.current.srcObject = remoteView;
-                  videoRef.current.play();
+                try {
+                  console.log('🎥 Found target stream, connecting...');
+                  await engine.startPlayingStream(streamInfo.streamID);
                   setIsConnected(true);
+                  console.log('✅ Successfully connected to stream!');
+                  break;
+                } catch (err) {
+                  console.error('❌ Failed to connect to stream:', err);
                 }
               }
-            });
+            }
           }
         });
+
+        // استقبال البث عند وصوله
+        engine.on('playerRecvVideoFirstFrame', (streamID: string) => {
+          console.log('🎬 Received first video frame for:', streamID);
+          if (streamID === stream.zegoStreamId) {
+            setIsConnected(true);
+          }
+        });
+
+        engine.on('playStateUpdate', (streamID: string, state: any) => {
+          console.log('🎮 Play state update:', { streamID, state });
+          if (streamID === stream.zegoStreamId && state === 'PLAYING') {
+            setIsConnected(true);
+          }
+        });
+
+        // محاولة الاتصال المباشر
+        await attemptConnection();
+        
+        // إذا لم ينجح، انتظار قليلاً ثم محاولة مرة أخرى
+        setTimeout(async () => {
+          if (!isConnected) {
+            console.log('🔄 Retrying connection...');
+            await attemptConnection();
+          }
+        }, 2000);
         
         console.log('✅ Connected to stream room successfully!');
-        
-        // في حالة عدم وجود stream مباشر، عرض فيديو تجريبي
-        setTimeout(() => {
-          if (!isConnected) {
-            showDemoVideo();
-          }
-        }, 3000);
 
       } catch (error) {
         console.error('❌ Failed to connect to stream:', error);
-        // استخدام فيديو تجريبي في حالة فشل الاتصال
-        showDemoVideo();
+        setIsConnected(false);
       }
     };
 
@@ -120,52 +162,7 @@ export default function WatchStreamPage() {
     };
   }, [stream, user]);
 
-  const showDemoVideo = () => {
-    // عرض فيديو تجريبي للمحاكاة
-    if (videoRef.current) {
-      // إنشاء canvas لمحاكاة البث المباشر
-      const canvas = document.createElement('canvas');
-      canvas.width = 1920;
-      canvas.height = 1080;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        const drawFrame = () => {
-          // خلفية متدرجة
-          const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-          gradient.addColorStop(0, '#8B5CF6');
-          gradient.addColorStop(1, '#3B82F6');
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
-          // نص البث المباشر
-          ctx.fillStyle = 'white';
-          ctx.font = 'bold 120px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🔴 بث مباشر', canvas.width / 2, canvas.height / 2 - 100);
-          
-          ctx.font = '80px Arial';
-          ctx.fillText(stream?.title || 'عنوان البث', canvas.width / 2, canvas.height / 2 + 50);
-          
-          ctx.font = '60px Arial';
-          ctx.fillText(`المضيف: ${stream?.hostId || 'غير معروف'}`, canvas.width / 2, canvas.height / 2 + 150);
-          
-          // وقت البث
-          const timeText = formatDuration(streamDuration);
-          ctx.fillText(`المدة: ${timeText}`, canvas.width / 2, canvas.height / 2 + 250);
-        };
-        
-        drawFrame();
-        setInterval(drawFrame, 1000);
-        
-        // تحويل Canvas إلى stream
-        const stream_canvas = canvas.captureStream(30);
-        videoRef.current.srcObject = stream_canvas;
-        videoRef.current.play();
-        setIsConnected(true);
-      }
-    }
-  };
+
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -319,8 +316,13 @@ export default function WatchStreamPage() {
           <div className={`px-4 py-2 rounded-full text-white text-sm ${
             isConnected ? 'bg-green-600/90' : 'bg-red-600/90'
           }`}>
-            {isConnected ? '✅ متصل بالبث' : '⚠️ جاري الاتصال...'}
+            {isConnected ? '✅ متصل بالبث المباشر' : '⚠️ جاري الاتصال بالبث...'}
           </div>
+          {!isConnected && (
+            <div className="mt-2 text-white text-xs bg-black/60 rounded-lg p-2 max-w-xs">
+              يتم الآن محاولة الاتصال بالبث المباشر الحقيقي عبر ZegoCloud...
+            </div>
+          )}
         </div>
       </div>
     </div>
