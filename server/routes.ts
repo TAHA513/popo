@@ -722,10 +722,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timestamp = Date.now();
       const sessionToken = Buffer.from(`${userID}_${timestamp}`).toString('base64');
       
+      // Ensure ZEGO_APP_SIGN exists
+      const appSign = process.env.ZEGO_APP_SIGN;
+      if (!appSign || appSign === '') {
+        console.error('❌ ZEGO_APP_SIGN is missing or empty!');
+        return res.status(500).json({ error: 'إعدادات البث غير مكتملة - يرجى التواصل مع الدعم' });
+      }
+      
       // Server secrets are NEVER exposed to client
       res.json({
         appId: process.env.ZEGO_APP_ID || '1034062164',
-        appSign: process.env.ZEGO_APP_SIGN || '',
+        appSign: appSign,
         userID: userID,
         userName: userName,
         sessionToken: sessionToken
