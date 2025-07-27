@@ -51,30 +51,6 @@ export default function WatchStreamPage() {
     enabled: !!id
   });
 
-  // حساب مدة البث
-  useEffect(() => {
-    if (!stream?.startedAt) return;
-    
-    const startTime = new Date(stream.startedAt).getTime();
-    const timer = setInterval(() => {
-      const now = Date.now();
-      const duration = Math.floor((now - startTime) / 1000);
-      setStreamDuration(duration);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [stream]);
-
-  // تحديث الإحصائيات
-  useEffect(() => {
-    const statsTimer = setInterval(() => {
-      setViewerCount(prev => Math.max(1, prev + Math.floor(Math.random() * 3) - 1));
-      setLikes(prev => prev + Math.floor(Math.random() * 2));
-    }, 5000);
-
-    return () => clearInterval(statsTimer);
-  }, []);
-
   // تحديث التعليقات عند وصول بيانات جديدة
   useEffect(() => {
     if (realComments && realComments.length > 0) {
@@ -89,146 +65,58 @@ export default function WatchStreamPage() {
     }
   }, [realComments]);
 
-  // WebSocket للتعليقات المباشرة
+  // حساب مدة البث
   useEffect(() => {
-    if (!id || !user) return;
-
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      console.log('💬 اتصال WebSocket للتعليقات متصل');
-      // الانضمام لغرفة البث
-      ws.send(JSON.stringify({
-        type: 'join_stream',
-        streamId: parseInt(id),
-        userId: user.id
-      }));
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'chat_message') {
-          console.log('💬 تعليق جديد وصل:', data);
-          const newComment = {
-            id: data.message?.id || Date.now(),
-            username: data.user?.username || data.user?.firstName || 'مستخدم',
-            text: data.message?.message || data.text || '',
-            timestamp: new Date(data.message?.sentAt || Date.now()).getTime(),
-            userId: data.message?.userId || data.user?.id
-          };
-          
-          setComments(prev => {
-            // تجنب التعليقات المكررة
-            const exists = prev.find(c => c.id === newComment.id || 
-              (c.text === newComment.text && c.userId === newComment.userId));
-            if (exists) return prev;
-            
-            return [...prev, newComment];
-          });
-        }
-      } catch (error) {
-        console.error('خطأ في معالجة رسالة WebSocket:', error);
-      }
-    };
-
-    ws.onclose = () => {
-      console.log('💬 اتصال WebSocket للتعليقات منقطع');
-    };
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          type: 'leave_stream',
-          streamId: parseInt(id),
-          userId: user.id
-        }));
-      }
-      ws.close();
-    };
-  }, [id, user]);
-
-  // إضافة تعليق جديد عبر API
-  const addComment = async () => {
-    if (!newComment.trim() || !user || !id) return;
+    if (!stream?.startedAt) return;
     
+    const startTime = new Date(stream.startedAt).getTime();
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const duration = Math.floor((now - startTime) / 1000);
+      setStreamDuration(duration);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [stream]);
+
+  // إرسال تعليق
+  const handleSendComment = async () => {
+    if (!newComment.trim() || !user || !id) return;
+
     try {
-      console.log('💬 إرسال تعليق جديد:', { streamId: id, message: newComment.trim() });
-      
-      const response = await apiRequest(`/api/streams/${id}/messages`, 'POST', {
+      await apiRequest(`/api/streams/${id}/messages`, 'POST', {
         message: newComment.trim()
       });
-      
-      console.log('✅ تم إرسال التعليق بنجاح:', response);
-      
-      // إضافة التعليق محلياً للعرض الفوري
-      const localComment = {
-        id: response.id || Date.now(),
-        username: user.username || user.firstName || 'مستخدم',
-        text: newComment.trim(),
-        timestamp: Date.now(),
-        userId: user.id
-      };
-      
-      setComments(prev => [...prev, localComment]);
       setNewComment('');
-      
-      // تحديث فوري للتعليقات
       refetchComments();
-      
     } catch (error) {
-      console.error('❌ خطأ في إرسال التعليق:', error);
+      console.error('خطأ في إرسال التعليق:', error);
     }
-  };
-
-  // تحديد وقت التعليق
-  const getTimeAgo = (timestamp: number) => {
-    const now = Date.now();
-    const diff = Math.floor((now - timestamp) / 1000);
-    
-    if (diff < 60) return 'الآن';
-    if (diff < 3600) return `${Math.floor(diff / 60)} د`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} س`;
-    return `${Math.floor(diff / 86400)} ي`;
   };
 
   // الاتصال بـ ZegoCloud لمشاهدة البث
   useEffect(() => {
     if (!stream || !user || !streamContainerRef.current || zegoInstance || isConnected) {
-      console.log('🚫 Connection blocked:', { hasStream: !!stream, hasUser: !!user, hasContainer: !!streamContainerRef.current, hasInstance: !!zegoInstance, isConnected });
       return;
     }
 
     const connectToStream = async () => {
       try {
-        console.log('🔗 Connecting to stream as viewer...');
-        
         const config = await apiRequest('/api/zego-config', 'GET');
         if (!config.appId || !stream.zegoRoomId) return;
 
-        // إنشاء token للمشاهدة - نفس الغرفة التي ينشئها المذيع
         const viewerUserId = `viewer_${user.id}_${Date.now()}`;
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
           parseInt(config.appId),
           config.appSign,
-          stream.zegoRoomId, // نفس معرف الغرفة
+          stream.zegoRoomId,
           viewerUserId,
           user.username || 'مشاهد'
         );
 
-        console.log('🔗 Viewer joining room:', {
-          roomId: stream.zegoRoomId,
-          streamId: stream.zegoStreamId,
-          viewerId: viewerUserId
-        });
-
         const zp = ZegoUIKitPrebuilt.create(kitToken);
         setZegoInstance(zp);
 
-        // الانضمام للبث كمشاهد - نفس الغرفة بالضبط
         await zp.joinRoom({
           container: streamContainerRef.current,
           scenario: {
@@ -237,7 +125,6 @@ export default function WatchStreamPage() {
               role: ZegoUIKitPrebuilt.Audience,
             }
           },
-          // إعدادات المشاهد
           turnOnMicrophoneWhenJoining: false,
           turnOnCameraWhenJoining: false,
           showMyCameraToggleButton: false,
@@ -245,32 +132,18 @@ export default function WatchStreamPage() {
           showAudioVideoSettingsButton: false,
           showScreenSharingButton: false,
           showTextChat: true,
-          showUserCount: true,
           showUserList: true,
           showRemoveUserButton: false,
           showPinButton: true,
           showLayoutButton: true,
           showLeaveRoomConfirmDialog: false,
-          
-          // إعدادات الفيديو المهمة للمشاهدة
           enableVideoAutoplay: true,
           enableAudioAutoplay: true,
-          
-          // callbacks مهمة
           onJoinRoom: () => {
-            console.log('✅ Viewer joined room successfully');
             setIsConnected(true);
           },
           onLeaveRoom: () => {
-            console.log('❌ Viewer left room');
             setIsConnected(false);
-          },
-          onRemoteStreamAdd: (streamList: any[]) => {
-            console.log('📺 Remote streams available:', streamList);
-            setIsConnected(true);
-          },
-          onRemoteStreamRemove: (streamList: any[]) => {
-            console.log('📺 Remote streams removed:', streamList);
           }
         });
 
@@ -281,7 +154,6 @@ export default function WatchStreamPage() {
 
     connectToStream();
 
-    // تنظيف الاتصال عند المغادرة
     return () => {
       if (zegoInstance) {
         try {
@@ -305,7 +177,6 @@ export default function WatchStreamPage() {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // معالجة حالات التحميل والأخطاء
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -323,25 +194,12 @@ export default function WatchStreamPage() {
         <div className="text-white text-center">
           <h2 className="text-2xl font-bold mb-4">البث غير متاح</h2>
           <p className="mb-6">عذراً، لا يمكن العثور على هذا البث أو انتهى البث</p>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-400 mb-2">تجربة الوصول المباشر للبث رقم: {id}</p>
-              <p className="text-xs text-gray-500">خطأ: {error?.message || 'البث غير موجود'}</p>
-            </div>
-            <Button 
-              onClick={() => setLocation('/')}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              العودة للرئيسية
-            </Button>
-            <Button 
-              onClick={() => setLocation('/simple-stream')}
-              variant="outline"
-              className="bg-green-600 hover:bg-green-700 text-white border-green-600"
-            >
-              إنشاء بث جديد
-            </Button>
-          </div>
+          <Button 
+            onClick={() => setLocation('/')}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            العودة للرئيسية
+          </Button>
         </div>
       </div>
     );
@@ -374,39 +232,39 @@ export default function WatchStreamPage() {
 
         {/* حاوية ZegoCloud للبث */}
         <div 
-          ref={streamContainerRef}
-          className="w-full h-full bg-gradient-to-br from-purple-900 to-blue-900"
-          style={{ position: 'relative', width: '100%', height: '100vh' }}
-        >
-          {/* شاشة تحميل أثناء الاتصال */}
-          {!isConnected && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600 z-10">
-              <div className="text-center">
-                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl animate-pulse">
-                  {stream.hostProfileImage ? (
-                    <img 
-                      src={stream.hostProfileImage} 
-                      alt={stream.hostName}
-                      className="w-24 h-24 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-3xl font-bold text-purple-600">
-                      {stream.hostName?.[0]?.toUpperCase() || 'S'}
-                    </span>
-                  )}
+          ref={streamContainerRef} 
+          className="absolute inset-0 w-full h-full bg-black"
+          style={{ zIndex: 1 }}
+        />
+
+        {/* التعليقات المباشرة على الشاشة - مثل TikTok بدون خلفية */}
+        <div className="absolute bottom-32 left-4 right-20 z-50 pointer-events-none">
+          {comments.length > 0 && (
+            <div className="space-y-3 max-h-80 overflow-hidden">
+              {comments.slice(-5).map((comment, index) => (
+                <div 
+                  key={comment.id} 
+                  className="animate-fade-in-up opacity-90"
+                  style={{
+                    animationDelay: `${index * 0.2}s`,
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                  }}
+                >
+                  <div className="text-white text-sm font-medium">
+                    <span className="text-pink-400 font-bold">{comment.username}</span>
+                    <span className="text-red-400 ml-2">🔴</span>
+                  </div>
+                  <div className="text-white text-base font-normal mt-1 leading-relaxed">
+                    {comment.text}
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">{stream.hostName}</h3>
-                <p className="text-sm opacity-80 mb-4">{stream.title}</p>
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-                <p className="text-sm mt-2">جاري الاتصال بالبث...</p>
-              </div>
+              ))}
             </div>
           )}
         </div>
 
         {/* أزرار التفاعل الجانبية */}
         <div className="absolute right-4 bottom-32 z-50 space-y-4">
-          {/* إعجاب */}
           <Button
             variant="ghost"
             size="lg"
@@ -417,7 +275,6 @@ export default function WatchStreamPage() {
             <span className="text-xs mt-1">{likes}</span>
           </Button>
 
-          {/* تعليق */}
           <Button
             variant="ghost"
             size="lg"
@@ -428,7 +285,6 @@ export default function WatchStreamPage() {
             <span className="text-xs mt-1">{comments.length}</span>
           </Button>
 
-          {/* مشاركة */}
           <Button
             variant="ghost"
             size="lg"
@@ -438,7 +294,6 @@ export default function WatchStreamPage() {
             <span className="text-xs mt-1">مشاركة</span>
           </Button>
 
-          {/* هدية */}
           <Button
             variant="ghost"
             size="lg"
@@ -471,16 +326,14 @@ export default function WatchStreamPage() {
           </div>
         </div>
 
-        {/* نافذة التعليقات */}
+        {/* نافذة إضافة تعليق */}
         {showComments && (
-          <div className="absolute bottom-20 right-4 w-80 max-w-[90vw] h-96 bg-black/90 backdrop-blur-md rounded-xl border border-white/20 flex flex-col z-50 shadow-2xl">
-            {/* رأس التعليقات */}
+          <div className="absolute bottom-20 right-4 w-80 max-w-[90vw] bg-black/90 backdrop-blur-md rounded-xl border border-white/20 flex flex-col z-50 shadow-2xl pointer-events-auto">
             <div className="flex items-center justify-between p-4 border-b border-white/20">
               <h3 className="text-white font-bold flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-blue-400" />
-                التعليقات المباشرة
+                إضافة تعليق
                 <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">🔴 LIVE</span>
-                <span className="text-purple-300 text-sm">({comments.length})</span>
               </h3>
               <Button
                 size="sm"
@@ -492,38 +345,8 @@ export default function WatchStreamPage() {
               </Button>
             </div>
 
-            {/* قائمة التعليقات */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-64">
-              {comments.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>لا توجد تعليقات بعد</p>
-                  <p className="text-sm mt-1">كن أول من يعلق!</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex items-start space-x-3 space-x-reverse group hover:bg-white/10 rounded-lg p-3 transition-all duration-200 animate-fadeIn border-r-2 border-purple-500/30">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-lg ring-2 ring-white/20">
-                        {comment.username.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 space-x-reverse mb-1">
-                          <span className="text-white text-sm font-semibold truncate bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{comment.username}</span>
-                          <span className="text-gray-400 text-xs flex-shrink-0">{getTimeAgo(comment.timestamp)}</span>
-                          <span className="text-green-400 text-xs">🟢 مباشر</span>
-                        </div>
-                        <p className="text-gray-100 text-sm leading-relaxed break-words bg-black/20 rounded-lg px-3 py-2">{comment.text}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* إضافة تعليق */}
             {user ? (
-              <div className="p-4 border-t border-white/20">
+              <div className="p-4">
                 <div className="flex space-x-2 space-x-reverse">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                     {user.username?.charAt(0).toUpperCase() || 'U'}
@@ -533,14 +356,19 @@ export default function WatchStreamPage() {
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="اكتب تعليقاً..."
-                      className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-lg"
-                      onKeyPress={(e) => e.key === 'Enter' && addComment()}
+                      className="flex-1 bg-white/10 border-white/30 text-white placeholder-gray-400 focus:border-blue-500 focus:bg-white/20"
                       maxLength={200}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && newComment.trim() && newComment.length <= 200) {
+                          handleSendComment();
+                        }
+                      }}
                     />
                     <Button
-                      onClick={addComment}
-                      disabled={!newComment.trim()}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 disabled:opacity-50"
+                      onClick={handleSendComment}
+                      disabled={!newComment.trim() || newComment.length > 200}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
@@ -551,7 +379,7 @@ export default function WatchStreamPage() {
                 </p>
               </div>
             ) : (
-              <div className="p-4 border-t border-white/20 text-center">
+              <div className="p-4 text-center">
                 <p className="text-gray-400 text-sm mb-3">
                   يجب تسجيل الدخول للتعليق
                 </p>

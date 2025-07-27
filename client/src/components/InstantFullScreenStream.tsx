@@ -296,22 +296,28 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
           </div>
         </div>
 
-        {/* منطقة التعليقات المباشرة */}
-        <div className="absolute bottom-20 right-6 w-80 max-h-96 z-20">
+        {/* التعليقات المباشرة على الشاشة - مثل TikTok بدون خلفية */}
+        <div className="absolute bottom-32 left-4 right-4 z-30 pointer-events-none">
           {liveComments.length > 0 && (
-            <div className="bg-black/70 backdrop-blur-sm rounded-lg p-4 overflow-y-auto max-h-80">
-              <h3 className="text-white font-bold mb-3 text-sm">💬 التعليقات المباشرة ({liveComments.length})</h3>
-              <div className="space-y-2">
-                {liveComments.slice(-10).map((comment) => (
-                  <div key={comment.id} className="bg-white/10 rounded-lg p-2 text-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-purple-300 font-semibold">{comment.username}</span>
-                      <span className="text-red-400 text-xs">🔴 LIVE</span>
-                    </div>
-                    <p className="text-white">{comment.text}</p>
+            <div className="space-y-3 max-h-80 overflow-hidden">
+              {liveComments.slice(-5).map((comment, index) => (
+                <div 
+                  key={comment.id} 
+                  className="animate-fade-in-up opacity-90"
+                  style={{
+                    animationDelay: `${index * 0.2}s`,
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                  }}
+                >
+                  <div className="text-white text-sm font-medium">
+                    <span className="text-pink-400 font-bold">{comment.username}</span>
+                    <span className="text-red-400 ml-2">🔴</span>
                   </div>
-                ))}
-              </div>
+                  <div className="text-white text-base font-normal mt-1 leading-relaxed">
+                    {comment.text}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
