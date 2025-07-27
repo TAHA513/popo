@@ -1,0 +1,63 @@
+client:536  WebSocket connection to 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/?token=JafzDdsBuvHR' failed: Error during WebSocket handshake: Unexpected response code: 400
+setupWebSocket @ client:536
+client:536  Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=JafzDdsBuvHR' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+/api/auth/user:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+App.tsx:116 Navigation timing: Object
+performance.ts:259 تم تحميل جميع الخطوط بنجاح
+main.tsx:10 SW registered:  ServiceWorkerRegistration
+617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/:1  Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)
+zego-uikit-prebuilt.js:2  WebSocket connection to 'wss://weblogger-wss.coolgcloud.com/zglog/ws' failed: WebSocket is closed before the connection is established.
+BA.stopWebSocketServer @ zego-uikit-prebuilt.js:2
+streams-home.tsx:156 🎯 Joining stream: 39
+watch-stream.tsx:73 🔗 Connecting to stream as viewer...
+watch-stream.tsx:88 🔗 Viewer joining room: Object
+zego-uikit-prebuilt.js:2  【ZEGOCLOUD】joinRoom repeat !!
+joinRoom @ zego-uikit-prebuilt.js:2
+App.tsx:128 Memory usage: Object
+zego-uikit-prebuilt.js:2  【ZEGOCLOUD】joinRoom repeat !!
+joinRoom @ zego-uikit-prebuilt.js:2
+streams-home.tsx:156 🎯 Joining stream: 39
+watch-stream.tsx:73 🔗 Connecting to stream as viewer...
+watch-stream.tsx:88 🔗 Viewer joining room: Object
+zego-uikit-prebuilt.js:2  【ZEGOCLOUD】joinRoom repeat !!
+joinRoom @ zego-uikit-prebuilt.js:2
+zego-uikit-prebuilt.js:2  【ZEGOCLOUD】joinRoom repeat !!
+joinRoom @ zego-uikit-prebuilt.js:2
+streams-home.tsx:156 🎯 Joining stream: 39
+watch-stream.tsx:73 🔗 Connecting to stream as viewer...
+watch-stream.tsx:88 🔗 Viewer joining room: Object
+zego-uikit-prebuilt.js:2  【ZEGOCLOUD】joinRoom repeat !!
+joinRoom @ zego-uikit-prebuilt.js:2
+zego-uikit-prebuilt.js:2  【ZEGOCLOUD】joinRoom repeat !!
+joinRoom @ zego-uikit-prebuilt.js:2
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+performance.ts:272 Near bottom - consider loading more content
+streams-home.tsx:156 🎯 Joining stream: 39
+watch-stream.tsx:73 🔗 Connecting to stream as viewer...
+performance.ts:272 Near bottom - consider loading more content
+watch-stream.tsx:88 🔗 Viewer joining room: {roomId: 'room_SmoJzTCLYTemAQTm1JM8s_1753639771101', streamId: 'stream_SmoJzTCLYTemAQTm1JM8s_1753639771101', viewerId: 'viewer_AY7JfzwUCBdKAVfPJbcS8_1753639796742'}
+watch-stream.tsx:98  【ZEGOCLOUD】joinRoom repeat !!
+joinRoom @ zego-uikit-prebuilt.js:2
+connectToStream @ watch-stream.tsx:98
+await in connectToStream
+(anonymous) @ watch-stream.tsx:148
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690

@@ -66,7 +66,10 @@ export default function WatchStreamPage() {
 
   // الاتصال بـ ZegoCloud لمشاهدة البث
   useEffect(() => {
-    if (!stream || !user || !streamContainerRef.current) return;
+    if (!stream || !user || !streamContainerRef.current || zegoInstance || isConnected) {
+      console.log('🚫 Connection blocked:', { hasStream: !!stream, hasUser: !!user, hasContainer: !!streamContainerRef.current, hasInstance: !!zegoInstance, isConnected });
+      return;
+    }
 
     const connectToStream = async () => {
       try {
