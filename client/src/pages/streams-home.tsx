@@ -1,10 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Play, Users, Eye, Radio, Clock, Heart } from "lucide-react";
+import { Plus, Play, Users, Eye, Radio, Clock, Heart, Video } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 
 export default function StreamsHome() {
@@ -77,45 +77,53 @@ export default function StreamsHome() {
                   <CardContent className="p-0">
                     {/* Live Stream Preview */}
                     <div className="relative h-56 overflow-hidden">
-                      {/* Real ZegoCloud Stream Preview */}
-                      <div 
-                        id={`preview-${stream.id}`}
-                        className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center"
-                      >
-                        {/* Animated live stream simulation */}
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          {/* Simulated live video background */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-purple-600/30 animate-pulse"></div>
-                          
-                          {/* Live streamer avatar with animation */}
-                          <div className="relative z-10 text-center">
-                            <div className="w-24 h-24 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl border-4 border-white/70 animate-bounce">
-                              {stream.hostProfileImage ? (
-                                <img 
-                                  src={stream.hostProfileImage} 
-                                  alt={stream.hostName}
-                                  className="w-24 h-24 rounded-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-3xl font-bold text-purple-600 animate-pulse">
-                                  {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
-                                </span>
-                              )}
+                      {/* Enhanced Live Stream Preview */}
+                      <div className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-blue-600 relative overflow-hidden">
+                        {/* Animated live stream effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-600/20 animate-pulse"></div>
+                        
+                        {/* Moving video effect lines */}
+                        <div className="absolute inset-0">
+                          <div className="h-full w-full flex items-center justify-center relative">
+                            {/* Simulated video scanlines */}
+                            <div className="absolute inset-0 opacity-30">
+                              {[...Array(20)].map((_, i) => (
+                                <div
+                                  key={i}
+                                  className="h-px bg-white/20 mb-3 animate-pulse"
+                                  style={{ animationDelay: `${i * 0.1}s` }}
+                                ></div>
+                              ))}
                             </div>
-                            <div className="text-white">
-                              <h4 className="font-bold text-lg mb-1 animate-fade-in">{stream.hostName || 'مضيف البث'}</h4>
-                              <div className="flex items-center justify-center gap-2 text-sm">
-                                <Radio className="w-4 h-4 animate-pulse text-red-300" />
-                                <span className="animate-pulse">يبث الآن مباشرة</span>
+                            
+                            {/* Live broadcaster preview */}
+                            <div className="relative z-10 text-center text-white">
+                              <div className="w-24 h-24 bg-white/95 rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl border-4 border-white/70 animate-bounce">
+                                {stream.hostProfileImage ? (
+                                  <img 
+                                    src={stream.hostProfileImage} 
+                                    alt={stream.hostName}
+                                    className="w-24 h-24 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-3xl font-bold text-purple-600">
+                                    {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="font-bold text-lg mb-1 drop-shadow-lg">{stream.hostName || 'مضيف البث'}</h4>
+                              <div className="flex items-center justify-center gap-2 text-sm bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm">
+                                <div className="w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
+                                <span>يبث الآن مباشرة</span>
                               </div>
                             </div>
+                            
+                            {/* Floating activity indicators */}
+                            <div className="absolute top-4 left-4 w-3 h-3 bg-white/60 rounded-full animate-bounce"></div>
+                            <div className="absolute top-8 right-8 w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                            <div className="absolute bottom-6 left-8 w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
+                            <div className="absolute bottom-12 right-12 w-1 h-1 bg-white/40 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
                           </div>
-                          
-                          {/* Moving particles to simulate live activity */}
-                          <div className="absolute top-4 left-4 w-3 h-3 bg-white/50 rounded-full animate-bounce"></div>
-                          <div className="absolute top-8 right-8 w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
-                          <div className="absolute bottom-6 left-8 w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
-                          <div className="absolute bottom-12 right-12 w-1 h-1 bg-white/30 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
                         </div>
                       </div>
 
@@ -137,12 +145,12 @@ export default function StreamsHome() {
                       </div>
 
                       {/* Interactive join overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 cursor-pointer">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 shadow-xl transform hover:scale-110 transition-transform">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 cursor-pointer z-20">
+                        <div className="bg-white/30 backdrop-blur-sm rounded-full p-4 shadow-xl transform hover:scale-110 transition-transform">
                           <Play className="w-8 h-8 text-white drop-shadow-lg" />
                         </div>
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white font-bold text-sm bg-black/50 px-3 py-1 rounded-full">
-                          انقر للدخول
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white font-bold text-sm bg-black/70 px-4 py-2 rounded-full backdrop-blur-sm">
+                          انقر لدخول البث كاملاً
                         </div>
                       </div>
                     </div>
