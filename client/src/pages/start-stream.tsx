@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, VideoOff, Mic, MicOff, Radio, Users, Eye } from "lucide-react";
 import { useLocation } from "wouter";
+import QuickStreamInterface from "@/components/QuickStreamInterface";
 import { 
   initializeZegoConfig, 
   validateStreamSecurity, 
@@ -65,6 +66,7 @@ export default function StartStreamPage() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [viewerCount, setViewerCount] = useState(0);
   const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
+  const [currentStreamData, setCurrentStreamData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -404,6 +406,7 @@ export default function StartStreamPage() {
 
         if (response?.id) {
           setCurrentStreamId(response.id);
+          setCurrentStreamData(response);
           setIsStreaming(true);
           setViewerCount(1);
           console.log("🎉 STREAM STARTED SUCCESSFULLY!");
@@ -438,6 +441,7 @@ export default function StartStreamPage() {
         
         setIsStreaming(false);
         setCurrentStreamId(null);
+        setCurrentStreamData(null);
         setViewerCount(0);
         setStreamTitle("");
         setStreamDescription("");
@@ -483,6 +487,25 @@ export default function StartStreamPage() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  // إذا كان البث نشطاً، عرض الواجهة الاحترافية
+  if (isStreaming && currentStreamData) {
+    return (
+      <div className="fixed inset-0 bg-black z-50">
+        <QuickStreamInterface 
+          streamData={currentStreamData} 
+          onStreamEnd={() => {
+            setIsStreaming(false);
+            setCurrentStreamId(null);
+            setCurrentStreamData(null);
+            setViewerCount(0);
+            setStreamTitle("");
+            setStreamDescription("");
+          }}
+        />
       </div>
     );
   }
