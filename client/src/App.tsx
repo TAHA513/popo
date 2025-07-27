@@ -136,8 +136,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className={`app-container ${language === 'ar' ? 'rtl' : ''}`}>
-        <Toaster />
         <Router />
+        <Toaster />
       </div>
     </QueryClientProvider>
   );
