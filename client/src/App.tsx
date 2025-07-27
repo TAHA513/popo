@@ -21,6 +21,7 @@ import MessagesPage from "@/pages/messages";
 import LockedAlbums from "@/components/LockedAlbums";
 import WatchStreamPage from "@/pages/watch-stream";
 import StreamTestPage from "@/pages/stream-test";
+import UnifiedStreamPage from "@/pages/unified-stream";
 import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
 
@@ -63,6 +64,7 @@ function Router() {
           <Route path="/games" component={LazyComponents.GamesPage} />
           <Route path="/start-stream" component={() => <SimpleStreamPage />} />
           <Route path="/simple-stream" component={() => <SimpleStreamPage />} />
+          <Route path="/unified-stream" component={UnifiedStreamPage} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/stream-test" component={StreamTestPage} />

@@ -96,25 +96,52 @@ export default function SimpleStreamPage() {
         return;
       }
 
-      // الاتصال بـ ZegoCloud
+      // الاتصال بـ ZegoCloud باستخدام UIKit
       try {
-        const config = await fetch('/api/zego-config', {
-          credentials: 'include'
-        }).then(res => res.json());
+        const config = await apiRequest('/api/zego-config', 'GET');
 
-        if (config.appId && streamRef.current) {
-          const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
-          const engine = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
-          zegoEngineRef.current = engine;
+        if (config.appId && currentStreamData?.zegoRoomId) {
+          // استخدام نفس النظام للمذيع والمشاهد
+          const { ZegoUIKitPrebuilt } = await import('@zegocloud/zego-uikit-prebuilt');
           
-          // تسجيل الدخول والبث
-          await engine.loginRoom(currentStreamData?.zegoRoomId || 'default-room', {
-            userID: config.userID || `host_${user.id}`,
-            userName: config.userName || user.username || 'مضيف'
-          }, config.token || '');
+          const hostUserId = `host_${user.id}_${Date.now()}`;
+          const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+            parseInt(config.appId),
+            config.appSign,
+            currentStreamData.zegoRoomId,
+            hostUserId,
+            user.username || 'مضيف'
+          );
 
-          await engine.startPublishingStream(currentStreamData?.zegoStreamId || 'default-stream', streamRef.current);
-          console.log('✅ ZegoCloud connected successfully!');
+          const zp = ZegoUIKitPrebuilt.create(kitToken);
+          zegoEngineRef.current = zp;
+
+          // إنشاء حاوية مخفية للمذيع
+          const hiddenContainer = document.createElement('div');
+          hiddenContainer.style.position = 'fixed';
+          hiddenContainer.style.top = '-9999px';
+          hiddenContainer.style.left = '-9999px';
+          hiddenContainer.style.width = '1px';
+          hiddenContainer.style.height = '1px';
+          document.body.appendChild(hiddenContainer);
+
+          await zp.joinRoom({
+            container: hiddenContainer,
+            scenario: {
+              mode: ZegoUIKitPrebuilt.LiveStreaming,
+              config: {
+                role: ZegoUIKitPrebuilt.Host,
+              }
+            },
+            turnOnMicrophoneWhenJoining: true,
+            turnOnCameraWhenJoining: true,
+            showLeaveRoomConfirmDialog: false,
+            onJoinRoom: () => {
+              console.log('✅ Host joined room successfully!');
+            }
+          });
+
+          console.log('✅ ZegoCloud Host connected successfully!');
         }
       } catch (zegoError) {
         console.warn('⚠️ ZegoCloud connection failed, continuing with local stream:', zegoError);
