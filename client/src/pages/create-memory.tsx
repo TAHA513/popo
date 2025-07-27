@@ -1,614 +1,333 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Image, Video, Upload, X, ArrowLeft, Check } from "lucide-react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Upload, 
-  Image as ImageIcon, 
-  Video, 
-  Sparkles, 
-  Heart, 
-  Crown, 
-  Clock,
-  Globe,
-  Users,
-  Lock,
-  MessageCircle,
-  Share2,
-  Gift,
-  ArrowLeft,
-  X,
-  Camera,
-  Zap,
-  Smile,
-  Palette,
-  Filter,
-  Sun,
-  Moon,
-  Contrast,
-  Settings,
-  Plus,
-  Play,
-  Pause,
-  Music,
-  Flame,
-  Star,
-  Trophy
-} from "lucide-react";
-
-// TikTok-inspired filters with emojis
-const TIKTOK_FILTERS = [
-  { id: 'none', name: 'الأصلي', emoji: '✨', style: '' },
-  { id: 'vintage', name: 'كلاسيكي', emoji: '📸', style: 'sepia(0.6) brightness(1.1) contrast(1.1)' },
-  { id: 'dramatic', name: 'دراماتيكي', emoji: '🎭', style: 'contrast(1.4) saturate(1.3) brightness(0.9)' },
-  { id: 'warm', name: 'دافئ', emoji: '☀️', style: 'hue-rotate(15deg) saturate(1.2) brightness(1.1)' },
-  { id: 'cool', name: 'بارد', emoji: '❄️', style: 'hue-rotate(-20deg) saturate(1.1) brightness(1.05)' },
-  { id: 'vibrant', name: 'حيوي', emoji: '🌈', style: 'saturate(1.5) contrast(1.2) brightness(1.1)' },
-  { id: 'neon', name: 'نيون', emoji: '💫', style: 'saturate(1.8) contrast(1.3) brightness(1.2) hue-rotate(45deg)' },
-  { id: 'retro', name: 'ريترو', emoji: '🕺', style: 'sepia(0.3) saturate(1.4) contrast(1.2) brightness(1.1)' },
-  { id: 'pink', name: 'وردي', emoji: '🌸', style: 'hue-rotate(300deg) saturate(1.3)' },
-  { id: 'mono', name: 'أبيض وأسود', emoji: '⚫', style: 'grayscale(1) contrast(1.2)' }
-];
-
-// Memory types with new exciting options
-const MEMORY_TYPES = [
-  {
-    id: 'flash',
-    name: 'فلاش',
-    emoji: '⚡',
-    color: 'from-yellow-400 to-orange-500',
-    duration: '3 ساعات',
-    description: 'للحظات السريعة والمثيرة'
-  },
-  {
-    id: 'trending',
-    name: 'ترند',
-    emoji: '🔥',
-    color: 'from-red-500 to-pink-500',
-    duration: '12 ساعة',
-    description: 'للمحتوى الرائج والشائع'
-  },
-  {
-    id: 'star',
-    name: 'نجم',
-    emoji: '⭐',
-    color: 'from-purple-500 to-indigo-500',
-    duration: '24 ساعة',
-    description: 'للذكريات المميزة'
-  },
-  {
-    id: 'legend',
-    name: 'أسطورة',
-    emoji: '👑',
-    color: 'from-yellow-500 to-yellow-600',
-    duration: 'أسبوع',
-    description: 'للحظات الاستثنائية'
-  }
-];
-
-// Privacy options
-const PRIVACY_OPTIONS = [
-  { value: 'public', icon: Globe, label: 'عام', desc: 'يمكن للجميع رؤيته', color: 'text-green-400' },
-  { value: 'followers', icon: Users, label: 'المتابعون', desc: 'للمتابعين فقط', color: 'text-blue-400' },
-  { value: 'private', icon: Lock, label: 'خاص', desc: 'لك فقط', color: 'text-gray-400' }
-];
+import SimpleNavigation from "@/components/simple-navigation";
 
 export default function CreateMemoryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<'upload' | 'filter' | 'details'>('upload');
-  const [selectedFilter, setSelectedFilter] = useState('none');
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    caption: "",
-    memoryType: "star" as "flash" | "trending" | "star" | "legend",
-    visibilityLevel: "public" as "public" | "followers" | "private",
-    allowComments: true,
-    allowSharing: true,
-    allowGifts: true
-  });
+  const [memoryType, setMemoryType] = useState<'public' | 'private' | 'friends'>('public');
+  const [category, setCategory] = useState('عام');
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const categories = [
+    'عام', 'طبيعة', 'سفر', 'طعام', 'رياضة', 'تقنية', 
+    'فن', 'موسيقى', 'تعليم', 'صحة', 'عائلة', 'أصدقاء'
+  ];
 
-    // Check file size (50MB limit)
-    if (file.size > 50 * 1024 * 1024) {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length + selectedFiles.length > 5) {
       toast({
-        title: "الملف كبير جداً",
-        description: "حجم الملف يجب أن يكون أقل من 50 ميجابايت",
+        title: "حد أقصى 5 ملفات",
+        description: "يمكنك رفع 5 ملفات كحد أقصى",
+        variant: "destructive"
+      });
+      return;
+    }
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const createMemory = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "عنوان مطلوب",
+        description: "يرجى إدخال عنوان للذكرى",
         variant: "destructive"
       });
       return;
     }
 
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    setCurrentStep('filter');
-  };
-
-  const resetUpload = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setCurrentStep('upload');
-    setSelectedFilter('none');
-    setFormData({
-      caption: "",
-      memoryType: "star",
-      visibilityLevel: "public",
-      allowComments: true,
-      allowSharing: true,
-      allowGifts: true
-    });
-  };
-
-  const handleVideoToggle = () => {
-    if (videoRef.current) {
-      if (isVideoPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsVideoPlaying(!isVideoPlaying);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedFile) return;
-
     setIsUploading(true);
-    setUploadProgress(0);
     
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('media', selectedFile);
-      formDataToSend.append('caption', formData.caption);
-      formDataToSend.append('memoryType', formData.memoryType);
-      formDataToSend.append('visibilityLevel', formData.visibilityLevel);
-      formDataToSend.append('allowComments', formData.allowComments.toString());
-      formDataToSend.append('allowSharing', formData.allowSharing.toString());
-      formDataToSend.append('allowGifts', formData.allowGifts.toString());
-      formDataToSend.append('filter', selectedFilter);
-
-      // Simulate upload progress with better timing
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return Math.min(prev + Math.random() * 10 + 5, 90);
+      // رفع الملفات أولاً
+      const mediaUrls: string[] = [];
+      
+      for (const file of selectedFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
         });
-      }, 200);
-
-      const response = await fetch('/api/memories', {
-        method: 'POST',
-        body: formDataToSend,
-      });
-
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
-      if (!response.ok) {
-        throw new Error('فشل في نشر المحتوى');
+        
+        if (uploadResponse.ok) {
+          const result = await uploadResponse.json();
+          mediaUrls.push(result.url);
+        }
       }
 
-      toast({
-        title: "تم النشر بنجاح! 🎉",
-        description: "تم نشر محتواك وهو متاح الآن للآخرين",
-      });
+      // إنشاء الذكرى
+      const memoryData = {
+        title,
+        content: description,
+        mediaUrls,
+        memoryType,
+        category,
+        type: selectedFiles.some(f => f.type.startsWith('video/')) ? 'video' : 'image'
+      };
 
-      // Wait a bit before resetting to show 100% progress
-      setTimeout(() => {
-        resetUpload();
-        setUploadProgress(0);
-        
-        // Navigate to feed
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 500);
-      }, 1000);
-
+      const response = await apiRequest('/api/memories', 'POST', memoryData);
+      
+      if (response?.success) {
+        toast({
+          title: "تم إنشاء الذكرى!",
+          description: "تمت إضافة ذكرتك بنجاح",
+        });
+        setLocation('/');
+      } else {
+        throw new Error('فشل في إنشاء الذكرى');
+      }
     } catch (error) {
-      console.error('Upload error:', error);
-      setUploadProgress(0);
+      console.error('Error creating memory:', error);
       toast({
-        title: "خطأ في النشر",
-        description: "حدث خطأ أثناء نشر المحتوى. يرجى المحاولة مرة أخرى",
+        title: "خطأ في الإنشاء",
+        description: "حدث خطأ أثناء إنشاء الذكرى",
         variant: "destructive"
       });
     } finally {
-      // Keep uploading state until navigation
+      setIsUploading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-pink-900/30 to-blue-900/30"></div>
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-pink-500/20 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-1/3 right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-32 left-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
+  const getFilePreview = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return URL.createObjectURL(file);
+    }
+    return null;
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-lg border-white/20">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-2xl font-bold text-white mb-4">تسجيل الدخول مطلوب</h2>
+            <p className="text-white/80 mb-6">يجب تسجيل الدخول لإنشاء ذكرى جديدة</p>
+            <Button 
+              onClick={() => setLocation('/login')}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+            >
+              تسجيل الدخول
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100">
+      <SimpleNavigation />
       
-      <div className="relative min-h-screen">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 relative z-10">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => window.history.back()}
-            className="text-white hover:bg-white/10 rounded-full p-2"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-          
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl mb-1 shadow-2xl">
-              <span className="text-xl">🐰</span>
-            </div>
-            <h1 className="text-lg font-bold text-white">إنشاء ذكرى</h1>
-          </div>
-          
-          <div className="w-10"></div>
-        </div>
-
-        {/* Content Area */}
-        <div className="px-4 pb-20">
-          {/* Step 1: Upload */}
-          {currentStep === 'upload' && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">شارك ذكرتك</h2>
-                <p className="text-gray-300">اختر صورة أو فيديو لإنشاء ذكرى مميزة</p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 w-full max-w-sm">
-                {/* Upload Options */}
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 text-center hover:bg-white/20 transition-all group tiktok-button"
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                      <ImageIcon className="h-6 w-6 text-white" />
-                    </div>
-                    <span className="text-white font-medium">صورة</span>
-                    <p className="text-gray-300 text-xs mt-1">JPG, PNG, WebP</p>
-                  </button>
-
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 text-center hover:bg-white/20 transition-all group tiktok-button"
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                      <Video className="h-6 w-6 text-white" />
-                    </div>
-                    <span className="text-white font-medium">فيديو</span>
-                    <p className="text-gray-300 text-xs mt-1">MP4, WebM</p>
-                  </button>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-4 glass-effect">
-                  <h3 className="text-white font-medium mb-3 text-center gradient-text">أو جرب هذه</h3>
-                  <div className="flex justify-center space-x-4 rtl:space-x-reverse">
-                    <button className="text-white hover:text-pink-400 transition-colors animate-float">
-                      <Camera className="h-6 w-6" />
-                      <span className="text-xs block mt-1">كاميرا</span>
-                    </button>
-                    <button className="text-white hover:text-purple-400 transition-colors animate-float" style={{ animationDelay: '0.5s' }}>
-                      <Music className="h-6 w-6" />
-                      <span className="text-xs block mt-1">موسيقى</span>
-                    </button>
-                    <button className="text-white hover:text-blue-400 transition-colors animate-float" style={{ animationDelay: '1s' }}>
-                      <Sparkles className="h-6 w-6" />
-                      <span className="text-xs block mt-1">مؤثرات</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </div>
-          )}
-
-          {/* Step 2: Filter */}
-          {currentStep === 'filter' && previewUrl && (
-            <div className="space-y-6">
-              {/* Preview */}
-              <div className="relative rounded-2xl overflow-hidden bg-gray-900 mx-auto" style={{ aspectRatio: '9/16', maxWidth: '280px' }}>
-                {selectedFile?.type.startsWith('video/') ? (
-                  <div className="relative w-full h-full">
-                    <video
-                      ref={videoRef}
-                      src={previewUrl}
-                      className="w-full h-full object-cover"
-                      style={{ filter: TIKTOK_FILTERS.find(f => f.id === selectedFilter)?.style }}
-                      loop
-                      muted
-                    />
-                    <button
-                      onClick={handleVideoToggle}
-                      className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors"
-                    >
-                      {isVideoPlaying ? (
-                        <Pause className="h-12 w-12 text-white drop-shadow-lg" />
-                      ) : (
-                        <Play className="h-12 w-12 text-white drop-shadow-lg" />
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                    style={{ filter: TIKTOK_FILTERS.find(f => f.id === selectedFilter)?.style }}
-                  />
-                )}
-                
-                {/* Current Filter Badge */}
-                <div className="absolute top-4 left-4">
-                  <div className="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm flex items-center">
-                    <span className="mr-2">{TIKTOK_FILTERS.find(f => f.id === selectedFilter)?.emoji}</span>
-                    {TIKTOK_FILTERS.find(f => f.id === selectedFilter)?.name}
-                  </div>
-                </div>
-              </div>
-
-              {/* Filters */}
-              <div>
-                <h3 className="text-white font-semibold mb-4 flex items-center gradient-text">
-                  <Palette className="h-5 w-5 ml-2" />
-                  الفلاتر السحرية
-                </h3>
-                <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
-                  {TIKTOK_FILTERS.map((filter, index) => (
-                    <button
-                      key={filter.id}
-                      onClick={() => setSelectedFilter(filter.id)}
-                      className={`flex-shrink-0 w-20 p-3 rounded-2xl border-2 transition-all tiktok-button ${
-                        selectedFilter === filter.id
-                          ? 'border-pink-500 bg-pink-500/20 scale-105'
-                          : 'border-white/30 bg-white/10 hover:bg-white/20'
-                      }`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="text-2xl mb-1">{filter.emoji}</div>
-                      <div className="text-xs text-white font-medium">{filter.name}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Navigation */}
-              <div className="flex justify-between space-x-4 rtl:space-x-reverse">
+      <div className="pt-20 pb-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <Card className="bg-white/90 backdrop-blur-lg border-white/40 shadow-2xl">
+            <CardHeader className="text-center pb-2">
+              <div className="flex items-center justify-between mb-4">
                 <Button
-                  variant="outline"
-                  onClick={resetUpload}
-                  className="border-white/30 text-black hover:bg-white/10 rounded-2xl flex-1 tiktok-button"
+                  onClick={() => setLocation('/')}
+                  variant="ghost"
+                  className="text-gray-600 hover:text-gray-800"
                 >
-                  <X className="h-4 w-4 ml-2" />
-                  إلغاء
-                </Button>
-                <Button
-                  onClick={() => setCurrentStep('details')}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl flex-1 tiktok-button"
-                >
-                  <Sparkles className="h-4 w-4 ml-2" />
-                  التالي
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Details */}
-          {currentStep === 'details' && (
-            <div className="space-y-6">
-              {/* Small Preview with Caption */}
-              <div className="flex items-start space-x-4 rtl:space-x-reverse">
-                <div className="flex-shrink-0 w-16 h-20 rounded-2xl overflow-hidden bg-gray-900">
-                  {selectedFile?.type.startsWith('video/') ? (
-                    <video
-                      src={previewUrl!}
-                      className="w-full h-full object-cover"
-                      style={{ filter: TIKTOK_FILTERS.find(f => f.id === selectedFilter)?.style }}
-                      muted
-                    />
-                  ) : (
-                    <img
-                      src={previewUrl!}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      style={{ filter: TIKTOK_FILTERS.find(f => f.id === selectedFilter)?.style }}
-                    />
-                  )}
-                </div>
-                
-                <div className="flex-1">
-                  <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-4 glass-effect">
-                    <Textarea
-                      value={formData.caption}
-                      onChange={(e) => setFormData(prev => ({ ...prev, caption: e.target.value }))}
-                      placeholder="اكتب وصفاً مميزاً لذكرتك... 🌟"
-                      className="bg-transparent border-none text-white placeholder:text-gray-300 resize-none p-0 focus:ring-0 text-right"
-                      rows={4}
-                      maxLength={150}
-                    />
-                    <div className="text-gray-400 text-xs mt-2 text-left">
-                      {formData.caption.length}/150
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Memory Type */}
-              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-4 glass-effect">
-                <h3 className="text-white font-semibold mb-4 flex items-center gradient-text">
-                  <Zap className="h-5 w-5 ml-2" />
-                  نوع الذكرى
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {MEMORY_TYPES.map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() => setFormData(prev => ({ ...prev, memoryType: type.id as any }))}
-                      className={`p-4 rounded-2xl border-2 transition-all tiktok-button ${
-                        formData.memoryType === type.id
-                          ? 'border-pink-500 bg-pink-500/20 scale-105'
-                          : 'border-white/30 bg-white/5 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${type.color} flex items-center justify-center text-2xl mb-2 mx-auto`}>
-                        {type.emoji}
-                      </div>
-                      <h4 className="text-white font-semibold text-center">{type.name}</h4>
-                      <p className="text-gray-300 text-xs text-center mt-1">{type.duration}</p>
-                      <p className="text-gray-400 text-xs text-center mt-1">{type.description}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Privacy Settings */}
-              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-4 glass-effect">
-                <h3 className="text-white font-semibold mb-4 flex items-center gradient-text">
-                  <Globe className="h-5 w-5 ml-2" />
-                  من يمكنه رؤية ذكرتك؟
-                </h3>
-                <div className="space-y-3">
-                  {PRIVACY_OPTIONS.map((option) => {
-                    const Icon = option.icon;
-                    return (
-                      <button
-                        key={option.value}
-                        onClick={() => setFormData(prev => ({ ...prev, visibilityLevel: option.value as any }))}
-                        className={`w-full flex items-center space-x-3 rtl:space-x-reverse p-3 rounded-xl transition-all tiktok-button ${
-                          formData.visibilityLevel === option.value
-                            ? 'bg-pink-500/20 border border-pink-500/50'
-                            : 'bg-white/5 hover:bg-white/10'
-                        }`}
-                      >
-                        <Icon className={`h-5 w-5 ${option.color}`} />
-                        <div className="flex-1 text-right">
-                          <div className="text-white font-medium">{option.label}</div>
-                          <div className="text-gray-300 text-sm">{option.desc}</div>
-                        </div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          formData.visibilityLevel === option.value
-                            ? 'border-pink-500 bg-pink-500'
-                            : 'border-white/30'
-                        }`}>
-                          {formData.visibilityLevel === option.value && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Interaction Settings */}
-              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-4 glass-effect">
-                <h3 className="text-white font-semibold mb-4 gradient-text">إعدادات التفاعل</h3>
-                <div className="space-y-4">
-                  {[
-                    { key: 'allowComments', icon: MessageCircle, label: 'السماح بالتعليقات', color: 'text-blue-400' },
-                    { key: 'allowSharing', icon: Share2, label: 'السماح بالمشاركة', color: 'text-green-400' },
-                    { key: 'allowGifts', icon: Gift, label: 'السماح بالهدايا', color: 'text-purple-400' }
-                  ].map((setting) => {
-                    const Icon = setting.icon;
-                    return (
-                      <div key={setting.key} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                          <Icon className={`h-5 w-5 ${setting.color}`} />
-                          <span className="text-white font-medium">{setting.label}</span>
-                        </div>
-                        <button
-                          onClick={() => setFormData(prev => ({ 
-                            ...prev, 
-                            [setting.key]: !prev[setting.key as keyof typeof prev] 
-                          }))}
-                          className={`w-12 h-6 rounded-full transition-all relative ${
-                            formData[setting.key as keyof typeof formData]
-                              ? 'bg-gradient-to-r from-pink-500 to-purple-500'
-                              : 'bg-gray-600'
-                          }`}
-                        >
-                          <div className={`w-5 h-5 bg-white rounded-full transition-transform absolute top-0.5 ${
-                            formData[setting.key as keyof typeof formData]
-                              ? 'translate-x-6 rtl:-translate-x-6'
-                              : 'translate-x-0.5'
-                          }`} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Navigation */}
-              <div className="flex justify-between space-x-4 rtl:space-x-reverse pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep('filter')}
-                  className="border-white/30 text-black hover:bg-white/10 rounded-2xl flex-1 tiktok-button"
-                >
-                  <ArrowLeft className="h-4 w-4 ml-2" />
+                  <ArrowLeft className="w-5 h-5 ml-2" />
                   رجوع
                 </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isUploading}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-2xl flex-1 shadow-lg tiktok-button relative overflow-hidden"
+                <CardTitle className="text-2xl font-bold text-gray-800 flex items-center">
+                  <Plus className="w-6 h-6 ml-2 text-purple-600" />
+                  إنشاء ذكرى جديدة
+                </CardTitle>
+                <div></div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {/* عنوان الذكرى */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">عنوان الذكرى *</label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="أدخل عنوان جذاب لذكرتك..."
+                  className="text-lg p-4"
+                  maxLength={100}
+                />
+              </div>
+
+              {/* وصف الذكرى */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">وصف الذكرى (اختياري)</label>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="اكتب وصف أو قصة عن هذه الذكرى..."
+                  className="min-h-24 text-lg p-4"
+                  maxLength={500}
+                />
+              </div>
+
+              {/* نوع الذكرى */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-3">نوع الذكرى</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'public', label: 'عامة', desc: 'يراها الجميع', color: 'bg-green-100 text-green-700 border-green-300' },
+                    { value: 'friends', label: 'أصدقاء', desc: 'الأصدقاء فقط', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+                    { value: 'private', label: 'خاصة', desc: 'أنت فقط', color: 'bg-gray-100 text-gray-700 border-gray-300' }
+                  ].map((type) => (
+                    <div
+                      key={type.value}
+                      onClick={() => setMemoryType(type.value as any)}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        memoryType === type.value 
+                          ? type.color + ' shadow-lg scale-105' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="text-center">
+                        <div className="font-bold">{type.label}</div>
+                        <div className="text-sm text-gray-600">{type.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* فئة الذكرى */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-3">فئة الذكرى</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {categories.map((cat) => (
+                    <Badge
+                      key={cat}
+                      onClick={() => setCategory(cat)}
+                      className={`p-3 text-center cursor-pointer transition-all ${
+                        category === cat 
+                          ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {cat}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* رفع الملفات */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-3">الصور والفيديوهات</label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all"
                 >
-                  {/* Progress bar background */}
-                  {isUploading && (
-                    <div 
-                      className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-500 transition-all duration-300 ease-out"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  )}
-                  
-                  <div className="relative z-10">
-                    {isUploading ? (
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
-                        <span>جاري النشر... {Math.round(uploadProgress)}%</span>
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-2">اضغط لرفع الصور والفيديوهات</p>
+                  <p className="text-sm text-gray-500">حد أقصى 5 ملفات • JPG, PNG, MP4, MOV</p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {/* معاينة الملفات المحددة */}
+              {selectedFiles.length > 0 && (
+                <div>
+                  <label className="block text-gray-700 font-medium mb-3">الملفات المحددة ({selectedFiles.length})</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                          {file.type.startsWith('image/') ? (
+                            <img
+                              src={getFilePreview(file) || ''}
+                              alt={file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : file.type.startsWith('video/') ? (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                              <Video className="w-8 h-8 text-gray-500" />
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                              <Image className="w-8 h-8 text-gray-500" />
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          onClick={() => removeFile(index)}
+                          size="sm"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                        <p className="text-xs text-gray-600 mt-1 truncate">{file.name}</p>
                       </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <Sparkles className="h-5 w-5 ml-2" />
-                        نشر الذكرى
-                      </div>
-                    )}
+                    ))}
                   </div>
+                </div>
+              )}
+
+              {/* أزرار الإجراء */}
+              <div className="flex space-x-4 rtl:space-x-reverse pt-4">
+                <Button
+                  onClick={() => setLocation('/')}
+                  variant="outline"
+                  className="flex-1 py-3 text-lg"
+                >
+                  إلغاء
+                </Button>
+                
+                <Button
+                  onClick={createMemory}
+                  disabled={isUploading || !title.trim()}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 text-lg font-bold disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>جاري الإنشاء...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse">
+                      <Check className="w-5 h-5" />
+                      <span>إنشاء الذكرى</span>
+                    </div>
+                  )}
                 </Button>
               </div>
-            </div>
-          )}
+
+              <div className="text-center text-gray-600 text-sm">
+                💡 تلميح: اختر صور وفيديوهات واضحة وذات جودة عالية للحصول على أفضل تفاعل
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

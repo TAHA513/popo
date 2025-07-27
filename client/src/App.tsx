@@ -59,7 +59,7 @@ function Router() {
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
           <Route path="/games" component={LazyComponents.GamesPage} />
-          <Route path="/start-stream" component={LazyComponents.NewStreamPage} />
+          <Route path="/start-stream" component={() => import('./pages/enhanced-stream').then(m => m.default)} />
           <Route path="/simple-stream" component={() => <SimpleStreamPage />} />
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={LazyComponents.StreamPage} />
