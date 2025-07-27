@@ -77,52 +77,64 @@ export default function StreamsHome() {
                   <CardContent className="p-0">
                     {/* Live Stream Preview */}
                     <div className="relative h-56 overflow-hidden">
-                      {/* Enhanced Live Stream Preview */}
-                      <div className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-blue-600 relative overflow-hidden">
-                        {/* Animated live stream effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-600/20 animate-pulse"></div>
-                        
-                        {/* Moving video effect lines */}
-                        <div className="absolute inset-0">
-                          <div className="h-full w-full flex items-center justify-center relative">
-                            {/* Simulated video scanlines */}
-                            <div className="absolute inset-0 opacity-30">
-                              {[...Array(20)].map((_, i) => (
-                                <div
-                                  key={i}
-                                  className="h-px bg-white/20 mb-3 animate-pulse"
-                                  style={{ animationDelay: `${i * 0.1}s` }}
-                                ></div>
-                              ))}
+                      {/* Enhanced Live Stream Preview with Real Simulation */}
+                      <div className="w-full h-full bg-black relative overflow-hidden">
+                        {/* Realistic Video Feed Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
+                          
+                          {/* Simulated Live Video Content */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            {/* Video noise effect */}
+                            <div className="absolute inset-0 opacity-10">
+                              <div className="w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+PGRlZnM+PHBhdHRlcm4gaWQ9InBhdHRlcm4iIHg9IjAiIHk9IjAiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IndoaXRlIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIi8+PC9zdmc+')] animate-pulse"></div>
                             </div>
                             
-                            {/* Live broadcaster preview */}
-                            <div className="relative z-10 text-center text-white">
-                              <div className="w-24 h-24 bg-white/95 rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl border-4 border-white/70 animate-bounce">
+                            {/* Live Streamer in Action */}
+                            <div className="relative z-20 text-center">
+                              {/* Main streamer avatar - larger and more prominent */}
+                              <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl border-4 border-white/80 relative overflow-hidden">
                                 {stream.hostProfileImage ? (
                                   <img 
                                     src={stream.hostProfileImage} 
                                     alt={stream.hostName}
-                                    className="w-24 h-24 rounded-full object-cover"
+                                    className="w-32 h-32 rounded-full object-cover animate-pulse"
                                   />
                                 ) : (
-                                  <span className="text-3xl font-bold text-purple-600">
+                                  <span className="text-4xl font-bold text-white animate-pulse">
                                     {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
                                   </span>
                                 )}
+                                
+                                {/* Animated talking indicator */}
+                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                                  <div className="w-4 h-4 bg-white rounded-full animate-ping"></div>
+                                </div>
                               </div>
-                              <h4 className="font-bold text-lg mb-1 drop-shadow-lg">{stream.hostName || 'مضيف البث'}</h4>
-                              <div className="flex items-center justify-center gap-2 text-sm bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm">
-                                <div className="w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
-                                <span>يبث الآن مباشرة</span>
+                              
+                              {/* Streamer info */}
+                              <div className="text-white">
+                                <h4 className="font-bold text-xl mb-2 text-shadow-lg">{stream.hostName || 'مضيف البث'}</h4>
+                                <div className="flex items-center justify-center gap-2 text-sm bg-red-600/80 px-4 py-2 rounded-full backdrop-blur-sm border border-red-400/50">
+                                  <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
+                                  <span className="font-semibold">مباشر الآن</span>
+                                </div>
                               </div>
                             </div>
                             
-                            {/* Floating activity indicators */}
-                            <div className="absolute top-4 left-4 w-3 h-3 bg-white/60 rounded-full animate-bounce"></div>
-                            <div className="absolute top-8 right-8 w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
-                            <div className="absolute bottom-6 left-8 w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
-                            <div className="absolute bottom-12 right-12 w-1 h-1 bg-white/40 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
+                            {/* Live chat simulation */}
+                            <div className="absolute bottom-4 left-4 right-4 space-y-2">
+                              <div className="bg-black/60 backdrop-blur-sm rounded-lg p-2 text-white text-xs opacity-80 animate-fade-in">
+                                <span className="text-blue-300">مشاهد1:</span> أهلاً وسهلاً! 👋
+                              </div>
+                              <div className="bg-black/60 backdrop-blur-sm rounded-lg p-2 text-white text-xs opacity-60 animate-fade-in" style={{animationDelay: '2s'}}>
+                                <span className="text-green-300">مشاهد2:</span> بث رائع! ❤️
+                              </div>
+                            </div>
+                            
+                            {/* Floating particles for activity */}
+                            <div className="absolute top-6 left-6 w-2 h-2 bg-yellow-400 rounded-full animate-bounce opacity-70"></div>
+                            <div className="absolute top-12 right-8 w-1 h-1 bg-blue-400 rounded-full animate-bounce opacity-60" style={{animationDelay: '0.5s'}}></div>
+                            <div className="absolute bottom-16 left-12 w-1 h-1 bg-pink-400 rounded-full animate-bounce opacity-50" style={{animationDelay: '1s'}}></div>
                           </div>
                         </div>
                       </div>
