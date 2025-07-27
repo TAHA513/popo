@@ -112,14 +112,22 @@ export default function StreamsHome() {
               <h1 className="text-xl font-bold text-laa-pink">LaaBoBo</h1>
             </div>
             <div className="flex-1"></div>
-            {/* Live Stream Button */}
-            <Button
-              onClick={() => setLocation('/start-stream')}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
-            >
-              <Radio className="w-4 h-4" />
-              <span>ابدأ البث</span>
-            </Button>
+            {/* Live Stream Buttons */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setLocation('/simple-native-stream')}
+                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
+              >
+                <Radio className="w-4 h-4" />
+                <span>بث بسيط</span>
+              </Button>
+              <Button
+                onClick={() => setLocation('/simple-watch')}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
+              >
+                <span>👁️ مشاهدة</span>
+              </Button>
+            </div>
           </div>
         </div>
         {/* Colored Line */}

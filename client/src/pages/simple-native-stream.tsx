@@ -6,29 +6,28 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from 'wouter';
 import { Camera, CameraOff, Mic, MicOff, StopCircle } from 'lucide-react';
 
-export default function NativeStreamPage() {
+export default function SimpleNativeStreamPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const videoRef = useRef<HTMLVideoElement>(null);
   const streamContainerRef = useRef<HTMLDivElement>(null);
   const zegoInstanceRef = useRef<any>(null);
   
   const [isStreaming, setIsStreaming] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(true);
-  const [isMicOn, setIsMicOn] = useState(true);
   const [streamId, setStreamId] = useState<number | null>(null);
   const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const startNativeStream = async () => {
-    if (!user) return;
+  const startSimpleStream = async () => {
+    if (!user || !streamContainerRef.current) return;
     
     try {
+      setIsLoading(true);
       setError('');
       
       // إنشاء البث في قاعدة البيانات
       const streamData = {
-        title: 'بث مباشر أصلي',
-        description: 'بث مباشر باستخدام WebRTC الأصلي'
+        title: 'بث مباشر بسيط',
+        description: 'بث مباشر بإعدادات مبسطة'
       };
 
       const response = await apiRequest('/api/streams', 'POST', streamData);
@@ -37,7 +36,7 @@ export default function NativeStreamPage() {
       }
 
       setStreamId(response.data.id);
-      console.log('✅ Stream created with ID:', response.data.id);
+      console.log('✅ Simple stream created with ID:', response.data.id);
 
       // إعدادات ZegoCloud
       const config = await apiRequest('/api/zego-config', 'GET');
@@ -45,8 +44,9 @@ export default function NativeStreamPage() {
         throw new Error('فشل في تحميل إعدادات البث');
       }
 
-      const roomId = `room_${response.data.id}`;
-      const hostUserId = `host_${user.id}_${Date.now()}`;
+      // إنشاء معرفات بسيطة
+      const roomId = `simple_${response.data.id}`;
+      const hostUserId = `host_${user.id}`;
       
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
         parseInt(config.appId),
@@ -56,11 +56,17 @@ export default function NativeStreamPage() {
         user.username || 'مذيع'
       );
 
+      console.log('🔗 Simple stream config:', {
+        roomId,
+        hostUserId,
+        streamId: response.data.id
+      });
+
       // إنشاء ZegoUIKitPrebuilt instance
       const zp = ZegoUIKitPrebuilt.create(kitToken);
       zegoInstanceRef.current = zp;
 
-      // الانضمام للغرفة
+      // الانضمام للغرفة بإعدادات مبسطة للغاية
       await zp.joinRoom({
         container: streamContainerRef.current,
         scenario: {
@@ -69,11 +75,8 @@ export default function NativeStreamPage() {
             role: ZegoUIKitPrebuilt.Host,
           }
         },
-        // الإعدادات الأساسية
         turnOnMicrophoneWhenJoining: true,
         turnOnCameraWhenJoining: true,
-        
-        // إعدادات الواجهة
         showMyCameraToggleButton: true,
         showMyMicrophoneToggleButton: true,
         showAudioVideoSettingsButton: false,
@@ -85,32 +88,31 @@ export default function NativeStreamPage() {
         showPinButton: false,
         showLayoutButton: false,
         showLeaveRoomConfirmDialog: false,
-        
-        // إعدادات البث المحسنة للمشاهدين
-        layout: "Grid",
-        maxUsers: 50,
-        videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
-        enableAutoPlayVideoInSafariWebView: true,
-        enableAutoPlayAudioInSafariWebView: true,
-        preloadVideo: true,
-        preloadAudio: true,
-        
+        layout: "Auto",
+        maxUsers: 10,
         onJoinRoom: () => {
-          console.log('✅ Host joined room successfully!');
+          console.log('✅ Simple host joined successfully!');
           setIsStreaming(true);
+          setIsLoading(false);
         },
-        
         onLeaveRoom: () => {
-          console.log('❌ Host left room');
+          console.log('❌ Simple host left room');
           endStream();
+        },
+        onUserJoin: (users: any[]) => {
+          console.log('👥 Viewers joined simple stream:', users);
+        },
+        onUserLeave: (users: any[]) => {
+          console.log('👥 Viewers left simple stream:', users);
         }
       });
 
-      console.log('✅ ZegoCloud Native Stream started successfully!');
+      console.log('✅ Simple ZegoCloud Stream started successfully!');
 
     } catch (error: any) {
-      console.error('❌ Native stream start failed:', error);
-      setError(error.message || 'فشل في بدء البث الأصلي');
+      console.error('❌ Simple stream start failed:', error);
+      setError(error.message || 'فشل في بدء البث البسيط');
+      setIsLoading(false);
     }
   };
 
@@ -130,17 +132,9 @@ export default function NativeStreamPage() {
       setLocation('/');
       
     } catch (error) {
-      console.error('❌ Error ending native stream:', error);
+      console.error('❌ Error ending simple stream:', error);
       setLocation('/');
     }
-  };
-
-  const toggleCamera = () => {
-    setIsCameraOn(!isCameraOn);
-  };
-
-  const toggleMicrophone = () => {
-    setIsMicOn(!isMicOn);
   };
 
   // تنظيف عند المغادرة
@@ -150,7 +144,7 @@ export default function NativeStreamPage() {
         try {
           zegoInstanceRef.current.destroy();
         } catch (error) {
-          console.error('Error cleaning up zego instance:', error);
+          console.error('Error cleaning up simple stream:', error);
         }
       }
     };
@@ -176,47 +170,33 @@ export default function NativeStreamPage() {
           <div 
             ref={streamContainerRef}
             className="w-full h-full"
+            style={{ width: '100%', height: '100vh' }}
           />
 
-          {/* أزرار التحكم */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-            <div className="flex items-center space-x-6 rtl:space-x-reverse bg-black/60 backdrop-blur-sm rounded-full px-8 py-4">
-              <Button
-                onClick={toggleCamera}
-                variant="ghost"
-                className={`rounded-full w-16 h-16 p-0 ${
-                  isCameraOn ? 'bg-white/20 hover:bg-white/30' : 'bg-red-600/90 hover:bg-red-700'
-                }`}
-              >
-                {isCameraOn ? <Camera className="w-8 h-8 text-white" /> : <CameraOff className="w-8 h-8 text-white" />}
-              </Button>
-
-              <Button
-                onClick={toggleMicrophone}
-                variant="ghost"
-                className={`rounded-full w-16 h-16 p-0 ${
-                  isMicOn ? 'bg-white/20 hover:bg-white/30' : 'bg-red-600/90 hover:bg-red-700'
-                }`}
-              >
-                {isMicOn ? <Mic className="w-8 h-8 text-white" /> : <MicOff className="w-8 h-8 text-white" />}
-              </Button>
-
-              <Button
-                onClick={endStream}
-                variant="ghost"
-                className="bg-red-600/90 hover:bg-red-700 rounded-full w-16 h-16 p-0"
-              >
-                <StopCircle className="w-8 h-8 text-white" />
-              </Button>
-            </div>
+          {/* زر إنهاء البث */}
+          <div className="absolute top-4 left-4 z-50">
+            <Button
+              onClick={endStream}
+              className="bg-red-600/90 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+            >
+              <StopCircle className="w-5 h-5 mr-2" />
+              إنهاء البث
+            </Button>
           </div>
 
           {/* معلومات البث */}
-          <div className="absolute top-4 left-4 z-50 bg-red-600/90 px-4 py-2 rounded-full">
+          <div className="absolute top-4 right-4 z-50 bg-red-600/90 px-4 py-2 rounded-full">
             <div className="flex items-center space-x-2 rtl:space-x-reverse text-white">
               <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-              <span className="font-bold">🔴 مباشر أصلي</span>
+              <span className="font-bold">🔴 بث بسيط مباشر</span>
             </div>
+          </div>
+
+          {/* تعليمات للمشاهدين */}
+          <div className="absolute bottom-4 left-4 z-50 bg-black/60 backdrop-blur-sm rounded-lg p-4 text-white max-w-sm">
+            <h3 className="font-bold mb-2">للمشاهدة:</h3>
+            <p className="text-sm">Room ID: <span className="text-blue-300 font-mono">simple_{streamId}</span></p>
+            <p className="text-xs mt-1 text-gray-300">شارك هذا الرقم مع الأصدقاء للمشاهدة</p>
           </div>
         </div>
       </div>
@@ -225,27 +205,31 @@ export default function NativeStreamPage() {
 
   // صفحة بدء البث
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-900 via-blue-900 to-purple-900 p-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">🎥 البث الأصلي المحسن</h1>
-          <p className="text-purple-200">بث مباشر بجودة عالية مع نقل الفيديو والصوت</p>
+          <h1 className="text-3xl font-bold text-white mb-2">📺 البث البسيط المباشر</h1>
+          <p className="text-green-200">بث مباشر بإعدادات مبسطة ومضمونة النجاح</p>
         </div>
 
         <div className="bg-black/20 backdrop-blur-sm rounded-lg p-6 mb-6">
-          <h3 className="text-xl font-bold text-white mb-4">مميزات البث الأصلي:</h3>
-          <div className="space-y-2 text-purple-200">
+          <h3 className="text-xl font-bold text-white mb-4">مميزات البث البسيط:</h3>
+          <div className="space-y-2 text-green-200">
             <div className="flex items-center space-x-3 rtl:space-x-reverse">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span>نقل الفيديو والصوت بجودة 720P</span>
+              <span>إعدادات مبسطة ومضمونة</span>
             </div>
             <div className="flex items-center space-x-3 rtl:space-x-reverse">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span>تحكم في الكاميرا والميكروفون</span>
+              <span>نقل فوري للفيديو والصوت</span>
             </div>
             <div className="flex items-center space-x-3 rtl:space-x-reverse">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span>واجهة بسيطة ومحسنة</span>
+              <span>واجهة نظيفة بدون تعقيدات</span>
+            </div>
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <span>معرف بث بسيط للمشاركة</span>
             </div>
           </div>
         </div>
@@ -258,19 +242,25 @@ export default function NativeStreamPage() {
 
         <div className="flex flex-col gap-4">
           <Button
-            onClick={startNativeStream}
-            className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4"
+            onClick={startSimpleStream}
+            disabled={isLoading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white text-lg py-4"
           >
-            🎥 بدء البث الأصلي
+            {isLoading ? '🔄 جاري البدء...' : '📺 بدء البث البسيط'}
           </Button>
           
           <Button
             onClick={() => setLocation('/')}
             variant="outline"
-            className="w-full border-purple-400 text-purple-200 hover:bg-purple-800"
+            className="w-full border-green-400 text-green-200 hover:bg-green-800"
           >
             🏠 العودة للرئيسية
           </Button>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-gray-400">
+          <p>💡 نصيحة: هذا البث يستخدم إعدادات مبسطة لضمان عمل الفيديو والصوت</p>
+          <p>🔗 ستحصل على معرف بث بسيط لمشاركته مع المشاهدين</p>
         </div>
       </div>
     </div>
