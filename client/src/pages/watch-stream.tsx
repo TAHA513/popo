@@ -105,13 +105,13 @@ export default function WatchStreamPage() {
         const config = await apiRequest('/api/zego-config', 'GET');
         if (!config.appId || !stream.zegoRoomId) return;
 
-        const viewerUserId = `viewer_${user.id}`; // viewer ID ثابت بدون timestamp
+        const viewerUserId = String(user.id); // استخدام user ID مباشرة كـ string
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
           parseInt(config.appId),
           config.appSign,
           stream.zegoRoomId,
           viewerUserId,
-          user.username || 'مشاهد'
+          user.username || 'Viewer'
         );
 
         const zp = ZegoUIKitPrebuilt.create(kitToken);
@@ -123,7 +123,6 @@ export default function WatchStreamPage() {
             mode: ZegoUIKitPrebuilt.LiveStreaming,
             config: {
               role: ZegoUIKitPrebuilt.Audience,
-              streamID: stream.zegoStreamId, // مهم جداً لاستقبال البث من المذيع
             }
           },
           turnOnMicrophoneWhenJoining: false,
@@ -146,8 +145,16 @@ export default function WatchStreamPage() {
           facingMode: "user",
           onJoinRoom: () => {
             console.log('✅ Viewer joined room successfully!');
-            console.log('📡 Receiving stream with ID:', stream.zegoStreamId);
+            console.log('Room ID:', stream.zegoRoomId);
+            console.log('User ID:', viewerUserId);
+            console.log('📡 Expecting stream from host');
             setIsConnected(true);
+          },
+          onRoomStreamUpdate: (roomID: string, updateType: string, streamList: any[]) => {
+            console.log('🔄 Stream update:', { roomID, updateType, streamList });
+            if (updateType === 'ADD' && streamList.length > 0) {
+              console.log('🎥 Stream available from host!');
+            }
           },
           onLeaveRoom: () => {
             setIsConnected(false);

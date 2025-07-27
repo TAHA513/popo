@@ -50,39 +50,52 @@ export default function UnifiedStreamPage() {
     setError('');
 
     try {
-      // إنشاء البث في قاعدة البيانات
-      const streamData = {
+      // إنشاء البث في قاعدة البيانات أولاً
+      const initialStreamData = {
         title: streamTitle.trim() || 'بث مباشر جديد',
         description: 'بث مباشر من LaaBoBo',
         category: 'بث مباشر',
-        zegoRoomId: `room_${user.id}`, // غرفة ثابتة للمستخدم
-        zegoStreamId: `stream_${user.id}` // stream ID ثابت للمستخدم
+        zegoRoomId: '', // سيتم تحديثه لاحقاً
+        zegoStreamId: '' // سيتم تحديثه لاحقاً
       };
 
-      console.log('🎥 Creating stream:', streamData);
-      const response = await apiRequest('/api/streams', 'POST', streamData);
+      console.log('🎥 Creating initial stream...');
+      const response = await apiRequest('/api/streams', 'POST', initialStreamData);
 
       if (!response?.data?.id) {
         throw new Error('فشل في إنشاء البث');
       }
+
+      // تحديث بيانات البث بالمعرفات الصحيحة
+      const streamData = {
+        ...initialStreamData,
+        zegoRoomId: `room_${response.data.id}`,
+        zegoStreamId: `stream_${response.data.id}`
+      };
+
+      // تحديث البث في قاعدة البيانات بالمعرفات الصحيحة
+      await apiRequest(`/api/streams/${response.data.id}`, 'PATCH', {
+        zegoRoomId: streamData.zegoRoomId,
+        zegoStreamId: streamData.zegoStreamId
+      });
 
       setCurrentStreamId(response.data.id);
       console.log('✅ Stream created with ID:', response.data.id);
 
       // الحصول على إعدادات ZegoCloud
       const config = await apiRequest('/api/zego-config', 'GET');
-      if (!config.appId) {
+      if (!config.appId || !config.appSign) {
         throw new Error('فشل في تحميل إعدادات البث');
       }
 
-      // إنشاء token للمذيع - استخدم user ID ثابت
-      const hostUserId = user.id; // استخدم user ID الحقيقي بدون timestamp
+      // إنشاء token للمذيع - تحويل user ID إلى string
+      const hostUserId = String(user.id); // تحويل إلى string
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
         parseInt(config.appId),
         config.appSign,
         streamData.zegoRoomId,
         hostUserId,
-        user.username || 'مذيع'
+        user.username || 'Host'
       );
 
       console.log('🔗 Host joining room:', {
@@ -106,8 +119,24 @@ export default function UnifiedStreamPage() {
           mode: ZegoUIKitPrebuilt.LiveStreaming,
           config: {
             role: ZegoUIKitPrebuilt.Host,
-            streamID: streamData.zegoStreamId, // مهم جداً لنقل البث للمشاهدين
           }
+        },
+        // إعدادات البث الإضافية
+        preJoinViewConfig: {
+          title: 'بدء البث المباشر',
+        },
+        onLiveStart: (user: any) => {
+          console.log('🎥 Live started by:', user);
+          console.log('📡 Stream ID:', streamData.zegoStreamId);
+          setIsStreaming(true);
+        },
+        onJoinRoom: () => {
+          console.log('✅ Host joined room successfully');
+          console.log('Room ID:', streamData.zegoRoomId);
+          console.log('User ID:', hostUserId);
+        },
+        onUserJoin: (users: any[]) => {
+          console.log('👥 Users joined:', users);
         },
         turnOnMicrophoneWhenJoining: true,
         turnOnCameraWhenJoining: true,
@@ -116,7 +145,6 @@ export default function UnifiedStreamPage() {
         showAudioVideoSettingsButton: true,
         showScreenSharingButton: false,
         showTextChat: true,
-        showUserCount: true,
         showUserList: true,
         showRemoveUserButton: false,
         showPinButton: true,

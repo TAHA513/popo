@@ -808,6 +808,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update stream endpoint
+  app.patch('/api/streams/:id', requireAuth, async (req: any, res) => {
+    try {
+      const streamId = parseInt(req.params.id);
+      const stream = await storage.getStreamById(streamId);
+      
+      if (!stream || stream.hostId !== req.user.id) {
+        return res.status(403).json({ message: "غير مسموح بتعديل هذا البث" });
+      }
+
+      const updatedStream = await storage.updateStream(streamId, req.body);
+      console.log('📝 Stream updated:', { 
+        id: streamId, 
+        zegoRoomId: updatedStream.zegoRoomId,
+        zegoStreamId: updatedStream.zegoStreamId 
+      });
+      res.json(updatedStream);
+    } catch (error) {
+      console.error('❌ Error updating stream:', error);
+      res.status(500).json({ message: "فشل في تحديث البث" });
+    }
+  });
+
   app.get('/api/streams/:id', async (req, res) => {
     try {
       const streamId = parseInt(req.params.id);

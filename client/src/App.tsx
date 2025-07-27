@@ -69,6 +69,7 @@ function Router() {
           <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/stream-test" component={StreamTestPage} />
+        <Route path="/test-zego" component={() => import('./pages/test-zego-stream')} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />

@@ -304,6 +304,15 @@ export class DatabaseStorage implements IStorage {
     await db.delete(streams).where(eq(streams.id, id));
   }
 
+  async updateStream(id: number, updates: Partial<Stream>): Promise<Stream> {
+    const [updatedStream] = await db
+      .update(streams)
+      .set(updates)
+      .where(eq(streams.id, id))
+      .returning();
+    return updatedStream;
+  }
+
   // Gift operations
   async getGiftCharacters(): Promise<GiftCharacter[]> {
     return await db
