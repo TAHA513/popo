@@ -1,5 +1,5 @@
 import React from 'react';
-import RealLiveStream from './RealLiveStream';
+import ZegoStreamViewer from './ZegoStreamViewer';
 import { Stream } from '@/types';
 
 interface StreamViewerProps {
@@ -7,5 +7,5 @@ interface StreamViewerProps {
 }
 
 export default function StreamViewer({ stream }: StreamViewerProps) {
-  return <RealLiveStream stream={stream} />;
+  return <ZegoStreamViewer stream={stream} />;
 }

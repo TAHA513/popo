@@ -80,8 +80,41 @@ export default function RealLiveStream({ stream }: RealLiveStreamProps) {
   };
 
   const startViewerStream = async () => {
-    // For viewers, show a realistic simulation or fetch actual stream
-    // In a real app, this would connect to the actual stream via WebRTC/ZegoCloud
+    // For viewers, try to get actual stream from ZegoCloud first
+    try {
+      // Initialize ZegoCloud for viewers to see real stream
+      const zegoConfig = await fetch('/api/zego-config', {
+        credentials: 'include'
+      }).then(res => res.json());
+      
+      if (zegoConfig.appId && (stream as any).zegoRoomId && (stream as any).zegoStreamId) {
+        // Try to connect to ZegoCloud and get actual stream
+        const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
+        
+        const zg = new ZegoExpressEngine(parseInt(zegoConfig.appId), 'wss://webliveroom-api.zego.im/ws');
+        
+        await zg.loginRoom((stream as any).zegoRoomId, {
+          userID: user?.id || 'viewer_' + Date.now(),
+          userName: user?.firstName || 'مشاهد'
+        });
+        
+        // Start playing the actual stream
+        const remoteStream = await zg.startPlayingStream((stream as any).zegoStreamId);
+        
+        if (videoRef.current && remoteStream) {
+          videoRef.current.srcObject = remoteStream;
+          videoRef.current.muted = isMuted;
+          videoRef.current.play();
+          setMediaStream(remoteStream);
+          console.log('✅ Connected to real stream via ZegoCloud');
+          return; // Exit early if we successfully connected to real stream
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not connect to ZegoCloud stream, falling back to simulation:', error);
+    }
+    
+    // Fallback: Create a more realistic waiting screen
     const canvas = document.createElement('canvas');
     canvas.width = 1920;
     canvas.height = 1080;
@@ -95,120 +128,42 @@ export default function RealLiveStream({ stream }: RealLiveStreamProps) {
       
       // Create realistic background
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#667eea');
-      gradient.addColorStop(0.5, '#764ba2');
-      gradient.addColorStop(1, '#f093fb');
+      gradient.addColorStop(0, '#2C3E50');
+      gradient.addColorStop(0.5, '#34495E');
+      gradient.addColorStop(1, '#2C3E50');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Draw realistic person
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      
-      // Head with natural skin tone
-      const headSize = 180 + Math.sin(frame * 0.03) * 8; // Breathing effect
-      ctx.fillStyle = '#FDBCB4';
-      ctx.beginPath();
-      ctx.arc(centerX, centerY - 150, headSize, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Hair
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath();
-      ctx.arc(centerX, centerY - 200, headSize + 20, 0, Math.PI);
-      ctx.fill();
-      
-      // Eyes with blinking
-      const eyeSize = frame % 120 > 110 ? 2 : 12; // Blinking effect
-      ctx.fillStyle = '#2C3E50';
-      ctx.beginPath();
-      ctx.arc(centerX - 40, centerY - 180, eyeSize, 0, Math.PI * 2);
-      ctx.arc(centerX + 40, centerY - 180, eyeSize, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Nose
-      ctx.strokeStyle = '#E8A686';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY - 150);
-      ctx.lineTo(centerX - 8, centerY - 130);
-      ctx.lineTo(centerX, centerY - 125);
-      ctx.stroke();
-      
-      // Mouth - realistic talking animation
-      ctx.strokeStyle = '#D35400';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      const mouthY = centerY - 100;
-      const mouthMovement = Math.sin(frame * 0.15);
-      const mouthWidth = 25 + Math.abs(mouthMovement) * 15;
-      const mouthHeight = 5 + Math.abs(mouthMovement) * 10;
-      ctx.ellipse(centerX, mouthY, mouthWidth, mouthHeight, 0, 0, Math.PI);
-      ctx.stroke();
-      
-      // Teeth when mouth is open
-      if (Math.abs(mouthMovement) > 0.3) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(centerX - 20, mouthY - 3, 40, 6);
-      }
-      
-      // Body/shirt
-      ctx.fillStyle = '#3498DB';
-      ctx.fillRect(centerX - 120, centerY + 50, 240, 300);
-      
-      // Arms with natural movement
-      const armMovement = Math.sin(frame * 0.08) * 20;
-      ctx.fillStyle = '#FDBCB4';
-      // Left arm
-      ctx.fillRect(centerX - 160, centerY + 80 + armMovement, 40, 150);
-      // Right arm  
-      ctx.fillRect(centerX + 120, centerY + 80 - armMovement, 40, 150);
-      
-      // Hands
-      ctx.beginPath();
-      ctx.arc(centerX - 140, centerY + 240 + armMovement, 25, 0, Math.PI * 2);
-      ctx.arc(centerX + 140, centerY + 240 - armMovement, 25, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Stream info overlay
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(0, canvas.height - 200, canvas.width, 200);
-      
-      // Host name and title
+      // Connection status
       ctx.fillStyle = 'white';
-      ctx.font = 'bold 64px Arial';
+      ctx.font = 'bold 80px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(stream.title || 'بث مباشر', centerX, canvas.height - 140);
+      ctx.fillText('🔄 جاري الاتصال بالبث المباشر...', canvas.width / 2, canvas.height / 2 - 100);
       
-      ctx.font = '40px Arial';
-      ctx.fillText(`المضيف يتحدث الآن`, centerX, canvas.height - 90);
+      ctx.font = '60px Arial';
+      ctx.fillText('سيظهر المضيف الحقيقي خلال ثوانٍ', canvas.width / 2, canvas.height / 2);
       
-      ctx.font = '32px Arial';
-      ctx.fillText(`التصنيف: ${stream.category || 'بث سريع'}`, centerX, canvas.height - 40);
+      ctx.font = '50px Arial';
+      ctx.fillStyle = '#3498DB';
+      ctx.fillText(stream.title || 'بث مباشر', canvas.width / 2, canvas.height / 2 + 100);
       
-      // Live indicator
-      const liveSize = 25 + Math.sin(frame * 0.2) * 8;
+      // Animated loading indicator
+      const loadingSize = 50 + Math.sin(frame * 0.1) * 20;
       ctx.fillStyle = '#E74C3C';
       ctx.beginPath();
-      ctx.arc(150, 150, liveSize, 0, Math.PI * 2);
+      ctx.arc(canvas.width / 2, canvas.height / 2 + 200, loadingSize, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Live indicator
+      ctx.fillStyle = '#E74C3C';
+      ctx.beginPath();
+      ctx.arc(200, 200, 25 + Math.sin(frame * 0.2) * 8, 0, Math.PI * 2);
       ctx.fill();
       
       ctx.fillStyle = 'white';
-      ctx.font = 'bold 36px Arial';
+      ctx.font = 'bold 40px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText('🔴 مباشر', 200, 165);
-      
-      // Sound waves for talking effect
-      if (Math.abs(mouthMovement) > 0.2) {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.lineWidth = 4;
-        for (let i = 0; i < 3; i++) {
-          ctx.beginPath();
-          const waveSize = 100 + i * 50 + Math.abs(mouthMovement) * 30;
-          ctx.arc(centerX + 200, centerY - 100, waveSize, 0, Math.PI * 0.5);
-          ctx.stroke();
-        }
-      }
+      ctx.fillText('🔴 مباشر', 250, 215);
 
       // Update video
       if (videoRef.current) {
@@ -222,6 +177,11 @@ export default function RealLiveStream({ stream }: RealLiveStreamProps) {
     };
     
     animate();
+    
+    // Keep trying to connect to real stream every 5 seconds
+    setTimeout(() => {
+      startViewerStream();
+    }, 5000);
   };
 
   const toggleVideo = () => {
