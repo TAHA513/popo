@@ -2109,29 +2109,50 @@ async function handleWebSocketMessage(clientId: string, message: any) {
 
     case 'chat_message':
         console.log("💬 New chat message:", {
-          streamId: client.streamId,
-          userId: client.userId,
+          messageStreamId: message.streamId,
+          messageUserId: message.userId,
+          clientStreamId: client.streamId,
+          clientUserId: client.userId,
           messageLength: message.text?.length,
           hasUser: !!message.user
         });
         
-        if (client.streamId && client.userId && message.text) {
-          const chatMessage = await storage.addChatMessage({
-            streamId: client.streamId,
-            userId: client.userId,
-            message: message.text,
-          });
-          
-          broadcastToStream(client.streamId, {
-            type: 'chat_message',
-            message: chatMessage,
-            user: message.user,
-          });
+        // استخدم البيانات من الرسالة إذا لم تكن محفوظة في العميل
+        const streamId = message.streamId || client.streamId;
+        const userId = message.userId || client.userId;
+        
+        if (streamId && userId && message.text) {
+          try {
+            const chatMessage = await storage.addChatMessage({
+              streamId: streamId,
+              userId: userId,
+              message: message.text,
+            });
+            
+            console.log("✅ Chat message saved:", {
+              id: chatMessage.id,
+              streamId: streamId,
+              userId: userId,
+              message: message.text
+            });
+            
+            // إرسال الرسالة لجميع المشاهدين في البث
+            broadcastToStream(streamId, {
+              type: 'chat_message',
+              message: chatMessage,
+              user: message.user,
+            });
+            
+            console.log("📤 Message broadcasted to stream:", streamId);
+          } catch (error) {
+            console.error("❌ Error saving chat message:", error);
+          }
         } else {
           console.warn("⚠️ Invalid chat message data:", {
-            hasStreamId: !!client.streamId,
-            hasUserId: !!client.userId,
-            hasText: !!message.text
+            streamId: streamId,
+            userId: userId,
+            hasText: !!message.text,
+            messageData: message
           });
         }
         break;
