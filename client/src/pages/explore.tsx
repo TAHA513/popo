@@ -55,6 +55,12 @@ export default function Explore() {
     queryKey: ['/api/users/suggested'],
   });
 
+  // Fetch live streams for explore
+  const { data: liveStreams = [] } = useQuery<any[]>({
+    queryKey: ['/api/streams'],
+    refetchInterval: 10000,
+  });
+
   // Type-safe arrays
   const typedMemories = (publicMemories as any[]);
   const typedUsers = (suggestedUsers as any[]);
