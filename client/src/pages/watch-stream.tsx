@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
+import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { apiRequest } from "@/lib/queryClient";
 
@@ -33,6 +34,13 @@ export default function WatchStreamPage() {
   const [likes, setLikes] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [streamDuration, setStreamDuration] = useState(0);
+  const [comments, setComments] = useState<any[]>([
+    { id: 1, username: 'أحمد محمد', text: 'بث رائع! أحب المحتوى', timestamp: Date.now() - 60000 },
+    { id: 2, username: 'فاطمة علي', text: 'مرحباً من مصر 🇪🇬', timestamp: Date.now() - 30000 },
+    { id: 3, username: 'محمد سعد', text: 'استمر كذا!', timestamp: Date.now() - 10000 }
+  ]);
+  const [newComment, setNewComment] = useState('');
+  const [showComments, setShowComments] = useState(false);
 
   // جلب بيانات البث
   const { data: stream, isLoading, error } = useQuery<Stream>({
@@ -63,6 +71,32 @@ export default function WatchStreamPage() {
 
     return () => clearInterval(statsTimer);
   }, []);
+
+  // إضافة تعليق جديد
+  const addComment = () => {
+    if (!newComment.trim() || !user) return;
+    
+    const comment = {
+      id: Date.now(),
+      username: user.username || 'مستخدم',
+      text: newComment.trim(),
+      timestamp: Date.now()
+    };
+    
+    setComments(prev => [comment, ...prev]);
+    setNewComment('');
+  };
+
+  // تحديد وقت التعليق
+  const getTimeAgo = (timestamp: number) => {
+    const now = Date.now();
+    const diff = Math.floor((now - timestamp) / 1000);
+    
+    if (diff < 60) return 'الآن';
+    if (diff < 3600) return `${Math.floor(diff / 60)} د`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} س`;
+    return `${Math.floor(diff / 86400)} ي`;
+  };
 
   // الاتصال بـ ZegoCloud لمشاهدة البث
   useEffect(() => {
@@ -113,12 +147,12 @@ export default function WatchStreamPage() {
           showMyMicrophoneToggleButton: false,
           showAudioVideoSettingsButton: false,
           showScreenSharingButton: false,
-          showTextChat: false,
-          showUserCount: false,
-          showUserList: false,
+          showTextChat: true,
+          showUserCount: true,
+          showUserList: true,
           showRemoveUserButton: false,
-          showPinButton: false,
-          showLayoutButton: false,
+          showPinButton: true,
+          showLayoutButton: true,
           showLeaveRoomConfirmDialog: false,
           
           // إعدادات الفيديو المهمة للمشاهدة
@@ -290,10 +324,11 @@ export default function WatchStreamPage() {
           <Button
             variant="ghost"
             size="lg"
+            onClick={() => setShowComments(!showComments)}
             className="w-14 h-14 rounded-full bg-black/50 text-white hover:bg-blue-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
           >
             <MessageCircle className="w-6 h-6" />
-            <span className="text-xs mt-1">تعليق</span>
+            <span className="text-xs mt-1">{comments.length}</span>
           </Button>
 
           {/* مشاركة */}
@@ -329,11 +364,105 @@ export default function WatchStreamPage() {
                 <Heart className="w-4 h-4 text-red-400" />
                 <span className="text-red-400 text-sm font-semibold">{likes} إعجاب</span>
               </div>
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-green-400" />
+                <span className="text-green-400 text-sm font-semibold">{comments.length} تعليق</span>
+              </div>
             </div>
             <h3 className="text-white font-bold">{stream.title}</h3>
             <p className="text-gray-300 text-sm">بث من {stream.hostName}</p>
           </div>
         </div>
+
+        {/* نافذة التعليقات */}
+        {showComments && (
+          <div className="absolute bottom-20 right-4 w-80 max-w-[90vw] h-96 bg-black/90 backdrop-blur-md rounded-xl border border-white/20 flex flex-col z-50 shadow-2xl">
+            {/* رأس التعليقات */}
+            <div className="flex items-center justify-between p-4 border-b border-white/20">
+              <h3 className="text-white font-bold flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-blue-400" />
+                التعليقات ({comments.length})
+              </h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowComments(false)}
+                className="text-white hover:bg-white/20 w-8 h-8 p-0"
+              >
+                ✕
+              </Button>
+            </div>
+
+            {/* قائمة التعليقات */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {comments.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>لا توجد تعليقات بعد</p>
+                  <p className="text-sm mt-1">كن أول من يعلق!</p>
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="flex items-start space-x-3 space-x-reverse group hover:bg-white/5 rounded-lg p-2 transition-colors">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {comment.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 space-x-reverse mb-1">
+                        <span className="text-white text-sm font-bold truncate">{comment.username}</span>
+                        <span className="text-gray-400 text-xs flex-shrink-0">{getTimeAgo(comment.timestamp)}</span>
+                      </div>
+                      <p className="text-gray-300 text-sm leading-relaxed break-words">{comment.text}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* إضافة تعليق */}
+            {user ? (
+              <div className="p-4 border-t border-white/20">
+                <div className="flex space-x-2 space-x-reverse">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    {user.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 flex space-x-2 space-x-reverse">
+                    <Input
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="اكتب تعليقاً..."
+                      className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-lg"
+                      onKeyPress={(e) => e.key === 'Enter' && addComment()}
+                      maxLength={200}
+                    />
+                    <Button
+                      onClick={addComment}
+                      disabled={!newComment.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  اضغط Enter للإرسال • {200 - newComment.length} حرف متبقي
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 border-t border-white/20 text-center">
+                <p className="text-gray-400 text-sm mb-3">
+                  يجب تسجيل الدخول للتعليق
+                </p>
+                <Button
+                  onClick={() => setLocation('/login')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  تسجيل الدخول
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
