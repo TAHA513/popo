@@ -69,7 +69,10 @@ export default function StreamsHome() {
                 <Card 
                   key={stream.id} 
                   className="overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer bg-white border-2 border-transparent hover:border-purple-200"
-                  onClick={() => setLocation(`/stream/${stream.id}`)}
+                  onClick={() => {
+                    console.log('🎯 Joining stream:', stream.id);
+                    setLocation(`/stream/${stream.id}`);
+                  }}
                 >
                   <CardContent className="p-0">
                     {/* Enhanced Stream Preview */}
