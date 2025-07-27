@@ -154,13 +154,26 @@ export default function WatchStreamPage() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
           <h2 className="text-2xl font-bold mb-4">البث غير متاح</h2>
-          <p className="mb-6">عذراً، لا يمكن العثور على هذا البث</p>
-          <Button 
-            onClick={() => setLocation('/')}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            العودة للرئيسية
-          </Button>
+          <p className="mb-6">عذراً، لا يمكن العثور على هذا البث أو انتهى البث</p>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-gray-400 mb-2">تجربة الوصول المباشر للبث رقم: {id}</p>
+              <p className="text-xs text-gray-500">خطأ: {error?.message || 'البث غير موجود'}</p>
+            </div>
+            <Button 
+              onClick={() => setLocation('/')}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              العودة للرئيسية
+            </Button>
+            <Button 
+              onClick={() => setLocation('/simple-stream')}
+              variant="outline"
+              className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+            >
+              إنشاء بث جديد
+            </Button>
+          </div>
         </div>
       </div>
     );
