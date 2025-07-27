@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, CameraOff, Mic, MicOff, StopCircle, Users, Maximize, Minimize } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 
 
 interface InstantFullScreenStreamProps {
@@ -22,6 +23,28 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
   const [zegoEngine, setZegoEngine] = useState<any>(null);
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState(0);
+  const [liveComments, setLiveComments] = useState<any[]>([]);
+
+  // جلب التعليقات المباشرة لصاحب البث
+  const { data: realComments } = useQuery<any[]>({
+    queryKey: ['/api/streams', streamData?.id, 'messages'],
+    enabled: !!streamData?.id,
+    refetchInterval: 1000, // تحديث كل ثانية
+  });
+
+  // تحديث التعليقات عند وصول بيانات جديدة
+  useEffect(() => {
+    if (realComments && realComments.length > 0) {
+      const formattedComments = realComments.map(msg => ({
+        id: msg.id,
+        username: msg.username || msg.firstName || 'مستخدم',
+        text: msg.message,
+        timestamp: new Date(msg.sentAt).getTime(),
+        userId: msg.userId
+      }));
+      setLiveComments(formattedComments);
+    }
+  }, [realComments]);
 
   // حساب مدة البث
   useEffect(() => {
@@ -267,12 +290,31 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
             
             <div className="mt-2 flex items-center justify-center space-x-6 rtl:space-x-reverse text-white text-sm">
               <span className="bg-black/60 px-3 py-1 rounded-full">❤️ {likes}</span>
-              <span className="bg-black/60 px-3 py-1 rounded-full">💬 {comments}</span>
+              <span className="bg-black/60 px-3 py-1 rounded-full">💬 {liveComments.length}</span>
               <span className="bg-black/60 px-3 py-1 rounded-full">👥 {viewerCount} مشاهد</span>
             </div>
           </div>
         </div>
 
+        {/* منطقة التعليقات المباشرة */}
+        <div className="absolute bottom-20 right-6 w-80 max-h-96 z-20">
+          {liveComments.length > 0 && (
+            <div className="bg-black/70 backdrop-blur-sm rounded-lg p-4 overflow-y-auto max-h-80">
+              <h3 className="text-white font-bold mb-3 text-sm">💬 التعليقات المباشرة ({liveComments.length})</h3>
+              <div className="space-y-2">
+                {liveComments.slice(-10).map((comment) => (
+                  <div key={comment.id} className="bg-white/10 rounded-lg p-2 text-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-purple-300 font-semibold">{comment.username}</span>
+                      <span className="text-red-400 text-xs">🔴 LIVE</span>
+                    </div>
+                    <p className="text-white">{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
       </div>
     </div>
