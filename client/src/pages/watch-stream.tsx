@@ -5,14 +5,29 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
+import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
+import { apiRequest } from "@/lib/queryClient";
+
+interface Stream {
+  id: number;
+  title: string;
+  hostId: string;
+  hostName: string;
+  hostProfileImage?: string;
+  zegoRoomId: string;
+  zegoStreamId: string;
+  startedAt: string;
+  viewerCount: number;
+  isActive: boolean;
+}
 
 export default function WatchStreamPage() {
   const params = useParams();
   const id = params.id;
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [zegoEngine, setZegoEngine] = useState<any>(null);
+  const streamContainerRef = useRef<HTMLDivElement>(null);
+  const [zegoInstance, setZegoInstance] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [viewerCount, setViewerCount] = useState(1);
   const [likes, setLikes] = useState(0);
@@ -20,7 +35,7 @@ export default function WatchStreamPage() {
   const [streamDuration, setStreamDuration] = useState(0);
 
   // جلب بيانات البث
-  const { data: stream, isLoading } = useQuery({
+  const { data: stream, isLoading, error } = useQuery<Stream>({
     queryKey: ['/api/streams', id],
     enabled: !!id
   });
@@ -51,119 +66,66 @@ export default function WatchStreamPage() {
 
   // الاتصال بـ ZegoCloud لمشاهدة البث
   useEffect(() => {
-    if (!stream || !user) return;
+    if (!stream || !user || !streamContainerRef.current) return;
 
     const connectToStream = async () => {
       try {
         console.log('🔗 Connecting to stream as viewer...');
         
-        const config = await fetch('/api/zego-config', {
-          credentials: 'include'
-        }).then(res => res.json());
+        const config = await apiRequest('/api/zego-config', 'GET');
+        if (!config.appId || !stream.zegoRoomId) return;
 
-        if (!config.appId) return;
+        // إنشاء token للمشاهدة
+        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+          parseInt(config.appId),
+          config.appSign,
+          stream.zegoRoomId,
+          `viewer_${user.id}_${Date.now()}`,
+          user.username || 'مشاهد'
+        );
 
-        const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
-        const engine = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
-        setZegoEngine(engine);
+        const zp = ZegoUIKitPrebuilt.create(kitToken);
+        setZegoInstance(zp);
 
-        // تسجيل الدخول كمشاهد
-        await engine.loginRoom(stream.zegoRoomId, {
-          userID: config.userID || `viewer_${user.id}`,
-          userName: config.userName || user.username || 'مشاهد'
-        }, config.token || '');
-
-        // محاولة الاتصال المباشر بالبث
-        const attemptConnection = async () => {
-          try {
-            console.log('📺 Attempting to connect to stream:', stream.zegoStreamId);
-            
-            // محاولة تشغيل البث مباشرة
-            await engine.startPlayingStream(stream.zegoStreamId, {
-              camera: true,
-              microphone: true
-            });
-            
-            console.log('✅ Stream play command sent successfully');
-            setIsConnected(true);
-            
-          } catch (directError) {
-            console.warn('⚠️ Direct play failed:', directError);
-          }
-        };
-
-        // تسجيل الأحداث لاستقبال البث
-        engine.on('roomStreamUpdate', async (roomID: string, updateType: any, streamList: any[]) => {
-          console.log('🔄 Stream update:', { roomID, updateType, streamList });
-          
-          if (updateType === 'ADD' && streamList.length > 0) {
-            for (const streamInfo of streamList) {
-              if (streamInfo.streamID === stream.zegoStreamId) {
-                try {
-                  console.log('🎥 Found target stream, connecting...');
-                  await engine.startPlayingStream(streamInfo.streamID);
-                  setIsConnected(true);
-                  console.log('✅ Successfully connected to stream!');
-                  break;
-                } catch (err) {
-                  console.error('❌ Failed to connect to stream:', err);
-                }
-              }
+        // الانضمام للبث كمشاهد
+        zp.joinRoom({
+          container: streamContainerRef.current,
+          scenario: {
+            mode: ZegoUIKitPrebuilt.LiveStreaming,
+            config: {
+              role: ZegoUIKitPrebuilt.Audience,
             }
-          }
-        });
-
-        // استقبال البث عند وصوله
-        engine.on('playerRecvVideoFirstFrame', (streamID: string) => {
-          console.log('🎬 Received first video frame for:', streamID);
-          if (streamID === stream.zegoStreamId) {
+          },
+          onJoinRoom: () => {
+            console.log('✅ Joined stream successfully');
             setIsConnected(true);
+          },
+          onLeaveRoom: () => {
+            console.log('❌ Left stream');
+            setIsConnected(false);
           }
         });
-
-        engine.on('playStateUpdate', (streamID: string, state: any) => {
-          console.log('🎮 Play state update:', { streamID, state });
-          if (streamID === stream.zegoStreamId && state === 'PLAYING') {
-            setIsConnected(true);
-          }
-        });
-
-        // محاولة الاتصال المباشر
-        await attemptConnection();
-        
-        // إذا لم ينجح، انتظار قليلاً ثم محاولة مرة أخرى
-        setTimeout(async () => {
-          if (!isConnected) {
-            console.log('🔄 Retrying connection...');
-            await attemptConnection();
-          }
-        }, 2000);
-        
-        console.log('✅ Connected to stream room successfully!');
 
       } catch (error) {
-        console.error('❌ Failed to connect to stream:', error);
-        setIsConnected(false);
+        console.error('❌ Error connecting to stream:', error);
       }
     };
 
     connectToStream();
 
+    // تنظيف الاتصال عند المغادرة
     return () => {
-      if (zegoEngine && stream) {
+      if (zegoInstance) {
         try {
-          zegoEngine.stopPlayingStream(stream.zegoStreamId);
-          zegoEngine.logoutRoom();
-          zegoEngine.destroy();
+          zegoInstance.destroy();
         } catch (error) {
-          console.error('Cleanup error:', error);
+          console.error('Error destroying zego instance:', error);
         }
       }
     };
   }, [stream, user]);
 
-
-
+  // تنسيق مدة البث
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -175,154 +137,152 @@ export default function WatchStreamPage() {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const handleLike = () => {
-    setLikes(prev => prev + 1);
-  };
-
+  // معالجة حالات التحميل والأخطاء
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <div className="text-white text-xl">جاري تحميل البث...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mb-4"></div>
+          <p className="text-lg">جاري تحميل البث...</p>
+        </div>
       </div>
     );
   }
 
-  if (!stream) {
+  if (error || !stream) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">البث غير موجود</h2>
-            <p className="text-gray-600 mb-4">لم يتم العثور على البث المطلوب</p>
-            <Button onClick={() => setLocation("/")} className="w-full">
-              العودة للرئيسية
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <h2 className="text-2xl font-bold mb-4">البث غير متاح</h2>
+          <p className="mb-6">عذراً، لا يمكن العثور على هذا البث</p>
+          <Button 
+            onClick={() => setLocation('/')}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            العودة للرئيسية
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black">
-      {/* الفيديو الرئيسي */}
-      <div className="relative w-full h-full">
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          autoPlay
-          playsInline
-          controls={false}
-          muted={isMuted}
-        />
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* حاوية البث الرئيسية */}
+      <div className="absolute inset-0">
+        {/* زر العودة */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLocation('/')}
+          className="absolute top-4 left-4 z-50 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
+        >
+          <ArrowLeft className="w-5 h-5 ml-2" />
+          عودة
+        </Button>
 
-        {/* شريط علوي */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 to-transparent p-6 z-10">
-          <div className="flex items-center justify-between">
-            <Button
-              onClick={() => setLocation("/")}
-              variant="ghost"
-              className="text-white hover:bg-white/20 rounded-full w-12 h-12 p-0"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <div className="bg-red-600/90 px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse">
-                <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                <span className="text-white font-bold">🔴 مباشر</span>
-              </div>
-              
-              <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full">
-                <span className="text-white font-bold">{formatDuration(streamDuration)}</span>
-              </div>
-              
-              <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full flex items-center space-x-2 rtl:space-x-reverse">
-                <Users className="w-5 h-5 text-white" />
-                <span className="text-white font-bold">{viewerCount}</span>
-              </div>
-
-              <Button
-                onClick={toggleMute}
-                variant="ghost"
-                className="text-white hover:bg-white/20 rounded-full w-12 h-12 p-0"
-              >
-                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-              </Button>
-            </div>
-          </div>
-
-          <div className="mt-4 text-white">
-            <h1 className="text-2xl font-bold">{stream.title}</h1>
-            <p className="text-lg opacity-80">المضيف: {stream.hostId}</p>
+        {/* معلومات البث العلوية */}
+        <div className="absolute top-4 right-4 z-50 bg-black/50 backdrop-blur-sm rounded-lg p-3">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="text-red-400 font-bold">مباشر</span>
+            <span className="text-white">•</span>
+            <span className="text-white">{formatDuration(streamDuration)}</span>
           </div>
         </div>
 
-        {/* أزرار الأكشن الجانبية */}
-        <div className="absolute right-6 top-1/2 transform -translate-y-1/2 z-10">
-          <div className="flex flex-col space-y-6">
-            <Button
-              onClick={handleLike}
-              variant="ghost"
-              className="rounded-full w-16 h-16 p-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
-            >
-              <div className="flex flex-col items-center">
-                <Heart className="w-8 h-8 text-white" />
-                <span className="text-white text-xs mt-1">{likes}</span>
-              </div>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="rounded-full w-16 h-16 p-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
-            >
-              <div className="flex flex-col items-center">
-                <MessageCircle className="w-8 h-8 text-white" />
-                <span className="text-white text-xs mt-1">تعليق</span>
-              </div>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="rounded-full w-16 h-16 p-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
-            >
-              <div className="flex flex-col items-center">
-                <Share className="w-8 h-8 text-white" />
-                <span className="text-white text-xs mt-1">مشاركة</span>
-              </div>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="rounded-full w-16 h-16 p-0 bg-yellow-500/80 hover:bg-yellow-500 backdrop-blur-sm"
-            >
-              <div className="flex flex-col items-center">
-                <Gift className="w-8 h-8 text-white" />
-                <span className="text-white text-xs mt-1">هدية</span>
-              </div>
-            </Button>
-          </div>
-        </div>
-
-        {/* معلومات الاتصال */}
-        <div className="absolute bottom-6 left-6 z-10">
-          <div className={`px-4 py-2 rounded-full text-white text-sm ${
-            isConnected ? 'bg-green-600/90' : 'bg-red-600/90'
-          }`}>
-            {isConnected ? '✅ متصل بالبث المباشر' : '⚠️ جاري الاتصال بالبث...'}
-          </div>
+        {/* حاوية ZegoCloud للبث */}
+        <div 
+          ref={streamContainerRef}
+          className="w-full h-full bg-gradient-to-br from-purple-900 to-blue-900"
+          style={{ position: 'relative', width: '100%', height: '100vh' }}
+        >
+          {/* شاشة تحميل أثناء الاتصال */}
           {!isConnected && (
-            <div className="mt-2 text-white text-xs bg-black/60 rounded-lg p-2 max-w-xs">
-              يتم الآن محاولة الاتصال بالبث المباشر الحقيقي عبر ZegoCloud...
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600 z-10">
+              <div className="text-center">
+                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl animate-pulse">
+                  {stream.hostProfileImage ? (
+                    <img 
+                      src={stream.hostProfileImage} 
+                      alt={stream.hostName}
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl font-bold text-purple-600">
+                      {stream.hostName?.[0]?.toUpperCase() || 'S'}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-xl font-bold mb-2">{stream.hostName}</h3>
+                <p className="text-sm opacity-80 mb-4">{stream.title}</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+                <p className="text-sm mt-2">جاري الاتصال بالبث...</p>
+              </div>
             </div>
           )}
+        </div>
+
+        {/* أزرار التفاعل الجانبية */}
+        <div className="absolute right-4 bottom-32 z-50 space-y-4">
+          {/* إعجاب */}
+          <Button
+            variant="ghost"
+            size="lg"
+            onClick={() => setLikes(prev => prev + 1)}
+            className="w-14 h-14 rounded-full bg-black/50 text-white hover:bg-red-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+          >
+            <Heart className="w-6 h-6" />
+            <span className="text-xs mt-1">{likes}</span>
+          </Button>
+
+          {/* تعليق */}
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-14 h-14 rounded-full bg-black/50 text-white hover:bg-blue-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span className="text-xs mt-1">تعليق</span>
+          </Button>
+
+          {/* مشاركة */}
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-14 h-14 rounded-full bg-black/50 text-white hover:bg-green-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+          >
+            <Share className="w-6 h-6" />
+            <span className="text-xs mt-1">مشاركة</span>
+          </Button>
+
+          {/* هدية */}
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-14 h-14 rounded-full bg-black/50 text-yellow-400 hover:bg-yellow-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+          >
+            <Gift className="w-6 h-6" />
+            <span className="text-xs mt-1">هدية</span>
+          </Button>
+        </div>
+
+        {/* إحصائيات البث السفلية */}
+        <div className="absolute bottom-4 left-4 right-20 z-50">
+          <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-400" />
+                <span className="text-blue-400 text-sm font-semibold">{viewerCount} مشاهد</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Heart className="w-4 h-4 text-red-400" />
+                <span className="text-red-400 text-sm font-semibold">{likes} إعجاب</span>
+              </div>
+            </div>
+            <h3 className="text-white font-bold">{stream.title}</h3>
+            <p className="text-gray-300 text-sm">بث من {stream.hostName}</p>
+          </div>
         </div>
       </div>
     </div>

@@ -169,29 +169,31 @@ export default function StreamsHome() {
                           position: 'relative'
                         }}
                       >
-                        {/* Loading/Fallback state while real stream loads */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-pink-600/80 to-blue-600/80 flex items-center justify-center z-10">
-                          <div className="text-center text-white">
-                            <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl border-4 border-yellow-300 animate-pulse">
-                              {stream.hostProfileImage ? (
-                                <img 
-                                  src={stream.hostProfileImage} 
-                                  alt={stream.hostName}
-                                  className="w-20 h-20 rounded-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-2xl font-bold text-purple-600">
-                                  {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
-                                </span>
-                              )}
-                            </div>
-                            <h4 className="font-bold text-lg mb-1 drop-shadow-lg">{stream.hostName || 'مضيف البث'}</h4>
-                            <div className="flex items-center justify-center gap-2 text-sm bg-red-500/80 px-3 py-1 rounded-full backdrop-blur-sm">
-                              <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-                              <span className="font-semibold">يبث الآن...</span>
+                        {/* Loading/Fallback state that stays visible */}
+                        {!previewInstances[stream.id] && (
+                          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-pink-600/80 to-blue-600/80 flex items-center justify-center z-20">
+                            <div className="text-center text-white">
+                              <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl border-4 border-yellow-300 animate-pulse">
+                                {stream.hostProfileImage ? (
+                                  <img 
+                                    src={stream.hostProfileImage} 
+                                    alt={stream.hostName}
+                                    className="w-20 h-20 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-2xl font-bold text-purple-600">
+                                    {stream.hostName?.[0]?.toUpperCase() || stream.hostId?.[0]?.toUpperCase() || 'S'}
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="font-bold text-lg mb-1 drop-shadow-lg">{stream.hostName || 'مضيف البث'}</h4>
+                              <div className="flex items-center justify-center gap-2 text-sm bg-red-500/80 px-3 py-1 rounded-full backdrop-blur-sm">
+                                <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                                <span className="font-semibold">انقر لمشاهدة البث</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        )}
                       </div>
 
                       {/* Live indicator with pulsing effect */}
