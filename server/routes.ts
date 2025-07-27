@@ -1071,6 +1071,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get stream chat messages
+  app.get('/api/streams/:id/messages', async (req, res) => {
+    try {
+      const streamId = parseInt(req.params.id);
+      
+      if (isNaN(streamId)) {
+        return res.status(400).json({ message: "Invalid stream ID" });
+      }
+
+      // Get recent chat messages for this stream
+      const messages = await db
+        .select({
+          id: chatMessages.id,
+          message: chatMessages.message,
+          sentAt: chatMessages.sentAt,
+          userId: chatMessages.userId,
+          username: users.username,
+          firstName: users.firstName,
+          profileImageUrl: users.profileImageUrl,
+        })
+        .from(chatMessages)
+        .innerJoin(users, eq(chatMessages.userId, users.id))
+        .where(eq(chatMessages.streamId, streamId))
+        .orderBy(desc(chatMessages.sentAt))
+        .limit(50);
+
+      console.log(`📨 Fetched ${messages.length} messages for stream ${streamId}`);
+      res.json(messages.reverse()); // Show oldest first
+    } catch (error) {
+      console.error("Error fetching stream messages:", error);
+      res.status(500).json({ message: "Failed to fetch stream messages" });
+    }
+  });
+
+  // Add new chat message to stream
+  app.post('/api/streams/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const streamId = parseInt(req.params.id);
+      const { message } = req.body;
+      
+      if (isNaN(streamId)) {
+        return res.status(400).json({ message: "Invalid stream ID" });
+      }
+      
+      if (!message?.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      // Check if stream exists and is live
+      const stream = await db
+        .select()
+        .from(streams)
+        .where(and(eq(streams.id, streamId), eq(streams.isLive, true)))
+        .limit(1);
+
+      if (stream.length === 0) {
+        return res.status(404).json({ message: "Stream not found or not live" });
+      }
+
+      // Insert new message
+      const newMessage = await db
+        .insert(chatMessages)
+        .values({
+          streamId,
+          userId: req.user.id,
+          message: message.trim(),
+        })
+        .returning();
+
+      console.log(`💬 New message added to stream ${streamId} by ${req.user.username}: ${message.trim()}`);
+
+      // Return message with user info
+      res.json({
+        id: newMessage[0].id,
+        message: newMessage[0].message,
+        sentAt: newMessage[0].sentAt,
+        userId: req.user.id,
+        username: req.user.username,
+        firstName: req.user.firstName,
+        profileImageUrl: req.user.profileImageUrl || null,
+      });
+    } catch (error) {
+      console.error("Error adding stream message:", error);
+      res.status(500).json({ message: "Failed to add message" });
+    }
+  });
+
   // End all streams for current user
   app.post('/api/streams/end-all', requireAuth, async (req: any, res) => {
     try {
