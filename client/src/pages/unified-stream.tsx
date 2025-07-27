@@ -95,7 +95,7 @@ export default function UnifiedStreamPage() {
       const zp = ZegoUIKitPrebuilt.create(kitToken);
       zegoInstanceRef.current = zp;
 
-      // الانضمام للغرفة كمذيع
+      // الانضمام للغرفة كمذيع مع إعدادات محسنة
       await zp.joinRoom({
         container: streamContainerRef.current,
         sharedLinks: [{

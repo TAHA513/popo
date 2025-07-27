@@ -41,7 +41,10 @@ export default function StreamTestPage() {
 
       // تجربة الانتقال للبث
       alert(`تم إنشاء البث بنجاح! ID: ${streamId} - سيتم الانتقال إليه الآن`);
-      setLocation(`/stream/${streamId}`);
+      // إنتظار قليل للتأكد من إنشاء البث
+      setTimeout(() => {
+        setLocation(`/stream/${streamId}`);
+      }, 2000);
 
     } catch (error: any) {
       console.error('❌ خطأ في الاختبار:', error);
@@ -77,7 +80,7 @@ export default function StreamTestPage() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-center">🧪 اختبار وظائف البث</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Button 
             onClick={testAuth}
             className="bg-blue-600 hover:bg-blue-700 text-white p-4 h-auto"
@@ -95,6 +98,16 @@ export default function StreamTestPage() {
             <div className="text-center">
               <div className="text-lg font-bold">اختبار البث</div>
               <div className="text-sm opacity-80">إنشاء بث والانتقال إليه</div>
+            </div>
+          </Button>
+
+          <Button 
+            onClick={() => setLocation('/stream/36')}
+            className="bg-purple-600 hover:bg-purple-700 text-white p-4 h-auto"
+          >
+            <div className="text-center">
+              <div className="text-lg font-bold">البث الحالي</div>
+              <div className="text-sm opacity-80">انضمام للبث رقم 36</div>
             </div>
           </Button>
         </div>

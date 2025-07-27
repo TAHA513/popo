@@ -94,49 +94,49 @@ export default function WatchStreamPage() {
         const zp = ZegoUIKitPrebuilt.create(kitToken);
         setZegoInstance(zp);
 
-        // الانضمام للبث كمشاهد
-        zp.joinRoom({
+        // الانضمام للبث كمشاهد - نفس الغرفة بالضبط
+        await zp.joinRoom({
           container: streamContainerRef.current,
-          sharedLinks: [{
-            name: 'LaaBoBo Live',
-            url: window.location.href,
-          }],
           scenario: {
             mode: ZegoUIKitPrebuilt.LiveStreaming,
             config: {
               role: ZegoUIKitPrebuilt.Audience,
             }
           },
-          showScreenSharingButton: false,
-          showTextChat: true,
-          showUserCount: true,
-          showUserList: false,
-          showRemoveUserButton: false,
-          showPinButton: false,
-          showLayoutButton: false,
+          // إعدادات المشاهد
           turnOnMicrophoneWhenJoining: false,
           turnOnCameraWhenJoining: false,
           showMyCameraToggleButton: false,
           showMyMicrophoneToggleButton: false,
           showAudioVideoSettingsButton: false,
+          showScreenSharingButton: false,
+          showTextChat: false,
+          showUserCount: false,
+          showUserList: false,
+          showRemoveUserButton: false,
+          showPinButton: false,
+          showLayoutButton: false,
           showLeaveRoomConfirmDialog: false,
-          maxUsers: 50,
-          layout: "Grid",
+          
+          // إعدادات الفيديو المهمة للمشاهدة
+          enableVideoAutoplay: true,
+          enableAudioAutoplay: true,
+          
+          // callbacks مهمة
           onJoinRoom: () => {
-            console.log('✅ Joined stream successfully as viewer');
+            console.log('✅ Viewer joined room successfully');
             setIsConnected(true);
           },
           onLeaveRoom: () => {
-            console.log('❌ Left stream');
+            console.log('❌ Viewer left room');
             setIsConnected(false);
           },
-          onUserJoin: (users: any[]) => {
-            console.log('👥 Users joined:', users);
-            setViewerCount(prev => prev + users.length);
+          onRemoteStreamAdd: (streamList: any[]) => {
+            console.log('📺 Remote streams available:', streamList);
+            setIsConnected(true);
           },
-          onUserLeave: (users: any[]) => {
-            console.log('👥 Users left:', users);
-            setViewerCount(prev => Math.max(1, prev - users.length));
+          onRemoteStreamRemove: (streamList: any[]) => {
+            console.log('📺 Remote streams removed:', streamList);
           }
         });
 
