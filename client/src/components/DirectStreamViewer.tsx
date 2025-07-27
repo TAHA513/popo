@@ -17,17 +17,23 @@ export default function DirectStreamViewer({ stream }: DirectStreamViewerProps) 
   const isStreamer = user?.id === stream.hostId;
 
   useEffect(() => {
-    initializeStream();
+    // انتظار تحميل المكون بالكامل قبل تهيئة البث
+    const timer = setTimeout(() => {
+      if (videoRef.current) {
+        initializeStream();
+      }
+    }, 100);
     
     const interval = setInterval(() => {
-      setViewerCount(prev => Math.max(1, prev + Math.floor(Math.random() * 3) - 1));
+      setViewerCount((prev: number) => Math.max(1, prev + Math.floor(Math.random() * 3) - 1));
     }, 8000);
 
     return () => {
+      clearTimeout(timer);
       clearInterval(interval);
       cleanup();
     };
-  }, []);
+  }, [stream.id]); // إعادة التهيئة عند تغيير البث
 
   const initializeStream = async () => {
     setIsLoading(true);
@@ -74,40 +80,76 @@ export default function DirectStreamViewer({ stream }: DirectStreamViewerProps) 
 
   const connectToRealStream = async () => {
     try {
-      // محاولة الاتصال بـ ZegoCloud
+      // انتظار تحميل DOM بالكامل
+      if (!videoRef.current) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!videoRef.current) {
+          throw new Error('Video element not ready');
+        }
+      }
+
+      console.log('🔗 Attempting to connect to ZegoCloud stream...');
+      
+      // الحصول على إعدادات ZegoCloud
       const config = await fetch('/api/zego-config', {
         credentials: 'include'
       }).then(res => res.json());
 
-      if (config.appId && (stream as any).zegoRoomId && (stream as any).zegoStreamId) {
-        console.log('🔗 Attempting to connect to ZegoCloud stream...');
-        
-        // تحميل ZegoCloud SDK
-        const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
-        const zg = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
-        
-        // تسجيل دخول للغرفة
-        await zg.loginRoom((stream as any).zegoRoomId, {
-          userID: config.userID || 'viewer_' + Date.now(),
-          userName: config.userName || 'مشاهد'
-        });
+      if (!config.appId) {
+        throw new Error('ZegoCloud config not available');
+      }
 
-        // بدء تشغيل البث
-        const remoteStream = await zg.startPlayingStream((stream as any).zegoStreamId);
+      const streamId = (stream as any).zegoStreamId || `stream_${stream.id}`;
+      const roomId = (stream as any).zegoRoomId || `room_${stream.id}`;
+
+      console.log('📡 ZegoCloud connection details:', {
+        appId: config.appId,
+        roomId,
+        streamId,
+        userId: config.userID || 'viewer_' + Date.now()
+      });
         
-        if (videoRef.current && remoteStream) {
-          videoRef.current.srcObject = remoteStream;
-          videoRef.current.muted = isMuted;
-          await videoRef.current.play();
-          setIsConnected(true);
-          console.log('✅ Successfully connected to real ZegoCloud stream!');
-          return;
-        }
+      // تحميل وتهيئة ZegoCloud SDK
+      const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
+      const zg = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
+      
+      // تسجيل دخول للغرفة أولاً
+      await zg.loginRoom(roomId, {
+        userID: config.userID || 'viewer_' + Date.now(),
+        userName: config.userName || 'مشاهد'
+      }, config.token);
+
+      console.log('✅ Successfully logged into ZegoCloud room');
+
+      // انتظار ثانية للتأكد من اكتمال تسجيل الدخول
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // بدء تشغيل البث مع تحديد عنصر الفيديو
+      const remoteStream = await zg.startPlayingStream(streamId, {
+        video: videoRef.current,
+        audio: true
+      });
+        
+      if (videoRef.current && remoteStream) {
+        // تطبيق خصائص الفيديو
+        videoRef.current.srcObject = remoteStream;
+        videoRef.current.autoplay = true;
+        videoRef.current.playsInline = true;
+        videoRef.current.controls = false;
+        videoRef.current.muted = isMuted;
+        
+        // تشغيل الفيديو
+        await videoRef.current.play();
+        setIsConnected(true);
+        
+        console.log('✅ Successfully connected to real ZegoCloud stream!');
+        console.log('🎥 Remote stream details:', remoteStream);
+        return;
       }
       
-      throw new Error('ZegoCloud connection failed');
+      throw new Error('Failed to attach remote stream to video element');
     } catch (error) {
-      console.warn('⚠️ ZegoCloud connection failed, showing connection message:', error);
+      console.error('❌ ZegoCloud connection failed:', error);
       throw error;
     }
   };
@@ -146,7 +188,7 @@ export default function DirectStreamViewer({ stream }: DirectStreamViewerProps) 
       
       ctx.font = '70px Arial';
       ctx.fillStyle = '#34D399';
-      ctx.fillText(stream.title || 'بث مباشر', canvas.width / 2, canvas.height / 2 + 50);
+      ctx.fillText((stream as any).title || 'بث مباشر', canvas.width / 2, canvas.height / 2 + 50);
       
       // مؤشر الحالة المباشرة
       const liveSize = 50 + Math.sin(frame * 0.1) * 20;
@@ -206,10 +248,14 @@ export default function DirectStreamViewer({ stream }: DirectStreamViewerProps) 
       <div className="w-full h-full relative">
         <video
           ref={videoRef}
+          id="liveVideo"
           autoPlay
           playsInline
+          controls={false}
           muted={isMuted}
           className="w-full h-full object-cover"
+          onLoadedData={() => console.log('🎥 Video loaded successfully')}
+          onError={(e) => console.error('❌ Video error:', e)}
         />
 
         {/* طبقة التحميل */}

@@ -1,11 +1,15 @@
 import React from 'react';
-import DirectStreamViewer from './DirectStreamViewer';
+import SimpleZegoStream from './SimpleZegoStream';
 import { Stream } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 
 interface StreamViewerProps {
   stream: Stream;
 }
 
 export default function StreamViewer({ stream }: StreamViewerProps) {
-  return <DirectStreamViewer stream={stream} />;
+  const { user } = useAuth();
+  const isStreamer = user?.id === stream.hostId;
+  
+  return <SimpleZegoStream stream={stream} isStreamer={isStreamer} />;
 }
