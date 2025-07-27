@@ -30,7 +30,7 @@ async function startSimpleZegoStream(userID: string, userName: string, streamTit
     console.log('🔑 Direct login with:', { roomID, userID, userName });
     
     // Direct login
-    await engine.loginRoom(roomID, userID, userName, '');
+    await engine.loginRoom(roomID, { userID, userName }, '');
     console.log('✅ Logged in successfully');
     
     // Direct publishing
