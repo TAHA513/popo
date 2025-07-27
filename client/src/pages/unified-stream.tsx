@@ -153,17 +153,9 @@ export default function UnifiedStreamPage() {
         layout: "Grid",
         maxUsers: 50,
         videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
-        onJoinRoom: () => {
-          console.log('✅ Host joined room successfully!');
-          console.log('📡 Publishing stream with ID:', streamData.zegoStreamId);
-          setIsStreaming(true);
-        },
         onLeaveRoom: () => {
           console.log('❌ Host left room');
           endStream();
-        },
-        onUserJoin: (users: any[]) => {
-          console.log('👥 New users joined:', users);
         },
         onUserLeave: (users: any[]) => {
           console.log('👥 Users left:', users);
