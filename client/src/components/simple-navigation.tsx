@@ -15,7 +15,8 @@ import {
   Camera,
   Crown,
   Search,
-  MessageCircle
+  MessageCircle,
+  MessageSquare
 } from "lucide-react";
 
 export default function SimpleNavigation() {
@@ -100,7 +101,7 @@ export default function SimpleNavigation() {
             {/* أيقونة الدردشة المباشرة */}
             <Link href="/live-chat">
               <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
-                <Sparkles className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5" />
               </button>
             </Link>
             
@@ -170,8 +171,9 @@ export default function SimpleNavigation() {
                 variant={location === "/live-chat" ? "secondary" : "ghost"} 
                 size="sm"
                 className={`rounded-full ${location === "/live-chat" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                title="دردشة مباشرة"
               >
-                <Sparkles className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4" />
               </Button>
             </Link>
             <Link href="/single-video">
