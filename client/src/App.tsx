@@ -59,7 +59,7 @@ function Router() {
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
           <Route path="/games" component={LazyComponents.GamesPage} />
-          <Route path="/start-stream" component={LazyComponents.StartChatPage} />
+          <Route path="/start-stream" component={SimpleStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
