@@ -83,14 +83,14 @@ export default function NavigationHeader() {
               </Button>
             </Link>
 
-            <Link href="/start-stream">
+            <Link href="/create-memory">
               <Button 
-                variant={location === "/start-stream" ? "default" : "ghost"} 
+                variant={location === "/create-memory" ? "default" : "ghost"} 
                 size="sm"
                 className="flex items-center space-x-1 rtl:space-x-reverse"
               >
-                <Video className="w-4 h-4" />
-                <span>بث مباشر</span>
+                <Plus className="w-4 h-4" />
+                <span>إنشاء</span>
               </Button>
             </Link>
           </nav>
