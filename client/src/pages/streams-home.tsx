@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Play, Users, Eye, Radio, Clock, Heart, Video } from "lucide-react";
+import { Plus, Play, Users, Eye, MessageCircle, Clock, Heart, Video } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { apiRequest } from "@/lib/queryClient";
@@ -115,10 +115,10 @@ export default function StreamsHome() {
             {/* Live Stream Button */}
             <Button
               onClick={() => setLocation('/start-stream')}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
+              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
             >
-              <Radio className="w-4 h-4" />
-              <span>ابدأ البث</span>
+              <MessageCircle className="w-4 h-4" />
+              <span>ابدأ دردشة</span>
             </Button>
           </div>
         </div>
@@ -133,17 +133,17 @@ export default function StreamsHome() {
         <div className="p-2">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">🏠 الرئيسية</h2>
-            <p className="text-gray-600 text-sm">شاهد البثوث المباشرة من الأصدقاء</p>
+            <p className="text-gray-600 text-sm">انضم للدردشات المباشرة مع الأصدقاء</p>
           </div>
           
           {streams.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">🎥</div>
+              <div className="text-6xl mb-4">💬</div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                لا توجد بثوث مباشرة
+                لا توجد دردشات مباشرة
               </h3>
               <p className="text-gray-500">
-                لا يوجد أحد يبث الآن، انتظر حتى يبدأ أحد الأصدقاء بثاً مباشراً
+                لا يوجد أحد في دردشة الآن، انتظر حتى يبدأ أحد الأصدقاء دردشة مباشرة
               </p>
             </div>
           ) : (
@@ -187,9 +187,9 @@ export default function StreamsHome() {
                                 )}
                               </div>
                               <h4 className="font-bold text-lg mb-1 drop-shadow-lg">{stream.hostName || 'مضيف البث'}</h4>
-                              <div className="flex items-center justify-center gap-2 text-sm bg-red-500/80 px-3 py-1 rounded-full backdrop-blur-sm">
+                              <div className="flex items-center justify-center gap-2 text-sm bg-green-500/80 px-3 py-1 rounded-full backdrop-blur-sm">
                                 <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-                                <span className="font-semibold">انقر لمشاهدة البث</span>
+                                <span className="font-semibold">انقر للدردشة</span>
                               </div>
                             </div>
                           </div>
@@ -197,9 +197,9 @@ export default function StreamsHome() {
                       </div>
 
                       {/* Live indicator with pulsing effect */}
-                      <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center shadow-lg animate-pulse">
+                      <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center shadow-lg animate-pulse">
                         <div className="w-2 h-2 bg-white rounded-full mr-1 animate-ping"></div>
-                        مباشر
+                        دردشة
                       </div>
 
                       {/* Real-time viewer count */}
@@ -210,7 +210,7 @@ export default function StreamsHome() {
 
                       {/* Stream category badge */}
                       <div className="absolute bottom-3 left-3 bg-purple-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-xs font-semibold">
-                        {stream.category || 'بث سريع'}
+                        {stream.category || 'دردشة سريعة'}
                       </div>
 
                       {/* Interactive join overlay */}
@@ -219,7 +219,7 @@ export default function StreamsHome() {
                           <Play className="w-8 h-8 text-white drop-shadow-lg" />
                         </div>
                         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white font-bold text-sm bg-black/70 px-4 py-2 rounded-full backdrop-blur-sm">
-                          انقر لدخول البث كاملاً
+                          انقر لدخول الدردشة
                         </div>
                       </div>
                     </div>
@@ -228,10 +228,10 @@ export default function StreamsHome() {
                     <div className="p-5">
                       <div className="mb-4">
                         <h3 className="font-bold text-xl text-gray-800 mb-2 line-clamp-2">
-                          {stream.title || 'بث مباشر'}
+                          {stream.title || 'دردشة مباشرة'}
                         </h3>
                         <p className="text-gray-600 text-sm line-clamp-2">
-                          {stream.description || 'انضم للبث المباشر الآن'}
+                          {stream.description || 'انضم للدردشة المباشرة الآن'}
                         </p>
                       </div>
 
@@ -248,9 +248,9 @@ export default function StreamsHome() {
                       </div>
 
                       {/* Join button */}
-                      <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center">
-                        <Play className="w-5 h-5 mr-2" />
-                        انضم للبث المباشر
+                      <button className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center">
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        انضم للدردشة المباشرة
                       </button>
                     </div>
                   </CardContent>
