@@ -94,7 +94,11 @@ export default function WatchStreamPage() {
     }
   };
 
-  // هذه صفحة دردشة نصية فقط - لا حاجة لـ ZegoCloud
+  // تم إزالة ZegoCloud - هذه صفحة دردشة نصية خالصة
+  useEffect(() => {
+    // محاكاة عدد المشاهدين
+    setViewerCount(Math.floor(Math.random() * 50) + 1);
+  }, []);
 
   // تنسيق مدة البث
   const formatDuration = (seconds: number) => {
