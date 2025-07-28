@@ -76,7 +76,7 @@ function Router() {
         <Route path="/final-stream/:mode?" component={() => import('./pages/final-stream-solution')} />
         <Route path="/direct-zego" component={() => import('./pages/direct-zego-stream')} />
         <Route path="/webrtc-test" component={() => import('./pages/webrtc-stream')} />
-        <Route path="/live-chat" component={() => import('./pages/live-text-chat')} />
+        <Route path="/live-chat" component={() => import('./pages/live-text-chat-simple')} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />
