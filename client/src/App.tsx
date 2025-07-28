@@ -77,29 +77,7 @@ function Router() {
         <Route path="/final-stream/:mode?" component={() => import('./pages/final-stream-solution')} />
         <Route path="/direct-zego" component={() => import('./pages/direct-zego-stream')} />
         <Route path="/webrtc-test" component={() => import('./pages/webrtc-stream')} />
-        <Route path="/live-chat">{() => {
-          const { user } = useAuth();
-          const [, setLocation] = useLocation();
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 flex items-center justify-center p-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full text-center">
-                <div className="text-6xl mb-4">💬</div>
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  مرحباً {user?.username || 'صديق'}!
-                </h2>
-                <p className="text-white/90 mb-6">
-                  أهلاً بك في الدردشة المباشرة! 🎉
-                </p>
-                <button 
-                  onClick={() => setLocation('/')}
-                  className="bg-white/30 hover:bg-white/40 text-white px-6 py-3 rounded-lg transition-all"
-                >
-                  العودة للرئيسية
-                </button>
-              </div>
-            </div>
-          );
-        }}</Route>
+        <Route path="/live-chat" component={LazyComponents.LiveTextChatPage} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />
