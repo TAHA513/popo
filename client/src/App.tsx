@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { Suspense } from "react";
+import React from "react";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
 import Landing from "@/pages/landing";
@@ -77,7 +78,61 @@ function Router() {
         <Route path="/final-stream/:mode?" component={() => import('./pages/final-stream-solution')} />
         <Route path="/direct-zego" component={() => import('./pages/direct-zego-stream')} />
         <Route path="/webrtc-test" component={() => import('./pages/webrtc-stream')} />
-        <Route path="/live-chat" component={LazyComponents.LiveTextChatPage} />
+        <Route path="/live-chat">{() => {
+          const { user } = useAuth();
+          const [, setLocation] = useLocation();
+          const [message, setMessage] = React.useState('');
+          const [messages, setMessages] = React.useState<string[]>([]);
+          
+          const sendMessage = () => {
+            if (message.trim()) {
+              setMessages(prev => [...prev, `${user?.username || 'أنت'}: ${message}`]);
+              setMessage('');
+            }
+          };
+          
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 p-4">
+              <div className="max-w-md mx-auto bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <button 
+                    onClick={() => setLocation('/')}
+                    className="bg-white/30 hover:bg-white/40 px-4 py-2 rounded-lg text-white"
+                  >
+                    ← العودة
+                  </button>
+                  <h1 className="text-xl font-bold text-white">💬 الدردشة المباشرة</h1>
+                  <div></div>
+                </div>
+                
+                <div className="bg-white/10 rounded-lg p-4 mb-4 h-64 overflow-y-auto">
+                  <div className="text-white text-sm mb-2">مرحباً {user?.username || 'صديق'}! 🎉</div>
+                  {messages.map((msg, i) => (
+                    <div key={i} className="text-white text-sm mb-2 bg-white/10 rounded p-2">
+                      {msg}
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2">
+                  <input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="اكتب رسالتك..."
+                    className="flex-1 bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white placeholder-white/70"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    className="bg-blue-500/80 hover:bg-blue-600/80 text-white px-4 py-2 rounded-lg"
+                  >
+                    إرسال
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }}</Route>
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />
