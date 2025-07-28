@@ -165,9 +165,9 @@ export default function WatchStreamPage() {
                 const confirmed = confirm('هل أنت متأكد من إغلاق الدردشة؟ سيتم حذف جميع الرسائل والبيانات بشكل نهائي.');
                 if (confirmed) {
                   try {
-                    console.log("🛑 Host requesting chat deletion:", { streamId, userId: user.id });
+                    console.log("🛑 Host requesting chat deletion:", { streamId: stream.id, userId: user.id });
                     
-                    const response = await apiRequest(`/api/streams/${streamId}/end`, 'POST');
+                    const response = await apiRequest(`/api/streams/${stream.id}/end`, 'POST');
                     
                     console.log("✅ Chat deletion successful:", response);
                     alert('تم إغلاق الدردشة وحذف جميع البيانات بنجاح');
@@ -233,48 +233,65 @@ export default function WatchStreamPage() {
 
 
 
-        {/* أزرار التفاعل الجانبية - تصميم محسن */}
-        <div className="absolute right-4 bottom-32 z-50 space-y-3">
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={() => setLikes(prev => prev + 1)}
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/80 to-pink-600/80 text-white hover:from-red-600/90 hover:to-pink-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
-          >
-            <Heart className="w-7 h-7" />
-            <span className="text-xs font-bold mt-1">{likes > 999 ? `${(likes/1000).toFixed(1)}K` : likes}</span>
-          </Button>
+        {/* أزرار التفاعل الجانبية - فقط للمشاهدين */}
+        {user && stream.hostId !== user.id && (
+          <div className="absolute right-4 bottom-32 z-50 space-y-3">
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setLikes(prev => prev + 1)}
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/80 to-pink-600/80 text-white hover:from-red-600/90 hover:to-pink-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
+            >
+              <Heart className="w-7 h-7" />
+              <span className="text-xs font-bold mt-1">{likes > 999 ? `${(likes/1000).toFixed(1)}K` : likes}</span>
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={() => setShowComments(!showComments)}
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/80 to-cyan-600/80 text-white hover:from-blue-600/90 hover:to-cyan-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
-          >
-            <MessageCircle className="w-7 h-7" />
-            <span className="text-xs font-bold mt-1">رسائل</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setShowComments(!showComments)}
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/80 to-cyan-600/80 text-white hover:from-blue-600/90 hover:to-cyan-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
+            >
+              <MessageCircle className="w-7 h-7" />
+              <span className="text-xs font-bold mt-1">رسائل</span>
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="lg"
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/80 to-emerald-600/80 text-white hover:from-green-600/90 hover:to-emerald-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
-          >
-            <Share className="w-7 h-7" />
-            <span className="text-xs font-bold mt-1">شارك</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/80 to-emerald-600/80 text-white hover:from-green-600/90 hover:to-emerald-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
+            >
+              <Share className="w-7 h-7" />
+              <span className="text-xs font-bold mt-1">شارك</span>
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="lg"
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-500/80 to-orange-600/80 text-white hover:from-yellow-600/90 hover:to-orange-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
-          >
-            <Gift className="w-7 h-7" />
-            <span className="text-xs font-bold mt-1">هدية</span>
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-500/80 to-orange-600/80 text-white hover:from-yellow-600/90 hover:to-orange-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
+            >
+              <Gift className="w-7 h-7" />
+              <span className="text-xs font-bold mt-1">هدية</span>
+            </Button>
+          </div>
+        )}
 
-        {/* إحصائيات البث السفلية - تصميم محسن */}
+        {/* أزرار خاصة بمضيف الدردشة */}
+        {user && stream.hostId === user.id && (
+          <div className="absolute right-4 bottom-32 z-50 space-y-3">
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setShowComments(!showComments)}
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/80 to-cyan-600/80 text-white hover:from-blue-600/90 hover:to-cyan-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
+            >
+              <MessageCircle className="w-7 h-7" />
+              <span className="text-xs font-bold mt-1">رسائل</span>
+            </Button>
+          </div>
+        )}
+
+        {/* إحصائيات البث السفلية - مختلفة للمضيف والمشاهدين */}
         <div className="absolute bottom-4 left-4 right-20 z-50">
           <div className="bg-gradient-to-r from-black/80 to-gray-900/80 backdrop-blur-lg rounded-2xl p-4 border border-white/20 shadow-2xl">
             <div className="flex items-center gap-3 mb-3">
@@ -283,11 +300,18 @@ export default function WatchStreamPage() {
                 <span className="text-blue-400 text-sm font-bold">{viewerCount}</span>
                 <span className="text-blue-200 text-xs">مشاهد</span>
               </div>
-              <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1 rounded-full">
-                <Heart className="w-4 h-4 text-red-400" />
-                <span className="text-red-400 text-sm font-bold">{likes}</span>
-                <span className="text-red-200 text-xs">إعجاب</span>
-              </div>
+              
+              {/* إحصائيات فقط للمشاهدين */}
+              {user && stream.hostId !== user.id && (
+                <>
+                  <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1 rounded-full">
+                    <Heart className="w-4 h-4 text-red-400" />
+                    <span className="text-red-400 text-sm font-bold">{likes}</span>
+                    <span className="text-red-200 text-xs">إعجاب</span>
+                  </div>
+                </>
+              )}
+              
               <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                 <MessageCircle className="w-4 h-4 text-green-400" />
                 <span className="text-green-400 text-sm font-bold">{comments.length}</span>
@@ -297,7 +321,7 @@ export default function WatchStreamPage() {
             <h3 className="text-white font-bold text-lg mb-1">{stream.title}</h3>
             <p className="text-gray-300 text-sm flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              دردشة مباشرة مع {stream.hostName}
+              {user && stream.hostId === user.id ? 'أنت تستضيف هذه الدردشة' : `دردشة مباشرة مع ${stream.hostName}`}
             </p>
           </div>
         </div>
