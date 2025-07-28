@@ -73,6 +73,9 @@ function Router() {
         <Route path="/test-transmission" component={() => import('./pages/test-stream-transmission')} />
         <Route path="/enhanced-stream" component={() => import('./pages/enhanced-unified-stream')} />
         <Route path="/simple-live" component={() => import('./pages/simple-live-stream')} />
+        <Route path="/final-stream/:mode?" component={() => import('./pages/final-stream-solution')} />
+        <Route path="/direct-zego" component={() => import('./pages/direct-zego-stream')} />
+        <Route path="/webrtc-test" component={() => import('./pages/webrtc-stream')} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />
