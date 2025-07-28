@@ -410,7 +410,7 @@ export default function LiveTextChatPage() {
       </div>
 
       {/* CSS للتأثيرات */}
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
@@ -454,7 +454,7 @@ export default function LiveTextChatPage() {
         .animate-rotate { animation: rotate 2s linear; }
         .animate-shake { animation: shake 0.5s ease-in-out; }
         .animate-glow { animation: glow 2s ease-in-out infinite; }
-      `}</style>
+      `}} />
     </div>
   );
 }
