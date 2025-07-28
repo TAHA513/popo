@@ -94,97 +94,7 @@ export default function WatchStreamPage() {
     }
   };
 
-  // الاتصال التلقائي بـ ZegoCloud لمشاهدة البث مباشرة
-  useEffect(() => {
-    if (!stream || !user || !streamContainerRef.current || zegoInstance || isConnected) {
-      return;
-    }
-
-    const connectToStream = async () => {
-      try {
-        console.log('🔄 بدء الاتصال التلقائي بالبث...');
-        const config = await apiRequest('/api/zego-config', 'GET');
-        if (!config.appId || !stream.zegoRoomId) return;
-
-        const viewerUserId = String(user.id);
-        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-          parseInt(config.appId),
-          config.appSign,
-          stream.zegoRoomId,
-          viewerUserId,
-          user.username || 'Viewer'
-        );
-
-        const zp = ZegoUIKitPrebuilt.create(kitToken);
-        setZegoInstance(zp);
-
-        // الانضمام التلقائي للبث
-        await zp.joinRoom({
-          container: streamContainerRef.current,
-          scenario: {
-            mode: ZegoUIKitPrebuilt.LiveStreaming,
-            config: {
-              role: ZegoUIKitPrebuilt.Audience,
-            }
-          },
-          turnOnMicrophoneWhenJoining: false,
-          turnOnCameraWhenJoining: false,
-          showMyCameraToggleButton: false,
-          showMyMicrophoneToggleButton: false,
-          showAudioVideoSettingsButton: false,
-          showScreenSharingButton: false,
-          showTextChat: false,
-          showUserList: false,
-          showRemoveUserButton: false,
-          showPinButton: false,
-          showLayoutButton: false,
-          showLeaveRoomConfirmDialog: false,
-          enableVideoAutoplay: true,
-          enableAudioAutoplay: true,
-          autoStart: true, // البدء التلقائي
-          layout: "Grid",
-          maxUsers: 50,
-          videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
-          facingMode: "user",
-          preJoinViewConfig: {
-            title: '', // إخفاء شاشة ما قبل الانضمام
-          },
-          onJoinRoom: () => {
-            console.log('✅ Viewer joined room successfully!');
-            console.log('Room ID:', stream.zegoRoomId);
-            console.log('User ID:', viewerUserId);
-            console.log('📡 Expecting stream from host');
-            setIsConnected(true);
-          },
-          onRoomStreamUpdate: (roomID: string, updateType: string, streamList: any[]) => {
-            console.log('🔄 Stream update:', { roomID, updateType, streamList });
-            if (updateType === 'ADD' && streamList.length > 0) {
-              console.log('🎥 Stream available from host!');
-            }
-          },
-          onLeaveRoom: () => {
-            setIsConnected(false);
-          }
-        });
-
-      } catch (error) {
-        console.error('❌ Error connecting to stream:', error);
-      }
-    };
-
-    // الاتصال التلقائي والفوري
-    connectToStream();
-
-    return () => {
-      if (zegoInstance) {
-        try {
-          zegoInstance.destroy();
-        } catch (error) {
-          console.error('Error destroying zego instance:', error);
-        }
-      }
-    };
-  }, [stream, user]); // التشغيل التلقائي بمجرد توفر البيانات
+  // هذه صفحة دردشة نصية فقط - لا حاجة لـ ZegoCloud
 
   // تنسيق مدة البث
   const formatDuration = (seconds: number) => {
@@ -203,7 +113,7 @@ export default function WatchStreamPage() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mb-4"></div>
-          <p className="text-lg">جاري تحميل البث...</p>
+          <p className="text-lg">جاري تحميل الدردشة...</p>
         </div>
       </div>
     );
@@ -241,51 +151,52 @@ export default function WatchStreamPage() {
           عودة
         </Button>
 
-        {/* معلومات البث العلوية */}
+        {/* معلومات الدردشة العلوية */}
         <div className="absolute top-4 right-4 z-50 bg-black/50 backdrop-blur-sm rounded-lg p-3">
           <div className="flex items-center gap-2 text-sm">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-red-400 font-bold">مباشر</span>
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-green-400 font-bold">دردشة</span>
             <span className="text-white">•</span>
             <span className="text-white">{formatDuration(streamDuration)}</span>
           </div>
         </div>
 
-        {/* حاوية ZegoCloud للبث */}
-        <div 
-          ref={streamContainerRef} 
-          className="absolute inset-0 w-full h-full bg-black"
-          style={{ zIndex: 1 }}
-        />
-
-        {/* التعليقات المباشرة على الشاشة - تصميم محسن */}
-        <div className="absolute bottom-32 left-4 right-20 z-50 pointer-events-none">
-          {comments.length > 0 && (
-            <div className="space-y-2 max-h-80 overflow-hidden">
-              {comments.slice(-6).map((comment, index) => (
-                <div 
-                  key={comment.id} 
-                  className="animate-fade-in-up transform transition-all duration-500"
-                  style={{
-                    animationDelay: `${index * 0.15}s`,
-                    opacity: 1 - (index * 0.1)
-                  }}
-                >
-                  <div className="bg-black/60 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/20 shadow-lg max-w-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-pink-300 font-bold text-sm">{comment.username}</span>
-                      <span className="text-white/60 text-xs">LIVE</span>
+        {/* منطقة الدردشة الرئيسية */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 overflow-y-auto">
+          <div className="max-w-2xl mx-auto space-y-4 pt-20 pb-40">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-white mb-2">💬 دردشة مباشرة</h2>
+              <p className="text-gray-300">شارك في المحادثة المباشرة مع {stream.hostName}</p>
+            </div>
+            
+            {/* الرسائل */}
+            <div className="space-y-3">
+              {comments.map((message) => (
+                <div key={message.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      {message.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <div className="text-white text-sm font-medium leading-relaxed break-words">
-                      {comment.text}
-                    </div>
+                    <span className="text-blue-300 font-bold text-sm">{message.username}</span>
+                    <span className="text-gray-400 text-xs">الآن</span>
                   </div>
+                  <p className="text-white text-sm leading-relaxed">{message.text}</p>
                 </div>
               ))}
+              
+              {comments.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <p className="text-gray-400">لا توجد رسائل بعد. كن أول من يشارك!</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
+
+
 
         {/* أزرار التفاعل الجانبية - تصميم محسن */}
         <div className="absolute right-4 bottom-32 z-50 space-y-3">
@@ -306,7 +217,7 @@ export default function WatchStreamPage() {
             className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/80 to-cyan-600/80 text-white hover:from-blue-600/90 hover:to-cyan-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
           >
             <MessageCircle className="w-7 h-7" />
-            <span className="text-xs font-bold mt-1">{comments.length}</span>
+            <span className="text-xs font-bold mt-1">رسائل</span>
           </Button>
 
           <Button
@@ -345,7 +256,7 @@ export default function WatchStreamPage() {
               <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                 <MessageCircle className="w-4 h-4 text-green-400" />
                 <span className="text-green-400 text-sm font-bold">{comments.length}</span>
-                <span className="text-green-200 text-xs">تعليق</span>
+                <span className="text-green-200 text-xs">رسالة</span>
               </div>
             </div>
             <h3 className="text-white font-bold text-lg mb-1">{stream.title}</h3>
@@ -364,7 +275,7 @@ export default function WatchStreamPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <MessageCircle className="w-4 h-4 text-white" />
                 </div>
-                <span>محادثة مباشرة</span>
+                <span>إرسال رسالة</span>
                 <div className="flex items-center gap-1 bg-red-500/90 text-white text-xs px-3 py-1 rounded-full animate-pulse">
                   <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
                   LIVE
