@@ -123,8 +123,8 @@ export default function WatchStreamPage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
-          <h2 className="text-2xl font-bold mb-4">البث غير متاح</h2>
-          <p className="mb-6">عذراً، لا يمكن العثور على هذا البث أو انتهى البث</p>
+          <h2 className="text-2xl font-bold mb-4">الدردشة غير متاحة</h2>
+          <p className="mb-6">عذراً، لا يمكن العثور على هذه الدردشة أو انتهت الجلسة</p>
           <Button 
             onClick={() => setLocation('/')}
             className="bg-purple-600 hover:bg-purple-700"
@@ -261,8 +261,8 @@ export default function WatchStreamPage() {
             </div>
             <h3 className="text-white font-bold text-lg mb-1">{stream.title}</h3>
             <p className="text-gray-300 text-sm flex items-center gap-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              بث مباشر من {stream.hostName}
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              دردشة مباشرة مع {stream.hostName}
             </p>
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function WatchStreamPage() {
                     <textarea
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="شارك رأيك في البث المباشر..."
+                      placeholder="اكتب رسالتك هنا..."
                       className="w-full bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-xl p-4 text-white placeholder-gray-300 resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all duration-300"
                       rows={3}
                       maxLength={200}
@@ -324,7 +324,7 @@ export default function WatchStreamPage() {
             ) : (
               <div className="p-4 text-center">
                 <p className="text-gray-400 text-sm mb-3">
-                  يجب تسجيل الدخول للتعليق
+                  يجب تسجيل الدخول لإرسال الرسائل
                 </p>
                 <Button
                   onClick={() => setLocation('/login')}
