@@ -17,4 +17,3 @@ export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));
 export const WatchStreamPage = lazy(() => import('@/pages/watch-stream'));
-export const LiveTextChatPage = lazy(() => import('@/pages/live-chat-fast'));

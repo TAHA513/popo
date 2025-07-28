@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Play, Users, Eye, Radio, Clock, Heart, Video, MessageSquare } from "lucide-react";
+import { Plus, Play, Users, Eye, Radio, Clock, Heart, Video } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { apiRequest } from "@/lib/queryClient";
@@ -114,11 +114,11 @@ export default function StreamsHome() {
             <div className="flex-1"></div>
             {/* Live Stream Button */}
             <Button
-              onClick={() => setLocation('/live-chat')}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
+              onClick={() => setLocation('/start-stream')}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm flex items-center space-x-1 rtl:space-x-reverse"
             >
-              <MessageSquare className="w-4 h-4" />
-              <span>دردشة مباشرة</span>
+              <Radio className="w-4 h-4" />
+              <span>ابدأ البث</span>
             </Button>
           </div>
         </div>
