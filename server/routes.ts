@@ -873,45 +873,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const streamId = parseInt(req.params.id);
       const userId = req.user.id;
-      console.log("🛑 Ending stream:", { streamId, userId });
+      console.log("🛑 Starting complete deletion of chat session:", { streamId, userId });
       
       const stream = await storage.getStreamById(streamId);
       
       if (!stream || stream.hostId !== userId) {
-        return res.status(403).json({ message: "غير مصرح لك بإنهاء هذا البث" });
+        return res.status(403).json({ message: "غير مصرح لك بإنهاء هذه الدردشة" });
       }
+      
+      console.log("🗑️ Deleting chat session and all related data:", {
+        title: stream.title,
+        startedAt: stream.startedAt,
+        duration: Date.now() - new Date(stream.startedAt).getTime()
+      });
       
       // 1. Clean up security tokens for this user
       const tokensCleared = cleanupUserTokens(userId);
       
-      // 2. Delete the stream from database completely
+      // 2. Delete the entire chat session from database (includes messages, gifts, etc.)
       await storage.deleteStream(streamId);
       
-      // 3. Broadcast stream ended to all connected clients
+      // 3. Broadcast chat session ended to all connected clients
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({
-            type: 'stream_ended',
+            type: 'chat_ended',
             streamId: streamId,
-            hostId: userId
+            hostId: userId,
+            message: 'تم إغلاق الدردشة وحذف جميع البيانات'
           }));
         }
       });
       
-      console.log("✅ Stream ended with cleanup:", { 
+      console.log("✅ Chat session completely deleted:", { 
         streamId, 
         userId, 
-        tokensCleared 
+        tokensCleared,
+        message: "All chat data permanently removed from database"
       });
       
       res.json({ 
         success: true, 
-        message: "تم إنهاء البث وحذفه بنجاح",
-        tokensCleared: tokensCleared
+        message: "تم إغلاق الدردشة وحذف جميع البيانات بشكل نهائي",
+        tokensCleared: tokensCleared,
+        deletedAt: new Date().toISOString()
       });
     } catch (error) {
-      console.error("❌ Error ending stream:", error);
-      res.status(500).json({ message: "فشل في إنهاء البث" });
+      console.error("❌ Error deleting chat session:", error);
+      res.status(500).json({ message: "فشل في حذف الدردشة" });
     }
   });
 

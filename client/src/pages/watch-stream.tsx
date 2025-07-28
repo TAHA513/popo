@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send } from 'lucide-react';
+import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { apiRequest } from "@/lib/queryClient";
@@ -144,16 +144,47 @@ export default function WatchStreamPage() {
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* حاوية البث الرئيسية */}
       <div className="absolute inset-0">
-        {/* زر العودة */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLocation('/')}
-          className="absolute top-4 left-4 z-50 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
-        >
-          <ArrowLeft className="w-5 h-5 ml-2" />
-          عودة
-        </Button>
+        {/* أزرار التحكم العلوية */}
+        <div className="absolute top-4 left-4 z-50 flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation('/')}
+            className="bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
+          >
+            <ArrowLeft className="w-5 h-5 ml-2" />
+            عودة
+          </Button>
+          
+          {/* زر إغلاق الدردشة - فقط للمضيف */}
+          {user && stream.hostId === user.id && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                const confirmed = confirm('هل أنت متأكد من إغلاق الدردشة؟ سيتم حذف جميع الرسائل والبيانات بشكل نهائي.');
+                if (confirmed) {
+                  try {
+                    console.log("🛑 Host requesting chat deletion:", { streamId, userId: user.id });
+                    
+                    const response = await apiRequest(`/api/streams/${streamId}/end`, 'POST');
+                    
+                    console.log("✅ Chat deletion successful:", response);
+                    alert('تم إغلاق الدردشة وحذف جميع البيانات بنجاح');
+                    setLocation('/');
+                  } catch (error) {
+                    console.error("❌ Failed to delete chat:", error);
+                    alert('فشل في إغلاق الدردشة. يرجى المحاولة مرة أخرى.');
+                  }
+                }
+              }}
+              className="bg-red-500/80 text-white hover:bg-red-600/90 backdrop-blur-sm border border-red-400/50"
+            >
+              <X className="w-5 h-5 ml-2" />
+              إغلاق الدردشة
+            </Button>
+          )}
+        </div>
 
         {/* معلومات الدردشة العلوية */}
         <div className="absolute top-4 right-4 z-50 bg-black/50 backdrop-blur-sm rounded-lg p-3">
