@@ -11,6 +11,7 @@ import {
   Play, 
   Heart, 
   MessageCircle, 
+  MessageSquare,
   Share2, 
   Gift, 
   Eye, 
@@ -253,7 +254,7 @@ export default function Home() {
                     className="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-xl font-bold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-lg"
                   >
                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                      <MessageCircle className="w-5 h-5" />
+                      <MessageSquare className="w-5 h-5" />
                       <span>دردشة مباشرة</span>
                     </div>
                   </Button>
