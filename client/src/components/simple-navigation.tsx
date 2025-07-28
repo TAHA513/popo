@@ -97,10 +97,10 @@ export default function SimpleNavigation() {
               <Search className="w-5 h-5" />
             </button>
             
-            {/* زر إنشاء الذكرى */}
-            <Link href="/create-memory">
-              <button className="p-2 text-white/80 hover:text-white transition-colors bg-purple-600 hover:bg-purple-700 rounded-full">
-                <Plus className="w-5 h-5" />
+            {/* أيقونة الدردشة المباشرة */}
+            <Link href="/live-chat">
+              <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
+                <Sparkles className="w-5 h-5" />
               </button>
             </Link>
             
