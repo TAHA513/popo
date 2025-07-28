@@ -47,19 +47,11 @@ async function startSimpleZegoStream(userID: string, userName: string, streamTit
 export default function StartStreamPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [streamTitle, setStreamTitle] = useState("بث سريع جديد");
-  const [streamDescription, setStreamDescription] = useState("بث مباشر من البث السريع");
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
-  const [currentStreamData, setCurrentStreamData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const zegoEngineRef = useRef<any>(null);
+  
+  // Redirect to live chat immediately
+  useEffect(() => {
+    setLocation('/live-chat');
+  }, []);
 
   useEffect(() => {
     return () => {

@@ -27,16 +27,21 @@ export default function WatchStreamPage() {
   const id = params.id;
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const streamContainerRef = useRef<HTMLDivElement>(null);
-  const [zegoInstance, setZegoInstance] = useState<any>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [viewerCount, setViewerCount] = useState(1);
-  const [likes, setLikes] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [streamDuration, setStreamDuration] = useState(0);
-  const [comments, setComments] = useState<any[]>([]);
-  const [newComment, setNewComment] = useState('');
-  const [showComments, setShowComments] = useState(true);
+  
+  // Redirect to live chat immediately
+  useEffect(() => {
+    setLocation('/live-chat');
+  }, []);
+  
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-white text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mb-4"></div>
+        <p className="text-lg">جاري التحويل للدردشة المباشرة...</p>
+      </div>
+    </div>
+  );
+}
 
   // جلب الرسائل الحقيقية من قاعدة البيانات
   const { data: realComments, refetch: refetchComments } = useQuery<any[]>({

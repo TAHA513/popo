@@ -62,12 +62,12 @@ function Router() {
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
           <Route path="/games" component={LazyComponents.GamesPage} />
-          <Route path="/start-stream" component={() => <SimpleStreamPage />} />
-          <Route path="/simple-stream" component={() => <SimpleStreamPage />} />
-          <Route path="/unified-stream" component={UnifiedStreamPage} />
-          <Route path="/native-stream" component={() => import('./pages/native-stream')} />
-          <Route path="/new-stream" component={LazyComponents.NewStreamPage} />
-          <Route path="/stream/:id" component={WatchStreamPage} />
+          <Route path="/start-stream" component={() => import('./pages/start-stream-redirect')} />
+          <Route path="/simple-stream" component={() => import('./pages/start-stream-redirect')} />
+          <Route path="/unified-stream" component={() => import('./pages/start-stream-redirect')} />
+          <Route path="/native-stream" component={() => import('./pages/start-stream-redirect')} />
+          <Route path="/new-stream" component={() => import('./pages/start-stream-redirect')} />
+          <Route path="/stream/:id" component={() => import('./pages/watch-stream-redirect')} />
           <Route path="/stream-test" component={StreamTestPage} />
         <Route path="/test-zego" component={() => import('./pages/test-zego-stream')} />
         <Route path="/test-transmission" component={() => import('./pages/test-stream-transmission')} />
@@ -76,6 +76,7 @@ function Router() {
         <Route path="/final-stream/:mode?" component={() => import('./pages/final-stream-solution')} />
         <Route path="/direct-zego" component={() => import('./pages/direct-zego-stream')} />
         <Route path="/webrtc-test" component={() => import('./pages/webrtc-stream')} />
+        <Route path="/live-chat" component={() => import('./pages/live-text-chat')} />
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
           <Route path="/account" component={AccountPage} />

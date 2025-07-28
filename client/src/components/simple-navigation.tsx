@@ -97,10 +97,10 @@ export default function SimpleNavigation() {
               <Search className="w-5 h-5" />
             </button>
             
-            {/* أيقونة البث الأصلية */}
-            <Link href="/new-stream">
+            {/* أيقونة الدردشة المباشرة */}
+            <Link href="/live-chat">
               <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
-                <Video className="w-5 h-5" />
+                <Sparkles className="w-5 h-5" />
               </button>
             </Link>
             
@@ -165,13 +165,13 @@ export default function SimpleNavigation() {
                 <Plus className="w-4 h-4" />
               </Button>
             </Link>
-            <Link href="/start-stream">
+            <Link href="/live-chat">
               <Button 
-                variant={location === "/start-stream" ? "secondary" : "ghost"} 
+                variant={location === "/live-chat" ? "secondary" : "ghost"} 
                 size="sm"
-                className={`rounded-full ${location === "/start-stream" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                className={`rounded-full ${location === "/live-chat" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
               >
-                <Video className="w-4 h-4" />
+                <Sparkles className="w-4 h-4" />
               </Button>
             </Link>
             <Link href="/single-video">
