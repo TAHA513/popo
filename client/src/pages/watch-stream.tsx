@@ -258,25 +258,28 @@ export default function WatchStreamPage() {
           style={{ zIndex: 1 }}
         />
 
-        {/* التعليقات المباشرة على الشاشة - مثل TikTok بدون خلفية */}
+        {/* التعليقات المباشرة على الشاشة - تصميم محسن */}
         <div className="absolute bottom-32 left-4 right-20 z-50 pointer-events-none">
           {comments.length > 0 && (
-            <div className="space-y-3 max-h-80 overflow-hidden">
-              {comments.slice(-5).map((comment, index) => (
+            <div className="space-y-2 max-h-80 overflow-hidden">
+              {comments.slice(-6).map((comment, index) => (
                 <div 
                   key={comment.id} 
-                  className="animate-fade-in-up opacity-90"
+                  className="animate-fade-in-up transform transition-all duration-500"
                   style={{
-                    animationDelay: `${index * 0.2}s`,
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                    animationDelay: `${index * 0.15}s`,
+                    opacity: 1 - (index * 0.1)
                   }}
                 >
-                  <div className="text-white text-sm font-medium">
-                    <span className="text-pink-400 font-bold">{comment.username}</span>
-                    <span className="text-red-400 ml-2">🔴</span>
-                  </div>
-                  <div className="text-white text-base font-normal mt-1 leading-relaxed">
-                    {comment.text}
+                  <div className="bg-black/60 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/20 shadow-lg max-w-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <span className="text-pink-300 font-bold text-sm">{comment.username}</span>
+                      <span className="text-white/60 text-xs">LIVE</span>
+                    </div>
+                    <div className="text-white text-sm font-medium leading-relaxed break-words">
+                      {comment.text}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -284,83 +287,94 @@ export default function WatchStreamPage() {
           )}
         </div>
 
-        {/* أزرار التفاعل الجانبية */}
-        <div className="absolute right-4 bottom-32 z-50 space-y-4">
+        {/* أزرار التفاعل الجانبية - تصميم محسن */}
+        <div className="absolute right-4 bottom-32 z-50 space-y-3">
           <Button
             variant="ghost"
             size="lg"
             onClick={() => setLikes(prev => prev + 1)}
-            className="w-14 h-14 rounded-full bg-black/50 text-white hover:bg-red-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/80 to-pink-600/80 text-white hover:from-red-600/90 hover:to-pink-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
           >
-            <Heart className="w-6 h-6" />
-            <span className="text-xs mt-1">{likes}</span>
+            <Heart className="w-7 h-7" />
+            <span className="text-xs font-bold mt-1">{likes > 999 ? `${(likes/1000).toFixed(1)}K` : likes}</span>
           </Button>
 
           <Button
             variant="ghost"
             size="lg"
             onClick={() => setShowComments(!showComments)}
-            className="w-14 h-14 rounded-full bg-black/50 text-white hover:bg-blue-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/80 to-cyan-600/80 text-white hover:from-blue-600/90 hover:to-cyan-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
           >
-            <MessageCircle className="w-6 h-6" />
-            <span className="text-xs mt-1">{comments.length}</span>
+            <MessageCircle className="w-7 h-7" />
+            <span className="text-xs font-bold mt-1">{comments.length}</span>
           </Button>
 
           <Button
             variant="ghost"
             size="lg"
-            className="w-14 h-14 rounded-full bg-black/50 text-white hover:bg-green-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/80 to-emerald-600/80 text-white hover:from-green-600/90 hover:to-emerald-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
           >
-            <Share className="w-6 h-6" />
-            <span className="text-xs mt-1">مشاركة</span>
+            <Share className="w-7 h-7" />
+            <span className="text-xs font-bold mt-1">شارك</span>
           </Button>
 
           <Button
             variant="ghost"
             size="lg"
-            className="w-14 h-14 rounded-full bg-black/50 text-yellow-400 hover:bg-yellow-500/50 backdrop-blur-sm flex flex-col items-center justify-center"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-500/80 to-orange-600/80 text-white hover:from-yellow-600/90 hover:to-orange-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
           >
-            <Gift className="w-6 h-6" />
-            <span className="text-xs mt-1">هدية</span>
+            <Gift className="w-7 h-7" />
+            <span className="text-xs font-bold mt-1">هدية</span>
           </Button>
         </div>
 
-        {/* إحصائيات البث السفلية */}
+        {/* إحصائيات البث السفلية - تصميم محسن */}
         <div className="absolute bottom-4 left-4 right-20 z-50">
-          <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-r from-black/80 to-gray-900/80 backdrop-blur-lg rounded-2xl p-4 border border-white/20 shadow-2xl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 bg-blue-500/20 px-3 py-1 rounded-full">
                 <Users className="w-4 h-4 text-blue-400" />
-                <span className="text-blue-400 text-sm font-semibold">{viewerCount} مشاهد</span>
+                <span className="text-blue-400 text-sm font-bold">{viewerCount}</span>
+                <span className="text-blue-200 text-xs">مشاهد</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1 rounded-full">
                 <Heart className="w-4 h-4 text-red-400" />
-                <span className="text-red-400 text-sm font-semibold">{likes} إعجاب</span>
+                <span className="text-red-400 text-sm font-bold">{likes}</span>
+                <span className="text-red-200 text-xs">إعجاب</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                 <MessageCircle className="w-4 h-4 text-green-400" />
-                <span className="text-green-400 text-sm font-semibold">{comments.length} تعليق</span>
+                <span className="text-green-400 text-sm font-bold">{comments.length}</span>
+                <span className="text-green-200 text-xs">تعليق</span>
               </div>
             </div>
-            <h3 className="text-white font-bold">{stream.title}</h3>
-            <p className="text-gray-300 text-sm">بث من {stream.hostName}</p>
+            <h3 className="text-white font-bold text-lg mb-1">{stream.title}</h3>
+            <p className="text-gray-300 text-sm flex items-center gap-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              بث مباشر من {stream.hostName}
+            </p>
           </div>
         </div>
 
-        {/* نافذة إضافة تعليق */}
+        {/* نافذة إضافة تعليق - تصميم محسن */}
         {showComments && (
-          <div className="absolute bottom-20 right-4 w-80 max-w-[90vw] bg-black/90 backdrop-blur-md rounded-xl border border-white/20 flex flex-col z-50 shadow-2xl pointer-events-auto">
-            <div className="flex items-center justify-between p-4 border-b border-white/20">
-              <h3 className="text-white font-bold flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-blue-400" />
-                إضافة تعليق
-                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">🔴 LIVE</span>
+          <div className="absolute bottom-20 right-4 w-80 max-w-[90vw] bg-gradient-to-br from-black/95 to-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/30 flex flex-col z-50 shadow-2xl pointer-events-auto">
+            <div className="flex items-center justify-between p-4 border-b border-white/20 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
+              <h3 className="text-white font-bold flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-4 h-4 text-white" />
+                </div>
+                <span>محادثة مباشرة</span>
+                <div className="flex items-center gap-1 bg-red-500/90 text-white text-xs px-3 py-1 rounded-full animate-pulse">
+                  <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                  LIVE
+                </div>
               </h3>
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => setShowComments(false)}
-                className="text-white hover:bg-white/20 w-8 h-8 p-0"
+                className="text-white hover:bg-white/20 w-8 h-8 p-0 rounded-full"
               >
                 ✕
               </Button>
@@ -369,35 +383,32 @@ export default function WatchStreamPage() {
             {user ? (
               <div className="p-4">
                 <div className="flex space-x-2 space-x-reverse">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 border-2 border-white/30 shadow-lg">
                     {user.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                  <div className="flex-1 flex space-x-2 space-x-reverse">
-                    <Input
+                  <div className="flex-1">
+                    <textarea
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="اكتب تعليقاً..."
-                      className="flex-1 bg-white/10 border-white/30 text-white placeholder-gray-400 focus:border-blue-500 focus:bg-white/20"
+                      placeholder="شارك رأيك في البث المباشر..."
+                      className="w-full bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-xl p-4 text-white placeholder-gray-300 resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all duration-300"
+                      rows={3}
                       maxLength={200}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && newComment.trim() && newComment.length <= 200) {
-                          handleSendComment();
-                        }
-                      }}
                     />
-                    <Button
-                      onClick={handleSendComment}
-                      disabled={!newComment.trim() || newComment.length > 200}
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
+                    <div className="flex justify-between items-center mt-3">
+                      <span className="text-gray-300 text-xs bg-white/10 px-2 py-1 rounded-full">{newComment.length}/200</span>
+                      <Button
+                        onClick={handleSendComment}
+                        disabled={!newComment.trim()}
+                        size="sm"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-600 px-4 py-2 rounded-xl shadow-lg transition-all duration-300"
+                      >
+                        <Send className="w-4 h-4 ml-1" />
+                        إرسال مباشر
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 text-center">
-                  اضغط Enter للإرسال • {200 - newComment.length} حرف متبقي
-                </p>
               </div>
             ) : (
               <div className="p-4 text-center">
