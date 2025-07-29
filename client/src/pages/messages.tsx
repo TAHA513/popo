@@ -64,14 +64,21 @@ export default function MessagesPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-800">الرسائل</h1>
-            <Link href="/messages/requests">
-              <Button variant="outline" size="sm" className="text-purple-600 border-purple-600 hover:bg-purple-50">
-                طلبات الرسائل
-                <Badge className="mr-2 bg-purple-600 text-white">
-                  {requestCount}
-                </Badge>
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/messages/new-chat">
+                <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700">
+                  غرفة دردشة جديدة
+                </Button>
+              </Link>
+              <Link href="/messages/requests">
+                <Button variant="outline" size="sm" className="text-purple-600 border-purple-600 hover:bg-purple-50">
+                  طلبات الرسائل
+                  <Badge className="mr-2 bg-purple-600 text-white">
+                    {requestCount}
+                  </Badge>
+                </Button>
+              </Link>
+            </div>
           </div>
           
           {/* Search Bar */}

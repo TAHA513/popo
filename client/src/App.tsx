@@ -70,8 +70,10 @@ function Router() {
           <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/gifts" component={LazyComponents.GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
+          <Route path="/messages/new-chat" component={LazyComponents.NewChatPage} />
           <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
           <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
+          <Route path="/chat/:id" component={LazyComponents.PrivateChatPage} />
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />

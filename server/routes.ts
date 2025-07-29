@@ -640,6 +640,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search users for chat creation
+  app.get('/api/users/search', requireAuth, async (req: any, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.trim().length < 2) {
+        return res.json([]);
+      }
+      
+      const users = await storage.searchUsers(query.trim());
+      // Remove current user from results
+      const filteredUsers = users.filter((user: any) => user.id !== req.user?.id);
+      res.json(filteredUsers);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      res.status(500).json({ message: "فشل البحث عن المستخدمين" });
+    }
+  });
+
+  // Create private conversation
+  app.post('/api/conversations/create', requireAuth, async (req: any, res) => {
+    try {
+      const { otherUserId } = req.body;
+      const currentUserId = req.user?.id;
+      
+      if (!currentUserId || !otherUserId) {
+        return res.status(400).json({ message: "معرف المستخدم مطلوب" });
+      }
+      
+      if (currentUserId === otherUserId) {
+        return res.status(400).json({ message: "لا يمكنك إنشاء محادثة مع نفسك" });
+      }
+      
+      // Check if conversation already exists
+      const existingConversation = await storage.findConversation(currentUserId, otherUserId);
+      if (existingConversation) {
+        return res.json(existingConversation);
+      }
+      
+      // Create new conversation
+      const conversation = await storage.createConversation({
+        user1Id: currentUserId,
+        user2Id: otherUserId,
+        lastMessage: null,
+        lastMessageAt: new Date()
+      });
+      
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ message: "فشل في إنشاء المحادثة" });
+    }
+  });
+
+  // Get conversation details
+  app.get('/api/conversations/:id', requireAuth, async (req: any, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const currentUserId = req.user?.id;
+      
+      if (!currentUserId || isNaN(conversationId)) {
+        return res.status(400).json({ message: "معرف المحادثة غير صحيح" });
+      }
+      
+      const conversation = await storage.getConversationById(conversationId, currentUserId);
+      if (!conversation) {
+        return res.status(404).json({ message: "المحادثة غير موجودة" });
+      }
+      
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ message: "فشل في جلب المحادثة" });
+    }
+  });
+
+  // Get conversation messages
+  app.get('/api/conversations/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const currentUserId = req.user?.id;
+      
+      if (!currentUserId || isNaN(conversationId)) {
+        return res.status(400).json({ message: "معرف المحادثة غير صحيح" });
+      }
+      
+      const messages = await storage.getConversationMessages(conversationId, currentUserId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "فشل في جلب الرسائل" });
+    }
+  });
+
+  // Send message in conversation
+  app.post('/api/conversations/:id/messages', requireAuth, async (req: any, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const currentUserId = req.user?.id;
+      const { content, messageType = 'text' } = req.body;
+      
+      if (!currentUserId || isNaN(conversationId) || !content?.trim()) {
+        return res.status(400).json({ message: "بيانات الرسالة غير صحيحة" });
+      }
+      
+      // Verify user is part of this conversation
+      const conversation = await storage.getConversationById(conversationId, currentUserId);
+      if (!conversation) {
+        return res.status(403).json({ message: "غير مسموح لك بإرسال رسائل في هذه المحادثة" });
+      }
+      
+      // Get other user ID
+      const otherUserId = conversation.otherUser.id;
+      
+      // Create message
+      const message = await storage.createDirectMessage({
+        senderId: currentUserId,
+        recipientId: otherUserId,
+        content: content.trim(),
+        messageType,
+        isRead: false
+      });
+      
+      // Update conversation's last message
+      await storage.updateConversationLastMessage(conversationId, content.trim());
+      
+      res.json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "فشل في إرسال الرسالة" });
+    }
+  });
+
   // Custom registration endpoint
   app.post('/api/auth/register', async (req, res) => {
     try {
