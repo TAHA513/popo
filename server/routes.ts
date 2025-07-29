@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
-import { setupSimpleMessageRoutes } from './routes/simple-messages';
+import { setupMessageRoutes } from './routes/messages';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import crypto from 'crypto';
 
@@ -166,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setInterval(cleanupStaleOnlineUsers, 2 * 60 * 1000);
   
   // Setup message routes
-  setupSimpleMessageRoutes(app);
+  setupMessageRoutes(app);
 
   // Local authentication routes
   app.post('/api/register', async (req, res) => {
