@@ -32,7 +32,8 @@ export default function ProfileSimplePage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const params = useParams();
   const userId = params.userId;
-  const profileUserId = userId || currentUser?.id;
+  // استخدم userId من URL فقط
+  const profileUserId = userId;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showChatPopup, setShowChatPopup] = useState(false);
@@ -75,26 +76,31 @@ export default function ProfileSimplePage() {
     );
   }
   
-  // If no profileUserId could be determined
+  // إذا لم يكن هناك userId من URL، اعرض الملف الشخصي للمستخدم الحالي
   if (!profileUserId) {
-    console.error("❌ No profile user ID available");
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <SimpleNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="text-red-500 text-6xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">معرف المستخدم مفقود</h2>
-            <p className="text-gray-600 mb-4">لم يتم تحديد معرف المستخدم المطلوب عرضه</p>
-            <Link href="/home">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                العودة للصفحة الرئيسية
-              </Button>
-            </Link>
+    if (!currentUser?.id) {
+      console.error("❌ No user logged in and no profileUserId in URL");
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+          <SimpleNavigation />
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center">
+              <div className="text-red-500 text-6xl mb-4">❌</div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">يجب تسجيل الدخول</h2>
+              <p className="text-gray-600 mb-4">يجب تسجيل الدخول لعرض الملف الشخصي</p>
+              <Link href="/login">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  تسجيل الدخول
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
+    // إذا لم يكن هناك userId في URL ولكن المستخدم مسجل دخوله، اعرض ملفه الشخصي
+    setLocation(`/user/${currentUser.id}`);
+    return null;
   }
   
   // All hooks must be called before any conditional returns
@@ -317,7 +323,7 @@ export default function ProfileSimplePage() {
   });
 
   // Calculate derived values
-  const isOwnProfile = currentUser?.id === profileUserId;
+  const isOwnProfile = currentUser?.id === profileUserId && !!profileUserId;
   const user = profileUser;
   
   // More debug logs (development only)

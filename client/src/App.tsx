@@ -66,7 +66,6 @@ function Router() {
           <Route path="/account" component={AccountPage} />
           <Route path="/create-memory" component={LazyComponents.CreateMemoryPage} />
           <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/profile/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
           <Route path="/gifts" component={LazyComponents.GiftsPage} />
           <Route path="/messages" component={MessagesPage} />
