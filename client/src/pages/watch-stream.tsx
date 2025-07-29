@@ -47,6 +47,10 @@ export default function WatchStreamPage() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null);
+  
+  // حالات تشغيل الرسائل الصوتية
+  const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
   // جلب الرسائل الحقيقية من قاعدة البيانات
   const { data: realComments, refetch: refetchComments } = useQuery<any[]>({
@@ -174,6 +178,45 @@ export default function WatchStreamPage() {
   const cancelRecording = () => {
     setAudioBlob(null);
     setRecordingTime(0);
+  };
+
+  // وظائف تشغيل الرسائل الصوتية
+  const playVoiceMessage = (messageId: number, duration: number) => {
+    // إيقاف أي تشغيل سابق
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+    }
+    
+    // محاكاة تشغيل الرسالة الصوتية
+    setPlayingMessageId(messageId);
+    
+    // إنشاء محاكاة صوتية بسيطة
+    const audio = new Audio();
+    
+    // محاكاة الصوت بتشغيل صوت بسيط
+    const oscillator = new (window as any).AudioContext();
+    audio.onended = () => {
+      setPlayingMessageId(null);
+      setAudioElement(null);
+    };
+    
+    // محاكاة مدة التشغيل
+    setTimeout(() => {
+      setPlayingMessageId(null);
+      setAudioElement(null);
+    }, duration * 1000);
+    
+    setAudioElement(audio);
+  };
+
+  const stopVoiceMessage = () => {
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+    }
+    setPlayingMessageId(null);
+    setAudioElement(null);
   };
 
   // تم إزالة ZegoCloud - هذه صفحة دردشة نصية خالصة
@@ -323,7 +366,60 @@ export default function WatchStreamPage() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-white text-base leading-relaxed bg-black/20 rounded-xl p-3 border border-white/10">{message.text}</p>
+                  {message.text.includes('🎤 رسالة صوتية') ? (
+                    // رسالة صوتية مع زر التشغيل
+                    <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl p-4 border border-purple-400/30">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                            {playingMessageId === message.id ? (
+                              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                            ) : (
+                              <Mic className="w-6 h-6 text-white" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-white font-bold">رسالة صوتية</p>
+                            <p className="text-purple-200 text-sm">
+                              {message.text.match(/\((\d+) ثانية\)/)?.[1] || '5'} ثانية
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          {playingMessageId === message.id ? (
+                            <Button
+                              onClick={stopVoiceMessage}
+                              size="sm"
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg"
+                            >
+                              <Pause className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => playVoiceMessage(message.id, parseInt(message.text.match(/\((\d+) ثانية\)/)?.[1] || '5'))}
+                              size="sm"
+                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg"
+                            >
+                              <Play className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {playingMessageId === message.id && (
+                        <div className="mt-3">
+                          <div className="w-full bg-white/20 rounded-full h-2">
+                            <div className="bg-gradient-to-r from-purple-400 to-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                          </div>
+                          <p className="text-purple-200 text-xs mt-1 text-center">جاري التشغيل...</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // رسالة نصية عادية
+                    <p className="text-white text-base leading-relaxed bg-black/20 rounded-xl p-3 border border-white/10">{message.text}</p>
+                  )}
                 </div>
               ))}
               
@@ -470,16 +566,16 @@ export default function WatchStreamPage() {
 
         {/* نافذة إضافة تعليق - تصميم محسن */}
         {showComments && (
-          <div className="absolute bottom-20 right-4 w-80 max-w-[90vw] bg-gradient-to-br from-black/95 to-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/30 flex flex-col z-50 shadow-2xl pointer-events-auto">
-            <div className="flex items-center justify-between p-4 border-b border-white/20 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
-              <h3 className="text-white font-bold flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-white" />
+          <div className="absolute bottom-20 right-2 left-2 sm:right-4 sm:left-auto sm:w-96 md:w-80 bg-gradient-to-br from-black/95 to-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/30 flex flex-col z-50 shadow-2xl pointer-events-auto">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
+              <h3 className="text-white font-bold flex items-center gap-2 sm:gap-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
-                <span>إرسال رسالة</span>
-                <div className="flex items-center gap-1 bg-red-500/90 text-white text-xs px-3 py-1 rounded-full animate-pulse">
-                  <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-                  LIVE
+                <span className="text-sm sm:text-base">إرسال رسالة</span>
+                <div className="flex items-center gap-1 bg-red-500/90 text-white text-xs px-2 sm:px-3 py-1 rounded-full animate-pulse">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-ping"></div>
+                  <span className="text-xs">LIVE</span>
                 </div>
               </h3>
               <Button
@@ -493,9 +589,9 @@ export default function WatchStreamPage() {
             </div>
 
             {user ? (
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 <div className="flex space-x-2 space-x-reverse">
-                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 border-2 border-white/30 shadow-lg">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 border-2 border-white/30 shadow-lg">
                     {user.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div className="flex-1">
@@ -551,35 +647,47 @@ export default function WatchStreamPage() {
                       </div>
                     ) : (
                       <>
-                        <div className="flex gap-2 mb-3">
+                        {/* واجهة الرسائل النصية والصوتية - محسنة للجوال */}
+                        <div className="space-y-3">
                           <textarea
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             placeholder="اكتب رسالتك هنا..."
-                            className="flex-1 bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-xl p-4 text-white placeholder-gray-300 resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all duration-300"
+                            className="w-full bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-xl p-4 text-white placeholder-gray-300 resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all duration-300"
                             rows={3}
                             maxLength={200}
                           />
-                          <Button
-                            onClick={startRecording}
-                            size="sm"
-                            className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white self-end p-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
-                            title="تسجيل رسالة صوتية (أقصى 30 ثانية)"
-                          >
-                            <Mic className="w-5 h-5" />
-                          </Button>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-300 text-xs bg-white/10 px-2 py-1 rounded-full">{newComment.length}/200</span>
-                          <Button
-                            onClick={handleSendComment}
-                            disabled={!newComment.trim()}
-                            size="sm"
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-600 px-4 py-2 rounded-xl shadow-lg transition-all duration-300"
-                          >
-                            <Send className="w-4 h-4 ml-1" />
-                            إرسال مباشر
-                          </Button>
+                          
+                          {/* صف الأزرار - متجاوب مع الجوال */}
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-gray-300 text-xs bg-white/10 px-2 py-1 rounded-full flex-shrink-0">
+                              {newComment.length}/200
+                            </span>
+                            
+                            <div className="flex gap-2 flex-1 justify-end">
+                              {/* زر التسجيل الصوتي - محسن للجوال */}
+                              <Button
+                                onClick={startRecording}
+                                size="sm"
+                                className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white p-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 min-w-[48px] h-12"
+                                title="تسجيل رسالة صوتية (أقصى 30 ثانية)"
+                              >
+                                <Mic className="w-5 h-5" />
+                              </Button>
+                              
+                              {/* زر الإرسال */}
+                              <Button
+                                onClick={handleSendComment}
+                                disabled={!newComment.trim()}
+                                size="sm"
+                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-600 px-4 py-2 rounded-xl shadow-lg transition-all duration-300 h-12"
+                              >
+                                <Send className="w-4 h-4 ml-1" />
+                                <span className="hidden sm:inline">إرسال مباشر</span>
+                                <span className="sm:hidden">إرسال</span>
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </>
                     )}
