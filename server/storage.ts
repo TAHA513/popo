@@ -127,6 +127,7 @@ export interface IStorage {
   getFollowCount(userId: string): Promise<number>;
   getSuggestedUsers(): Promise<any[]>;
   searchUsers(query: string): Promise<User[]>;
+  isUserFollowing(followerId: string, followedId: string): Promise<boolean>;
   
   // Conversation operations
   findConversation(user1Id: string, user2Id: string): Promise<any | undefined>;
@@ -1569,6 +1570,18 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(sql`${users.username} ILIKE ${searchPattern}`)
       .limit(20);
+  }
+
+  // Check if user is following another user
+  async isUserFollowing(followerId: string, followedId: string): Promise<boolean> {
+    const [follow] = await db
+      .select()
+      .from(followers)
+      .where(and(
+        eq(followers.followerId, followerId),
+        eq(followers.followedId, followedId)
+      ));
+    return !!follow;
   }
 
   // Conversation operations

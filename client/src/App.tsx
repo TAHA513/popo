@@ -73,6 +73,7 @@ function Router() {
           <Route path="/messages/new-chat" component={LazyComponents.NewChatPage} />
           <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
           <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
+          <Route path="/chat-gift/:userId" component={LazyComponents.ChatGiftSelectionPage} />
           <Route path="/chat/:id" component={LazyComponents.PrivateChatPage} />
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />

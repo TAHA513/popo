@@ -733,6 +733,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check follow status
+  app.get('/api/follow/status/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user?.id;
+      const targetUserId = req.params.userId;
+      
+      if (!currentUserId || !targetUserId) {
+        return res.status(400).json({ message: "معرف المستخدم مطلوب" });
+      }
+      
+      if (currentUserId === targetUserId) {
+        return res.json({ isFollowing: true }); // المستخدم يتابع نفسه افتراضياً
+      }
+      
+      const isFollowing = await storage.isUserFollowing(currentUserId, targetUserId);
+      res.json({ isFollowing });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ message: "فشل في فحص حالة المتابعة" });
+    }
+  });
+
+  // Send gift for chat access
+  app.post('/api/send-gift', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user?.id;
+      const { recipientId, giftType, amount, message } = req.body;
+      
+      if (!senderId || !recipientId || !giftType || !amount) {
+        return res.status(400).json({ message: "بيانات الهدية غير مكتملة" });
+      }
+      
+      // التحقق من الرصيد
+      const senderBalance = await storage.getUserPointBalance(senderId);
+      if (senderBalance < amount) {
+        return res.status(400).json({ message: "رصيدك غير كافي لإرسال هذه الهدية" });
+      }
+      
+      // إرسال الهدية
+      const gift = await storage.sendGift({
+        senderId,
+        receiverId: recipientId,
+        characterId: 1, // معرف افتراضي
+        pointCost: amount,
+        streamId: null
+      });
+      
+      // خصم النقاط من المرسل
+      await storage.addPointTransaction({
+        userId: senderId,
+        amount: -amount,
+        type: 'gift_sent',
+        description: `إرسال هدية: ${giftType}`
+      });
+      
+      // إضافة النقاط للمستقبل
+      await storage.addPointTransaction({
+        userId: recipientId,
+        amount: amount,
+        type: 'gift_received',
+        description: `استلام هدية: ${giftType}`
+      });
+      
+      res.json({ 
+        success: true, 
+        gift,
+        message: "تم إرسال الهدية بنجاح" 
+      });
+    } catch (error) {
+      console.error("Error sending gift:", error);
+      res.status(500).json({ message: "فشل في إرسال الهدية" });
+    }
+  });
+
   // Send message in conversation
   app.post('/api/conversations/:id/messages', requireAuth, async (req: any, res) => {
     try {
@@ -1016,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🗑️ Deleting chat session and all related data:", {
         title: stream.title,
         startedAt: stream.startedAt,
-        duration: Date.now() - new Date(stream.startedAt).getTime()
+        duration: stream.startedAt ? Date.now() - new Date(stream.startedAt).getTime() : 0
       });
       
       // 1. Clean up security tokens for this user

@@ -53,11 +53,8 @@ export default function NewChatPage() {
   });
 
   const handleStartChat = async (otherUser: User) => {
-    try {
-      await createConversation.mutateAsync(otherUser.id);
-    } catch (error) {
-      alert('فشل في إنشاء المحادثة');
-    }
+    // توجيه المستخدم لصفحة اختيار الهدايا قبل بدء الدردشة
+    setLocation(`/chat-gift/${otherUser.id}`);
   };
 
   return (
