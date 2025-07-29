@@ -21,7 +21,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import NewChatPage from "@/pages/new-chat";
 import MessageRequestsPage from "@/pages/message-requests";
-import PrivateChatPage from "@/pages/private-chat";
+import SimplePrivateChatPage from "@/pages/simple-private-chat";
 import ConversationPage from "@/pages/conversation";
 import LockedAlbums from "@/components/LockedAlbums";
 import WatchStreamPage from "@/pages/watch-stream";
@@ -75,7 +75,7 @@ function Router() {
           <Route path="/messages" component={MessagesPage} />
           <Route path="/messages/new-chat" component={NewChatPage} />
           <Route path="/messages/requests" component={MessageRequestsPage} />
-          <Route path="/messages/private/:userId" component={PrivateChatPage} />
+          <Route path="/messages/private/:userId" component={SimplePrivateChatPage} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
         </Suspense>
       ) : (

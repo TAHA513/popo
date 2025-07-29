@@ -104,7 +104,7 @@ export default function MessagesPage() {
         ) : (
           <div className="space-y-3">
             {filteredConversations.map((conversation: any) => (
-              <Link key={conversation.id} href={`/messages/${conversation.otherUser.id}`}>
+              <Link key={conversation.id} href={`/messages/private/${conversation.otherUser.id}`}>
                 <Card className="hover:shadow-md transition-shadow cursor-pointer">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">

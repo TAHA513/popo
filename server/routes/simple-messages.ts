@@ -134,7 +134,11 @@ export function setupSimpleMessageRoutes(app: Express) {
       const conversationMap = new Map();
       
       for (const chat of recentChats) {
+        // Determine who is the other user
         const otherUserId = chat.isFromMe === userId ? chat.otherUserId : chat.isFromMe;
+        
+        // Skip if otherUserId is the same as current user or null
+        if (!otherUserId || otherUserId === userId) continue;
         
         if (!conversationMap.has(otherUserId)) {
           conversationMap.set(otherUserId, {

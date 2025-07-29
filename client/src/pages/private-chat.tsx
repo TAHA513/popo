@@ -48,8 +48,8 @@ export default function PrivateChatPage() {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
   
-  // استخراج معرف المحادثة من الرابط
-  const conversationId = location.split('/chat/')[1];
+  // استخراج معرف المستخدم من الرابط
+  const otherUserId = location.split('/messages/private/')[1];
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -68,8 +68,8 @@ export default function PrivateChatPage() {
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [localAudioMessages, setLocalAudioMessages] = useState<{[key: string]: Blob}>({});
 
-  // التحقق من وجود معرف المحادثة
-  if (!conversationId) {
+  // التحقق من وجود معرف المستخدم
+  if (!otherUserId) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
         <SimpleNavigation />
@@ -92,23 +92,23 @@ export default function PrivateChatPage() {
     );
   }
 
-  // جلب تفاصيل المحادثة
-  const { data: conversation } = useQuery({
-    queryKey: [`/api/conversations/${conversationId}`],
+  // جلب معلومات المستخدم الآخر
+  const { data: otherUser } = useQuery({
+    queryKey: [`/api/users/${otherUserId}`],
     queryFn: async () => {
-      const response = await fetch(`/api/conversations/${conversationId}`, {
+      const response = await fetch(`/api/users/${otherUserId}`, {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('فشل في جلب المحادثة');
+      if (!response.ok) throw new Error('فشل في جلب معلومات المستخدم');
       return response.json();
     }
   });
 
   // جلب الرسائل
   const { data: messages = [], refetch: refetchMessages } = useQuery({
-    queryKey: [`/api/conversations/${conversationId}/messages`],
+    queryKey: [`/api/messages/${otherUserId}`],
     queryFn: async () => {
-      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
+      const response = await fetch(`/api/messages/${otherUserId}`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('فشل في جلب الرسائل');
@@ -120,7 +120,8 @@ export default function PrivateChatPage() {
   // إرسال رسالة نصية
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
-      return await apiRequest(`/api/conversations/${conversationId}/messages`, 'POST', {
+      return await apiRequest('/api/messages/send', 'POST', {
+        recipientId: otherUserId,
         content,
         messageType: 'text'
       });
@@ -135,7 +136,8 @@ export default function PrivateChatPage() {
   // إرسال رسالة صوتية
   const sendVoiceMessage = useMutation({
     mutationFn: async ({ content, audioKey }: { content: string; audioKey: string }) => {
-      return await apiRequest(`/api/conversations/${conversationId}/messages`, 'POST', {
+      return await apiRequest('/api/messages/send', 'POST', {
+        recipientId: otherUserId,
         content,
         messageType: 'voice'
       });
