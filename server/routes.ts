@@ -468,13 +468,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user by ID
-  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
+  app.get('/api/users/:userId', async (req: any, res) => {
     try {
       const userId = req.params.userId;
       console.log('🔍 Fetching user profile:', {
         requestedUserId: userId,
-        requestingUser: req.user?.id,
-        requestingUsername: req.user?.username
+        requestingUser: req.user?.id || 'anonymous',
+        requestingUsername: req.user?.username || 'anonymous'
       });
       
       // Validate userId parameter
@@ -733,8 +733,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user by ID
-  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
+  // Get user by ID (duplicate - should be removed later)
+  app.get('/api/users/:userId', async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const user = await storage.getUserById(userId);
