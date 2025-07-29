@@ -1,0 +1,44 @@
+client:536  Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=eYIDo3j6M1ET' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+setupWebSocket @ client:536
+fallback @ client:509
+(anonymous) @ client:555
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+queryClient.ts:34   GET https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/auth/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:34
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+performance.ts:259 تم تحميل جميع الخطوط بنجاح
+main.tsx:10 SW registered:  ServiceWorkerRegistration {installing: ServiceWorker, waiting: null, active: null, navigationPreload: NavigationPreloadManager, scope: 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/', …}
+tgEdqzdzvCGHpzO8jp7hS:1  Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)
+3performance.ts:272 Near bottom - consider loading more content
+css2:1   GET https://fonts.gstatic.com/s/cairo/v30/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscRiyS8p4_RA.woff2 net::ERR_CONNECTION_CLOSED
+css2:1   GET https://fonts.gstatic.com/s/cairo/v30/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscQyyS8p4_RHH1.woff2 net::ERR_CONNECTION_CLOSED
+performance.ts:272 Near bottom - consider loading more content
+flip-card.tsx:364 Navigating to profile: tgEdqzdzvCGHpzO8jp7hS
+performance.ts:272 Near bottom - consider loading more content

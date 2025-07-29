@@ -16,5 +16,8 @@ export const ConversationPage = lazy(() => import('@/pages/conversation'));
 export const VideoPage = lazy(() => import('@/pages/video'));
 export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
+export const NewChatPage = lazy(() => import('@/pages/new-chat'));
+export const PrivateChatPage = lazy(() => import('@/pages/private-chat'));
+export const ChatGiftSelectionPage = lazy(() => import('@/pages/chat-gift-selection'));
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));
 export const WatchStreamPage = lazy(() => import('@/pages/watch-stream'));

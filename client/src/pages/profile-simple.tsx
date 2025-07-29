@@ -32,6 +32,7 @@ export default function ProfileSimplePage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const params = useParams();
   const userId = params.userId;
+  // إذا كان هناك userId في الرابط، استخدمه، وإلا استخدم id المستخدم الحالي
   const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
@@ -53,12 +54,14 @@ export default function ProfileSimplePage() {
     }
   };
   
-  // Enhanced debug logging (reduced for production)
-  if (process.env.NODE_ENV === 'development') {
-    console.log("🔧 ProfileSimplePage Debug Info:");
-    console.log("👤 userId from params:", userId);
-    console.log("🎯 Final profileUserId:", profileUserId);
-  }
+  // Debug info (always for debugging this issue)
+  console.log("🔧 ProfileSimplePage Debug Info:", {
+    userId_from_params: userId,
+    currentUserId: currentUser?.id,
+    profileUserId_being_used: profileUserId,
+    url: window.location.href,
+    pathname: window.location.pathname
+  });
   
   // Early return if auth is still loading
   if (authLoading) {
@@ -75,20 +78,20 @@ export default function ProfileSimplePage() {
     );
   }
   
-  // If no profileUserId could be determined
+  // إذا لم يكن لدينا معرف مستخدم ولا مستخدم حالي، أعرض خطأ
   if (!profileUserId) {
-    console.error("❌ No profile user ID available");
+    console.error("❌ No userId provided and no current user");
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">معرف المستخدم مفقود</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">خطأ في تحديد المستخدم</h2>
             <p className="text-gray-600 mb-4">لم يتم تحديد معرف المستخدم المطلوب عرضه</p>
-            <Link href="/home">
+            <Link href="/login">
               <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                العودة للصفحة الرئيسية
+                تسجيل الدخول
               </Button>
             </Link>
           </div>
@@ -316,17 +319,30 @@ export default function ProfileSimplePage() {
     }
   });
 
-  // Calculate derived values
-  const isOwnProfile = currentUser?.id === profileUserId;
-  const user = profileUser;
+  // Calculate derived values - CORRECT LOGIC
+  const isOwnProfile = !userId || currentUser?.id === profileUserId;
+  // إذا كان الملف الشخصي خاصتنا وليس لدينا بيانات من الخادم، استخدم بيانات المستخدم الحالي
+  const user = isOwnProfile && !profileUser ? currentUser : profileUser;
   
-  // More debug logs (development only)
-  if (process.env.NODE_ENV === 'development') {
-    console.log("profileUser:", profileUser);
-    console.log("isOwnProfile:", isOwnProfile);
-    console.log("userLoading:", userLoading);
-    console.log("userError:", userError);
-  }
+  // Enhanced debug logs to track the issue
+  console.log("🔍 Profile Debug Info:", {
+    profileUserId,
+    currentUserId: currentUser?.id,
+    isOwnProfile,
+    displayingUser: user ? {
+      id: user.id,
+      username: user.username,
+      firstName: user.firstName || user.first_name
+    } : null,
+    profileUser: profileUser ? {
+      id: profileUser.id,
+      username: profileUser.username,
+      firstName: profileUser.firstName
+    } : null,
+    userLoading,
+    userError: userError?.message,
+    urlPath: window.location.pathname
+  });
   
   // Check if still loading user data - AFTER all hooks
   if (userLoading) {
