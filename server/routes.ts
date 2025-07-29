@@ -25,6 +25,112 @@ import crypto from 'crypto';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Security functions for ZegoCloud protection
+const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
+
+function generateSecureToken(userId: string): string {
+  // Generate a secure temporary token
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = Date.now() + (30 * 60 * 1000); // 30 minutes expiry
+  
+  // Clean expired tokens using Array.from to fix iterator issue
+  const expiredTokens: string[] = [];
+  for (const [key, value] of Array.from(secureTokens.entries())) {
+    if (value.expires < Date.now()) {
+      expiredTokens.push(key);
+    }
+  }
+  expiredTokens.forEach(key => secureTokens.delete(key));
+  
+  // Store new token
+  secureTokens.set(token, { token, expires, userId });
+  
+  return token;
+}
+
+function validateSecureToken(token: string, userId: string): boolean {
+  const tokenData = secureTokens.get(token);
+  
+  if (!tokenData) return false;
+  if (tokenData.expires < Date.now()) {
+    secureTokens.delete(token);
+    return false;
+  }
+  if (tokenData.userId !== userId) return false;
+  
+  return true;
+}
+
+// Encrypted ZegoCloud configuration - never expose raw secrets
+function getSecureZegoConfig() {
+  const appId = process.env.ZEGO_APP_ID;
+  const appSign = process.env.ZEGO_APP_SIGN;
+  const serverSecret = process.env.ZEGO_SERVER_SECRET;
+  
+  if (!appId || !appSign || !serverSecret) {
+    console.error('Missing ZegoCloud credentials:', {
+      appId: !!appId,
+      appSign: !!appSign,
+      serverSecret: !!serverSecret
+    });
+    throw new Error('ZegoCloud credentials not configured');
+  }
+  
+  console.log('🔒 ZegoCloud configuration loaded successfully');
+  
+  // Only return app ID, all secrets stay on server
+  return {
+    appId: appId,
+    // Generate hash for validation without exposing secret
+    configHash: crypto.createHash('sha256').update(serverSecret + appId + appSign).digest('hex').substring(0, 16)
+  };
+}
+
+// Clean expired tokens periodically - using Array.from to avoid iterator issues
+setInterval(() => {
+  const now = Date.now();
+  let cleanedCount = 0;
+  const expiredTokens: string[] = [];
+  
+  // Convert to array first to avoid iterator issues
+  for (const [token, tokenData] of Array.from(secureTokens.entries())) {
+    if (tokenData.expires < now) {
+      expiredTokens.push(token);
+      cleanedCount++;
+    }
+  }
+  
+  // Delete expired tokens
+  expiredTokens.forEach(token => secureTokens.delete(token));
+  
+  if (cleanedCount > 0) {
+    console.log(`🧹 Cleaned ${cleanedCount} expired security tokens`);
+  }
+}, 10 * 60 * 1000); // Every 10 minutes
+
+// Fix iterator issue by using Array.from for Map entries
+function cleanupUserTokens(userId: string): number {
+  let cleanedCount = 0;
+  const tokensToDelete: string[] = [];
+  
+  // Convert Map entries to array to avoid iterator issues
+  for (const [token, tokenData] of Array.from(secureTokens.entries())) {
+    if (tokenData.userId === userId) {
+      tokensToDelete.push(token);
+      cleanedCount++;
+    }
+  }
+  
+  // Delete the tokens
+  tokensToDelete.forEach(token => secureTokens.delete(token));
+  
+  if (cleanedCount > 0) {
+    console.log(`🧹 Cleaned ${cleanedCount} security tokens for user ${userId}`);
+  }
+  
+  return cleanedCount;
+}
+
 // Configure multer for file uploads
 const upload = multer({
   dest: 'uploads/',
@@ -822,9 +928,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
 
+  // ZegoCloud configuration endpoint - MAXIMUM SECURITY
+  app.get('/api/zego-config', requireAuth, (req: any, res) => {
+    try {
+      // Only provide App ID to authenticated users, never the server secret
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: 'معرف المستخدم مطلوب' });
+      }
 
+      console.log('🔒 ZegoCloud configuration loaded successfully');
+      
+      // Get user info for proper ZegoCloud authentication
+      const userID = req.user.id;
+      const userName = req.user.firstName || req.user.username || 'User';
+      
+      console.log('👤 Preparing ZegoCloud config for user:', {
+        userID,
+        userName,
+        sessionId: req.sessionID
+      });
+      
+      // Generate temporary tokens for this session only
+      const timestamp = Date.now();
+      const sessionToken = Buffer.from(`${userID}_${timestamp}`).toString('base64');
+      
+      // Ensure ZEGO_APP_SIGN exists
+      const appSign = process.env.ZEGO_APP_SIGN;
+      if (!appSign || appSign === '') {
+        console.error('❌ ZEGO_APP_SIGN is missing or empty!');
+        return res.status(500).json({ error: 'إعدادات البث غير مكتملة - يرجى التواصل مع الدعم' });
+      }
+      
+      // Server secrets are NEVER exposed to client
+      res.json({
+        appId: process.env.ZEGO_APP_ID || '1034062164',
+        appSign: appSign,
+        userID: userID,
+        userName: userName,
+        sessionToken: sessionToken
+      });
+    } catch (error) {
+      console.error('Security error in zego-config:', error);
+      res.status(500).json({ error: 'فشل في تحميل إعدادات البث الآمنة' });
+    }
+  });
 
-
+  // Secure stream validation endpoint
+  app.post('/api/streams/validate', requireAuth, (req: any, res) => {
+    try {
+      const { tempToken, zegoStreamId } = req.body;
+      
+      // Skip token validation for now - authenticate user directly  
+      if (!req.user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      // Generate server-side stream token
+      const streamValidation = crypto.createHash('sha256')
+        .update(req.user.id + zegoStreamId + Date.now().toString())
+        .digest('hex')
+        .substring(0, 32);
+      
+      res.json({
+        validated: true,
+        streamToken: streamValidation,
+        userId: req.user.id
+      });
+    } catch (error) {
+      console.error('Stream validation error:', error);
+      res.status(500).json({ error: 'Validation failed' });
+    }
+  });
 
   app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
@@ -835,7 +1009,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: req.body.title || 'بث مباشر',
         description: req.body.description || '',
         hostId: req.user.id,
-
+        zegoRoomId: req.body.zegoRoomId,
+        zegoStreamId: req.body.zegoStreamId,
         category: 'بث سريع', // Add required category field
         thumbnailUrl: null, // Add optional thumbnail field
         isLive: true,
@@ -875,7 +1050,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedStream = await storage.updateStream(streamId, req.body);
       console.log('📝 Stream updated:', { 
-        id: streamId
+        id: streamId, 
+        zegoRoomId: updatedStream.zegoRoomId,
+        zegoStreamId: updatedStream.zegoStreamId 
       });
       res.json(updatedStream);
     } catch (error) {

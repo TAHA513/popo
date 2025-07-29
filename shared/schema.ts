@@ -68,7 +68,8 @@ export const streams = pgTable("streams", {
   description: text("description"),
   category: varchar("category").notNull(),
   thumbnailUrl: text("thumbnail_url"),
-
+  zegoRoomId: text("zego_room_id"),
+  zegoStreamId: text("zego_stream_id"),
   isLive: boolean("is_live").default(true),
   viewerCount: integer("viewer_count").default(0),
   totalGifts: integer("total_gifts").default(0),
