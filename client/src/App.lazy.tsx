@@ -19,7 +19,7 @@ export const MessageRequestsPage = lazy(() => import('@/pages/message-requests')
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));
 export const WatchStreamPage = lazy(() => import('@/pages/watch-stream'));
 
-// إضافة المكونات المفقودة
-export const NewChatPage = lazy(() => import('@/pages/new-chat'));
-export const PrivateChatPage = lazy(() => import('@/pages/private-chat'));
-export const ChatGiftSelectionPage = lazy(() => import('@/pages/chat-gift-selection'));
+// إضافة المكونات المؤقتة
+export const NewChatPage = lazy(() => import('@/pages/temp-new-chat'));
+export const PrivateChatPage = lazy(() => import('@/pages/temp-private-chat'));
+export const ChatGiftSelectionPage = lazy(() => import('@/pages/temp-chat-gift'));
