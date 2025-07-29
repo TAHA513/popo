@@ -25,29 +25,13 @@ import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import ChatPopup from "@/components/chat-popup";
 import { OnlineStatus } from "@/components/online-status";
-import { Link, useLocation } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
 export default function ProfileSimplePage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [location] = useLocation();
-  
-  // استخراج معرف المستخدم من الرابط مع تنظيف أفضل
-  const getUserIdFromPath = () => {
-    // إزالة أي معاملات إضافية أو أجزاء من URL
-    const cleanLocation = location.split('?')[0].split('#')[0];
-    
-    if (cleanLocation.includes('/user/')) {
-      const userId = cleanLocation.split('/user/')[1];
-      return userId ? userId.trim() : null;
-    } else if (cleanLocation.includes('/profile/')) {
-      const userId = cleanLocation.split('/profile/')[1];  
-      return userId ? userId.trim() : null;
-    }
-    return null;
-  };
-  
-  const userId = getUserIdFromPath();
+  const params = useParams();
+  const userId = params.userId;
   const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
@@ -72,11 +56,8 @@ export default function ProfileSimplePage() {
   // Enhanced debug logging (reduced for production)
   if (process.env.NODE_ENV === 'development') {
     console.log("🔧 ProfileSimplePage Debug Info:");
-    console.log("📍 Current location:", location);
-    console.log("👤 Extracted userId:", userId);
+    console.log("👤 userId from params:", userId);
     console.log("🎯 Final profileUserId:", profileUserId);
-    console.log("👨‍💻 Current user ID:", currentUser?.id);
-    console.log("🔍 Is viewing own profile:", !userId || userId === currentUser?.id);
   }
   
   // Early return if auth is still loading

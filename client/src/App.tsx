@@ -20,7 +20,7 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import LockedAlbums from "@/components/LockedAlbums";
 import WatchStreamPage from "@/pages/watch-stream";
-import * as LazyComponents from "./App.lazy";
+import * as LazyComponents from "@/App.lazy";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';

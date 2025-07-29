@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useLocation } from "wouter";
+import { useParams } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,11 +56,8 @@ interface VideoData {
 }
 
 export default function VideoPage() {
-  const [location, setLocation] = useLocation();
+  const { videoId } = useParams<{ videoId: string }>();
   const { user } = useAuth();
-  
-  // استخراج معرف الفيديو من الرابط
-  const videoId = location.split('/video/')[1];
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
@@ -72,26 +69,6 @@ export default function VideoPage() {
   // Removed showInstructions - single video only
   const [videoError, setVideoError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // التحقق من وجود معرف الفيديو
-  if (!videoId) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Card className="border-2 border-red-200 bg-red-50 max-w-md mx-4">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-xl font-semibold text-red-700 mb-2">خطأ في الرابط</h3>
-            <p className="text-red-600 mb-4">معرف الفيديو غير صحيح</p>
-            <Button 
-              onClick={() => setLocation('/')}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              العودة للرئيسية
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // Fetch only the specific video by ID - no browsing
   const { data: currentVideo, isLoading: videosLoading } = useQuery<VideoData>({

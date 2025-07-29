@@ -102,34 +102,17 @@ export default function SimpleHome() {
                   mediaUrls = [memory.thumbnailUrl];
                 }
                 
-                // التأكد من أن معرف المؤلف صحيح
-                const actualAuthorId = memory.author?.id || memory.authorId;
-                
-                // تسجيل المعلومات للتشخيص
-                if (process.env.NODE_ENV === 'development') {
-                  console.log("🔍 Memory data:", {
-                    memoryId: memory.id,
-                    authorFromObject: memory.author?.id,
-                    authorIdField: memory.authorId,
-                    finalAuthorId: actualAuthorId,
-                    authorData: memory.author
-                  });
-                }
-                
                 return (
                   <FlipCard
                     key={`memory-${memory.id}`}
                     content={{
                       ...memory,
                       mediaUrls: mediaUrls,
-                      author: memory.author ? {
-                        ...memory.author,
-                        id: actualAuthorId
-                      } : {
-                        id: actualAuthorId,
-                        firstName: 'مستخدم',
-                        username: 'LaaBoBo',
-                        profileImageUrl: null
+                      author: memory.author || {
+                        id: memory.authorId,
+                        firstName: memory.author?.firstName || 'مستخدم',
+                        username: memory.author?.username || 'LaaBoBo',
+                        profileImageUrl: memory.author?.profileImageUrl
                       }
                     }}
                     type={cardType}
