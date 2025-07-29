@@ -324,13 +324,20 @@ export default function ProfileSimplePage() {
   const isOwnProfile = currentUser?.id === profileUserId && !!profileUserId;
   const user = profileUser;
   
-  // More debug logs (development only)
-  if (process.env.NODE_ENV === 'development') {
-    console.log("profileUser:", profileUser);
-    console.log("isOwnProfile:", isOwnProfile);
-    console.log("userLoading:", userLoading);
-    console.log("userError:", userError);
-  }
+  // Enhanced debug logs to track the issue
+  console.log("🔍 Profile Debug Info:", {
+    profileUserId,
+    currentUserId: currentUser?.id,
+    isOwnProfile,
+    profileUser: profileUser ? {
+      id: profileUser.id,
+      username: profileUser.username,
+      firstName: profileUser.firstName
+    } : null,
+    userLoading,
+    userError: userError?.message,
+    urlPath: window.location.pathname
+  });
   
   // Check if still loading user data - AFTER all hooks
   if (userLoading) {
