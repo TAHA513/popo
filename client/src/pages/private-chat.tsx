@@ -44,9 +44,12 @@ interface Conversation {
   };
 }
 
-export default function PrivateChatPage({ params }: { params: { id: string } }) {
+export default function PrivateChatPage() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  
+  // استخراج معرف المحادثة من الرابط
+  const conversationId = location.split('/chat/')[1];
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -65,11 +68,35 @@ export default function PrivateChatPage({ params }: { params: { id: string } }) 
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [localAudioMessages, setLocalAudioMessages] = useState<{[key: string]: Blob}>({});
 
+  // التحقق من وجود معرف المحادثة
+  if (!conversationId) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+        <SimpleNavigation />
+        <div className="flex items-center justify-center h-screen">
+          <Card className="border-2 border-red-200 bg-red-50 max-w-md mx-4">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-xl font-semibold text-red-700 mb-2">خطأ في الرابط</h3>
+              <p className="text-red-600 mb-4">معرف المحادثة غير صحيح</p>
+              <Button 
+                onClick={() => setLocation('/messages')}
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
+                العودة للرسائل
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
+
   // جلب تفاصيل المحادثة
   const { data: conversation } = useQuery({
-    queryKey: [`/api/conversations/${params.id}`],
+    queryKey: [`/api/conversations/${conversationId}`],
     queryFn: async () => {
-      const response = await fetch(`/api/conversations/${params.id}`, {
+      const response = await fetch(`/api/conversations/${conversationId}`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('فشل في جلب المحادثة');
@@ -79,9 +106,9 @@ export default function PrivateChatPage({ params }: { params: { id: string } }) 
 
   // جلب الرسائل
   const { data: messages = [], refetch: refetchMessages } = useQuery({
-    queryKey: [`/api/conversations/${params.id}/messages`],
+    queryKey: [`/api/conversations/${conversationId}/messages`],
     queryFn: async () => {
-      const response = await fetch(`/api/conversations/${params.id}/messages`, {
+      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('فشل في جلب الرسائل');
@@ -93,7 +120,7 @@ export default function PrivateChatPage({ params }: { params: { id: string } }) 
   // إرسال رسالة نصية
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
-      return await apiRequest(`/api/conversations/${params.id}/messages`, 'POST', {
+      return await apiRequest(`/api/conversations/${conversationId}/messages`, 'POST', {
         content,
         messageType: 'text'
       });
@@ -108,7 +135,7 @@ export default function PrivateChatPage({ params }: { params: { id: string } }) 
   // إرسال رسالة صوتية
   const sendVoiceMessage = useMutation({
     mutationFn: async ({ content, audioKey }: { content: string; audioKey: string }) => {
-      return await apiRequest(`/api/conversations/${params.id}/messages`, 'POST', {
+      return await apiRequest(`/api/conversations/${conversationId}/messages`, 'POST', {
         content,
         messageType: 'voice'
       });
