@@ -59,8 +59,14 @@ export default function ProfileSimplePage() {
     userId_from_params: userId,
     currentUserId: currentUser?.id,
     profileUserId_being_used: profileUserId,
+    isOwnProfile,
     url: window.location.href,
-    pathname: window.location.pathname
+    pathname: window.location.pathname,
+    finalUserData: user ? {
+      id: user.id,
+      username: user.username,
+      firstName: user.firstName || user.first_name
+    } : null
   });
   
   // Early return if auth is still loading

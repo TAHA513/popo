@@ -15,9 +15,7 @@ class SilentWebSocketManager {
       
       let wsUrl;
       if (isDev) {
-        // Ensure we have a valid port for development
-        const port = window.location.port || '5000';
-        wsUrl = `ws://localhost:${port}/ws`;
+        wsUrl = 'ws://localhost:5000/ws';
       } else {
         wsUrl = `${protocol}//${window.location.host}/ws`;
       }

@@ -22,9 +22,7 @@ class WebSocketManager {
       
       let wsUrl;
       if (isDev) {
-        // Ensure we have a valid port for development
-        const port = window.location.port || '5000';
-        wsUrl = `ws://localhost:${port}/ws`;
+        wsUrl = 'ws://localhost:5000/ws';
       } else {
         // For production Replit environment - use the same host and port as the main app
         wsUrl = `${protocol}//${window.location.host}/ws`;
