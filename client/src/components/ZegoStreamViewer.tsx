@@ -36,13 +36,16 @@ export default function ZegoStreamViewer({ stream }: ZegoStreamViewerProps) {
     try {
       setIsLoading(true);
       
+      // Add a small delay to prevent multiple rapid initialization attempts
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       if (isStreamer) {
         await initializeStreamerMode();
       } else {
         await initializeViewerMode();
       }
     } catch (error) {
-      console.error('ZegoCloud initialization error:', error);
+      console.warn('ZegoCloud initialization failed, using fallback:', error);
       await fallbackToLocalStream();
     } finally {
       setIsLoading(false);
@@ -60,8 +63,14 @@ export default function ZegoStreamViewer({ stream }: ZegoStreamViewerProps) {
         throw new Error('ZegoCloud configuration not available');
       }
 
-      // Initialize ZegoCloud for streaming
+      // Initialize ZegoCloud for streaming with proper error handling
       const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
+      
+      // Validate appId before using it
+      if (!config.appId || isNaN(parseInt(config.appId))) {
+        throw new Error('Invalid ZegoCloud App ID');
+      }
+      
       const zg = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
       
       // Login to room
@@ -113,8 +122,14 @@ export default function ZegoStreamViewer({ stream }: ZegoStreamViewerProps) {
         throw new Error('ZegoCloud configuration not available');
       }
 
-      // Initialize ZegoCloud for viewing
+      // Initialize ZegoCloud for viewing with proper error handling
       const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
+      
+      // Validate appId before using it
+      if (!config.appId || isNaN(parseInt(config.appId))) {
+        throw new Error('Invalid ZegoCloud App ID');
+      }
+      
       const zg = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
       
       // Login to room as viewer
@@ -146,6 +161,17 @@ export default function ZegoStreamViewer({ stream }: ZegoStreamViewerProps) {
 
   const fallbackToLocalStream = async () => {
     try {
+      // Cleanup any existing ZegoCloud connections to prevent WebSocket errors
+      if (zegoEngine) {
+        try {
+          zegoEngine.logoutRoom();
+          zegoEngine.destroyEngine();
+          setZegoEngine(null);
+        } catch (cleanupError) {
+          console.warn('Error cleaning up ZegoCloud engine:', cleanupError);
+        }
+      }
+
       if (isStreamer) {
         // For streamers, fall back to local camera
         const stream = await navigator.mediaDevices.getUserMedia({
