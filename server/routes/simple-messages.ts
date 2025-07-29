@@ -113,19 +113,24 @@ export function setupSimpleMessageRoutes(app: Express) {
     try {
       const userId = req.user.id;
 
-      // Use direct SQL query to ensure compatibility
-      const recentChats = await db.execute(sql`
-        SELECT 
-          recipient_id as "recipientId",
-          sender_id as "senderId", 
-          content as "lastMessage",
-          created_at as "lastMessageAt"
-        FROM messages 
-        WHERE sender_id = ${userId} OR recipient_id = ${userId}
-        ORDER BY created_at DESC
-      `);
+      // Get recent messages involving this user
+      const recentChats = await db
+        .select({
+          recipientId: messages.recipientId,
+          senderId: messages.senderId,
+          lastMessage: messages.content,
+          lastMessageAt: messages.createdAt
+        })
+        .from(messages)
+        .where(
+          or(
+            eq(messages.senderId, userId),
+            eq(messages.recipientId, userId)
+          )
+        )
+        .orderBy(desc(messages.createdAt));
 
-      console.log(`📨 Found ${recentChats.rows.length} messages for user ${userId}`);
+      console.log(`📨 Found ${recentChats.length} messages for user ${userId}`);
 
       // Create simple conversation list based on messages
       const conversationsSet = new Set();
