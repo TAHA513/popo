@@ -130,7 +130,7 @@ export function setupSimpleMessageRoutes(app: Express) {
         )
         .orderBy(desc(messages.createdAt));
 
-      console.log('📧 Recent chats for user:', userId, recentChats);
+      console.log('📧 Recent chats for user:', userId, recentChats.slice(0, 3));
 
       // Group by other user and get the most recent message
       const conversationMap = new Map();
