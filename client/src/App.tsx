@@ -42,10 +42,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isAuthenticated ? <LiveStreams /> : <LoginPage />}
+        {isAuthenticated ? <SimpleHome /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isAuthenticated ? <LiveStreams /> : <RegisterPage />}
+        {isAuthenticated ? <SimpleHome /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
         <Suspense fallback={
@@ -53,9 +53,9 @@ function Router() {
             <div className="text-white text-lg">جاري التحميل...</div>
           </div>
         }>
-          <Route path="/" component={LiveStreams} />
-          <Route path="/home" component={LiveStreams} />
-          <Route path="/explore" component={SimpleHome} />
+          <Route path="/" component={SimpleHome} />
+          <Route path="/home" component={SimpleHome} />
+          <Route path="/explore" component={LiveStreams} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
