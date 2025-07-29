@@ -51,6 +51,9 @@ export default function WatchStreamPage() {
   // حالات تشغيل الرسائل الصوتية
   const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  
+  // تخزين الرسائل الصوتية المحلية
+  const [localAudioMessages, setLocalAudioMessages] = useState<{[key: string]: Blob}>({});
 
   // جلب الرسائل الحقيقية من قاعدة البيانات
   const { data: realComments, refetch: refetchComments } = useQuery<any[]>({
@@ -160,9 +163,18 @@ export default function WatchStreamPage() {
     if (!audioBlob || !user) return;
 
     try {
-      // محاكاة إرسال الرسالة الصوتية كرسالة نصية مؤقتاً
+      // إنشاء معرف فريد للرسالة الصوتية
+      const audioKey = `${Date.now()}_${user.username || 'unknown'}`;
+      
+      // حفظ الصوت محلياً
+      setLocalAudioMessages(prev => ({
+        ...prev,
+        [audioKey]: audioBlob
+      }));
+      
+      // إرسال الرسالة مع المعرف
       await apiRequest(`/api/streams/${id}/messages`, 'POST', {
-        message: `🎤 رسالة صوتية (${recordingTime} ثانية)`
+        message: `🎤 رسالة صوتية (${recordingTime} ثانية) [${audioKey}]`
       });
       
       // إعادة تعيين حالة التسجيل
@@ -181,7 +193,7 @@ export default function WatchStreamPage() {
   };
 
   // وظائف تشغيل الرسائل الصوتية
-  const playVoiceMessage = async (messageId: number, duration: number) => {
+  const playVoiceMessage = async (messageId: number, duration: number, messageText: string) => {
     // إيقاف أي تشغيل سابق
     if (audioElement) {
       audioElement.pause();
@@ -191,53 +203,62 @@ export default function WatchStreamPage() {
     setPlayingMessageId(messageId);
     
     try {
-      // إنشاء صوت محاكاة باستخدام Web Audio API
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+      // استخراج معرف الصوت من الرسالة
+      const audioKeyMatch = messageText.match(/\[([^\]]+)\]/);
+      const audioKey = audioKeyMatch ? audioKeyMatch[1] : null;
       
-      // ربط العقد الصوتية
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      // إعداد نغمة صوتية جميلة ومسموعة
-      oscillator.type = 'sine'; // موجة ناعمة
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // تردد أعلى وأوضح
-      oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + duration / 2);
-      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + duration);
-      
-      // تدرج صوت واضح ومسموع
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + duration / 2);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-      
-      // تشغيل الصوت
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + duration);
-      
-      // إيقاف التشغيل بعد انتهاء المدة
-      oscillator.onended = () => {
-        setPlayingMessageId(null);
-        setAudioElement(null);
-        audioContext.close();
-      };
-      
-      // حفظ مرجع للصوت الحالي
-      setAudioElement(oscillator as any);
-      
-      // إنهاء التشغيل تلقائياً بعد المدة المحددة
-      setTimeout(() => {
-        setPlayingMessageId(null);
-        setAudioElement(null);
-      }, duration * 1000);
+      if (audioKey && localAudioMessages[audioKey]) {
+        // تشغيل الصوت الحقيقي المسجل
+        const audioBlob = localAudioMessages[audioKey];
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = () => {
+          setPlayingMessageId(null);
+          setAudioElement(null);
+          URL.revokeObjectURL(audioUrl);
+        };
+        
+        audio.onerror = () => {
+          console.error('خطأ في تشغيل الملف الصوتي');
+          setPlayingMessageId(null);
+          setAudioElement(null);
+          URL.revokeObjectURL(audioUrl);
+        };
+        
+        await audio.play();
+        setAudioElement(audio);
+        
+      } else {
+        // إذا لم يوجد الصوت، استخدم إشارة صوتية بسيطة
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 1);
+        
+        oscillator.onended = () => {
+          setPlayingMessageId(null);
+          setAudioElement(null);
+          audioContext.close();
+        };
+        
+        setAudioElement(oscillator as any);
+      }
       
     } catch (error) {
       console.error('خطأ في تشغيل الرسالة الصوتية:', error);
-      // في حالة الفشل، استخدم محاكاة بصرية فقط
-      setTimeout(() => {
-        setPlayingMessageId(null);
-        setAudioElement(null);
-      }, duration * 1000);
+      setPlayingMessageId(null);
+      setAudioElement(null);
     }
   };
 
@@ -436,7 +457,7 @@ export default function WatchStreamPage() {
                             </Button>
                           ) : (
                             <Button
-                              onClick={() => playVoiceMessage(message.id, parseInt(message.text.match(/\((\d+) ثانية\)/)?.[1] || '5'))}
+                              onClick={() => playVoiceMessage(message.id, parseInt(message.text.match(/\((\d+) ثانية\)/)?.[1] || '5'), message.text)}
                               size="sm"
                               className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg"
                             >
