@@ -144,6 +144,7 @@ The application is designed for deployment on Replit's platform but can be adapt
 - ✅ Enhanced streams API to include host information (hostUsername, hostName)
 - ✅ Fixed profile routing issue: Added `/user/:userId` route for clickable profile links
 - ✅ Added debug logging to ProfileSimplePage for troubleshooting profile navigation
+- ✅ Updated bottom navigation "إنشاء" button to open memory creation page instead of stream creation
 - ✅ Maintained existing chat and streaming functionality without external dependencies
 
 **Previous Changes:**
