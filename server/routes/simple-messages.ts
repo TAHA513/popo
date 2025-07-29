@@ -116,10 +116,10 @@ export function setupSimpleMessageRoutes(app: Express) {
       // Get recent conversations by finding latest messages
       const recentChats = await db
         .select({
-          otherUserId: messages.recipientId,
+          recipientId: messages.recipientId,
+          senderId: messages.senderId,
           lastMessage: messages.content,
-          lastMessageAt: messages.createdAt,
-          isFromMe: messages.senderId
+          lastMessageAt: messages.createdAt
         })
         .from(messages)
         .where(
@@ -130,15 +130,26 @@ export function setupSimpleMessageRoutes(app: Express) {
         )
         .orderBy(desc(messages.createdAt));
 
+      console.log('📧 Recent chats for user:', userId, recentChats);
+
       // Group by other user and get the most recent message
       const conversationMap = new Map();
       
       for (const chat of recentChats) {
         // Determine who is the other user
-        const otherUserId = chat.isFromMe === userId ? chat.otherUserId : chat.isFromMe;
+        let otherUserId;
+        if (chat.senderId === userId) {
+          // If I sent the message, the other user is the recipient
+          otherUserId = chat.recipientId;
+        } else {
+          // If I received the message, the other user is the sender
+          otherUserId = chat.senderId;
+        }
         
         // Skip if otherUserId is the same as current user or null
         if (!otherUserId || otherUserId === userId) continue;
+        
+        console.log('💬 Processing chat with user:', otherUserId);
         
         if (!conversationMap.has(otherUserId)) {
           conversationMap.set(otherUserId, {
@@ -148,6 +159,8 @@ export function setupSimpleMessageRoutes(app: Express) {
           });
         }
       }
+
+      console.log('🔄 Conversation map:', Array.from(conversationMap.entries()));
 
       // Get user info for each conversation
       const conversations = await Promise.all(

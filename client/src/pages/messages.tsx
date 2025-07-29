@@ -14,7 +14,7 @@ export default function MessagesPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch conversations
+  // Fetch conversations with auto-refresh
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['/api/messages/conversations'],
     queryFn: async () => {
@@ -23,7 +23,8 @@ export default function MessagesPage() {
       });
       if (!response.ok) throw new Error('Failed to fetch conversations');
       return response.json();
-    }
+    },
+    refetchInterval: 5000 // تحديث كل 5 ثوان
   });
 
   // Fetch message requests count
