@@ -72,6 +72,7 @@ function Router() {
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
+          <Route path="/live-chat" component={LazyComponents.LiveChatPage} />
         </Suspense>
       ) : (
         <>

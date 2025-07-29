@@ -15,7 +15,8 @@ import {
   Camera,
   Crown,
   Search,
-  MessageCircle
+  MessageCircle,
+  Radio
 } from "lucide-react";
 
 export default function SimpleNavigation() {
@@ -97,10 +98,10 @@ export default function SimpleNavigation() {
               <Search className="w-5 h-5" />
             </button>
             
-            {/* أيقونة البث الأصلية */}
-            <Link href="/new-stream">
-              <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
-                <Video className="w-5 h-5" />
+            {/* أيقونة البث المباشر للدردشة */}
+            <Link href="/live-chat">
+              <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:border-white/40 shadow-lg">
+                <Radio className="w-5 h-5" />
               </button>
             </Link>
             
