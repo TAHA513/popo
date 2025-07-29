@@ -207,7 +207,18 @@ export default function Feed() {
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
-                      <Link href={`/user/${memory.author?.id || memory.authorId}`}>
+                      <Link 
+                        href={`/user/${memory.author?.id || memory.authorId}`}
+                        onClick={() => {
+                          console.log('🔗 Profile link clicked:', {
+                            memory_id: memory.id,
+                            authorId: memory.authorId,
+                            author_object: memory.author,
+                            final_link: `/user/${memory.author?.id || memory.authorId}`,
+                            current_user: currentUser?.id
+                          });
+                        }}
+                      >
                         <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
                           <div className="relative">
                             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
