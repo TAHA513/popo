@@ -75,7 +75,7 @@ function Router() {
           <Route path="/messages" component={MessagesPage} />
           <Route path="/messages/new-chat" component={NewChatPage} />
           <Route path="/messages/requests" component={MessageRequestsPage} />
-          <Route path="/messages/private/:userId" component={SimplePrivateChatPage} />
+          <Route path="/messages/:userId" component={SimplePrivateChatPage} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
         </Suspense>
       ) : (

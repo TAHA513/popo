@@ -31,7 +31,7 @@ export default function SimplePrivateChatPage() {
   const [location, setLocation] = useLocation();
   
   // استخراج معرف المستخدم من الرابط
-  const otherUserId = location.split('/messages/private/')[1];
+  const otherUserId = location.split('/messages/')[1];
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   

@@ -130,42 +130,23 @@ export function setupSimpleMessageRoutes(app: Express) {
         )
         .orderBy(desc(messages.createdAt));
 
-      console.log('📧 Recent chats for user:', userId, recentChats.slice(0, 3));
+      // Create simple conversation list based on messages
+      const conversationsSet = new Set();
+      const conversationsList = [];
 
-      // Group by other user and get the most recent message
-      const conversationMap = new Map();
-      
       for (const chat of recentChats) {
-        // Determine who is the other user
         let otherUserId;
         if (chat.senderId === userId) {
-          // If I sent the message, the other user is the recipient
           otherUserId = chat.recipientId;
         } else {
-          // If I received the message, the other user is the sender
           otherUserId = chat.senderId;
         }
-        
-        // Skip if otherUserId is the same as current user or null
-        if (!otherUserId || otherUserId === userId) continue;
-        
-        console.log('💬 Processing chat with user:', otherUserId);
-        
-        if (!conversationMap.has(otherUserId)) {
-          conversationMap.set(otherUserId, {
-            otherUserId,
-            lastMessage: chat.lastMessage,
-            lastMessageAt: chat.lastMessageAt
-          });
-        }
-      }
 
-      console.log('🔄 Conversation map:', Array.from(conversationMap.entries()));
-
-      // Get user info for each conversation
-      const conversations = await Promise.all(
-        Array.from(conversationMap.values()).map(async (conv) => {
-          const otherUser = await db
+        if (otherUserId && otherUserId !== userId && !conversationsSet.has(otherUserId)) {
+          conversationsSet.add(otherUserId);
+          
+          // Get other user info
+          const otherUserInfo = await db
             .select({
               id: users.id,
               username: users.username,
@@ -173,21 +154,24 @@ export function setupSimpleMessageRoutes(app: Express) {
               profileImageUrl: users.profileImageUrl
             })
             .from(users)
-            .where(eq(users.id, conv.otherUserId))
+            .where(eq(users.id, otherUserId))
             .limit(1);
 
-          return {
-            id: conv.otherUserId, // Use other user ID as conversation ID
-            otherUserId: conv.otherUserId,
-            otherUser: otherUser[0] || null,
-            lastMessage: conv.lastMessage,
-            lastMessageAt: conv.lastMessageAt,
-            unreadCount: 0 // Simple version - no unread count
-          };
-        })
-      );
+          if (otherUserInfo[0]) {
+            conversationsList.push({
+              id: otherUserId,
+              otherUserId: otherUserId,
+              otherUser: otherUserInfo[0],
+              lastMessage: chat.lastMessage,
+              lastMessageAt: chat.lastMessageAt,
+              unreadCount: 0
+            });
+          }
+        }
+      }
 
-      res.json(conversations.filter(conv => conv.otherUser));
+      console.log(`✅ Found ${conversationsList.length} conversations for user ${userId}`);
+      res.json(conversationsList);
     } catch (error) {
       console.error("Error fetching conversations:", error);
       res.status(500).json({ message: "فشل في جلب المحادثات" });
