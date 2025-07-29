@@ -32,8 +32,8 @@ export default function ProfileSimplePage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const params = useParams();
   const userId = params.userId;
-  // استخدم userId من URL فقط
-  const profileUserId = userId;
+  // إذا كان هناك userId في الرابط، استخدمه، وإلا استخدم id المستخدم الحالي
+  const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showChatPopup, setShowChatPopup] = useState(false);
@@ -59,8 +59,14 @@ export default function ProfileSimplePage() {
     userId_from_params: userId,
     currentUserId: currentUser?.id,
     profileUserId_being_used: profileUserId,
+    isOwnProfile,
     url: window.location.href,
-    pathname: window.location.pathname
+    pathname: window.location.pathname,
+    finalUserData: user ? {
+      id: user.id,
+      username: user.username,
+      firstName: user.firstName || user.first_name
+    } : null
   });
   
   // Early return if auth is still loading
@@ -78,20 +84,20 @@ export default function ProfileSimplePage() {
     );
   }
   
-  // إذا لم يكن هناك userId من URL، أعرض خطأ
+  // إذا لم يكن لدينا معرف مستخدم ولا مستخدم حالي، أعرض خطأ
   if (!profileUserId) {
-    console.error("❌ No userId provided in URL");
+    console.error("❌ No userId provided and no current user");
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <SimpleNavigation />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">معرف المستخدم مفقود</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">خطأ في تحديد المستخدم</h2>
             <p className="text-gray-600 mb-4">لم يتم تحديد معرف المستخدم المطلوب عرضه</p>
-            <Link href="/">
+            <Link href="/login">
               <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                العودة للصفحة الرئيسية
+                تسجيل الدخول
               </Button>
             </Link>
           </div>
@@ -319,10 +325,10 @@ export default function ProfileSimplePage() {
     }
   });
 
-  // Calculate derived values - FORCED LOGIC
-  const isOwnProfile = false; // Always treat as other's profile for debugging
-  // ALWAYS show the profileUser data, never currentUser when viewing others
-  const user = profileUser; // Only use profileUser data
+  // Calculate derived values - CORRECT LOGIC
+  const isOwnProfile = !userId || currentUser?.id === profileUserId;
+  // إذا كان الملف الشخصي خاصتنا وليس لدينا بيانات من الخادم، استخدم بيانات المستخدم الحالي
+  const user = isOwnProfile && !profileUser ? currentUser : profileUser;
   
   // Enhanced debug logs to track the issue
   console.log("🔍 Profile Debug Info:", {
