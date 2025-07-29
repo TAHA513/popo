@@ -94,7 +94,6 @@ import { nanoid } from "nanoid";
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
-  getUserById(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: Omit<UpsertUser, 'id'> & { passwordHash: string }): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
@@ -127,16 +126,6 @@ export interface IStorage {
   unfollowUser(followerId: string, followedId: string): Promise<void>;
   getFollowCount(userId: string): Promise<number>;
   getSuggestedUsers(): Promise<any[]>;
-  searchUsers(query: string): Promise<User[]>;
-  isUserFollowing(followerId: string, followedId: string): Promise<boolean>;
-  
-  // Conversation operations
-  findConversation(user1Id: string, user2Id: string): Promise<any | undefined>;
-  createConversation(conversation: any): Promise<any>;
-  getConversationById(id: number, userId: string): Promise<any | undefined>;
-  getConversationMessages(conversationId: number, userId: string): Promise<any[]>;
-  createDirectMessage(message: any): Promise<any>;
-  updateConversationLastMessage(conversationId: number, lastMessage: string): Promise<void>;
   
   // Memory Fragment operations
   createMemoryFragment(fragment: InsertMemoryFragment): Promise<MemoryFragment>;
@@ -1554,134 +1543,6 @@ export class DatabaseStorage implements IStorage {
       console.error("Error fetching sent content requests:", error);
       throw error;
     }
-  }
-
-  // User search operations
-  async searchUsers(query: string): Promise<User[]> {
-    const searchPattern = `%${query}%`;
-    return await db
-      .select({
-        id: users.id,
-        username: users.username,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        profileImageUrl: users.profileImageUrl,
-        isOnline: users.isOnline,
-      })
-      .from(users)
-      .where(sql`${users.username} ILIKE ${searchPattern}`)
-      .limit(20);
-  }
-
-  // Check if user is following another user
-  async isUserFollowing(followerId: string, followedId: string): Promise<boolean> {
-    const [follow] = await db
-      .select()
-      .from(followers)
-      .where(and(
-        eq(followers.followerId, followerId),
-        eq(followers.followedId, followedId)
-      ));
-    return !!follow;
-  }
-
-  // Conversation operations
-  async findConversation(user1Id: string, user2Id: string): Promise<any | undefined> {
-    const [conversation] = await db
-      .select()
-      .from(conversations)
-      .where(
-        sql`(${conversations.user1Id} = ${user1Id} AND ${conversations.user2Id} = ${user2Id}) OR (${conversations.user1Id} = ${user2Id} AND ${conversations.user2Id} = ${user1Id})`
-      );
-    return conversation;
-  }
-
-  async createConversation(conversationData: any): Promise<any> {
-    const [conversation] = await db
-      .insert(conversations)
-      .values(conversationData)
-      .returning();
-    return conversation;
-  }
-
-  async getConversationById(id: number, userId: string): Promise<any | undefined> {
-    const [conversation] = await db
-      .select({
-        id: conversations.id,
-        user1Id: conversations.user1Id,
-        user2Id: conversations.user2Id,
-        lastMessage: conversations.lastMessage,
-        lastMessageAt: conversations.lastMessageAt,
-        createdAt: conversations.createdAt,
-        otherUser: {
-          id: users.id,
-          username: users.username,
-          firstName: users.firstName,
-          profileImageUrl: users.profileImageUrl,
-          isOnline: users.isOnline,
-        },
-      })
-      .from(conversations)
-      .leftJoin(
-        users,
-        sql`${users.id} = CASE WHEN ${conversations.user1Id} = ${userId} THEN ${conversations.user2Id} ELSE ${conversations.user1Id} END`
-      )
-      .where(
-        and(
-          eq(conversations.id, id),
-          sql`(${conversations.user1Id} = ${userId} OR ${conversations.user2Id} = ${userId})`
-        )
-      );
-    return conversation;
-  }
-
-  async getConversationMessages(conversationId: number, userId: string): Promise<any[]> {
-    // First verify user is part of conversation
-    const conversation = await this.getConversationById(conversationId, userId);
-    if (!conversation) {
-      return [];
-    }
-
-    const otherUserId = conversation.otherUser.id;
-    
-    return await db
-      .select({
-        id: messages.id,
-        senderId: messages.senderId,
-        content: messages.content,
-        messageType: messages.messageType,
-        isRead: messages.isRead,
-        createdAt: messages.createdAt,
-        sender: {
-          username: users.username,
-          profileImageUrl: users.profileImageUrl,
-        },
-      })
-      .from(messages)
-      .leftJoin(users, eq(messages.senderId, users.id))
-      .where(
-        sql`(${messages.senderId} = ${userId} AND ${messages.recipientId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.recipientId} = ${userId})`
-      )
-      .orderBy(messages.createdAt);
-  }
-
-  async createDirectMessage(messageData: any): Promise<any> {
-    const [message] = await db
-      .insert(messages)
-      .values(messageData)
-      .returning();
-    return message;
-  }
-
-  async updateConversationLastMessage(conversationId: number, lastMessage: string): Promise<void> {
-    await db
-      .update(conversations)
-      .set({
-        lastMessage,
-        lastMessageAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(conversations.id, conversationId));
   }
 }
 

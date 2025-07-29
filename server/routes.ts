@@ -468,13 +468,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user by ID
-  app.get('/api/users/:userId', async (req: any, res) => {
+  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       console.log('🔍 Fetching user profile:', {
         requestedUserId: userId,
-        requestingUser: req.user?.id || 'anonymous',
-        requestingUsername: req.user?.username || 'anonymous'
+        requestingUser: req.user?.id,
+        requestingUsername: req.user?.username
       });
       
       // Validate userId parameter
@@ -637,236 +637,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error sending message request:", error);
       res.status(500).json({ message: "فشل إرسال الرسالة" });
-    }
-  });
-
-  // Search users for chat creation
-  app.get('/api/users/search', requireAuth, async (req: any, res) => {
-    try {
-      const query = req.query.q as string;
-      if (!query || query.trim().length < 2) {
-        return res.json([]);
-      }
-      
-      const users = await storage.searchUsers(query.trim());
-      // Remove current user from results
-      const filteredUsers = users.filter((user: any) => user.id !== req.user?.id);
-      res.json(filteredUsers);
-    } catch (error) {
-      console.error("Error searching users:", error);
-      res.status(500).json({ message: "فشل البحث عن المستخدمين" });
-    }
-  });
-
-  // Create private conversation
-  app.post('/api/conversations/create', requireAuth, async (req: any, res) => {
-    try {
-      const { otherUserId } = req.body;
-      const currentUserId = req.user?.id;
-      
-      if (!currentUserId || !otherUserId) {
-        return res.status(400).json({ message: "معرف المستخدم مطلوب" });
-      }
-      
-      if (currentUserId === otherUserId) {
-        return res.status(400).json({ message: "لا يمكنك إنشاء محادثة مع نفسك" });
-      }
-      
-      // Check if conversation already exists
-      const existingConversation = await storage.findConversation(currentUserId, otherUserId);
-      if (existingConversation) {
-        return res.json(existingConversation);
-      }
-      
-      // Create new conversation
-      const conversation = await storage.createConversation({
-        user1Id: currentUserId,
-        user2Id: otherUserId,
-        lastMessage: null,
-        lastMessageAt: new Date()
-      });
-      
-      res.json(conversation);
-    } catch (error) {
-      console.error("Error creating conversation:", error);
-      res.status(500).json({ message: "فشل في إنشاء المحادثة" });
-    }
-  });
-
-  // Get conversation details
-  app.get('/api/conversations/:id', requireAuth, async (req: any, res) => {
-    try {
-      const conversationId = parseInt(req.params.id);
-      const currentUserId = req.user?.id;
-      
-      if (!currentUserId || isNaN(conversationId)) {
-        return res.status(400).json({ message: "معرف المحادثة غير صحيح" });
-      }
-      
-      const conversation = await storage.getConversationById(conversationId, currentUserId);
-      if (!conversation) {
-        return res.status(404).json({ message: "المحادثة غير موجودة" });
-      }
-      
-      res.json(conversation);
-    } catch (error) {
-      console.error("Error fetching conversation:", error);
-      res.status(500).json({ message: "فشل في جلب المحادثة" });
-    }
-  });
-
-  // Get conversation messages
-  app.get('/api/conversations/:id/messages', requireAuth, async (req: any, res) => {
-    try {
-      const conversationId = parseInt(req.params.id);
-      const currentUserId = req.user?.id;
-      
-      if (!currentUserId || isNaN(conversationId)) {
-        return res.status(400).json({ message: "معرف المحادثة غير صحيح" });
-      }
-      
-      const messages = await storage.getConversationMessages(conversationId, currentUserId);
-      res.json(messages);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      res.status(500).json({ message: "فشل في جلب الرسائل" });
-    }
-  });
-
-  // Get user by ID (duplicate - should be removed later)
-  app.get('/api/users/:userId', async (req: any, res) => {
-    try {
-      const userId = req.params.userId;
-      const user = await storage.getUserById(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "المستخدم غير موجود" });
-      }
-      
-      res.json({
-        id: user.id,
-        username: user.username,
-        firstName: user.firstName,
-        profileImageUrl: user.profileImageUrl,
-        points: user.points,
-        isOnline: user.isOnline
-      });
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "فشل في جلب بيانات المستخدم" });
-    }
-  });
-
-  // Check follow status
-  app.get('/api/follow/status/:userId', requireAuth, async (req: any, res) => {
-    try {
-      const currentUserId = req.user?.id;
-      const targetUserId = req.params.userId;
-      
-      if (!currentUserId || !targetUserId) {
-        return res.status(400).json({ message: "معرف المستخدم مطلوب" });
-      }
-      
-      if (currentUserId === targetUserId) {
-        return res.json({ isFollowing: true }); // المستخدم يتابع نفسه افتراضياً
-      }
-      
-      const isFollowing = await storage.isUserFollowing(currentUserId, targetUserId);
-      res.json({ isFollowing });
-    } catch (error) {
-      console.error("Error checking follow status:", error);
-      res.status(500).json({ message: "فشل في فحص حالة المتابعة" });
-    }
-  });
-
-  // Send gift for chat access
-  app.post('/api/send-gift', requireAuth, async (req: any, res) => {
-    try {
-      const senderId = req.user?.id;
-      const { recipientId, giftType, amount, message } = req.body;
-      
-      if (!senderId || !recipientId || !giftType || !amount) {
-        return res.status(400).json({ message: "بيانات الهدية غير مكتملة" });
-      }
-      
-      // التحقق من الرصيد
-      const senderBalance = await storage.getUserPointBalance(senderId);
-      if (senderBalance < amount) {
-        return res.status(400).json({ message: "رصيدك غير كافي لإرسال هذه الهدية" });
-      }
-      
-      // إرسال الهدية
-      const gift = await storage.sendGift({
-        senderId,
-        receiverId: recipientId,
-        characterId: 1, // معرف افتراضي
-        pointCost: amount,
-        streamId: null
-      });
-      
-      // خصم النقاط من المرسل
-      await storage.addPointTransaction({
-        userId: senderId,
-        amount: -amount,
-        type: 'gift_sent',
-        description: `إرسال هدية: ${giftType}`
-      });
-      
-      // إضافة النقاط للمستقبل
-      await storage.addPointTransaction({
-        userId: recipientId,
-        amount: amount,
-        type: 'gift_received',
-        description: `استلام هدية: ${giftType}`
-      });
-      
-      res.json({ 
-        success: true, 
-        gift,
-        message: "تم إرسال الهدية بنجاح" 
-      });
-    } catch (error) {
-      console.error("Error sending gift:", error);
-      res.status(500).json({ message: "فشل في إرسال الهدية" });
-    }
-  });
-
-  // Send message in conversation
-  app.post('/api/conversations/:id/messages', requireAuth, async (req: any, res) => {
-    try {
-      const conversationId = parseInt(req.params.id);
-      const currentUserId = req.user?.id;
-      const { content, messageType = 'text' } = req.body;
-      
-      if (!currentUserId || isNaN(conversationId) || !content?.trim()) {
-        return res.status(400).json({ message: "بيانات الرسالة غير صحيحة" });
-      }
-      
-      // Verify user is part of this conversation
-      const conversation = await storage.getConversationById(conversationId, currentUserId);
-      if (!conversation) {
-        return res.status(403).json({ message: "غير مسموح لك بإرسال رسائل في هذه المحادثة" });
-      }
-      
-      // Get other user ID
-      const otherUserId = conversation.otherUser.id;
-      
-      // Create message
-      const message = await storage.createDirectMessage({
-        senderId: currentUserId,
-        recipientId: otherUserId,
-        content: content.trim(),
-        messageType,
-        isRead: false
-      });
-      
-      // Update conversation's last message
-      await storage.updateConversationLastMessage(conversationId, content.trim());
-      
-      res.json(message);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      res.status(500).json({ message: "فشل في إرسال الرسالة" });
     }
   });
 
@@ -1114,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🗑️ Deleting chat session and all related data:", {
         title: stream.title,
         startedAt: stream.startedAt,
-        duration: stream.startedAt ? Date.now() - new Date(stream.startedAt).getTime() : 0
+        duration: Date.now() - new Date(stream.startedAt).getTime()
       });
       
       // 1. Clean up security tokens for this user
