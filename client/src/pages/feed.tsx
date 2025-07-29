@@ -214,8 +214,7 @@ export default function Feed() {
                             memory_id: memory.id,
                             authorId: memory.authorId,
                             author_object: memory.author,
-                            final_link: `/user/${memory.author?.id || memory.authorId}`,
-                            current_user: currentUser?.id
+                            final_link: `/user/${memory.author?.id || memory.authorId}`
                           });
                         }}
                       >
