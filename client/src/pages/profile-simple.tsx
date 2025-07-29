@@ -33,6 +33,15 @@ export default function ProfileSimplePage() {
   const params = useParams();
   const userId = params.userId;
   const profileUserId = userId || currentUser?.id;
+  
+  // Debug logging for route parameters
+  console.log("🔍 ProfileSimplePage Debug:", {
+    urlParams: params,
+    extractedUserId: userId,
+    currentUserId: currentUser?.id,
+    finalProfileUserId: profileUserId,
+    currentPath: window.location.pathname
+  });
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showChatPopup, setShowChatPopup] = useState(false);

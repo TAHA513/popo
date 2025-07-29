@@ -142,6 +142,8 @@ The application is designed for deployment on Replit's platform but can be adapt
 - ✅ Swapped page roles: Posts on homepage (/), Live streams in explore (/explore)
 - ✅ Updated bottom navigation labels: "المنشورات" for home, "البثوث" for explore
 - ✅ Enhanced streams API to include host information (hostUsername, hostName)
+- ✅ Fixed profile routing issue: Added `/user/:userId` route for clickable profile links
+- ✅ Added debug logging to ProfileSimplePage for troubleshooting profile navigation
 - ✅ Maintained existing chat and streaming functionality without external dependencies
 
 **Previous Changes:**
