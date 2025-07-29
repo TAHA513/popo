@@ -523,13 +523,31 @@ export default function ProfileSimplePage() {
                     <Zap className="w-4 h-4 text-yellow-500" />
                     <span>{user?.points || 0} نقطة</span>
                   </div>
+                  <button
+                    onClick={() => setActiveTab("followers")}
+                    className={`flex items-center space-x-2 rtl:space-x-reverse cursor-pointer hover:text-purple-600 transition-colors ${
+                      activeTab === "followers" ? "text-purple-600" : "text-gray-600"
+                    }`}
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>{followers?.length || 0} متابع</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("following")}
+                    className={`flex items-center space-x-2 rtl:space-x-reverse cursor-pointer hover:text-purple-600 transition-colors ${
+                      activeTab === "following" ? "text-purple-600" : "text-gray-600"
+                    }`}
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>{following?.length || 0} يتابع</span>
+                  </button>
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <TrendingUp className="w-4 h-4 text-green-500" />
                     <span>${user?.totalEarnings || '0.00'} أرباح</span>
                   </div>
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <Calendar className="w-4 h-4 text-blue-500" />
-                    <span>انضم في {new Date().toLocaleDateString('ar')}</span>
+                    <span>انضم في {new Date(user?.createdAt || Date.now()).toLocaleDateString('ar-SA')}</span>
                   </div>
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <Users className="w-4 h-4 text-purple-500" />
@@ -716,80 +734,143 @@ export default function ProfileSimplePage() {
           
           {/* Followers Section */}
           <div style={{display: activeTab === "followers" ? "block" : "none"}}>
-            <h2 className="text-xl font-bold mb-4">المتابعون ({Array.isArray(followers) ? followers.length : 0})</h2>
             {!Array.isArray(followers) || followers.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-gray-600">لا يوجد متابعون بعد</p>
+              <Card className="p-12 text-center shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-10 h-10 text-purple-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">لا توجد متابعون بعد</h3>
+                <p className="text-gray-600 text-lg">
+                  {isOwnProfile ? "لم يتابعك أحد بعد. شارك المزيد من المحتوى لجذب المتابعين!" : "لا يتابع هذا المستخدم أحد بعد"}
+                </p>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {followers.map((item: any) => (
-                  <Card key={item.follower.id} className="overflow-hidden">
-                    <CardContent className="p-4">
-                      <Link href={`/profile/${item.follower.id}`}>
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
-                            {item.follower.profileImageUrl ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    المتابعون ({followers.length})
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {followers.map((item: any) => (
+                    <Card key={item.follower.id} className="p-5 hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                        <div className="relative">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white shadow-lg">
+                            {item.follower?.profileImageUrl ? (
                               <img 
                                 src={item.follower.profileImageUrl} 
-                                alt={item.follower.username} 
-                                className="w-full h-full object-cover rounded-full"
+                                alt="Profile" 
+                                className="w-16 h-16 rounded-full object-cover"
                               />
                             ) : (
-                              <User className="w-6 h-6" />
+                              <User className="w-8 h-8" />
                             )}
                           </div>
-                          <div>
-                            <p className="font-semibold hover:underline">{item.follower.username || item.follower.firstName || 'مستخدم'}</p>
-                            <p className="text-xs text-gray-500">
-                              متابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
-                            </p>
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                        </div>
+                        <div className="flex-1">
+                          <Link href={`/user/${item.follower?.id}`}>
+                            <h4 className="font-bold text-lg text-gray-800 hover:text-purple-600 transition-colors cursor-pointer">
+                              {item.follower?.firstName || item.follower?.username || 'مستخدم'}
+                            </h4>
+                          </Link>
+                          <p className="text-sm text-gray-600 mb-2">@{item.follower?.username}</p>
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse text-xs text-gray-500">
+                            <span>🌟 {item.follower?.points || 0} نقطة</span>
+                            <span>•</span>
+                            <span>متابع منذ {new Date(item.followedAt || item.createdAt).toLocaleDateString('ar-SA')}</span>
                           </div>
                         </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="flex flex-col items-center space-y-2">
+                          <Link href={`/user/${item.follower?.id}`}>
+                            <Button size="sm" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xs px-4 py-2">
+                              عرض الملف
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </div>
           
           {/* Following Section */}
           <div style={{display: activeTab === "following" ? "block" : "none"}}>
-            <h2 className="text-xl font-bold mb-4">يتابع ({Array.isArray(following) ? following.length : 0})</h2>
             {!Array.isArray(following) || following.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-gray-600">لا يتابع أحد بعد</p>
+              <Card className="p-12 text-center shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <UserPlus className="w-10 h-10 text-blue-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">لا يتابع أحد بعد</h3>
+                <p className="text-gray-600 text-lg">
+                  {isOwnProfile ? "لم تتابع أحداً بعد. اكتشف مستخدمين جدد لمتابعتهم!" : "لا يتابع هذا المستخدم أحداً بعد"}
+                </p>
+                {isOwnProfile && (
+                  <Link href="/explore">
+                    <Button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
+                      اكتشف مستخدمين
+                    </Button>
+                  </Link>
+                )}
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {following.map((item: any) => (
-                  <Card key={item.following.id} className="overflow-hidden">
-                    <CardContent className="p-4">
-                      <Link href={`/profile/${item.following.id}`}>
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer hover:opacity-80">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
-                            {item.following.profileImageUrl ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <UserPlus className="w-5 h-5 text-white" />
+                    </div>
+                    يتابع ({following.length})
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {following.map((item: any) => (
+                    <Card key={item.following.id} className="p-5 hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                        <div className="relative">
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white shadow-lg">
+                            {item.following?.profileImageUrl ? (
                               <img 
                                 src={item.following.profileImageUrl} 
-                                alt={item.following.username} 
-                                className="w-full h-full object-cover rounded-full"
+                                alt="Profile" 
+                                className="w-16 h-16 rounded-full object-cover"
                               />
                             ) : (
-                              <User className="w-6 h-6" />
+                              <User className="w-8 h-8" />
                             )}
                           </div>
-                          <div>
-                            <p className="font-semibold hover:underline">{item.following.username || item.following.firstName || 'مستخدم'}</p>
-                            <p className="text-xs text-gray-500">
-                              يتابع منذ {new Date(item.followedAt).toLocaleDateString('ar')}
-                            </p>
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                        </div>
+                        <div className="flex-1">
+                          <Link href={`/user/${item.following?.id}`}>
+                            <h4 className="font-bold text-lg text-gray-800 hover:text-blue-600 transition-colors cursor-pointer">
+                              {item.following?.firstName || item.following?.username || 'مستخدم'}
+                            </h4>
+                          </Link>
+                          <p className="text-sm text-gray-600 mb-2">@{item.following?.username}</p>
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse text-xs text-gray-500">
+                            <span>🌟 {item.following?.points || 0} نقطة</span>
+                            <span>•</span>
+                            <span>يتابع منذ {new Date(item.followedAt || item.createdAt).toLocaleDateString('ar-SA')}</span>
                           </div>
                         </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="flex flex-col items-center space-y-2">
+                          <Link href={`/user/${item.following?.id}`}>
+                            <Button size="sm" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-xs px-4 py-2">
+                              عرض الملف
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </div>
