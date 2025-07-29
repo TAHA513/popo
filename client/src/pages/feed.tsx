@@ -209,12 +209,15 @@ export default function Feed() {
                     <div className="flex items-center justify-between mb-3">
                       <Link 
                         href={`/user/${memory.author?.id || memory.authorId}`}
-                        onClick={() => {
-                          console.log('🔗 Profile link clicked:', {
+                        onClick={(e) => {
+                          const targetUserId = memory.author?.id || memory.authorId;
+                          console.log('🔗 Feed Profile Link Clicked:', {
                             memory_id: memory.id,
                             authorId: memory.authorId,
                             author_object: memory.author,
-                            final_link: `/user/${memory.author?.id || memory.authorId}`
+                            final_target_user: targetUserId,
+                            navigation_url: `/user/${targetUserId}`,
+                            current_url: window.location.pathname
                           });
                         }}
                       >
