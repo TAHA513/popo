@@ -2,7 +2,7 @@ import { lazy } from 'react';
 
 // Lazy loading المكونات الثقيلة لتحسين الأداء
 export const AdminPage = lazy(() => import('@/pages/admin'));
-export const CreateMemoryPage = lazy(() => import('@/pages/create-memory'));
+export const CreateMemoryPage = lazy(() => import('@/pages/create-memory-new'));
 export const CharacterSelectionPage = lazy(() => import('@/pages/CharacterSelection'));
 export const GamesPage = lazy(() => import('@/pages/games'));
 export const ProfileSimplePage = lazy(() => import('@/pages/profile-simple'));
