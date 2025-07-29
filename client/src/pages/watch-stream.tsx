@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send, X, CheckCircle, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send, X, CheckCircle, Trash2, Mic, MicOff, Play, Pause, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { apiRequest } from "@/lib/queryClient";
@@ -40,6 +40,13 @@ export default function WatchStreamPage() {
   const [showComments, setShowComments] = useState(true);
   const [floatingHearts, setFloatingHearts] = useState<Array<{id: number; x: number; y: number}>>([]);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  
+  // حالات التسجيل الصوتي
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null);
 
   // جلب الرسائل الحقيقية من قاعدة البيانات
   const { data: realComments, refetch: refetchComments } = useQuery<any[]>({
@@ -95,6 +102,78 @@ export default function WatchStreamPage() {
     } catch (error) {
       console.error('خطأ في إرسال التعليق:', error);
     }
+  };
+
+  // وظائف التسجيل الصوتي
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        setAudioBlob(blob);
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // عداد الوقت - حد أقصى 30 ثانية
+      const interval = setInterval(() => {
+        setRecordingTime(prev => {
+          if (prev >= 30) {
+            stopRecording();
+            return 30;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+      setRecordingInterval(interval);
+
+    } catch (error) {
+      console.error('خطأ في الوصول للميكروفون:', error);
+      alert('يرجى السماح بالوصول للميكروفون لإرسال رسائل صوتية');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+      if (recordingInterval) {
+        clearInterval(recordingInterval);
+        setRecordingInterval(null);
+      }
+    }
+  };
+
+  const sendAudioMessage = async () => {
+    if (!audioBlob || !user) return;
+
+    try {
+      // محاكاة إرسال الرسالة الصوتية كرسالة نصية مؤقتاً
+      await apiRequest(`/api/streams/${id}/messages`, 'POST', {
+        message: `🎤 رسالة صوتية (${recordingTime} ثانية)`
+      });
+      
+      // إعادة تعيين حالة التسجيل
+      setAudioBlob(null);
+      setRecordingTime(0);
+      refetchComments();
+    } catch (error) {
+      console.error('خطأ في إرسال الرسالة الصوتية:', error);
+      alert('فشل في إرسال الرسالة الصوتية');
+    }
+  };
+
+  const cancelRecording = () => {
+    setAudioBlob(null);
+    setRecordingTime(0);
   };
 
   // تم إزالة ZegoCloud - هذه صفحة دردشة نصية خالصة
@@ -420,26 +499,90 @@ export default function WatchStreamPage() {
                     {user.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div className="flex-1">
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="اكتب رسالتك هنا..."
-                      className="w-full bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-xl p-4 text-white placeholder-gray-300 resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all duration-300"
-                      rows={3}
-                      maxLength={200}
-                    />
-                    <div className="flex justify-between items-center mt-3">
-                      <span className="text-gray-300 text-xs bg-white/10 px-2 py-1 rounded-full">{newComment.length}/200</span>
-                      <Button
-                        onClick={handleSendComment}
-                        disabled={!newComment.trim()}
-                        size="sm"
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-600 px-4 py-2 rounded-xl shadow-lg transition-all duration-300"
-                      >
-                        <Send className="w-4 h-4 ml-1" />
-                        إرسال مباشر
-                      </Button>
-                    </div>
+                    {/* واجهة التسجيل الصوتي أو النص */}
+                    {isRecording ? (
+                      <div className="bg-gradient-to-br from-red-500/20 to-pink-500/20 border-2 border-red-400/50 rounded-xl p-4">
+                        <div className="flex items-center justify-center gap-3 mb-3">
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-red-300 font-bold">جاري التسجيل...</span>
+                          <span className="text-white bg-red-500/50 px-2 py-1 rounded-full text-sm">
+                            {recordingTime}/30 ثانية
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={stopRecording}
+                            size="sm"
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            <MicOff className="w-4 h-4 ml-1" />
+                            إيقاف التسجيل
+                          </Button>
+                        </div>
+                      </div>
+                    ) : audioBlob ? (
+                      <div className="bg-gradient-to-br from-green-500/20 to-blue-500/20 border-2 border-green-400/50 rounded-xl p-4">
+                        <div className="flex items-center justify-center gap-3 mb-3">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span className="text-green-300 font-bold">تم التسجيل بنجاح!</span>
+                          <span className="text-white bg-green-500/50 px-2 py-1 rounded-full text-sm">
+                            {recordingTime} ثانية
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={cancelRecording}
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 border-gray-500 text-gray-300 hover:bg-gray-700"
+                          >
+                            <X className="w-4 h-4 ml-1" />
+                            إلغاء
+                          </Button>
+                          <Button
+                            onClick={sendAudioMessage}
+                            size="sm"
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Send className="w-4 h-4 ml-1" />
+                            إرسال الصوت
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex gap-2 mb-3">
+                          <textarea
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="اكتب رسالتك هنا..."
+                            className="flex-1 bg-gradient-to-br from-white/10 to-white/5 border-2 border-white/20 rounded-xl p-4 text-white placeholder-gray-300 resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all duration-300"
+                            rows={3}
+                            maxLength={200}
+                          />
+                          <Button
+                            onClick={startRecording}
+                            size="sm"
+                            className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white self-end p-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
+                            title="تسجيل رسالة صوتية (أقصى 30 ثانية)"
+                          >
+                            <Mic className="w-5 h-5" />
+                          </Button>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300 text-xs bg-white/10 px-2 py-1 rounded-full">{newComment.length}/200</span>
+                          <Button
+                            onClick={handleSendComment}
+                            disabled={!newComment.trim()}
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:from-gray-600 disabled:to-gray-600 px-4 py-2 rounded-xl shadow-lg transition-all duration-300"
+                          >
+                            <Send className="w-4 h-4 ml-1" />
+                            إرسال مباشر
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
