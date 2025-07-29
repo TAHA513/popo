@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send, X } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send, X, CheckCircle, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { apiRequest } from "@/lib/queryClient";
@@ -38,6 +39,7 @@ export default function WatchStreamPage() {
   const [newComment, setNewComment] = useState('');
   const [showComments, setShowComments] = useState(true);
   const [floatingHearts, setFloatingHearts] = useState<Array<{id: number; x: number; y: number}>>([]);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   // جلب الرسائل الحقيقية من قاعدة البيانات
   const { data: realComments, refetch: refetchComments } = useQuery<any[]>({
@@ -165,39 +167,14 @@ export default function WatchStreamPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={async () => {
-                const confirmed = confirm('⚠️ تأكيد إغلاق الدردشة\n\nهل أنت متأكد من إغلاق هذه الدردشة؟\n\n• سيتم حذف جميع الرسائل نهائياً\n• سيتم إنهاء الجلسة للجميع\n• لا يمكن استرداد البيانات بعد الحذف\n\nاضغط موافق للمتابعة أو إلغاء للعودة');
-                if (confirmed) {
-                  try {
-                    console.log("🛑 Host requesting chat deletion:", { streamId: stream.id, userId: user.id });
-                    
-                    const response = await apiRequest(`/api/streams/${stream.id}/end`, 'POST');
-                    
-                    console.log("✅ Chat deletion successful:", response);
-                    
-                    // رسالة نجاح مرتبة وجميلة
-                    const successMessage = `✅ تم إغلاق الدردشة بنجاح!\n\n🗑️ تم حذف جميع الرسائل والبيانات\n⏰ انتهت الجلسة: ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}\n\n💫 شكراً لاستخدام LaaBoBo!`;
-                    
-                    alert(successMessage);
-                    setLocation('/');
-                  } catch (error) {
-                    console.error("❌ Failed to delete chat:", error);
-                    
-                    // رسالة خطأ مرتبة
-                    const errorMessage = `❌ فشل في إغلاق الدردشة\n\n⚠️ حدث خطأ تقني\n🔄 يرجى المحاولة مرة أخرى\n\n💡 إذا استمر الخطأ، اتصل بالدعم الفني`;
-                    
-                    alert(errorMessage);
-                  }
-                }
-              }}
+              onClick={() => setShowCloseDialog(true)}
               className="bg-gradient-to-r from-red-500/80 to-pink-600/80 text-white hover:from-red-600/90 hover:to-pink-700/90 backdrop-blur-sm border border-red-400/50 shadow-lg transition-all duration-300 hover:scale-105"
             >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center border border-white/30 shadow-inner">
-                  <X className="w-4 h-4 stroke-2" />
+                  <X className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-sm">إنهاء الدردشة</span>
-                <div className="w-1 h-1 bg-white/60 rounded-full animate-pulse"></div>
+                <span className="font-bold">إغلاق الدردشة</span>
               </div>
             </Button>
           )}
@@ -481,6 +458,82 @@ export default function WatchStreamPage() {
             )}
           </div>
         )}
+
+        {/* نافذة حوار إغلاق البث الاحترافية */}
+        <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+          <DialogContent className="max-w-md mx-auto bg-gradient-to-br from-gray-900 via-gray-800 to-black border-2 border-red-500/30 shadow-2xl">
+            <div className="text-center p-6">
+              {/* شعار LaaBoBo مع الأرنب */}
+              <div className="mb-6">
+                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20">
+                  <span className="text-4xl">🐰</span>
+                </div>
+                <h3 className="text-2xl font-bold text-white mt-4 mb-2">LaaBoBo</h3>
+                <p className="text-gray-300 text-sm">منصة الدردشة المباشرة</p>
+              </div>
+
+              {/* رسالة التأكيد */}
+              <div className="mb-6">
+                <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                  <Trash2 className="w-8 h-8 text-red-400" />
+                </div>
+                <h2 className="text-xl font-bold text-white mb-3">تأكيد إغلاق الدردشة</h2>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  هل أنت متأكد من إغلاق هذه الدردشة؟
+                </p>
+              </div>
+
+              {/* تفاصيل الإجراء */}
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-red-300">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>سيتم حذف جميع الرسائل نهائياً</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-red-300">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>سيتم إنهاء الجلسة للجميع</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-red-300">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>لا يمكن استرداد البيانات بعد الحذف</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* أزرار الإجراء */}
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowCloseDialog(false)}
+                  variant="outline"
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      console.log("🛑 Host requesting chat deletion:", { streamId: stream.id, userId: user?.id });
+                      
+                      await apiRequest(`/api/streams/${stream.id}/end`, 'POST');
+                      
+                      console.log("✅ Chat deletion successful");
+                      setShowCloseDialog(false);
+                      setLocation('/');
+                    } catch (error: any) {
+                      console.error("❌ Failed to delete chat:", error);
+                      setShowCloseDialog(false);
+                    }
+                  }}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  تأكيد الإغلاق
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
