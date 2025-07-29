@@ -64,7 +64,7 @@ export default function BottomNavigation() {
             );
           }
           
-          if (item.isLogout) {
+          if ('isLogout' in item && item.isLogout) {
             return (
               <button 
                 key={index}
