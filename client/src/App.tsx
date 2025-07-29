@@ -21,7 +21,10 @@ import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import LockedAlbums from "@/components/LockedAlbums";
 import WatchStreamPage from "@/pages/watch-stream";
-import * as LazyComponents from "./App.lazy";
+// Core page imports
+import CreateMemoryPage from "@/pages/create-memory";
+import ProfileSimplePage from "@/pages/profile-simple";
+import ExplorePage from "@/pages/explore";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -58,27 +61,12 @@ function Router() {
           <Route path="/explore" component={LiveStreams} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />
-          <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
-          <Route path="/games" component={LazyComponents.GamesPage} />
           <Route path="/start-stream" component={SimpleStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
-          <Route path="/admin" component={LazyComponents.AdminPage} />
-          <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
-          <Route path="/account" component={AccountPage} />
-          <Route path="/create-memory" component={LazyComponents.CreateMemoryPage} />
-          <Route path="/profile" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/profile/:userId" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/user/:userId" component={LazyComponents.ProfileSimplePage} />
-          <Route path="/gifts" component={LazyComponents.GiftsPage} />
+          <Route path="/create-memory" component={CreateMemoryPage} />
+          <Route path="/profile" component={ProfileSimplePage} />
+          <Route path="/user/:userId" component={ProfileSimplePage} />
           <Route path="/messages" component={MessagesPage} />
-          <Route path="/messages/new-chat" component={LazyComponents.NewChatPage} />
-          <Route path="/messages/requests" component={LazyComponents.MessageRequestsPage} />
-          <Route path="/messages/:userId" component={LazyComponents.ConversationPage} />
-          <Route path="/chat-gift/:userId" component={LazyComponents.ChatGiftSelectionPage} />
-          <Route path="/chat/:id" component={LazyComponents.PrivateChatPage} />
-          <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
-          <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
-          <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
         </Suspense>
       ) : (
         <>
