@@ -58,6 +58,7 @@ function Router() {
           <Route path="/characters" component={LazyComponents.CharacterSelectionPage} />
           <Route path="/games" component={LazyComponents.GamesPage} />
           <Route path="/start-stream" component={SimpleStreamPage} />
+          <Route path="/stream/:id" component={LazyComponents.StreamPage} />
 
           <Route path="/admin" component={LazyComponents.AdminPage} />
           <Route path="/panel-9bd2f2-control" component={LazyComponents.AdminPage} />
@@ -72,7 +73,6 @@ function Router() {
           <Route path="/video/:videoId" component={LazyComponents.VideoPage} />
           <Route path="/single-video" component={LazyComponents.SingleVideoPage} />
           <Route path="/performance-test" component={LazyComponents.PerformanceTestPage} />
-          <Route path="/live-chat" component={LazyComponents.LiveChatPage} />
         </Suspense>
       ) : (
         <>

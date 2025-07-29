@@ -1,7 +1,9 @@
 import { lazy } from 'react';
 
 // Lazy loading المكونات الثقيلة لتحسين الأداء
-export const StreamPage = lazy(() => import('@/pages/stream'));
+export const StreamPage = lazy(() => import('@/pages/stream').then(module => ({ 
+  default: module.default || (() => <div>جاري التحميل...</div>) 
+})));
 export const NewStreamPage = lazy(() => import('@/pages/new-stream'));
 export const AdminPage = lazy(() => import('@/pages/admin'));
 export const StartStreamPage = lazy(() => import('@/pages/start-stream'));
@@ -17,4 +19,3 @@ export const VideoPage = lazy(() => import('@/pages/video'));
 export const SingleVideoPage = lazy(() => import('@/pages/single-video'));
 export const MessageRequestsPage = lazy(() => import('@/pages/message-requests'));
 export const PerformanceTestPage = lazy(() => import('@/pages/performance-test'));
-export const LiveChatPage = lazy(() => import('@/pages/live-chat'));

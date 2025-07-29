@@ -99,7 +99,7 @@ export default function SimpleNavigation() {
             </button>
             
             {/* أيقونة البث المباشر للدردشة */}
-            <Link href="/live-chat">
+            <Link href="/start-stream">
               <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:border-white/40 shadow-lg">
                 <Radio className="w-5 h-5" />
               </button>
