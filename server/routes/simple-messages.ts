@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { requireAuth } from "../localAuth";
 import { db } from "../db";
 import { messages, users } from "@shared/schema";
-import { eq, and, or, desc } from "drizzle-orm";
+import { eq, and, or, desc, sql } from "drizzle-orm";
 
 export function setupSimpleMessageRoutes(app: Express) {
   // Get messages between two users (simple direct chat)
@@ -113,28 +113,25 @@ export function setupSimpleMessageRoutes(app: Express) {
     try {
       const userId = req.user.id;
 
-      // Get recent conversations by finding latest messages
-      const recentChats = await db
-        .select({
-          recipientId: messages.recipientId,
-          senderId: messages.senderId,
-          lastMessage: messages.content,
-          lastMessageAt: messages.createdAt
-        })
-        .from(messages)
-        .where(
-          or(
-            eq(messages.senderId, userId),
-            eq(messages.recipientId, userId)
-          )
-        )
-        .orderBy(desc(messages.createdAt));
+      // Use direct SQL query to ensure compatibility
+      const recentChats = await db.execute(sql`
+        SELECT 
+          recipient_id as "recipientId",
+          sender_id as "senderId", 
+          content as "lastMessage",
+          created_at as "lastMessageAt"
+        FROM messages 
+        WHERE sender_id = ${userId} OR recipient_id = ${userId}
+        ORDER BY created_at DESC
+      `);
+
+      console.log(`📨 Found ${recentChats.rows.length} messages for user ${userId}`);
 
       // Create simple conversation list based on messages
       const conversationsSet = new Set();
       const conversationsList = [];
 
-      for (const chat of recentChats) {
+      for (const chat of recentChats.rows) {
         let otherUserId;
         if (chat.senderId === userId) {
           otherUserId = chat.recipientId;
