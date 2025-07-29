@@ -54,15 +54,14 @@ export default function ProfileSimplePage() {
     }
   };
   
-  // Debug info (development only)
-  if (process.env.NODE_ENV === 'development') {
-    console.log("🔧 ProfileSimplePage Debug Info:", {
-      userId,
-      currentUserId: currentUser?.id,
-      profileUserId,
-      url: window.location.href
-    });
-  }
+  // Debug info (always for debugging this issue)
+  console.log("🔧 ProfileSimplePage Debug Info:", {
+    userId_from_params: userId,
+    currentUserId: currentUser?.id,
+    profileUserId_being_used: profileUserId,
+    url: window.location.href,
+    pathname: window.location.pathname
+  });
   
   // Early return if auth is still loading
   if (authLoading) {
@@ -320,15 +319,20 @@ export default function ProfileSimplePage() {
     }
   });
 
-  // Calculate derived values
+  // Calculate derived values - FIXED LOGIC
   const isOwnProfile = currentUser?.id === profileUserId && !!profileUserId;
-  const user = profileUser;
+  const user = isOwnProfile ? currentUser : profileUser; // Show profile user when viewing others
   
   // Enhanced debug logs to track the issue
   console.log("🔍 Profile Debug Info:", {
     profileUserId,
     currentUserId: currentUser?.id,
     isOwnProfile,
+    displayingUser: user ? {
+      id: user.id,
+      username: user.username,
+      firstName: user.firstName || user.first_name
+    } : null,
     profileUser: profileUser ? {
       id: profileUser.id,
       username: profileUser.username,
