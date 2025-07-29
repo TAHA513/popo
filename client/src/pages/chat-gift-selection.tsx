@@ -78,34 +78,54 @@ const GIFT_OPTIONS: GiftOption[] = [
   }
 ];
 
-export default function ChatGiftSelectionPage({ params }: { params: { userId: string } }) {
+export default function ChatGiftSelectionPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedGift, setSelectedGift] = useState<GiftOption | null>(null);
   const queryClient = useQueryClient();
+  
+  // الحصول على معرف المستخدم من URL
+  const pathname = window.location.pathname;
+  const userId = pathname.split('/').pop(); // آخر جزء في المسار
+  
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-red-600 mb-2">خطأ في الرابط</h2>
+          <p className="text-gray-600">معرف المستخدم غير صحيح</p>
+          <Button onClick={() => setLocation('/messages')} className="mt-4">
+            العودة للرسائل
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // جلب بيانات المستخدم المستهدف
-  const { data: targetUser } = useQuery({
-    queryKey: [`/api/users/${params.userId}`],
+  const { data: targetUser, isLoading: loadingUser } = useQuery({
+    queryKey: [`/api/users/${userId}`],
     queryFn: async () => {
-      const response = await fetch(`/api/users/${params.userId}`, {
+      const response = await fetch(`/api/users/${userId}`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('فشل في جلب بيانات المستخدم');
       return response.json();
-    }
+    },
+    enabled: !!userId
   });
 
   // فحص حالة المتابعة
-  const { data: followStatus } = useQuery({
-    queryKey: [`/api/follow/status/${params.userId}`],
+  const { data: followStatus, isLoading: loadingFollow } = useQuery({
+    queryKey: [`/api/follow/status/${userId}`],
     queryFn: async () => {
-      const response = await fetch(`/api/follow/status/${params.userId}`, {
+      const response = await fetch(`/api/follow/status/${userId}`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('فشل في فحص حالة المتابعة');
       return response.json();
-    }
+    },
+    enabled: !!userId
   });
 
   // إرسال الهدية وبدء المحادثة
@@ -113,7 +133,7 @@ export default function ChatGiftSelectionPage({ params }: { params: { userId: st
     mutationFn: async (gift: GiftOption) => {
       // أولاً إرسال الهدية
       const giftResponse = await apiRequest('/api/send-gift', 'POST', {
-        recipientId: params.userId,
+        recipientId: userId,
         giftType: gift.id,
         amount: gift.price,
         message: `هدية لبدء الدردشة: ${gift.name}`
@@ -121,7 +141,7 @@ export default function ChatGiftSelectionPage({ params }: { params: { userId: st
 
       // ثم إنشاء المحادثة
       const chatResponse = await apiRequest('/api/conversations/create', 'POST', {
-        otherUserId: params.userId
+        otherUserId: userId
       });
 
       return chatResponse.json();
@@ -149,12 +169,16 @@ export default function ChatGiftSelectionPage({ params }: { params: { userId: st
     sendGiftAndStartChat.mutate(selectedGift);
   };
 
-  if (!targetUser || !followStatus) {
+  // شاشة التحميل
+  if (loadingUser || loadingFollow || !targetUser || !followStatus) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pb-20 md:pb-0">
         <SimpleNavigation />
         <div className="flex items-center justify-center h-screen">
-          <div className="text-lg">جاري التحميل...</div>
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="text-lg text-gray-600">جاري تحميل بيانات المستخدم...</div>
+          </div>
         </div>
         <BottomNavigation />
       </div>
@@ -179,7 +203,7 @@ export default function ChatGiftSelectionPage({ params }: { params: { userId: st
               </p>
               <div className="flex gap-4 justify-center">
                 <Button 
-                  onClick={() => setLocation(`/user/${params.userId}`)}
+                  onClick={() => setLocation(`/user/${userId}`)}
                   className="bg-red-500 hover:bg-red-600 text-white"
                 >
                   زيارة الملف الشخصي

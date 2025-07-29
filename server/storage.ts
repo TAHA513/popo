@@ -94,6 +94,7 @@ import { nanoid } from "nanoid";
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserById(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: Omit<UpsertUser, 'id'> & { passwordHash: string }): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;

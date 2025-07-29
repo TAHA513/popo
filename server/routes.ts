@@ -733,6 +733,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user by ID
+  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        firstName: user.firstName,
+        profileImageUrl: user.profileImageUrl,
+        points: user.points,
+        isOnline: user.isOnline
+      });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "فشل في جلب بيانات المستخدم" });
+    }
+  });
+
   // Check follow status
   app.get('/api/follow/status/:userId', requireAuth, async (req: any, res) => {
     try {
