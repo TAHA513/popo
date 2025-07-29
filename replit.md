@@ -135,6 +135,16 @@ The application is designed for deployment on Replit's platform but can be adapt
 
 ## Recent Changes
 
+**Dec 29, 2024:**
+- ✅ Removed ZegoCloud SDK completely from the project 
+- ✅ Restored green live streaming interface using native WebRTC only
+- ✅ Created new LiveStreams page (/live-streams) as main landing page
+- ✅ Updated routing to use LiveStreams as homepage
+- ✅ Enhanced streams API to include host information (hostUsername, hostName)
+- ✅ Maintained existing chat and streaming functionality without external dependencies
+
+**Previous Changes:**
+
 ### July 22, 2025 - TikTok-Inspired Authentication UI Redesign
 - ✓ Redesigned login page with TikTok-inspired modern interface
 - ✓ Redesigned register page with matching dark theme design

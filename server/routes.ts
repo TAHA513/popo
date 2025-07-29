@@ -1028,6 +1028,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all streams
+  app.get('/api/streams', async (req, res) => {
+    try {
+      const streams = await storage.getStreams();
+      
+      // Add host information to each stream
+      const streamsWithHosts = await Promise.all(
+        streams.map(async (stream) => {
+          const host = await storage.getUserById(stream.hostId);
+          return {
+            ...stream,
+            hostUsername: host ? (host.firstName || host.username) : 'مضيف غير معروف',
+            hostName: host ? `${host.firstName || ''} ${host.lastName || ''}`.trim() || host.username : 'مضيف غير معروف'
+          };
+        })
+      );
+      
+      res.json(streamsWithHosts);
+    } catch (error) {
+      console.error("❌ Error fetching streams:", error);
+      res.status(500).json({ message: "فشل في جلب البثوث" });
+    }
+  });
+
   app.post('/api/streams/:id/end', requireAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
