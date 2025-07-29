@@ -25,13 +25,24 @@ import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import ChatPopup from "@/components/chat-popup";
 import { OnlineStatus } from "@/components/online-status";
-import { Link, useParams, useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 
 export default function ProfileSimplePage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
-  const params = useParams();
-  const userId = params.userId;
+  const [location] = useLocation();
+  
+  // استخراج معرف المستخدم من الرابط
+  const getUserIdFromPath = () => {
+    if (location.includes('/user/')) {
+      return location.split('/user/')[1];
+    } else if (location.includes('/profile/')) {
+      return location.split('/profile/')[1];
+    }
+    return null;
+  };
+  
+  const userId = getUserIdFromPath();
   const profileUserId = userId || currentUser?.id;
   const [activeTab, setActiveTab] = useState<"memories" | "followers" | "following">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
