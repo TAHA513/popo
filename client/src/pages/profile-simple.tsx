@@ -319,9 +319,10 @@ export default function ProfileSimplePage() {
     }
   });
 
-  // Calculate derived values - FIXED LOGIC
+  // Calculate derived values - COMPLETELY FIXED LOGIC
   const isOwnProfile = currentUser?.id === profileUserId && !!profileUserId;
-  const user = isOwnProfile ? currentUser : profileUser; // Show profile user when viewing others
+  // ALWAYS show the profileUser data, never currentUser when viewing others
+  const user = profileUser || currentUser;
   
   // Enhanced debug logs to track the issue
   console.log("🔍 Profile Debug Info:", {
