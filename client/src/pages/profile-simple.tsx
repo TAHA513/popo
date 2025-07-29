@@ -54,11 +54,11 @@ export default function ProfileSimplePage() {
   };
   
   // Enhanced debug logging (reduced for production)
-  if (process.env.NODE_ENV === 'development') {
-    console.log("🔧 ProfileSimplePage Debug Info:");
-    console.log("👤 userId from params:", userId);
-    console.log("🎯 Final profileUserId:", profileUserId);
-  }
+  console.log("🔧 ProfileSimplePage Debug Info:");
+  console.log("👤 userId from params:", userId);
+  console.log("👤 currentUser?.id:", currentUser?.id);
+  console.log("🎯 Final profileUserId:", profileUserId);
+  console.log("🔗 Current URL:", window.location.href);
   
   // Early return if auth is still loading
   if (authLoading) {

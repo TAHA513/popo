@@ -208,7 +208,17 @@ export default function Feed() {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
                       <Link href={`/user/${memory.author?.id || memory.authorId}`}>
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                        <div 
+                          className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group"
+                          onClick={() => {
+                            console.log('Profile clicked:', {
+                              authorId: memory.authorId,
+                              authorObject: memory.author,
+                              finalId: memory.author?.id || memory.authorId,
+                              link: `/user/${memory.author?.id || memory.authorId}`
+                            });
+                          }}
+                        >
                           <div className="relative">
                             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
                               {memory.author?.profileImageUrl ? (
