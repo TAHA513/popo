@@ -111,7 +111,17 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             {/* Author Info */}
             <Link 
               href={`/user/${content.author?.id || content.authorId}`}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (process.env.NODE_ENV === 'development') {
+                  console.log("🔗 FlipCard profile link clicked:", {
+                    authorId: content.author?.id,
+                    authorIdFallback: content.authorId,
+                    finalLink: `/user/${content.author?.id || content.authorId}`,
+                    authorData: content.author
+                  });
+                }
+              }}
               className="flex items-center space-x-2 rtl:space-x-reverse group"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/60 group-hover:border-white transition-colors">
@@ -361,7 +371,17 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               className="flex-1 bg-blue-500/80 hover:bg-blue-500 text-white border-0"
               onClick={(e) => {
                 e.stopPropagation();
-                setLocation(`/user/${content.author?.id || content.authorId}`);
+                const targetUserId = content.author?.id || content.authorId;
+                if (process.env.NODE_ENV === 'development') {
+                  console.log("🔗 FlipCard back profile button clicked:", {
+                    authorId: content.author?.id,
+                    authorIdFallback: content.authorId,
+                    targetUserId,
+                    finalLink: `/user/${targetUserId}`,
+                    authorData: content.author
+                  });
+                }
+                setLocation(`/user/${targetUserId}`);
               }}
             >
               <User className="w-4 h-4 ml-1" />

@@ -32,12 +32,17 @@ export default function ProfileSimplePage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const [location] = useLocation();
   
-  // استخراج معرف المستخدم من الرابط
+  // استخراج معرف المستخدم من الرابط مع تنظيف أفضل
   const getUserIdFromPath = () => {
-    if (location.includes('/user/')) {
-      return location.split('/user/')[1];
-    } else if (location.includes('/profile/')) {
-      return location.split('/profile/')[1];
+    // إزالة أي معاملات إضافية أو أجزاء من URL
+    const cleanLocation = location.split('?')[0].split('#')[0];
+    
+    if (cleanLocation.includes('/user/')) {
+      const userId = cleanLocation.split('/user/')[1];
+      return userId ? userId.trim() : null;
+    } else if (cleanLocation.includes('/profile/')) {
+      const userId = cleanLocation.split('/profile/')[1];  
+      return userId ? userId.trim() : null;
     }
     return null;
   };
@@ -67,8 +72,11 @@ export default function ProfileSimplePage() {
   // Enhanced debug logging (reduced for production)
   if (process.env.NODE_ENV === 'development') {
     console.log("🔧 ProfileSimplePage Debug Info:");
-    console.log("👤 userId from params:", userId);
+    console.log("📍 Current location:", location);
+    console.log("👤 Extracted userId:", userId);
     console.log("🎯 Final profileUserId:", profileUserId);
+    console.log("👨‍💻 Current user ID:", currentUser?.id);
+    console.log("🔍 Is viewing own profile:", !userId || userId === currentUser?.id);
   }
   
   // Early return if auth is still loading
