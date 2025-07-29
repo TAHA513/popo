@@ -166,7 +166,7 @@ export default function WatchStreamPage() {
               variant="ghost"
               size="sm"
               onClick={async () => {
-                const confirmed = confirm('هل أنت متأكد من إغلاق الدردشة؟ سيتم حذف جميع الرسائل والبيانات بشكل نهائي.');
+                const confirmed = confirm('⚠️ تأكيد إغلاق الدردشة\n\nهل أنت متأكد من إغلاق هذه الدردشة؟\n\n• سيتم حذف جميع الرسائل نهائياً\n• سيتم إنهاء الجلسة للجميع\n• لا يمكن استرداد البيانات بعد الحذف\n\nاضغط موافق للمتابعة أو إلغاء للعودة');
                 if (confirmed) {
                   try {
                     console.log("🛑 Host requesting chat deletion:", { streamId: stream.id, userId: user.id });
@@ -174,18 +174,31 @@ export default function WatchStreamPage() {
                     const response = await apiRequest(`/api/streams/${stream.id}/end`, 'POST');
                     
                     console.log("✅ Chat deletion successful:", response);
-                    alert('تم إغلاق الدردشة وحذف جميع البيانات بنجاح');
+                    
+                    // رسالة نجاح مرتبة وجميلة
+                    const successMessage = `✅ تم إغلاق الدردشة بنجاح!\n\n🗑️ تم حذف جميع الرسائل والبيانات\n⏰ انتهت الجلسة: ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}\n\n💫 شكراً لاستخدام LaaBoBo!`;
+                    
+                    alert(successMessage);
                     setLocation('/');
                   } catch (error) {
                     console.error("❌ Failed to delete chat:", error);
-                    alert('فشل في إغلاق الدردشة. يرجى المحاولة مرة أخرى.');
+                    
+                    // رسالة خطأ مرتبة
+                    const errorMessage = `❌ فشل في إغلاق الدردشة\n\n⚠️ حدث خطأ تقني\n🔄 يرجى المحاولة مرة أخرى\n\n💡 إذا استمر الخطأ، اتصل بالدعم الفني`;
+                    
+                    alert(errorMessage);
                   }
                 }
               }}
-              className="bg-red-500/80 text-white hover:bg-red-600/90 backdrop-blur-sm border border-red-400/50"
+              className="bg-gradient-to-r from-red-500/80 to-pink-600/80 text-white hover:from-red-600/90 hover:to-pink-700/90 backdrop-blur-sm border border-red-400/50 shadow-lg transition-all duration-300 hover:scale-105"
             >
-              <X className="w-5 h-5 ml-2" />
-              إغلاق الدردشة
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center border border-white/30 shadow-inner">
+                  <X className="w-4 h-4 stroke-2" />
+                </div>
+                <span className="font-bold text-sm">إنهاء الدردشة</span>
+                <div className="w-1 h-1 bg-white/60 rounded-full animate-pulse"></div>
+              </div>
             </Button>
           )}
         </div>
