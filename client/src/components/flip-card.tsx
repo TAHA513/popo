@@ -111,15 +111,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             {/* Author Info */}
             <Link 
               href={`/user/${content.author?.id || content.authorId}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('🔗 Profile Link Clicked:', {
-                  authorId: content.author?.id,
-                  authorIdFallback: content.authorId,
-                  finalLink: `/user/${content.author?.id || content.authorId}`,
-                  author: content.author
-                });
-              }}
+              onClick={(e) => e.stopPropagation()}
               className="flex items-center space-x-2 rtl:space-x-reverse group"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/60 group-hover:border-white transition-colors">
@@ -369,7 +361,6 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               className="flex-1 bg-blue-500/80 hover:bg-blue-500 text-white border-0"
               onClick={(e) => {
                 e.stopPropagation();
-                console.log('Navigating to profile:', content.author?.id || content.authorId);
                 setLocation(`/user/${content.author?.id || content.authorId}`);
               }}
             >
