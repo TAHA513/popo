@@ -1,11 +1,7 @@
 import { lazy } from 'react';
 
 // Lazy loading المكونات الثقيلة لتحسين الأداء
-export const StreamPage = lazy(() => import('@/pages/stream'));
-export const NewStreamPage = lazy(() => import('@/pages/new-stream'));
 export const AdminPage = lazy(() => import('@/pages/admin'));
-export const StartStreamPage = lazy(() => import('@/pages/start-stream'));
-export const StartChatPage = lazy(() => import('@/pages/start-stream').then(module => ({ default: module.default || (() => <div>Loading...</div>) })));
 export const CreateMemoryPage = lazy(() => import('@/pages/create-memory'));
 export const CharacterSelectionPage = lazy(() => import('@/pages/CharacterSelection'));
 export const GamesPage = lazy(() => import('@/pages/games'));

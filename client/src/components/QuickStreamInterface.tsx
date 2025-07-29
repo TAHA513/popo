@@ -24,7 +24,7 @@ export default function QuickStreamInterface({ streamData, onStreamEnd }: QuickS
   const [streamDuration, setStreamDuration] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [zegoEngine, setZegoEngine] = useState<any>(null);
+
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState(0);
 
@@ -70,7 +70,6 @@ export default function QuickStreamInterface({ streamData, onStreamEnd }: QuickS
       }
 
       await startLocalCamera();
-      await connectToZegoCloud();
       
     } catch (error) {
       console.error('❌ Quick stream initialization failed:', error);
@@ -78,39 +77,7 @@ export default function QuickStreamInterface({ streamData, onStreamEnd }: QuickS
     }
   };
 
-  const connectToZegoCloud = async () => {
-    try {
-      // الحصول على إعدادات ZegoCloud
-      const config = await fetch('/api/zego-config', {
-        credentials: 'include'
-      }).then(res => res.json());
 
-      if (!config.appId || !streamData) return;
-
-      const streamId = streamData.zegoStreamId || `stream_${streamData.id}`;
-      const roomId = streamData.zegoRoomId || `room_${streamData.id}`;
-
-      // تحميل وتهيئة ZegoCloud SDK
-      const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
-      const zg = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
-      setZegoEngine(zg);
-      
-      // تسجيل دخول للغرفة
-      await zg.loginRoom(roomId, {
-        userID: config.userID || `host_${user?.id}`,
-        userName: config.userName || user?.username || 'مضيف'
-      }, config.token || '');
-
-      // بدء البث إذا كان لدينا localStream
-      if (localStream) {
-        await zg.startPublishingStream(streamId, localStream);
-        console.log('✅ ZegoCloud streaming started');
-      }
-      
-    } catch (error) {
-      console.error('❌ ZegoCloud connection failed:', error);
-    }
-  };
 
   const startLocalCamera = async () => {
     try {
@@ -161,9 +128,7 @@ export default function QuickStreamInterface({ streamData, onStreamEnd }: QuickS
       if (videoTrack) {
         videoTrack.enabled = !isCameraOn;
         setIsCameraOn(!isCameraOn);
-        if (zegoEngine) {
-          zegoEngine.mutePublishStreamVideo(!isCameraOn);
-        }
+
       }
     }
   };
@@ -174,9 +139,7 @@ export default function QuickStreamInterface({ streamData, onStreamEnd }: QuickS
       if (audioTrack) {
         audioTrack.enabled = !isMicOn;
         setIsMicOn(!isMicOn);
-        if (zegoEngine) {
-          zegoEngine.mutePublishStreamAudio(!isMicOn);
-        }
+
       }
     }
   };
@@ -187,10 +150,7 @@ export default function QuickStreamInterface({ streamData, onStreamEnd }: QuickS
 
   const endStream = async () => {
     try {
-      if (zegoEngine) {
-        await zegoEngine.stopPublishingStream();
-        await zegoEngine.logoutRoom();
-      }
+
 
       await fetch('/api/streams/end-all', {
         method: 'POST',

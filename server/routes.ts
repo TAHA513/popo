@@ -928,77 +928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
 
-  // ZegoCloud configuration endpoint - MAXIMUM SECURITY
-  app.get('/api/zego-config', requireAuth, (req: any, res) => {
-    try {
-      // Only provide App ID to authenticated users, never the server secret
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({ error: 'معرف المستخدم مطلوب' });
-      }
 
-      console.log('🔒 ZegoCloud configuration loaded successfully');
-      
-      // Get user info for proper ZegoCloud authentication
-      const userID = req.user.id;
-      const userName = req.user.firstName || req.user.username || 'User';
-      
-      console.log('👤 Preparing ZegoCloud config for user:', {
-        userID,
-        userName,
-        sessionId: req.sessionID
-      });
-      
-      // Generate temporary tokens for this session only
-      const timestamp = Date.now();
-      const sessionToken = Buffer.from(`${userID}_${timestamp}`).toString('base64');
-      
-      // Ensure ZEGO_APP_SIGN exists
-      const appSign = process.env.ZEGO_APP_SIGN;
-      if (!appSign || appSign === '') {
-        console.error('❌ ZEGO_APP_SIGN is missing or empty!');
-        return res.status(500).json({ error: 'إعدادات البث غير مكتملة - يرجى التواصل مع الدعم' });
-      }
-      
-      // Server secrets are NEVER exposed to client
-      res.json({
-        appId: process.env.ZEGO_APP_ID || '1034062164',
-        appSign: appSign,
-        userID: userID,
-        userName: userName,
-        sessionToken: sessionToken
-      });
-    } catch (error) {
-      console.error('Security error in zego-config:', error);
-      res.status(500).json({ error: 'فشل في تحميل إعدادات البث الآمنة' });
-    }
-  });
-
-  // Secure stream validation endpoint
-  app.post('/api/streams/validate', requireAuth, (req: any, res) => {
-    try {
-      const { tempToken, zegoStreamId } = req.body;
-      
-      // Skip token validation for now - authenticate user directly  
-      if (!req.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-      
-      // Generate server-side stream token
-      const streamValidation = crypto.createHash('sha256')
-        .update(req.user.id + zegoStreamId + Date.now().toString())
-        .digest('hex')
-        .substring(0, 32);
-      
-      res.json({
-        validated: true,
-        streamToken: streamValidation,
-        userId: req.user.id
-      });
-    } catch (error) {
-      console.error('Stream validation error:', error);
-      res.status(500).json({ error: 'Validation failed' });
-    }
-  });
 
   app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
@@ -1009,8 +939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: req.body.title || 'بث مباشر',
         description: req.body.description || '',
         hostId: req.user.id,
-        zegoRoomId: req.body.zegoRoomId,
-        zegoStreamId: req.body.zegoStreamId,
+
         category: 'بث سريع', // Add required category field
         thumbnailUrl: null, // Add optional thumbnail field
         isLive: true,

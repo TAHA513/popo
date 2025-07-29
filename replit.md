@@ -6,11 +6,12 @@ LaaBoBo Garden (حديقة LaaBoBo) is an innovative social virtual pet platform
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language (Arabic).
 UI Design Preference: Clean, organized grid layout with professional appearance (NOT TikTok-style).
 Content Display: Direct content visibility with minimal layout complexity.
 Navigation: Creation buttons should be in profile/navigation, not prominently on main page.
 Brand Elements: Minimal branding approach, focus on content over branding elements.
+Live Streaming: Use native WebRTC only, NO external SDKs like ZegoCloud.
 
 ## System Architecture
 
@@ -20,7 +21,7 @@ The application follows a modern full-stack JavaScript/TypeScript architecture w
 - **Frontend**: React with TypeScript, styled using Tailwind CSS and shadcn/ui components
 - **Backend**: Express.js server with TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
-- **Real-time Communication**: WebSocket for live streaming features
+- **Real-time Communication**: WebSocket for chat and WebRTC for local streaming
 - **Authentication**: Replit-based authentication system
 - **Build System**: Vite for frontend, esbuild for server bundling
 
@@ -39,7 +40,7 @@ The application follows a modern full-stack JavaScript/TypeScript architecture w
 - **UI Framework**: shadcn/ui components with Radix UI primitives
 - **Styling**: Tailwind CSS with custom LaaBoBo brand colors (pink, purple, blue)
 - **State Management**: TanStack Query for server state, React hooks for local state
-- **Real-time**: Custom WebSocket hook for live streaming features
+- **Real-time**: Custom WebSocket hook for chat and native WebRTC for streaming
 - **Internationalization**: Support for English and Arabic with RTL layout
 - **Enhanced Memory System**: MemoryCard component with 3D-style gifts and privacy controls
 - **Privacy Features**: Comprehensive privacy settings with visibility levels and content controls

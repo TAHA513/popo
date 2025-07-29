@@ -20,7 +20,7 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
   const [viewerCount, setViewerCount] = useState(1);
   const [streamDuration, setStreamDuration] = useState(0);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [zegoEngine, setZegoEngine] = useState<any>(null);
+
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState(0);
   const [liveComments, setLiveComments] = useState<any[]>([]);
@@ -79,7 +79,6 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
     try {
       console.log('🚀 Initializing instant full-screen stream...');
       await startCamera();
-      await connectZego();
     } catch (error) {
       console.error('❌ Stream initialization failed:', error);
       await startCamera();
@@ -116,33 +115,7 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
     }
   };
 
-  const connectZego = async () => {
-    try {
-      const config = await fetch('/api/zego-config', {
-        credentials: 'include'
-      }).then(res => res.json());
 
-      if (!config.appId || !streamData) return;
-
-      const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
-      const zg = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
-      setZegoEngine(zg);
-      
-      await zg.loginRoom(streamData.zegoRoomId || 'default-room', 
-        config.userID || `host_${user?.id}`,
-        config.userName || user?.username || 'مضيف',
-        config.token || ''
-      );
-
-      if (localStream) {
-        await zg.startPublishingStream(streamData.zegoStreamId, localStream);
-        console.log('✅ ZegoCloud streaming started');
-      }
-      
-    } catch (error) {
-      console.error('❌ ZegoCloud connection failed:', error);
-    }
-  };
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -161,9 +134,7 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
       if (videoTrack) {
         videoTrack.enabled = !isCameraOn;
         setIsCameraOn(!isCameraOn);
-        if (zegoEngine) {
-          zegoEngine.mutePublishStreamVideo(!isCameraOn);
-        }
+
       }
     }
   };
@@ -174,19 +145,14 @@ export default function InstantFullScreenStream({ streamData, onStreamEnd }: Ins
       if (audioTrack) {
         audioTrack.enabled = !isMicOn;
         setIsMicOn(!isMicOn);
-        if (zegoEngine) {
-          zegoEngine.mutePublishStreamAudio(!isMicOn);
-        }
+
       }
     }
   };
 
   const endStream = async () => {
     try {
-      if (zegoEngine) {
-        await zegoEngine.stopPublishingStream();
-        await zegoEngine.logoutRoom();
-      }
+
 
       await fetch('/api/streams/end-all', {
         method: 'POST',

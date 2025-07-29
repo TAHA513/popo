@@ -16,7 +16,7 @@ export default function RealLiveStreamer({ stream }: RealLiveStreamerProps) {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [viewerCount, setViewerCount] = useState(1);
-  const [zegoEngine, setZegoEngine] = useState<any>(null);
+
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
@@ -35,42 +35,7 @@ export default function RealLiveStreamer({ stream }: RealLiveStreamerProps) {
   const initializeStreamer = async () => {
     try {
       console.log('🎬 Initializing streamer mode...');
-      
-      // الحصول على إعدادات ZegoCloud
-      const config = await fetch('/api/zego-config', {
-        credentials: 'include'
-      }).then(res => res.json());
-
-      if (!config.appId) {
-        throw new Error('ZegoCloud config not available');
-      }
-
-      const streamId = `stream_${stream.id}`;
-      const roomId = `room_${stream.id}`;
-
-      console.log('📡 ZegoCloud streamer setup:', {
-        appId: config.appId,
-        roomId,
-        streamId,
-        userId: config.userID
-      });
-
-      // تحميل وتهيئة ZegoCloud SDK
-      const { ZegoExpressEngine } = await import('zego-express-engine-webrtc');
-      const zg = new ZegoExpressEngine(parseInt(config.appId), 'wss://webliveroom-api.zego.im/ws');
-      setZegoEngine(zg);
-      
-      // تسجيل دخول للغرفة كمضيف
-      await zg.loginRoom(roomId, {
-        userID: config.userID || 'host_' + stream.hostId,
-        userName: config.userName || user?.username || 'مضيف'
-      }, config.token || '');
-
-      console.log('✅ Successfully logged into ZegoCloud room as host');
-
-      // الحصول على كاميرا ومايكروفون
       await startCamera();
-      
     } catch (error) {
       console.error('❌ Streamer initialization failed:', error);
       await startCameraDirectly();
@@ -102,12 +67,7 @@ export default function RealLiveStreamer({ stream }: RealLiveStreamerProps) {
         await videoRef.current.play();
       }
 
-      // بدء البث على ZegoCloud
-      if (zegoEngine) {
-        const streamId = `stream_${stream.id}`;
-        await zegoEngine.startPublishingStream(streamId, mediaStream);
-        console.log('📡 Started publishing to ZegoCloud with streamId:', streamId);
-      }
+
 
       setIsStreaming(true);
       console.log('✅ Camera and streaming started successfully');
@@ -149,9 +109,7 @@ export default function RealLiveStreamer({ stream }: RealLiveStreamerProps) {
         videoTrack.enabled = !isCameraOn;
         setIsCameraOn(!isCameraOn);
 
-        if (zegoEngine) {
-          zegoEngine.mutePublishStreamVideo(!isCameraOn);
-        }
+
       }
     }
   };
@@ -163,20 +121,14 @@ export default function RealLiveStreamer({ stream }: RealLiveStreamerProps) {
         audioTrack.enabled = !isMicOn;
         setIsMicOn(!isMicOn);
 
-        if (zegoEngine) {
-          zegoEngine.mutePublishStreamAudio(!isMicOn);
-        }
+
       }
     }
   };
 
   const endStream = async () => {
     try {
-      // إيقاف البث على ZegoCloud
-      if (zegoEngine) {
-        await zegoEngine.stopPublishingStream();
-        await zegoEngine.logoutRoom();
-      }
+
 
       // إنهاء البث على الخادم
       await fetch('/api/streams/end-all', {
