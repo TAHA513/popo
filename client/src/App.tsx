@@ -25,6 +25,7 @@ import WatchStreamPage from "@/pages/watch-stream";
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
+import GamesSimplePage from "@/pages/games-simple";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -64,6 +65,7 @@ function Router() {
           <Route path="/start-stream" component={SimpleStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
+          <Route path="/games" component={GamesSimplePage} />
           <Route path="/profile" component={ProfileSimplePage} />
           <Route path="/user/:userId" component={ProfileSimplePage} />
           <Route path="/messages" component={MessagesPage} />
