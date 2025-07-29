@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { requireAuth } from "../localAuth";
 import { db } from "../db";
-import { messages, users, conversations } from "@shared/schema";
+import { messages, users, conversations, messageRequests } from "@shared/schema";
 import { eq, and, or, desc, sql } from "drizzle-orm";
 
 export function setupMessageRoutes(app: Express) {
