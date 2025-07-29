@@ -103,29 +103,37 @@ export default function ChatGiftSelectionPage() {
   }
 
   // جلب بيانات المستخدم المستهدف
-  const { data: targetUser, isLoading: loadingUser } = useQuery({
+  const { data: targetUser, isLoading: loadingUser, error: userError } = useQuery({
     queryKey: [`/api/users/${userId}`],
     queryFn: async () => {
       const response = await fetch(`/api/users/${userId}`, {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('فشل في جلب بيانات المستخدم');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'فشل في جلب بيانات المستخدم');
+      }
       return response.json();
     },
-    enabled: !!userId
+    enabled: !!userId,
+    retry: 2
   });
 
   // فحص حالة المتابعة
-  const { data: followStatus, isLoading: loadingFollow } = useQuery({
+  const { data: followStatus, isLoading: loadingFollow, error: followError } = useQuery({
     queryKey: [`/api/follow/status/${userId}`],
     queryFn: async () => {
       const response = await fetch(`/api/follow/status/${userId}`, {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('فشل في فحص حالة المتابعة');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'فشل في فحص حالة المتابعة');
+      }
       return response.json();
     },
-    enabled: !!userId
+    enabled: !!userId,
+    retry: 2
   });
 
   // إرسال الهدية وبدء المحادثة
@@ -169,8 +177,46 @@ export default function ChatGiftSelectionPage() {
     sendGiftAndStartChat.mutate(selectedGift);
   };
 
+  // معالجة الأخطاء
+  if (userError || followError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pb-20 md:pb-0">
+        <SimpleNavigation />
+        <div className="flex items-center justify-center h-screen">
+          <Card className="border-2 border-red-200 bg-red-50 max-w-md mx-4">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-red-700 mb-2">خطأ في التحميل</h3>
+              <p className="text-red-600 mb-4">
+                {userError?.message || followError?.message || 'فشل في تحميل البيانات'}
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Button 
+                  onClick={() => window.location.reload()}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  إعادة المحاولة
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setLocation('/messages')}
+                  className="border-red-500 text-red-500 hover:bg-red-50"
+                >
+                  العودة للرسائل
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
+
   // شاشة التحميل
-  if (loadingUser || loadingFollow || !targetUser || !followStatus) {
+  if (loadingUser || loadingFollow) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pb-20 md:pb-0">
         <SimpleNavigation />
@@ -178,7 +224,41 @@ export default function ChatGiftSelectionPage() {
           <div className="text-center">
             <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
             <div className="text-lg text-gray-600">جاري تحميل بيانات المستخدم...</div>
+            <div className="text-sm text-gray-500 mt-2">معرف المستخدم: {userId}</div>
           </div>
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
+
+  // التحقق من البيانات المحملة
+  if (!targetUser || !followStatus) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pb-20 md:pb-0">
+        <SimpleNavigation />
+        <div className="flex items-center justify-center h-screen">
+          <Card className="border-2 border-orange-200 bg-orange-50 max-w-md mx-4">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-orange-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-orange-700 mb-2">بيانات غير مكتملة</h3>
+              <p className="text-orange-600 mb-4">
+                لم يتم تحميل جميع البيانات المطلوبة. تحقق من الاتصال.
+              </p>
+              <div className="text-sm text-gray-600 mb-4">
+                <div>المستخدم المستهدف: {targetUser ? 'موجود' : 'غير موجود'}</div>
+                <div>حالة المتابعة: {followStatus ? 'محملة' : 'غير محملة'}</div>
+              </div>
+              <Button 
+                onClick={() => setLocation('/messages')}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                العودة للرسائل
+              </Button>
+            </CardContent>
+          </Card>
         </div>
         <BottomNavigation />
       </div>
