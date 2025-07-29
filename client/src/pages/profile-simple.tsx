@@ -42,6 +42,17 @@ export default function ProfileSimplePage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
+  // دالة للعودة للصفحة السابقة
+  const handleGoBack = () => {
+    const previousPage = localStorage.getItem('previousPage');
+    if (previousPage) {
+      localStorage.removeItem('previousPage'); // إزالة الرابط المحفوظ
+      setLocation(previousPage);
+    } else {
+      setLocation('/'); // العودة للصفحة الرئيسية كخيار افتراضي
+    }
+  };
+  
   // Enhanced debug logging (reduced for production)
   if (process.env.NODE_ENV === 'development') {
     console.log("🔧 ProfileSimplePage Debug Info:");
@@ -437,6 +448,20 @@ export default function ProfileSimplePage() {
       <SimpleNavigation />
       
       <div className="container mx-auto px-4 py-8">
+        {/* زر العودة الذكي */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={handleGoBack}
+            className="bg-white/80 hover:bg-white text-gray-700 hover:text-gray-900 shadow-md border border-gray-200 flex items-center gap-2"
+          >
+            <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
+              <span className="text-purple-600 text-xs">←</span>
+            </div>
+            <span>العودة</span>
+          </Button>
+        </div>
+        
         {/* Profile Header */}
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm mb-8">
           <CardContent className="p-8">

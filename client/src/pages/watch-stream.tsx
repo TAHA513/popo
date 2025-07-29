@@ -251,6 +251,8 @@ export default function WatchStreamPage() {
                       <button 
                         onClick={() => {
                           if (message.userId && message.userId !== user?.id) {
+                            // حفظ الرابط الحالي في localStorage للعودة إليه
+                            localStorage.setItem('previousPage', `/stream/${stream.id}`);
                             setLocation(`/user/${message.userId}`);
                           }
                         }}
