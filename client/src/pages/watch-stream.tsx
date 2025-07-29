@@ -37,6 +37,7 @@ export default function WatchStreamPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [showComments, setShowComments] = useState(true);
+  const [floatingHearts, setFloatingHearts] = useState<Array<{id: number; x: number; y: number}>>([]);
 
   // جلب الرسائل الحقيقية من قاعدة البيانات
   const { data: realComments, refetch: refetchComments } = useQuery<any[]>({
@@ -196,35 +197,63 @@ export default function WatchStreamPage() {
           </div>
         </div>
 
-        {/* منطقة الدردشة الرئيسية */}
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 overflow-y-auto">
-          <div className="max-w-2xl mx-auto space-y-4 pt-20 pb-40">
+        {/* منطقة الدردشة الرئيسية مع تصميم مخصص */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 overflow-y-auto">
+          {/* تصميم خلفية مخصصة للدردشة */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full blur-2xl animate-pulse delay-1000"></div>
+            <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-gradient-to-br from-green-500 to-teal-600 rounded-full blur-3xl animate-pulse delay-2000"></div>
+            <div className="absolute bottom-40 right-10 w-28 h-28 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full blur-2xl animate-pulse delay-3000"></div>
+          </div>
+          
+          {/* شخصية متحركة للدردشة */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-10">
+            <div className="text-9xl animate-bounce">💬</div>
+          </div>
+          
+          <div className="relative max-w-2xl mx-auto space-y-4 pt-20 pb-40">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">💬 دردشة مباشرة</h2>
-              <p className="text-gray-300">شارك في المحادثة المباشرة مع {stream.hostName}</p>
+              <div className="relative inline-block">
+                <h2 className="text-3xl font-bold text-white mb-2 relative z-10">
+                  🎭 دردشة LaaBoBo المباشرة
+                </h2>
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 blur-lg opacity-30 animate-pulse"></div>
+              </div>
+              <p className="text-gray-200 text-lg">انضم للمحادثة مع {stream.hostName}</p>
             </div>
             
-            {/* الرسائل */}
-            <div className="space-y-3">
-              {comments.map((message) => (
-                <div key={message.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+            {/* الرسائل مع تصميم محسن */}
+            <div className="space-y-4">
+              {comments.map((message, index) => (
+                <div key={message.id} className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/30 shadow-xl transform hover:scale-105 transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-white/30 shadow-lg">
                       {message.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <span className="text-blue-300 font-bold text-sm">{message.username}</span>
-                    <span className="text-gray-400 text-xs">الآن</span>
+                    <div className="flex-1">
+                      <span className="text-blue-300 font-bold text-sm">{message.username}</span>
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <span>الآن</span>
+                        <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>مباشر</span>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-white text-sm leading-relaxed">{message.text}</p>
+                  <p className="text-white text-base leading-relaxed bg-black/20 rounded-xl p-3 border border-white/10">{message.text}</p>
                 </div>
               ))}
               
               {comments.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageCircle className="w-8 h-8 text-white" />
+                <div className="text-center py-16">
+                  <div className="relative mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center mx-auto shadow-2xl">
+                      <MessageCircle className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full blur-xl opacity-30 animate-pulse"></div>
                   </div>
-                  <p className="text-gray-400">لا توجد رسائل بعد. كن أول من يشارك!</p>
+                  <h3 className="text-white text-xl font-bold mb-2">🎉 ابدأ المحادثة الآن!</h3>
+                  <p className="text-gray-300 text-lg">كن أول من يشارك في هذه الدردشة المميزة</p>
                 </div>
               )}
             </div>
@@ -239,7 +268,20 @@ export default function WatchStreamPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={() => setLikes(prev => prev + 1)}
+              onClick={() => {
+                setLikes(prev => prev + 1);
+                // إضافة تأثير قلوب متحركة
+                const newHeart = {
+                  id: Date.now(),
+                  x: Math.random() * 100,
+                  y: Math.random() * 100
+                };
+                setFloatingHearts(prev => [...prev, newHeart]);
+                // إزالة القلب بعد 3 ثوان
+                setTimeout(() => {
+                  setFloatingHearts(prev => prev.filter(heart => heart.id !== newHeart.id));
+                }, 3000);
+              }}
               className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/80 to-pink-600/80 text-white hover:from-red-600/90 hover:to-pink-700/90 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center transition-all duration-300 hover:scale-110"
             >
               <Heart className="w-7 h-7" />
@@ -276,9 +318,30 @@ export default function WatchStreamPage() {
           </div>
         )}
 
-        {/* أزرار خاصة بمضيف الدردشة */}
+        {/* قلوب متحركة */}
+        {floatingHearts.map((heart) => (
+          <div
+            key={heart.id}
+            className="absolute pointer-events-none z-40"
+            style={{
+              left: `${heart.x}%`,
+              top: `${heart.y}%`,
+              animation: 'float-up 3s ease-out forwards'
+            }}
+          >
+            <div className="text-4xl animate-pulse">❤️</div>
+          </div>
+        ))}
+
+        {/* أزرار خاصة بمضيف الدردشة - يرى التفاعلات ولكن لا يشارك فيها */}
         {user && stream.hostId === user.id && (
           <div className="absolute right-4 bottom-32 z-50 space-y-3">
+            {/* المضيف يرى عدد الإعجابات ولكن بشكل مختلف */}
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/60 to-pink-600/60 text-white backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center">
+              <Heart className="w-6 h-6 text-red-300" />
+              <span className="text-xs font-bold mt-1 text-red-200">{likes}</span>
+            </div>
+            
             <Button
               variant="ghost"
               size="lg"
@@ -301,16 +364,12 @@ export default function WatchStreamPage() {
                 <span className="text-blue-200 text-xs">مشاهد</span>
               </div>
               
-              {/* إحصائيات فقط للمشاهدين */}
-              {user && stream.hostId !== user.id && (
-                <>
-                  <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1 rounded-full">
-                    <Heart className="w-4 h-4 text-red-400" />
-                    <span className="text-red-400 text-sm font-bold">{likes}</span>
-                    <span className="text-red-200 text-xs">إعجاب</span>
-                  </div>
-                </>
-              )}
+              {/* إحصائيات الإعجابات - تظهر للجميع بما في ذلك المضيف */}
+              <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1 rounded-full">
+                <Heart className="w-4 h-4 text-red-400" />
+                <span className="text-red-400 text-sm font-bold">{likes}</span>
+                <span className="text-red-200 text-xs">إعجاب</span>
+              </div>
               
               <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                 <MessageCircle className="w-4 h-4 text-green-400" />
