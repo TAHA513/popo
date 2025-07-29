@@ -361,6 +361,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               className="flex-1 bg-blue-500/80 hover:bg-blue-500 text-white border-0"
               onClick={(e) => {
                 e.stopPropagation();
+                console.log('Navigating to profile:', content.author?.id || content.authorId);
                 setLocation(`/user/${content.author?.id || content.authorId}`);
               }}
             >
