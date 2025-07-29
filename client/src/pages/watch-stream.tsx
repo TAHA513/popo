@@ -181,39 +181,78 @@ export default function WatchStreamPage() {
   };
 
   // وظائف تشغيل الرسائل الصوتية
-  const playVoiceMessage = (messageId: number, duration: number) => {
+  const playVoiceMessage = async (messageId: number, duration: number) => {
     // إيقاف أي تشغيل سابق
     if (audioElement) {
       audioElement.pause();
       audioElement.currentTime = 0;
     }
     
-    // محاكاة تشغيل الرسالة الصوتية
     setPlayingMessageId(messageId);
     
-    // إنشاء محاكاة صوتية بسيطة
-    const audio = new Audio();
-    
-    // محاكاة الصوت بتشغيل صوت بسيط
-    const oscillator = new (window as any).AudioContext();
-    audio.onended = () => {
-      setPlayingMessageId(null);
-      setAudioElement(null);
-    };
-    
-    // محاكاة مدة التشغيل
-    setTimeout(() => {
-      setPlayingMessageId(null);
-      setAudioElement(null);
-    }, duration * 1000);
-    
-    setAudioElement(audio);
+    try {
+      // إنشاء صوت محاكاة باستخدام Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      // ربط العقد الصوتية
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // إعداد نغمة صوتية جميلة ومسموعة
+      oscillator.type = 'sine'; // موجة ناعمة
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // تردد أعلى وأوضح
+      oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + duration / 2);
+      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + duration);
+      
+      // تدرج صوت واضح ومسموع
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + duration / 2);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+      
+      // تشغيل الصوت
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+      
+      // إيقاف التشغيل بعد انتهاء المدة
+      oscillator.onended = () => {
+        setPlayingMessageId(null);
+        setAudioElement(null);
+        audioContext.close();
+      };
+      
+      // حفظ مرجع للصوت الحالي
+      setAudioElement(oscillator as any);
+      
+      // إنهاء التشغيل تلقائياً بعد المدة المحددة
+      setTimeout(() => {
+        setPlayingMessageId(null);
+        setAudioElement(null);
+      }, duration * 1000);
+      
+    } catch (error) {
+      console.error('خطأ في تشغيل الرسالة الصوتية:', error);
+      // في حالة الفشل، استخدم محاكاة بصرية فقط
+      setTimeout(() => {
+        setPlayingMessageId(null);
+        setAudioElement(null);
+      }, duration * 1000);
+    }
   };
 
   const stopVoiceMessage = () => {
     if (audioElement) {
-      audioElement.pause();
-      audioElement.currentTime = 0;
+      try {
+        if (audioElement.stop) {
+          audioElement.stop();
+        } else if (audioElement.pause) {
+          audioElement.pause();
+          audioElement.currentTime = 0;
+        }
+      } catch (error) {
+        console.log('إيقاف التشغيل');
+      }
     }
     setPlayingMessageId(null);
     setAudioElement(null);
@@ -512,15 +551,9 @@ export default function WatchStreamPage() {
           </div>
         ))}
 
-        {/* أزرار خاصة بمضيف الدردشة - يرى التفاعلات ولكن لا يشارك فيها */}
+        {/* أزرار خاصة بمضيف الدردشة - بدون أيقونة القلب */}
         {user && stream.hostId === user.id && (
-          <div className="absolute right-4 bottom-32 z-50 space-y-3">
-            {/* المضيف يرى عدد الإعجابات ولكن بشكل مختلف */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500/60 to-pink-600/60 text-white backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center">
-              <Heart className="w-6 h-6 text-red-300" />
-              <span className="text-xs font-bold mt-1 text-red-200">{likes}</span>
-            </div>
-            
+          <div className="absolute right-4 bottom-32 z-50 space-y-3">            
             <Button
               variant="ghost"
               size="lg"
