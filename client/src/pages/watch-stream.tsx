@@ -145,17 +145,20 @@ export default function WatchStreamPage() {
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* حاوية البث الرئيسية */}
       <div className="absolute inset-0">
-        {/* أزرار التحكم العلوية */}
+        {/* أزرار التحكم العلوية - مختلفة للمضيف والمشاهدين */}
         <div className="absolute top-4 left-4 z-50 flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation('/')}
-            className="bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
-          >
-            <ArrowLeft className="w-5 h-5 ml-2" />
-            عودة
-          </Button>
+          {/* زر العودة - فقط للمشاهدين */}
+          {user && stream.hostId !== user.id && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/')}
+              className="bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
+            >
+              <ArrowLeft className="w-5 h-5 ml-2" />
+              عودة
+            </Button>
+          )}
           
           {/* زر إغلاق الدردشة - فقط للمضيف */}
           {user && stream.hostId === user.id && (
@@ -232,7 +235,16 @@ export default function WatchStreamPage() {
                       {message.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1">
-                      <span className="text-blue-300 font-bold text-sm">{message.username}</span>
+                      <button 
+                        onClick={() => {
+                          if (message.userId && message.userId !== user?.id) {
+                            setLocation(`/user/${message.userId}`);
+                          }
+                        }}
+                        className="text-blue-300 font-bold text-sm hover:text-blue-200 transition-colors cursor-pointer underline hover:no-underline"
+                      >
+                        {message.username}
+                      </button>
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <span>الآن</span>
                         <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
