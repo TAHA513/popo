@@ -2715,6 +2715,43 @@ async function handleWebSocketMessage(clientId: string, message: any) {
         }
         break;
         
+      case 'webrtc_offer':
+        // Forward WebRTC offer to recipient
+        const offerRecipientWs = userConnections.get(message.recipientId);
+        if (offerRecipientWs && offerRecipientWs.readyState === WebSocket.OPEN) {
+          offerRecipientWs.send(JSON.stringify({
+            type: 'webrtc_offer',
+            offer: message.offer,
+            callerId: message.senderId || 'unknown'
+          }));
+          console.log(`WebRTC offer forwarded to user ${message.recipientId}`);
+        }
+        break;
+        
+      case 'webrtc_answer':
+        // Forward WebRTC answer to caller
+        const answerRecipientWs = userConnections.get(message.recipientId);
+        if (answerRecipientWs && answerRecipientWs.readyState === WebSocket.OPEN) {
+          answerRecipientWs.send(JSON.stringify({
+            type: 'webrtc_answer',
+            answer: message.answer
+          }));
+          console.log(`WebRTC answer forwarded to user ${message.recipientId}`);
+        }
+        break;
+        
+      case 'ice_candidate':
+        // Forward ICE candidate to peer
+        const candidateRecipientWs = userConnections.get(message.recipientId);  
+        if (candidateRecipientWs && candidateRecipientWs.readyState === WebSocket.OPEN) {
+          candidateRecipientWs.send(JSON.stringify({
+            type: 'ice_candidate',
+            candidate: message.candidate
+          }));
+          console.log(`ICE candidate forwarded to user ${message.recipientId}`);
+        }
+        break;
+        
       case 'join_stream':
         console.log("🚀 User joining stream:", {
           userId: message.userId,

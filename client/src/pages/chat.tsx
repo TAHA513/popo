@@ -63,6 +63,12 @@ export default function ChatPage() {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [callType, setCallType] = useState<'audio' | 'video'>('audio');
+  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
+  const [callerId, setCallerId] = useState<string | null>(null);
+  
+  // Video refs
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   // Validate user ID
   if (!otherUserId) {
@@ -255,12 +261,44 @@ export default function ChatPage() {
     };
   }, []);
 
+  // Create peer connection
+  const createPeerConnection = () => {
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate && ws) {
+        ws.send(JSON.stringify({
+          type: 'ice_candidate',
+          candidate: event.candidate,
+          recipientId: callerId || otherUserId,
+          senderId: user?.id
+        }));
+      }
+    };
+
+    pc.ontrack = (event) => {
+      console.log('Received remote stream:', event.streams[0]);
+      setRemoteStream(event.streams[0]);
+      if (remoteVideoRef.current && event.streams[0]) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    return pc;
+  };
+
   // Handle incoming call signals
-  const handleCallSignaling = (data: any) => {
+  const handleCallSignaling = async (data: any) => {
     switch (data.type) {
       case 'incoming_call':
         setIsCallIncoming(true);
         setCallType(data.callType);
+        setCallerId(data.callerId);
         toast({
           title: "مكالمة واردة",
           description: `${data.callerName} يريد ${data.callType === 'video' ? 'مكالمة فيديو' : 'مكالمة صوتية'}`,
@@ -272,6 +310,8 @@ export default function ChatPage() {
           title: "تم قبول المكالمة",
           description: "المكالمة نشطة الآن",
         });
+        // Start WebRTC as caller
+        await startWebRTCCall();
         break;
       
       case 'call_rejected':
@@ -290,6 +330,100 @@ export default function ChatPage() {
           description: "الشخص الآخر أنهى المكالمة",
         });
         break;
+
+      case 'webrtc_offer':
+        await handleWebRTCOffer(data.offer, data.callerId);
+        break;
+
+      case 'webrtc_answer':
+        await handleWebRTCAnswer(data.answer);
+        break;
+
+      case 'ice_candidate':
+        await handleIceCandidate(data.candidate);
+        break;
+    }
+  };
+
+  // WebRTC functions
+  const startWebRTCCall = async () => {
+    try {
+      const pc = createPeerConnection();
+      setPeerConnection(pc);
+
+      // Add local stream to peer connection
+      if (localStream) {
+        localStream.getTracks().forEach(track => {
+          pc.addTrack(track, localStream);
+        });
+      }
+
+      // Create and send offer
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      if (ws) {
+        ws.send(JSON.stringify({
+          type: 'webrtc_offer',
+          offer: offer,
+          recipientId: otherUserId,
+          senderId: user?.id
+        }));
+      }
+    } catch (error) {
+      console.error('Error starting WebRTC call:', error);
+    }
+  };
+
+  const handleWebRTCOffer = async (offer: RTCSessionDescriptionInit, callerId: string) => {
+    try {
+      const pc = createPeerConnection();
+      setPeerConnection(pc);
+      setCallerId(callerId);
+
+      await pc.setRemoteDescription(offer);
+
+      // Add local stream to peer connection
+      if (localStream) {
+        localStream.getTracks().forEach(track => {
+          pc.addTrack(track, localStream);
+        });
+      }
+
+      // Create and send answer
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      if (ws) {
+        ws.send(JSON.stringify({
+          type: 'webrtc_answer',
+          answer: answer,
+          recipientId: callerId,
+          senderId: user?.id
+        }));
+      }
+    } catch (error) {
+      console.error('Error handling WebRTC offer:', error);
+    }
+  };
+
+  const handleWebRTCAnswer = async (answer: RTCSessionDescriptionInit) => {
+    try {
+      if (peerConnection) {
+        await peerConnection.setRemoteDescription(answer);
+      }
+    } catch (error) {
+      console.error('Error handling WebRTC answer:', error);
+    }
+  };
+
+  const handleIceCandidate = async (candidate: RTCIceCandidateInit) => {
+    try {
+      if (peerConnection) {
+        await peerConnection.addIceCandidate(candidate);
+      }
+    } catch (error) {
+      console.error('Error handling ICE candidate:', error);
     }
   };
 
@@ -343,6 +477,11 @@ export default function ChatPage() {
       setCallType('video');
       setIsCallActive(true);
       
+      // Set up local video
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      
       // Send call invitation to other user
       await sendCallInvitation('video');
       
@@ -372,10 +511,15 @@ export default function ChatPage() {
       setIsCallActive(true);
       setIsCallIncoming(false);
       
-      if (ws) {
+      // Set up local video
+      if (localVideoRef.current && stream) {
+        localVideoRef.current.srcObject = stream;
+      }
+      
+      if (ws && callerId) {
         ws.send(JSON.stringify({
           type: 'call_response',
-          recipientId: otherUserId,
+          recipientId: callerId,
           accepted: true
         }));
       }
@@ -398,11 +542,12 @@ export default function ChatPage() {
   // Reject incoming call
   const rejectCall = () => {
     setIsCallIncoming(false);
+    setCallerId(null);
     
-    if (ws) {
+    if (ws && callerId) {
       ws.send(JSON.stringify({
         type: 'call_response',
-        recipientId: otherUserId,
+        recipientId: callerId,
         accepted: false
       }));
     }
@@ -422,18 +567,32 @@ export default function ChatPage() {
       remoteStream.getTracks().forEach(track => track.stop());
       setRemoteStream(null);
     }
+    if (peerConnection) {
+      peerConnection.close();
+      setPeerConnection(null);
+    }
+    
+    // Clear video elements
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
     
     // Notify other user that call ended
     if (ws && isCallActive) {
+      const recipientId = callerId || otherUserId;
       ws.send(JSON.stringify({
         type: 'end_call',
-        recipientId: otherUserId
+        recipientId: recipientId
       }));
     }
     
     setIsCallActive(false);
     setIsCallIncoming(false);
     setCallType('audio');
+    setCallerId(null);
     
     toast({
       title: "انتهت المكالمة",
@@ -575,21 +734,49 @@ export default function ChatPage() {
                 {callType === 'video' ? 'مكالمة فيديو نشطة' : 'مكالمة صوتية نشطة'}
               </p>
               
-              {/* Local Video Preview for Video Calls */}
-              {callType === 'video' && localStream && (
+              {/* Video Call Interface */}
+              {callType === 'video' && (
+                <div className="mb-4 space-y-4">
+                  {/* Remote Video (Main) */}
+                  <div className="relative">
+                    <video
+                      ref={remoteVideoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-64 bg-gray-900 rounded-lg object-cover"
+                    />
+                    {!remoteStream && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 rounded-lg">
+                        <p className="text-white">في انتظار الفيديو...</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Local Video (Picture-in-Picture) */}
+                  <div className="relative">
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-32 h-24 bg-gray-800 rounded-lg object-cover border-2 border-white"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">أنت</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Audio Call Interface */}
+              {callType === 'audio' && (
                 <div className="mb-4">
-                  <video
-                    ref={(video) => {
-                      if (video && localStream) {
-                        video.srcObject = localStream;
-                      }
-                    }}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="w-full h-48 bg-gray-200 rounded-lg object-cover"
-                  />
-                  <p className="text-sm text-gray-500 mt-2">الكاميرا الخاصة بك</p>
+                  <div className="w-32 h-32 bg-gradient-to-br from-green-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <Phone className="w-16 h-16 text-white" />
+                  </div>
+                  {remoteStream ? (
+                    <p className="text-green-600 font-semibold">الصوت متصل</p>
+                  ) : (
+                    <p className="text-gray-500">في انتظار الاتصال...</p>
+                  )}
                 </div>
               )}
               
