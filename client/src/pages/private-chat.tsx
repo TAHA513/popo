@@ -213,27 +213,42 @@ export default function PrivateChatPage() {
   };
 
   const sendAudioMessage = async () => {
-    if (!audioBlob || !user) return;
+    console.log('🎤 Send audio button clicked!', { audioBlob, user, recordingTime });
+    
+    if (!audioBlob || !user) {
+      console.log('❌ Missing audioBlob or user:', { audioBlob: !!audioBlob, user: !!user });
+      toast({
+        title: "خطأ",
+        description: "لا يمكن إرسال الرسالة الصوتية - بيانات مفقودة",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       // إنشاء معرف فريد للرسالة الصوتية
       const audioKey = `${Date.now()}_${user.username || 'unknown'}`;
+      console.log('🔑 Generated audio key:', audioKey);
       
       // حفظ الصوت محلياً
       setLocalAudioMessages(prev => ({
         ...prev,
         [audioKey]: audioBlob
       }));
+      console.log('💾 Saved audio locally');
       
       // إرسال الرسالة مع المعرف
       const content = `🎤 رسالة صوتية (${recordingTime} ثانية) [${audioKey}]`;
-      await sendVoiceMessage.mutateAsync({ content, audioKey });
+      console.log('📤 Sending voice message:', content);
       
-    } catch (error) {
-      console.error('Send audio error:', error);
+      await sendVoiceMessage.mutateAsync({ content, audioKey });
+      console.log('✅ Voice message sent successfully!');
+      
+    } catch (error: any) {
+      console.error('❌ Send audio error:', error);
       toast({
         title: "خطأ في الإرسال",
-        description: "فشل في إرسال الرسالة الصوتية",
+        description: error?.message || "فشل في إرسال الرسالة الصوتية",
         variant: "destructive"
       });
     }
@@ -444,7 +459,10 @@ export default function PrivateChatPage() {
             </div>
             <div className="flex items-center space-x-2 space-x-reverse">
               <Button
-                onClick={sendAudioMessage}
+                onClick={() => {
+                  console.log('🔥 Send button clicked for voice message!');
+                  sendAudioMessage();
+                }}
                 size="sm"
                 className="bg-green-500 hover:bg-green-600 text-white"
                 disabled={sendVoiceMessage.isPending}
