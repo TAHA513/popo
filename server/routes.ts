@@ -19,6 +19,7 @@ import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
 import { setupDirectMessageRoutes } from './routes/direct-messages';
+import { setupPrivateRoomRoutes } from './routes/private-rooms';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import crypto from 'crypto';
 
@@ -167,6 +168,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup message routes
   setupDirectMessageRoutes(app);
+  
+  // Setup private room routes
+  setupPrivateRoomRoutes(app);
 
   // Local authentication routes
   app.post('/api/register', async (req, res) => {

@@ -27,6 +27,8 @@ import LockedAlbums from "@/components/LockedAlbums";
 import WatchStreamPage from "@/pages/watch-stream";
 import VideoPage from "@/pages/video";
 import SingleVideoPage from "@/pages/single-video";
+import CreatePrivateRoomPage from "@/pages/create-private-room";
+import RoomInvitationsPage from "@/pages/room-invitations";
 // Core page imports
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
@@ -80,6 +82,8 @@ function Router() {
           <Route path="/messages/new-chat" component={NewChatPage} />
           <Route path="/messages/requests" component={MessageRequestsPage} />
           <Route path="/messages/:userId" component={SimplePrivateChatPage} />
+          <Route path="/create-private-room" component={CreatePrivateRoomPage} />
+          <Route path="/room-invitations" component={RoomInvitationsPage} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
         </Suspense>
       ) : (

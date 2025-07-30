@@ -223,6 +223,50 @@ export const conversations = pgTable("conversations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Private chat rooms with gift-based entry
+export const privateRooms = pgTable("private_rooms", {
+  id: serial("id").primaryKey(),
+  hostId: varchar("host_id").notNull().references(() => users.id),
+  invitedUserId: varchar("invited_user_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  giftRequired: jsonb("gift_required").notNull(), // Gift details including price, name, icon
+  entryPrice: integer("entry_price").notNull(), // Points required to enter
+  isActive: boolean("is_active").default(true),
+  invitationSent: boolean("invitation_sent").default(false),
+  invitationAccepted: boolean("invitation_accepted").default(false),
+  giftPaid: boolean("gift_paid").default(false),
+  roomStarted: boolean("room_started").default(false),
+  roomEndedAt: timestamp("room_ended_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Private room messages
+export const privateRoomMessages = pgTable("private_room_messages", {
+  id: serial("id").primaryKey(),
+  roomId: integer("room_id").notNull().references(() => privateRooms.id),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  messageType: varchar("message_type").default("text"), // 'text', 'voice', 'image'
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Room invitations and notifications
+export const roomInvitations = pgTable("room_invitations", {
+  id: serial("id").primaryKey(),
+  roomId: integer("room_id").notNull().references(() => privateRooms.id),
+  fromUserId: varchar("from_user_id").notNull().references(() => users.id),
+  toUserId: varchar("to_user_id").notNull().references(() => users.id),
+  message: text("message"),
+  giftRequired: jsonb("gift_required").notNull(),
+  status: varchar("status").default("pending"), // 'pending', 'accepted', 'declined', 'expired'
+  expiresAt: timestamp("expires_at"), // Invitation expiry time
+  respondedAt: timestamp("responded_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Private Messages table (legacy)
 export const privateMessages = pgTable("private_messages", {
   id: serial("id").primaryKey(),

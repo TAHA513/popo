@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Search, Send, ArrowRight } from "lucide-react";
+import { MessageCircle, Search, Send, ArrowRight, Gift, Crown } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -65,10 +65,22 @@ export default function MessagesPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-800">الرسائل</h1>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Link href="/messages/new-chat">
                 <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700">
                   غرفة دردشة جديدة
+                </Button>
+              </Link>
+              <Link href="/create-private-room">
+                <Button size="sm" className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white hover:from-yellow-600 hover:to-orange-700">
+                  <Crown className="w-4 h-4 ml-1" />
+                  غرفة خاصة مدفوعة
+                </Button>
+              </Link>
+              <Link href="/room-invitations">
+                <Button size="sm" className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700">
+                  <Gift className="w-4 h-4 ml-1" />
+                  دعوات الغرف
                 </Button>
               </Link>
               <Link href="/messages/requests">
