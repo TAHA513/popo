@@ -38,7 +38,53 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [currentLikeCount, setCurrentLikeCount] = useState(content.likeCount || 0);
   const [userLiked, setUserLiked] = useState(isLiked);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Check follow status on component mount
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!content.author?.id && !content.authorId) return;
+      
+      try {
+        const response = await fetch(`/api/users/${content.author?.id || content.authorId}/follow-status`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsFollowing(data.isFollowing);
+        }
+      } catch (error) {
+        console.error('Error checking follow status:', error);
+      }
+    };
+
+    checkFollowStatus();
+  }, [content.author?.id, content.authorId]);
+
+  // Handle follow/unfollow action
+  const handleFollow = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (isFollowLoading) return;
+    setIsFollowLoading(true);
+    
+    try {
+      const response = await fetch(`/api/users/${content.author?.id || content.authorId}/follow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsFollowing(data.isFollowing);
+      }
+    } catch (error) {
+      console.error('خطأ في المتابعة:', error);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
 
   // Handle like action
   const handleLike = async (e: React.MouseEvent) => {
@@ -55,9 +101,9 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
         const data = await response.json();
         setUserLiked(data.liked);
         if (data.liked) {
-          setCurrentLikeCount(prev => prev + 1);
+          setCurrentLikeCount((prev: number) => prev + 1);
         } else {
-          setCurrentLikeCount(prev => prev - 1);
+          setCurrentLikeCount((prev: number) => prev - 1);
         }
       }
     } catch (error) {
@@ -350,25 +396,15 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
             {/* Follow button */}
             <Button 
               size="sm" 
-              className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
-              onClick={async (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                try {
-                  const response = await fetch(`/api/users/${content.author?.id || content.authorId}/follow`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                  });
-                  if (response.ok) {
-                    console.log('تم المتابعة بنجاح');
-                  }
-                } catch (error) {
-                  console.error('خطأ في المتابعة:', error);
-                }
-              }}
+              className={`border ${isFollowing 
+                ? 'bg-green-500/80 hover:bg-red-500/80 border-green-500/30 text-white' 
+                : 'bg-white/20 hover:bg-white/30 text-white border-white/30'
+              } transition-all duration-300`}
+              onClick={handleFollow}
+              disabled={isFollowLoading}
             >
               <Users className="w-4 h-4 ml-1" />
-              متابعة
+              {isFollowLoading ? 'جاري...' : isFollowing ? 'متابع ✓' : 'متابعة'}
             </Button>
           </div>
 

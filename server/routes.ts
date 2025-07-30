@@ -668,6 +668,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Check if following
+  app.get('/api/users/:userId/follow-status', requireAuth, async (req: any, res) => {
+    try {
+      const followerId = req.user.id;
+      const followedId = req.params.userId;
+      
+      if (followerId === followedId) {
+        return res.json({ isFollowing: false });
+      }
+      
+      const isFollowing = await storage.isFollowing(followerId, followedId);
+      res.json({ isFollowing });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ message: "Failed to check follow status" });
+    }
+  });
+
+  // Check if following (legacy endpoint)
   app.get('/api/users/:userId/is-following', requireAuth, async (req: any, res) => {
     try {
       const followerId = req.user.id;
@@ -695,10 +713,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (isFollowing) {
         await storage.unfollowUser(followerId, followedId);
-        res.json({ success: true, following: false });
+        res.json({ success: true, isFollowing: false, message: "تم إلغاء المتابعة" });
       } else {
         await storage.followUser(followerId, followedId);
-        res.json({ success: true, following: true });
+        res.json({ success: true, isFollowing: true, message: "تم المتابعة بنجاح" });
       }
     } catch (error) {
       console.error("Error following/unfollowing user:", error);

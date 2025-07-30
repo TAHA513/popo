@@ -33,6 +33,7 @@ import BrowseGroupRoomsPage from "@/pages/browse-group-rooms";
 import RoomInvitationsPage from "@/pages/room-invitations";
 import WalletPage from "@/pages/wallet";
 import CommentsPage from "@/pages/comments";
+import FollowersManagementPage from "@/pages/followers-management";
 // Core page imports
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
@@ -93,6 +94,7 @@ function Router() {
           <Route path="/wallet" component={WalletPage} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
           <Route path="/comments/:id" component={CommentsPage} />
+          <Route path="/followers-management" component={FollowersManagementPage} />
         </Suspense>
       ) : (
         <>
