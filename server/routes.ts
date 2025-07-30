@@ -134,9 +134,18 @@ function cleanupUserTokens(userId: string): number {
   return cleanedCount;
 }
 
-// Configure multer for file uploads
+// Configure multer for file uploads with better filename generation
 const upload = multer({
-  dest: 'uploads/',
+  storage: multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+      // Generate unique filename with timestamp
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+      cb(null, filename);
+    }
+  }),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -338,19 +347,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Create unique filename
-      const fileName = `profile-${userId}-${Date.now()}-${file.originalname}`;
-      const filePath = path.join('uploads', fileName);
-      
-      // Move file to permanent location using promises
-      await fs.promises.rename(file.path, filePath);
+      // The file is already saved by multer, just use its filename
+      const profileImageUrl = `/uploads/${file.filename}`;
       
       // Update user profile image URL in database
-      await db.update(users).set({ profileImageUrl: `/uploads/${fileName}` }).where(eq(users.id, userId));
+      await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
       
       res.json({ 
         success: true, 
-        profileImageUrl: `/uploads/${fileName}`,
+        profileImageUrl,
         message: "تم تحديث الصورة الشخصية بنجاح" 
       });
     } catch (error) {
@@ -369,19 +374,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Create unique filename
-      const fileName = `cover-${userId}-${Date.now()}-${file.originalname}`;
-      const filePath = path.join('uploads', fileName);
-      
-      // Move file to permanent location using promises
-      await fs.promises.rename(file.path, filePath);
+      // The file is already saved by multer, just use its filename
+      const coverImageUrl = `/uploads/${file.filename}`;
       
       // Update user cover image URL in database
-      await db.update(users).set({ coverImageUrl: `/uploads/${fileName}` }).where(eq(users.id, userId));
+      await db.update(users).set({ coverImageUrl }).where(eq(users.id, userId));
       
       res.json({ 
         success: true, 
-        coverImageUrl: `/uploads/${fileName}`,
+        coverImageUrl,
         message: "تم تحديث صورة الغلاف بنجاح" 
       });
     } catch (error) {
