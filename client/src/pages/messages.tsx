@@ -39,7 +39,49 @@ export default function MessagesPage() {
     }
   });
 
+  // Fetch pending private room invitations count
+  const { data: pendingInvitations = [] } = useQuery({
+    queryKey: ['/api/room-invitations/pending'],
+    queryFn: async () => {
+      const response = await fetch('/api/room-invitations/pending', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch invitations');
+      return response.json();
+    },
+    enabled: !!user
+  });
+
+  // Fetch active private rooms count
+  const { data: activePrivateRooms = [] } = useQuery({
+    queryKey: ['/api/private-rooms/active'],
+    queryFn: async () => {
+      const response = await fetch('/api/private-rooms/active', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch active rooms');
+      return response.json();  
+    },
+    enabled: !!user
+  });
+
+  // Fetch available group rooms count
+  const { data: availableGroupRooms = [] } = useQuery({
+    queryKey: ['/api/group-rooms/available'],
+    queryFn: async () => {
+      const response = await fetch('/api/group-rooms/available', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch group rooms');
+      return response.json();
+    },
+    enabled: !!user
+  });
+
   const requestCount = requests.length;
+  const pendingInvitationsCount = pendingInvitations.length;
+  const activePrivateRoomsCount = activePrivateRooms.length;
+  const availableGroupRoomsCount = availableGroupRooms.length;
 
   const filteredConversations = conversations.filter((conv: any) => 
     conv.otherUser?.username?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -91,19 +133,36 @@ export default function MessagesPage() {
             </Card>
 
             {/* Premium Rooms Section */}
-            <Card className="p-4">
+            <Card className="p-4 relative">
               <h3 className="font-bold text-gray-700 mb-3 text-center">الغرف المدفوعة</h3>
+              {/* Active rooms indicator */}
+              {(activePrivateRoomsCount > 0 || availableGroupRoomsCount > 0 || pendingInvitationsCount > 0) && (
+                <div className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-ping">
+                  <div className="absolute bg-yellow-500 rounded-full w-6 h-6"></div>
+                  <div className="relative">🔥</div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Link href="/create-private-room" className="block">
-                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 text-white hover:from-yellow-600 hover:to-orange-700">
+                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 text-white hover:from-yellow-600 hover:to-orange-700 relative">
                     <Crown className="w-4 h-4 ml-1" />
                     غرفة خاصة (1 على 1)
+                    {activePrivateRoomsCount > 0 && (
+                      <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+                        {activePrivateRoomsCount}
+                      </div>
+                    )}
                   </Button>
                 </Link>
                 <Link href="/browse-group-rooms" className="block">
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700">
+                  <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 relative">
                     <Users className="w-4 h-4 ml-1" />
                     تصفح الغرف الجماعية
+                    {availableGroupRoomsCount > 0 && (
+                      <div className="absolute -top-2 -right-2 bg-blue-400 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-bounce">
+                        {availableGroupRoomsCount}
+                      </div>
+                    )}
                   </Button>
                 </Link>
                 <Link href="/create-group-room" className="block">
@@ -112,9 +171,14 @@ export default function MessagesPage() {
                   </Button>
                 </Link>
                 <Link href="/room-invitations" className="block">
-                  <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700">
+                  <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 relative">
                     <Gift className="w-4 h-4 ml-1" />
                     دعوات الغرف الخاصة
+                    {pendingInvitationsCount > 0 && (
+                      <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+                        {pendingInvitationsCount}
+                      </div>
+                    )}
                   </Button>
                 </Link>
               </div>
@@ -133,6 +197,40 @@ export default function MessagesPage() {
             />
           </div>
         </div>
+
+        {/* Active Rooms Status Section */}
+        {(activePrivateRoomsCount > 0 || availableGroupRoomsCount > 0 || pendingInvitationsCount > 0) && (
+          <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 mb-4">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-yellow-800 mb-3 text-center flex items-center justify-center">
+                🔥 نشاط الغرف المدفوعة
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                {activePrivateRoomsCount > 0 && (
+                  <div className="bg-green-100 rounded-lg p-3 text-center">
+                    <div className="font-bold text-green-800">غرف خاصة نشطة</div>
+                    <div className="text-2xl font-bold text-green-600">{activePrivateRoomsCount}</div>
+                    <div className="text-green-700">جلسات 1 على 1</div>
+                  </div>
+                )}
+                {availableGroupRoomsCount > 0 && (
+                  <div className="bg-blue-100 rounded-lg p-3 text-center">
+                    <div className="font-bold text-blue-800">غرف جماعية متاحة</div>
+                    <div className="text-2xl font-bold text-blue-600">{availableGroupRoomsCount}</div>
+                    <div className="text-blue-700">يمكن الانضمام إليها</div>
+                  </div>
+                )}
+                {pendingInvitationsCount > 0 && (
+                  <div className="bg-red-100 rounded-lg p-3 text-center">
+                    <div className="font-bold text-red-800">دعوات معلقة</div>
+                    <div className="text-2xl font-bold text-red-600">{pendingInvitationsCount}</div>
+                    <div className="text-red-700">في انتظار الرد</div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Conversations List */}
         {filteredConversations.length === 0 ? (

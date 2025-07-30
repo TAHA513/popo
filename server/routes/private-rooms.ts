@@ -1,57 +1,38 @@
 import type { Express } from "express";
 import { requireAuth } from "../localAuth";
 import { db } from "../db";
-import { users, followers, privateRooms, roomInvitations, privateRoomMessages, pointTransactions } from "@shared/schema";
-import { eq, and, or, desc } from "drizzle-orm";
+import { users, privateRooms, roomInvitations, followers, pointTransactions } from "@shared/schema";
+import { eq, and, desc, gt } from "drizzle-orm";
 
 export function setupPrivateRoomRoutes(app: Express) {
   
-  // Get user's followers for private room invitations
-  app.get('/api/users/followers', requireAuth, async (req: any, res) => {
+  // Get active private rooms for current user
+  app.get('/api/private-rooms/active', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       
-      // Get users who follow this user
-      const userFollowers = await db
+      const activeRooms = await db
         .select({
-          id: users.id,
-          username: users.username,
-          firstName: users.firstName,
-          profileImageUrl: users.profileImageUrl
+          id: privateRooms.id,
+          title: privateRooms.title,
+          description: privateRooms.description,
+          isActive: privateRooms.isActive,
+          createdAt: privateRooms.createdAt,
         })
-        .from(followers)
-        .innerJoin(users, eq(followers.followerId, users.id))
-        .where(eq(followers.followedId, userId));
+        .from(privateRooms)
+        .where(
+          and(
+            eq(privateRooms.hostId, userId),
+            eq(privateRooms.isActive, true)
+          )
+        )
+        .orderBy(desc(privateRooms.createdAt));
 
-      console.log(`✅ Found ${userFollowers.length} followers for user ${userId}`);
-      res.json(userFollowers);
+      res.json(activeRooms);
       
     } catch (error) {
-      console.error("❌ Error fetching followers:", error);
-      res.status(500).json({ message: "خطأ في جلب المتابعين" });
-    }
-  });
-
-  // Get user's current points
-  app.get('/api/users/points', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      
-      const user = await db
-        .select({ points: users.points })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
-      if (!user.length) {
-        return res.status(404).json({ message: "المستخدم غير موجود" });
-      }
-
-      res.json({ points: user[0].points || 0 });
-      
-    } catch (error) {
-      console.error("❌ Error fetching user points:", error);
-      res.status(500).json({ message: "خطأ في جلب النقاط" });
+      console.error("❌ Error fetching active private rooms:", error);
+      res.status(500).json({ message: "خطأ في جلب الغرف النشطة" });
     }
   });
 
@@ -59,26 +40,26 @@ export function setupPrivateRoomRoutes(app: Express) {
   app.post('/api/private-rooms/create', requireAuth, async (req: any, res) => {
     try {
       const hostId = req.user.id;
-      const { invitedUserId, giftRequired, title, description, entryPrice } = req.body;
+      const { inviteeId, giftRequired, message, title, description } = req.body;
 
-      if (!invitedUserId || !giftRequired || !title?.trim() || !entryPrice) {
+      if (!inviteeId || !giftRequired) {
         return res.status(400).json({ message: "معلومات ناقصة" });
       }
 
-      // Check if invited user is a follower
+      // Check if invitee is a follower
       const isFollower = await db
         .select()
         .from(followers)
         .where(
           and(
-            eq(followers.followerId, invitedUserId),
-            eq(followers.followedId, hostId)
+            eq(followers.followerId, inviteeId), 
+            eq(followers.followingId, hostId)
           )
         )
         .limit(1);
 
       if (!isFollower.length) {
-        return res.status(400).json({ message: "يمكنك فقط دعوة المتابعين" });
+        return res.status(400).json({ message: "يمكن فقط للمتابعين دخول الغرف الخاصة" });
       }
 
       // Create private room
@@ -86,48 +67,46 @@ export function setupPrivateRoomRoutes(app: Express) {
         .insert(privateRooms)
         .values({
           hostId,
-          invitedUserId,
-          title: title.trim(),
-          description: description?.trim() || "",
+          title: title || "غرفة خاصة",
+          description: description || "",
           giftRequired,
-          entryPrice,
-          invitationSent: true
         })
         .returning();
 
-      // Create invitation record
-      const invitation = await db
+      // Send invitation with 24-hour expiry
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      
+      await db
         .insert(roomInvitations)
         .values({
           roomId: newRoom[0].id,
           fromUserId: hostId,
-          toUserId: invitedUserId,
-          message: `دعوة للغرفة الخاصة: ${title}`,
+          toUserId: inviteeId,
+          message: message || `دعوة للانضمام إلى ${title || "غرفة خاصة"}`,
           giftRequired,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours expiry
-        })
-        .returning();
+          expiresAt
+        });
 
-      console.log(`✅ Created private room ${newRoom[0].id} from ${hostId} to ${invitedUserId}`);
+      console.log(`✅ Private room ${newRoom[0].id} created and invitation sent to ${inviteeId}`);
       
       res.json({
         roomId: newRoom[0].id,
-        invitationId: invitation[0].id,
         message: "تم إنشاء الغرفة وإرسال الدعوة"
       });
       
     } catch (error) {
       console.error("❌ Error creating private room:", error);
-      res.status(500).json({ message: "خطأ في إنشاء الغرفة" });
+      res.status(500).json({ message: "خطأ في إنشاء الغرفة الخاصة" });
     }
   });
 
-  // Get pending invitations for user
+  // Get pending invitations
   app.get('/api/room-invitations/pending', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
-      const pendingInvitations = await db
+      const now = new Date();
+
+      const invitations = await db
         .select({
           id: roomInvitations.id,
           roomId: roomInvitations.roomId,
@@ -136,10 +115,8 @@ export function setupPrivateRoomRoutes(app: Express) {
           giftRequired: roomInvitations.giftRequired,
           expiresAt: roomInvitations.expiresAt,
           createdAt: roomInvitations.createdAt,
-          // Room details
           roomTitle: privateRooms.title,
           roomDescription: privateRooms.description,
-          // Sender details
           senderUsername: users.username,
           senderFirstName: users.firstName,
           senderProfileImage: users.profileImageUrl
@@ -150,13 +127,13 @@ export function setupPrivateRoomRoutes(app: Express) {
         .where(
           and(
             eq(roomInvitations.toUserId, userId),
-            eq(roomInvitations.status, 'pending'),
-            eq(privateRooms.isActive, true)
+            eq(roomInvitations.status, "pending"),
+            gt(roomInvitations.expiresAt, now)
           )
         )
         .orderBy(desc(roomInvitations.createdAt));
 
-      res.json(pendingInvitations);
+      res.json(invitations);
       
     } catch (error) {
       console.error("❌ Error fetching pending invitations:", error);
@@ -164,7 +141,7 @@ export function setupPrivateRoomRoutes(app: Express) {
     }
   });
 
-  // Accept invitation and pay gift to enter room
+  // Accept invitation
   app.post('/api/room-invitations/:invitationId/accept', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -172,22 +149,38 @@ export function setupPrivateRoomRoutes(app: Express) {
 
       // Get invitation details
       const invitation = await db
-        .select()
+        .select({
+          id: roomInvitations.id,
+          roomId: roomInvitations.roomId,
+          fromUserId: roomInvitations.fromUserId,
+          giftRequired: roomInvitations.giftRequired,
+          status: roomInvitations.status,
+          expiresAt: roomInvitations.expiresAt
+        })
         .from(roomInvitations)
         .where(
           and(
             eq(roomInvitations.id, invitationId),
-            eq(roomInvitations.toUserId, userId),
-            eq(roomInvitations.status, 'pending')
+            eq(roomInvitations.toUserId, userId)
           )
         )
         .limit(1);
 
       if (!invitation.length) {
-        return res.status(404).json({ message: "الدعوة غير موجودة أو منتهية الصلاحية" });
+        return res.status(404).json({ message: "الدعوة غير موجودة" });
       }
 
-      const giftPrice = invitation[0].giftRequired.price;
+      const invitationData = invitation[0];
+
+      if (invitationData.status !== "pending") {
+        return res.status(400).json({ message: "تم الرد على هذه الدعوة مسبقاً" });
+      }
+
+      if (new Date() > new Date(invitationData.expiresAt)) {
+        return res.status(400).json({ message: "انتهت صلاحية الدعوة" });
+      }
+
+      const giftPrice = invitationData.giftRequired.price || 0;
 
       // Check user's points
       const user = await db
@@ -206,40 +199,52 @@ export function setupPrivateRoomRoutes(app: Express) {
         .set({ points: user[0].points - giftPrice })
         .where(eq(users.id, userId));
 
-      // Record transaction
+      // Add points to host
+      const hostUser = await db
+        .select({ points: users.points })
+        .from(users)
+        .where(eq(users.id, invitationData.fromUserId))
+        .limit(1);
+
+      if (hostUser.length) {
+        await db
+          .update(users)
+          .set({ points: hostUser[0].points + giftPrice })
+          .where(eq(users.id, invitationData.fromUserId));
+      }
+
+      // Record transactions
       await db
         .insert(pointTransactions)
-        .values({
-          userId,
-          amount: -giftPrice,
-          type: 'private_room_entry',
-          description: `دخول غرفة خاصة - ${invitation[0].giftRequired.name}`
-        });
+        .values([
+          {
+            userId,
+            amount: -giftPrice,
+            type: 'private_room_entry',
+            description: 'دخول غرفة خاصة'
+          },
+          {
+            userId: invitationData.fromUserId,
+            amount: giftPrice,
+            type: 'private_room_earning',
+            description: 'أرباح من غرفة خاصة'
+          }
+        ]);
 
       // Update invitation status
       await db
         .update(roomInvitations)
         .set({
-          status: 'accepted',
+          status: "accepted",
           respondedAt: new Date()
         })
         .where(eq(roomInvitations.id, invitationId));
 
-      // Update room status
-      await db
-        .update(privateRooms)
-        .set({
-          invitationAccepted: true,
-          giftPaid: true,
-          roomStarted: true
-        })
-        .where(eq(privateRooms.id, invitation[0].roomId));
-
-      console.log(`✅ User ${userId} accepted invitation ${invitationId} and paid ${giftPrice} points`);
+      console.log(`✅ Invitation ${invitationId} accepted by user ${userId}`);
       
       res.json({
-        roomId: invitation[0].roomId,
-        message: "تم قبول الدعوة ودفع الهدية، يمكنك الآن الدخول للغرفة"
+        roomId: invitationData.roomId,
+        message: "تم قبول الدعوة ودفع الهدية"
       });
       
     } catch (error) {
@@ -254,84 +259,26 @@ export function setupPrivateRoomRoutes(app: Express) {
       const userId = req.user.id;
       const invitationId = parseInt(req.params.invitationId);
 
-      const result = await db
+      await db
         .update(roomInvitations)
         .set({
-          status: 'declined',
+          status: "declined",
           respondedAt: new Date()
         })
         .where(
           and(
             eq(roomInvitations.id, invitationId),
-            eq(roomInvitations.toUserId, userId),
-            eq(roomInvitations.status, 'pending')
+            eq(roomInvitations.toUserId, userId)
           )
-        )
-        .returning();
+        );
 
-      if (!result.length) {
-        return res.status(404).json({ message: "الدعوة غير موجودة" });
-      }
-
+      console.log(`✅ Invitation ${invitationId} declined by user ${userId}`);
+      
       res.json({ message: "تم رفض الدعوة" });
       
     } catch (error) {
       console.error("❌ Error declining invitation:", error);
       res.status(500).json({ message: "خطأ في رفض الدعوة" });
-    }
-  });
-
-  // Get active private rooms for user
-  app.get('/api/private-rooms/active', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      
-      const activeRooms = await db
-        .select({
-          id: privateRooms.id,
-          title: privateRooms.title,
-          description: privateRooms.description,
-          hostId: privateRooms.hostId,
-          invitedUserId: privateRooms.invitedUserId,
-          giftRequired: privateRooms.giftRequired,
-          roomStarted: privateRooms.roomStarted,
-          createdAt: privateRooms.createdAt,
-          // Other user details (not the current user)
-          otherUserUsername: users.username,
-          otherUserFirstName: users.firstName,
-          otherUserProfileImage: users.profileImageUrl
-        })
-        .from(privateRooms)
-        .innerJoin(
-          users,
-          or(
-            eq(users.id, privateRooms.hostId),
-            eq(users.id, privateRooms.invitedUserId)
-          )
-        )
-        .where(
-          and(
-            or(
-              eq(privateRooms.hostId, userId),
-              eq(privateRooms.invitedUserId, userId)
-            ),
-            eq(privateRooms.isActive, true),
-            eq(privateRooms.roomStarted, true)
-          )
-        )
-        .orderBy(desc(privateRooms.createdAt));
-
-      // Filter to get the other user's details (not current user)
-      const filteredRooms = activeRooms.filter(room => 
-        (room.hostId === userId && room.otherUserUsername !== req.user.username) ||
-        (room.invitedUserId === userId && room.otherUserUsername !== req.user.username)
-      );
-
-      res.json(filteredRooms);
-      
-    } catch (error) {
-      console.error("❌ Error fetching active rooms:", error);
-      res.status(500).json({ message: "خطأ في جلب الغرف النشطة" });
     }
   });
 

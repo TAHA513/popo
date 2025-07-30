@@ -175,10 +175,18 @@ export function setupGroupRoomRoutes(app: Express) {
         .where(eq(users.id, userId));
 
       // Add points to host
-      await db
-        .update(users)
-        .set({ points: db.raw(`points + ${giftPrice}`) })
-        .where(eq(users.id, roomData.hostId));
+      const hostUser = await db
+        .select({ points: users.points })
+        .from(users)
+        .where(eq(users.id, roomData.hostId))
+        .limit(1);
+
+      if (hostUser.length) {
+        await db
+          .update(users)
+          .set({ points: hostUser[0].points + giftPrice })
+          .where(eq(users.id, roomData.hostId));
+      }
 
       // Record transaction for user
       await db
