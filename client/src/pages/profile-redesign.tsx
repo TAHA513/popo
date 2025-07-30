@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
@@ -22,7 +23,8 @@ import {
   Video,
   Star,
   Trophy,
-  TrendingUp
+  TrendingUp,
+  Upload
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -45,6 +47,10 @@ export default function ProfileRedesign() {
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  
+  // Image upload refs
+  const profileImageRef = useRef<HTMLInputElement>(null);
+  const coverImageRef = useRef<HTMLInputElement>(null);
 
   // Fetch profile user data
   const { data: profileUser, isLoading: userLoading } = useQuery({
@@ -135,6 +141,97 @@ export default function ProfileRedesign() {
     followMutation.mutate();
   };
 
+  // Image upload mutations
+  const profileImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload/profile-image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      
+      if (!response.ok) throw new Error('فشل في رفع الصورة');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users', profileUserId] });
+      toast({
+        title: "تم تحديث الصورة الشخصية",
+        description: "تم رفع صورتك الشخصية بنجاح"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في رفع الصورة",
+        description: error.message || "حدث خطأ أثناء رفع الصورة",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const coverImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload/cover-image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      
+      if (!response.ok) throw new Error('فشل في رفع صورة الغلاف');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users', profileUserId] });
+      toast({
+        title: "تم تحديث صورة الغلاف",
+        description: "تم رفع صورة الغلاف بنجاح"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في رفع صورة الغلاف",
+        description: error.message || "حدث خطأ أثناء رفع الصورة",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "حجم الملف كبير جداً",
+          description: "يجب أن يكون حجم الصورة أقل من 5 ميجابايت",
+          variant: "destructive"
+        });
+        return;
+      }
+      profileImageMutation.mutate(file);
+    }
+  };
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "حجم الملف كبير جداً",
+          description: "يجب أن يكون حجم الصورة أقل من 5 ميجابايت",
+          variant: "destructive"
+        });
+        return;
+      }
+      coverImageMutation.mutate(file);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -170,16 +267,43 @@ export default function ProfileRedesign() {
         <div className="container mx-auto px-4 py-6">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-purple-50">
             {/* Cover Image */}
-            <div className="h-32 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-t-lg relative overflow-hidden">
+            <div className="h-32 rounded-t-lg relative overflow-hidden">
+              {profileUser?.coverImageUrl ? (
+                <img 
+                  src={profileUser.coverImageUrl} 
+                  alt="Cover" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
+              )}
               <div className="absolute inset-0 bg-black/20"></div>
               <div className="absolute bottom-4 right-4">
                 {isOwnProfile && (
-                  <Button size="sm" variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-white/30">
-                    <Camera className="w-4 h-4 ml-1" />
-                    تغيير الغلاف
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30"
+                    onClick={() => coverImageRef.current?.click()}
+                    disabled={coverImageMutation.isPending}
+                  >
+                    {coverImageMutation.isPending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-1" />
+                    ) : (
+                      <Camera className="w-4 h-4 ml-1" />
+                    )}
+                    {coverImageMutation.isPending ? "جاري الرفع..." : "تغيير الغلاف"}
                   </Button>
                 )}
               </div>
+              {/* Hidden file input for cover image */}
+              <input
+                ref={coverImageRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverImageChange}
+                className="hidden"
+              />
             </div>
             
             <CardContent className="p-6 -mt-16 relative z-10">
@@ -209,10 +333,24 @@ export default function ProfileRedesign() {
                     <Button 
                       size="sm" 
                       className="absolute bottom-0 left-0 rounded-full w-8 h-8 p-0 bg-purple-500 hover:bg-purple-600"
+                      onClick={() => profileImageRef.current?.click()}
+                      disabled={profileImageMutation.isPending}
                     >
-                      <Camera className="w-4 h-4" />
+                      {profileImageMutation.isPending ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Camera className="w-4 h-4" />
+                      )}
                     </Button>
                   )}
+                  {/* Hidden file input for profile image */}
+                  <input
+                    ref={profileImageRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileImageChange}
+                    className="hidden"
+                  />
                 </div>
 
                 {/* Profile Info */}

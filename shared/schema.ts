@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  coverImageUrl: varchar("cover_image_url"),
   username: varchar("username").unique().notNull(), // Required and unique
   passwordHash: varchar("password_hash").notNull(), // Required for local auth
   bio: text("bio"),

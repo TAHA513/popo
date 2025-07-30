@@ -328,33 +328,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update user profile image
-  app.post('/api/user/profile-image', requireAuth, upload.single('profileImage'), async (req: any, res) => {
+  // Profile image upload endpoint
+  app.post('/api/upload/profile-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const file = req.file;
       
       if (!file) {
-        return res.status(400).json({ message: 'No image file provided' });
+        return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
-      
-      // Save image file
+
+      // Create unique filename
       const fileName = `profile-${userId}-${Date.now()}-${file.originalname}`;
       const filePath = path.join('uploads', fileName);
       
-      await fs.rename(file.path, filePath);
-      const imageUrl = `/uploads/${fileName}`;
+      // Move file to permanent location
+      fs.renameSync(file.path, filePath);
       
-      // Update user profile
-      await storage.updateUser(userId, { profileImageUrl: imageUrl });
+      // Update user profile image URL in database
+      await db.update(users).set({ profileImageUrl: `/uploads/${fileName}` }).where(eq(users.id, userId));
       
       res.json({ 
-        message: 'Profile image updated successfully',
-        profileImageUrl: imageUrl 
+        success: true, 
+        profileImageUrl: `/uploads/${fileName}`,
+        message: "تم تحديث الصورة الشخصية بنجاح" 
       });
     } catch (error) {
-      console.error("Error updating profile image:", error);
-      res.status(500).json({ message: "Failed to update profile image" });
+      console.error('Error uploading profile image:', error);
+      res.status(500).json({ message: "خطأ في رفع الصورة" });
+    }
+  });
+
+  // Cover image upload endpoint
+  app.post('/api/upload/cover-image', requireAuth, upload.single('image'), async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "لم يتم رفع أي ملف" });
+      }
+
+      // Create unique filename
+      const fileName = `cover-${userId}-${Date.now()}-${file.originalname}`;
+      const filePath = path.join('uploads', fileName);
+      
+      // Move file to permanent location
+      fs.renameSync(file.path, filePath);
+      
+      // Update user cover image URL in database
+      await db.update(users).set({ coverImageUrl: `/uploads/${fileName}` }).where(eq(users.id, userId));
+      
+      res.json({ 
+        success: true, 
+        coverImageUrl: `/uploads/${fileName}`,
+        message: "تم تحديث صورة الغلاف بنجاح" 
+      });
+    } catch (error) {
+      console.error('Error uploading cover image:', error);
+      res.status(500).json({ message: "خطأ في رفع صورة الغلاف" });
     }
   });
 
