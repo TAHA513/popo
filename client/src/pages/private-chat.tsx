@@ -458,53 +458,70 @@ export default function PrivateChatPage() {
 
       {/* منطقة إدخال الرسائل */}
       <div className="bg-white border-t border-gray-200 p-4">
-        {audioBlob ? (
-          <div className="flex items-center justify-between bg-purple-50 p-3 rounded-xl mb-3">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-purple-700">تسجيل صوتي ({recordingTime} ثانية)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  console.log('🔥 Send button clicked for voice message!', {
-                    audioBlob: !!audioBlob,
-                    user: !!user,
-                    isPending: sendVoiceMessage.isPending,
-                    recordingTime
-                  });
-                  
-                  if (sendVoiceMessage.isPending) {
-                    console.log('⏳ Send already in progress, ignoring click');
-                    return;
-                  }
-                  
-                  sendAudioMessage();
-                }}
-                disabled={sendVoiceMessage.isPending}
-                className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg flex items-center justify-center min-w-[40px] h-[40px]"
-                type="button"
-              >
-                {sendVoiceMessage.isPending ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  console.log('🗑️ Cancel voice message');
-                  setAudioBlob(null);
-                  setRecordingTime(0);
-                }}
-                className="text-red-600 border-red-600 border hover:bg-red-50 px-3 py-2 rounded-lg flex items-center justify-center min-w-[40px] h-[40px]"
-                type="button"
-              >
-                <X className="w-4 h-4" />
-              </button>
+        {audioBlob && (
+          <div className="bg-green-50 border border-green-200 p-4 rounded-xl mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-700 font-medium">
+                  رسالة صوتية جاهزة ({recordingTime} ثانية)
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => {
+                    console.log('🚀 VOICE SEND CLICKED!');
+                    console.log('Data check:', {
+                      hasAudioBlob: !!audioBlob,
+                      hasUser: !!user,
+                      recordingTime,
+                      isPending: sendVoiceMessage.isPending
+                    });
+                    sendAudioMessage();
+                  }}
+                  className="bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-200 hover:scale-105"
+                  style={{ minWidth: '48px', minHeight: '48px' }}
+                >
+                  {sendVoiceMessage.isPending ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <span className="text-white text-xl">➤</span>
+                  )}
+                </div>
+                <div
+                  onClick={() => {
+                    console.log('🗑️ Cancel voice message');
+                    setAudioBlob(null);
+                    setRecordingTime(0);
+                  }}
+                  className="bg-red-500 hover:bg-red-600 text-white w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-200 hover:scale-105"
+                  style={{ minWidth: '48px', minHeight: '48px' }}
+                >
+                  <span className="text-white text-xl">✕</span>
+                </div>
+              </div>
             </div>
           </div>
-        ) : isRecording ? (
+        )}
+        
+        {isRecording ? (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+                <span className="text-red-700 font-medium">
+                  جاري التسجيل... ({recordingTime}/30 ثانية)
+                </span>
+              </div>
+              <div
+                onClick={stopRecording}
+                className="bg-red-500 hover:bg-red-600 text-white w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg"
+              >
+                <MicOff className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+        ) : audioBlob ? null : isRecording ? (
           <div className="flex items-center justify-between bg-red-50 p-3 rounded-xl mb-3">
             <div className="flex items-center space-x-2 space-x-reverse">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
