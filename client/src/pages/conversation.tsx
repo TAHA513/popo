@@ -12,6 +12,18 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function ConversationPage() {
   const { user } = useAuth();
+  
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+        <SimpleNavigation />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-lg text-red-600">يجب تسجيل الدخول أولاً</div>
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
   const params = useParams<{ userId: string }>();
   const userId = params.userId;
   const [newMessage, setNewMessage] = useState("");
