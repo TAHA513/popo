@@ -225,7 +225,7 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col pb-20 md:pb-0">
-      <SimpleNavigation />
+      {/* No SimpleNavigation - Custom header only */}
       
       {/* Chat Header */}
       <div className="bg-white shadow-sm border-b p-4 flex items-center justify-between">
