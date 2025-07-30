@@ -517,7 +517,7 @@ export default function PrivateChatPage() {
           </div>
         )}
         
-        {isRecording ? (
+        {isRecording && (
           <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -526,29 +526,15 @@ export default function PrivateChatPage() {
                   جاري التسجيل... ({recordingTime}/30 ثانية)
                 </span>
               </div>
-              <div
+              <button
                 onClick={stopRecording}
                 className="bg-red-500 hover:bg-red-600 text-white w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-lg"
               >
                 <MicOff className="w-5 h-5" />
-              </div>
+              </button>
             </div>
           </div>
-        ) : audioBlob ? null : isRecording ? (
-          <div className="flex items-center justify-between bg-red-50 p-3 rounded-xl mb-3">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-              <span className="text-sm text-red-700">جاري التسجيل... ({recordingTime}/30 ثانية)</span>
-            </div>
-            <Button
-              onClick={stopRecording}
-              size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              <MicOff className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : null}
+        )}
 
         <div className="flex items-center space-x-2 space-x-reverse">
           <Input
