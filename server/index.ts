@@ -10,6 +10,9 @@ app.set('trust proxy', 1); // Trust first proxy for proper session handling
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
+
 // Setup session and passport
 app.use(getSession());
 app.use(passport.initialize());

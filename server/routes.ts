@@ -342,8 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileName = `profile-${userId}-${Date.now()}-${file.originalname}`;
       const filePath = path.join('uploads', fileName);
       
-      // Move file to permanent location
-      fs.renameSync(file.path, filePath);
+      // Move file to permanent location using promises
+      await fs.promises.rename(file.path, filePath);
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl: `/uploads/${fileName}` }).where(eq(users.id, userId));
@@ -373,8 +373,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileName = `cover-${userId}-${Date.now()}-${file.originalname}`;
       const filePath = path.join('uploads', fileName);
       
-      // Move file to permanent location
-      fs.renameSync(file.path, filePath);
+      // Move file to permanent location using promises
+      await fs.promises.rename(file.path, filePath);
       
       // Update user cover image URL in database
       await db.update(users).set({ coverImageUrl: `/uploads/${fileName}` }).where(eq(users.id, userId));

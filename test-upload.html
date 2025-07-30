@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Image Upload</title>
+</head>
+<body>
+    <h2>Test Profile Image Upload</h2>
+    <form id="profileForm" enctype="multipart/form-data">
+        <input type="file" id="profileImage" name="image" accept="image/*">
+        <button type="submit">Upload Profile Image</button>
+    </form>
+    
+    <h2>Test Cover Image Upload</h2>
+    <form id="coverForm" enctype="multipart/form-data">
+        <input type="file" id="coverImage" name="image" accept="image/*">
+        <button type="submit">Upload Cover Image</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        // Login first
+        async function login() {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: 'edndn6',
+                    password: '123456'
+                })
+            });
+            return response.json();
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Login first
+            await login();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('profileImage');
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/upload/profile-image', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').innerHTML = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        });
+
+        document.getElementById('coverForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Login first
+            await login();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('coverImage');
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/upload/cover-image', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').innerHTML = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
