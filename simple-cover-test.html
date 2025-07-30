@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Cover Test</title>
+    <style>
+        .test-btn {
+            background: #9333ea;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .test-btn:hover {
+            background: #7c3aed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h2>اختبار بسيط لرفع صورة الغلاف</h2>
+    
+    <input type="file" id="coverInput" accept="image/*" style="display: none;">
+    
+    <button class="test-btn" onclick="triggerUpload()">اختر صورة الغلاف</button>
+    <button class="test-btn" onclick="uploadSelected()">رفع الصورة</button>
+    
+    <div id="result">لم يتم اختيار أي ملف بعد</div>
+
+    <script>
+        let selectedFile = null;
+        
+        function triggerUpload() {
+            console.log('🔘 تشغيل منتقي الملفات');
+            document.getElementById('coverInput').click();
+        }
+        
+        document.getElementById('coverInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('result').innerHTML = 
+                    `✅ تم اختيار الملف: ${file.name} (${Math.round(file.size/1024)} KB)`;
+                console.log('📂 ملف مختار:', file);
+            }
+        });
+        
+        async function uploadSelected() {
+            if (!selectedFile) {
+                alert('اختر ملف أولاً');
+                return;
+            }
+            
+            try {
+                // تسجيل دخول تلقائي
+                const loginResp = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: 'edndn6',
+                        password: '123'
+                    })
+                });
+                
+                if (!loginResp.ok) {
+                    throw new Error('فشل تسجيل الدخول');
+                }
+                
+                // رفع الصورة
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+
+                const uploadResp = await fetch('/api/upload/cover-image', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const result = await uploadResp.json();
+                document.getElementById('result').innerHTML = 
+                    `<h3>نتيجة الرفع:</h3><pre>${JSON.stringify(result, null, 2)}</pre>`;
+                    
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<p style="color: red;">خطأ: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
