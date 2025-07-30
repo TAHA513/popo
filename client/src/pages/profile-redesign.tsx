@@ -218,10 +218,8 @@ export default function ProfileRedesign() {
   };
 
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('🖼️ تم اختيار صورة غلاف!', e.target.files);
     const file = e.target.files?.[0];
     if (file) {
-      console.log('📂 معلومات الملف:', { name: file.name, size: file.size });
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
           title: "حجم الملف كبير جداً",
@@ -230,10 +228,7 @@ export default function ProfileRedesign() {
         });
         return;
       }
-      console.log('🚀 بدء رفع صورة الغلاف...');
       coverImageMutation.mutate(file);
-    } else {
-      console.log('❌ لم يتم اختيار أي ملف');
     }
   };
 
@@ -283,52 +278,29 @@ export default function ProfileRedesign() {
                 <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
               )}
               <div className="absolute inset-0 bg-black/20"></div>
-              <div className="absolute bottom-4 right-4">
+              <div className="absolute bottom-2 right-2">
                 {isOwnProfile && (
-                  <>
-                    <Button 
-                      size="sm" 
-                      variant="secondary" 
-                      className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30 relative z-50"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🔘 تم النقر على زر تغيير الغلاف');
-                        const fileInput = document.getElementById('cover-image-input') as HTMLInputElement;
-                        if (fileInput) {
-                          console.log('📂 تشغيل منتقي الملفات...');
-                          fileInput.click();
-                        } else {
-                          console.error('❌ منتقي الملفات غير موجود!');
-                          toast({
-                            title: "خطأ في النظام",
-                            description: "لم يتم العثور على منتقي الملفات",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                      disabled={coverImageMutation.isPending}
-                      style={{ pointerEvents: 'auto' }}
-                    >
-                      {coverImageMutation.isPending ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-1" />
-                      ) : (
-                        <Camera className="w-4 h-4 ml-1" />
-                      )}
-                      {coverImageMutation.isPending ? "جاري الرفع..." : "تغيير الغلاف"}
-                    </Button>
-                    {/* زر اختبار إضافي */}
-                    <Button 
-                      size="sm" 
-                      className="ml-2 bg-red-500 hover:bg-red-600 text-white"
-                      onClick={() => {
-                        console.log('🧪 زر الاختبار تم النقر عليه');
-                        alert('زر الاختبار يعمل!');
-                      }}
-                    >
-                      اختبار
-                    </Button>
-                  </>
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30 relative z-50 px-2 py-1 text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const fileInput = document.getElementById('cover-image-input') as HTMLInputElement;
+                      if (fileInput) {
+                        fileInput.click();
+                      }
+                    }}
+                    disabled={coverImageMutation.isPending}
+                    style={{ pointerEvents: 'auto' }}
+                  >
+                    {coverImageMutation.isPending ? (
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Camera className="w-3 h-3" />
+                    )}
+                  </Button>
                 )}
               </div>
               {/* Hidden file input for cover image */}
@@ -338,26 +310,8 @@ export default function ProfileRedesign() {
                 accept="image/*"
                 onChange={handleCoverImageChange}
                 className="hidden"
-                style={{ display: 'none', position: 'absolute', top: '-9999px', left: '-9999px' }}
+                style={{ display: 'none' }}
               />
-              
-              {/* زر اختبار مرئي */}
-              {isOwnProfile && (
-                <div className="absolute top-4 left-4 z-50">
-                  <Button 
-                    onClick={() => {
-                      console.log('🧪 زر الاختبار العلوي');
-                      const input = document.getElementById('cover-image-input') as HTMLInputElement;
-                      if (input) {
-                        input.click();
-                      }
-                    }}
-                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs"
-                  >
-                    📷 تجربة
-                  </Button>
-                </div>
-              )}
             </div>
             
             <CardContent className="p-6 -mt-16 relative z-10">
