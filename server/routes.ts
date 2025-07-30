@@ -428,8 +428,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID required" });
       }
       
-      const memories = await storage.getUserMemoryFragments(userId);
-      res.json(memories);
+      // Get user memories with comment counts
+      const memoriesWithCounts = await db
+        .select({
+          id: memoryFragments.id,
+          authorId: memoryFragments.authorId,
+          type: memoryFragments.type,
+          title: memoryFragments.title,
+          caption: memoryFragments.caption,
+          mediaUrls: memoryFragments.mediaUrls,
+          thumbnailUrl: memoryFragments.thumbnailUrl,
+          viewCount: memoryFragments.viewCount,
+          likeCount: memoryFragments.likeCount,
+          shareCount: memoryFragments.shareCount,
+          giftCount: memoryFragments.giftCount,
+          currentEnergy: memoryFragments.currentEnergy,
+          memoryType: memoryFragments.memoryType,
+          mood: memoryFragments.mood,
+          isActive: memoryFragments.isActive,
+          isPublic: memoryFragments.isPublic,
+          visibilityLevel: memoryFragments.visibilityLevel,
+          allowComments: memoryFragments.allowComments,
+          allowSharing: memoryFragments.allowSharing,
+          allowGifts: memoryFragments.allowGifts,
+          location: memoryFragments.location,
+          createdAt: memoryFragments.createdAt,
+          updatedAt: memoryFragments.updatedAt,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+            isStreamer: users.isStreamer,
+          }
+        })
+        .from(memoryFragments)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .where(and(
+          eq(memoryFragments.authorId, userId),
+          eq(memoryFragments.isActive, true)
+        ))
+        .orderBy(desc(memoryFragments.createdAt));
+
+      // Get comment counts for each memory
+      const memoriesWithCommentCounts = await Promise.all(
+        memoriesWithCounts.map(async (memory) => {
+          const [commentCountResult] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(comments)
+            .where(and(
+              eq(comments.postId, memory.id),
+              eq(comments.postType, 'memory')
+            ));
+          
+          return {
+            ...memory,
+            commentCount: commentCountResult.count || 0
+          };
+        })
+      );
+
+      res.json(memoriesWithCommentCounts);
     } catch (error) {
       console.error("Error fetching user memories:", error);
       res.status(500).json({ message: "Failed to fetch memories" });
@@ -439,9 +498,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get public memory fragments for homepage
   app.get('/api/memories/public', async (req, res) => {
     try {
-      // Get public memories from all users, sorted by creation date
-      const memories = await storage.getPublicMemoryFragments();
-      res.json(memories);
+      // Get memories with author info and comment counts
+      const memoriesWithCounts = await db
+        .select({
+          id: memoryFragments.id,
+          authorId: memoryFragments.authorId,
+          type: memoryFragments.type,
+          title: memoryFragments.title,
+          caption: memoryFragments.caption,
+          mediaUrls: memoryFragments.mediaUrls,
+          thumbnailUrl: memoryFragments.thumbnailUrl,
+          viewCount: memoryFragments.viewCount,
+          likeCount: memoryFragments.likeCount,
+          shareCount: memoryFragments.shareCount,
+          giftCount: memoryFragments.giftCount,
+          currentEnergy: memoryFragments.currentEnergy,
+          memoryType: memoryFragments.memoryType,
+          mood: memoryFragments.mood,
+          isActive: memoryFragments.isActive,
+          isPublic: memoryFragments.isPublic,
+          visibilityLevel: memoryFragments.visibilityLevel,
+          allowComments: memoryFragments.allowComments,
+          allowSharing: memoryFragments.allowSharing,
+          allowGifts: memoryFragments.allowGifts,
+          location: memoryFragments.location,
+          createdAt: memoryFragments.createdAt,
+          updatedAt: memoryFragments.updatedAt,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+            isStreamer: users.isStreamer,
+          }
+        })
+        .from(memoryFragments)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .where(and(
+          eq(memoryFragments.isActive, true),
+          eq(memoryFragments.isPublic, true)
+        ))
+        .orderBy(desc(memoryFragments.createdAt));
+
+      // Get comment counts for each memory
+      const memoriesWithCommentCounts = await Promise.all(
+        memoriesWithCounts.map(async (memory) => {
+          const [commentCountResult] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(comments)
+            .where(and(
+              eq(comments.postId, memory.id),
+              eq(comments.postType, 'memory')
+            ));
+          
+          return {
+            ...memory,
+            commentCount: commentCountResult.count || 0
+          };
+        })
+      );
+
+      res.json(memoriesWithCommentCounts);
     } catch (error) {
       console.error("Error fetching public memories:", error);
       res.status(500).json({ message: "Failed to fetch public memories" });
