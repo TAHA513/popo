@@ -256,12 +256,6 @@ export default function ChatPage() {
         
         <div className="flex items-center space-x-2 space-x-reverse">
           <Button variant="ghost" size="sm" className="p-2">
-            <Phone className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="p-2">
-            <Video className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="p-2">
             <MoreVertical className="w-5 h-5" />
           </Button>
         </div>

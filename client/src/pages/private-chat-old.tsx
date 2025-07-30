@@ -19,7 +19,6 @@ import BottomNavigation from "@/components/bottom-navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: number;
@@ -47,7 +46,6 @@ interface Conversation {
 export default function PrivateChatPage() {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
-  const { toast } = useToast();
   
   // استخراج معرف المستخدم من الرابط
   const otherUserId = location.split('/messages/private/')[1];
@@ -105,13 +103,6 @@ export default function PrivateChatPage() {
       setNewMessage("");
       queryClient.invalidateQueries({ queryKey: [`/api/messages/${otherUserId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في الإرسال",
-        description: error.message || "حدث خطأ أثناء إرسال الرسالة",
-        variant: "destructive"
-      });
     }
   });
 
@@ -128,17 +119,6 @@ export default function PrivateChatPage() {
       setRecordingTime(0);
       queryClient.invalidateQueries({ queryKey: [`/api/messages/${otherUserId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
-      toast({
-        title: "تم الإرسال",
-        description: "تم إرسال الرسالة الصوتية بنجاح"
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في الإرسال",
-        description: error.message || "حدث خطأ أثناء إرسال الرسالة الصوتية",
-        variant: "destructive"
-      });
     }
   });
 
@@ -148,28 +128,100 @@ export default function PrivateChatPage() {
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
         <SimpleNavigation />
         <div className="flex items-center justify-center h-screen">
-          <div className="text-lg text-red-600">خطأ: لم يتم العثور على المستخدم</div>
+          <Card className="border-2 border-red-200 bg-red-50 max-w-md mx-4">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-xl font-semibold text-red-700 mb-2">خطأ في الرابط</h3>
+              <p className="text-red-600 mb-4">معرف المحادثة غير صحيح</p>
+              <Button 
+                onClick={() => setLocation('/messages')}
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
+                العودة للرسائل
+              </Button>
+            </CardContent>
+          </Card>
         </div>
         <BottomNavigation />
       </div>
     );
   }
 
-  // بدء التسجيل الصوتي
+  // جلب معلومات المستخدم الآخر
+  const { data: otherUser } = useQuery({
+    queryKey: [`/api/users/${otherUserId}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${otherUserId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('فشل في جلب معلومات المستخدم');
+      return response.json();
+    }
+  });
+
+  // جلب الرسائل
+  const { data: messages = [], refetch: refetchMessages } = useQuery({
+    queryKey: [`/api/messages/${otherUserId}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/messages/${otherUserId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('فشل في جلب الرسائل');
+      return response.json();
+    },
+    refetchInterval: 2000 // تحديث كل ثانيتين
+  });
+
+  // إرسال رسالة نصية
+  const sendMessage = useMutation({
+    mutationFn: async (content: string) => {
+      return await apiRequest('/api/messages/send', 'POST', {
+        recipientId: otherUserId,
+        content,
+        messageType: 'text'
+      });
+    },
+    onSuccess: () => {
+      setNewMessage("");
+      refetchMessages();
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+    }
+  });
+
+  // إرسال رسالة صوتية
+  const sendVoiceMessage = useMutation({
+    mutationFn: async ({ content, audioKey }: { content: string; audioKey: string }) => {
+      return await apiRequest('/api/messages/send', 'POST', {
+        recipientId: otherUserId,
+        content,
+        messageType: 'voice'
+      });
+    },
+    onSuccess: () => {
+      setAudioBlob(null);
+      setRecordingTime(0);
+      refetchMessages();
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+    }
+  });
+
+  // التمرير لأسفل عند وصول رسائل جديدة
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // وظائف التسجيل الصوتي
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
+      const audioChunks: Blob[] = [];
 
       recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
+        audioChunks.push(event.data);
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
         setAudioBlob(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
@@ -192,12 +244,7 @@ export default function PrivateChatPage() {
       setRecordingInterval(interval);
 
     } catch (error) {
-      console.error('Recording error:', error);
-      toast({
-        title: "خطأ في التسجيل",
-        description: "يرجى السماح بالوصول للميكروفون لإرسال رسائل صوتية",
-        variant: "destructive"
-      });
+      alert('يرجى السماح بالوصول للميكروفون لإرسال رسائل صوتية');
     }
   };
 
@@ -230,12 +277,7 @@ export default function PrivateChatPage() {
       await sendVoiceMessage.mutateAsync({ content, audioKey });
       
     } catch (error) {
-      console.error('Send audio error:', error);
-      toast({
-        title: "خطأ في الإرسال",
-        description: "فشل في إرسال الرسالة الصوتية",
-        variant: "destructive"
-      });
+      alert('فشل في إرسال الرسالة الصوتية');
     }
   };
 
@@ -293,11 +335,6 @@ export default function PrivateChatPage() {
     }
   };
 
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   if (conversationLoading || messagesLoading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
@@ -310,24 +347,12 @@ export default function PrivateChatPage() {
     );
   }
 
-  if (!conversation) {
-    return (
-      <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-        <SimpleNavigation />
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-lg text-red-600">المحادثة غير موجودة</div>
-        </div>
-        <BottomNavigation />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-      {/* No SimpleNavigation - Custom header only */}
+      <SimpleNavigation />
       
       {/* رأس المحادثة */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-16 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 space-x-reverse">
             <Button
@@ -452,67 +477,52 @@ export default function PrivateChatPage() {
                 <Send className="w-4 h-4" />
               </Button>
               <Button
-                onClick={() => setAudioBlob(null)}
+                onClick={() => {
+                  setAudioBlob(null);
+                  setRecordingTime(0);
+                }}
                 size="sm"
                 variant="outline"
-                className="text-red-600 border-red-600 hover:bg-red-50"
+                className="text-red-500 border-red-500 hover:bg-red-50"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
-        ) : isRecording ? (
-          <div className="flex items-center justify-between bg-red-50 p-3 rounded-xl mb-3">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-              <span className="text-sm text-red-700">جاري التسجيل... ({recordingTime}/30 ثانية)</span>
-            </div>
-            <Button
-              onClick={stopRecording}
-              size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              <MicOff className="w-4 h-4" />
-            </Button>
-          </div>
         ) : null}
 
         <div className="flex items-center space-x-2 space-x-reverse">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="اكتب رسالتك هنا..."
-            className="flex-1"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            disabled={sendMessage.isPending}
-          />
+          <div className="flex-1">
+            <Input
+              type="text"
+              placeholder="اكتب رسالتك هنا..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              className="border-gray-300 focus:border-purple-500 rounded-xl"
+              disabled={sendMessage.isPending}
+            />
+          </div>
           
           <Button
-            onClick={startRecording}
+            onClick={isRecording ? stopRecording : startRecording}
             size="sm"
-            variant="outline"
-            className="text-purple-600 border-purple-600 hover:bg-purple-50"
-            disabled={isRecording || !!audioBlob}
+            className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-500 hover:bg-purple-600'} text-white rounded-xl px-3`}
           >
-            <Mic className="w-4 h-4" />
+            {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
           </Button>
           
           <Button
             onClick={handleSendMessage}
             size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 rounded-xl px-4"
             disabled={!newMessage.trim() || sendMessage.isPending}
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           </Button>
         </div>
       </div>
-      
+
       <BottomNavigation />
     </div>
   );
