@@ -127,9 +127,8 @@ export default function PrivateChatPage() {
       console.log('✅ Voice message API response:', response);
       return response;
     },
-    onSuccess: () => {
-      setAudioBlob(null);
-      setRecordingTime(0);
+    onSuccess: (data) => {
+      console.log('🎉 Voice message success callback:', data);
       queryClient.invalidateQueries({ queryKey: [`/api/messages/${otherUserId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
       toast({
@@ -245,8 +244,12 @@ export default function PrivateChatPage() {
       const content = `🎤 رسالة صوتية (${recordingTime} ثانية) [${audioKey}]`;
       console.log('📤 Sending voice message:', content);
       
-      await sendVoiceMessage.mutateAsync({ content, audioKey });
-      console.log('✅ Voice message sent successfully!');
+      const result = await sendVoiceMessage.mutateAsync({ content, audioKey });
+      console.log('✅ Voice message sent successfully!', result);
+      
+      // إعادة تعيين البيانات الصوتية بعد الإرسال الناجح
+      setAudioBlob(null);
+      setRecordingTime(0);
       
     } catch (error: any) {
       console.error('❌ Send audio error:', error);
@@ -463,15 +466,33 @@ export default function PrivateChatPage() {
             </div>
             <div className="flex items-center space-x-2 space-x-reverse">
               <Button
-                onClick={() => {
-                  console.log('🔥 Send button clicked for voice message!');
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🔥 Send button clicked for voice message!', {
+                    audioBlob: !!audioBlob,
+                    user: !!user,
+                    isPending: sendVoiceMessage.isPending,
+                    recordingTime
+                  });
+                  
+                  if (sendVoiceMessage.isPending) {
+                    console.log('⏳ Send already in progress, ignoring click');
+                    return;
+                  }
+                  
                   sendAudioMessage();
                 }}
                 size="sm"
                 className="bg-green-500 hover:bg-green-600 text-white"
                 disabled={sendVoiceMessage.isPending}
+                type="button"
               >
-                <Send className="w-4 h-4" />
+                {sendVoiceMessage.isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
               <Button
                 onClick={() => setAudioBlob(null)}
