@@ -370,15 +370,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const file = req.file;
       
+      console.log('🔄 Cover image upload request:', {
+        userId,
+        file: file ? { filename: file.filename, originalname: file.originalname, size: file.size } : null
+      });
+      
       if (!file) {
+        console.log('❌ No file provided');
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
       // The file is already saved by multer, just use its filename
       const coverImageUrl = `/uploads/${file.filename}`;
       
+      console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
+      
       // Update user cover image URL in database
       await db.update(users).set({ coverImageUrl }).where(eq(users.id, userId));
+      
+      console.log('✅ Cover image uploaded successfully for user:', userId);
       
       res.json({ 
         success: true, 
@@ -386,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "تم تحديث صورة الغلاف بنجاح" 
       });
     } catch (error) {
-      console.error('Error uploading cover image:', error);
+      console.error('❌ Error uploading cover image:', error);
       res.status(500).json({ message: "خطأ في رفع صورة الغلاف" });
     }
   });

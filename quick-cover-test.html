@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Cover Test</title>
+</head>
+<body>
+    <h2>Quick Cover Upload Test</h2>
+    <p>User: SmoJzTCLYTemAQTm1JM8s (edndn6)</p>
+    
+    <div>
+        <input type="file" id="coverFile" accept="image/*">
+        <button onclick="uploadCover()" id="uploadBtn">Upload Cover</button>
+    </div>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 8px;"></div>
+
+    <script>
+        async function uploadCover() {
+            const fileInput = document.getElementById('coverFile');
+            const btn = document.getElementById('uploadBtn');
+            
+            if (!fileInput.files[0]) {
+                document.getElementById('result').innerHTML = 'Please select a file';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+            
+            // Login first with session cookie
+            try {
+                const loginResponse = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: 'edndn6',
+                        password: '123456'
+                    })
+                });
+                
+                console.log('Login response:', await loginResponse.text());
+                
+                // Now upload cover
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+
+                const uploadResponse = await fetch('/api/upload/cover-image', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const result = await uploadResponse.json();
+                console.log('Upload result:', result);
+                
+                if (result.success) {
+                    document.getElementById('result').innerHTML = 
+                        `<h3>Success!</h3>
+                         <p>Cover URL: ${result.coverImageUrl}</p>
+                         <img src="${result.coverImageUrl}" style="max-width: 300px; border-radius: 8px;">`;
+                } else {
+                    document.getElementById('result').innerHTML = `<h3>Failed:</h3><p>${JSON.stringify(result)}</p>`;
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `<h3>Error:</h3><p>${error.message}</p>`;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Upload Cover';
+        }
+    </script>
+</body>
+</html>

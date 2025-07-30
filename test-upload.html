@@ -20,6 +20,10 @@
     
     <h2>Test Current User Login</h2>
     <button onclick="testCurrentUser()">Test Current User</button>
+    
+    <h2>Test Cover Upload Directly</h2>
+    <input type="file" id="testCoverFile" accept="image/*">
+    <button onclick="testCoverUpload()">Test Cover Upload</button>
 
     <script>
         // Register and login function
@@ -124,6 +128,42 @@
                 document.getElementById('result').innerHTML = '<h3>Current User:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
             } catch (error) {
                 document.getElementById('result').innerHTML = '<h3>Error:</h3>' + error.message;
+            }
+        }
+        
+        // Test cover upload directly
+        async function testCoverUpload() {
+            await registerAndLogin();
+            
+            const fileInput = document.getElementById('testCoverFile');
+            if (!fileInput.files[0]) {
+                document.getElementById('result').innerHTML = 'Please select a file first';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                console.log('Starting cover upload...');
+                const response = await fetch('/api/upload/cover-image', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Cover upload result:', result);
+                
+                document.getElementById('result').innerHTML = '<h3>Cover Upload Result:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                
+                if (result.success) {
+                    document.getElementById('result').innerHTML += '<br><img src="' + result.coverImageUrl + '" style="max-width: 300px; margin-top: 10px;">';
+                }
+            } catch (error) {
+                console.error('Cover upload error:', error);
+                document.getElementById('result').innerHTML = '<h3>Cover Upload Error:</h3>' + error.message;
             }
         }
     </script>
