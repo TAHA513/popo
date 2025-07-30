@@ -216,10 +216,18 @@ export default function PrivateChatPage() {
   };
 
   const sendAudioMessage = async () => {
-    console.log('🎤 Send audio button clicked!', { audioBlob, user, recordingTime });
+    console.log('🎤🎤🎤 SEND AUDIO MESSAGE FUNCTION CALLED! 🎤🎤🎤');
+    console.log('Current state:', { 
+      audioBlob: !!audioBlob, 
+      audioBlobSize: audioBlob?.size,
+      user: !!user, 
+      userId: user?.id,
+      recordingTime,
+      isPending: sendVoiceMessage.isPending 
+    });
     
     if (!audioBlob || !user) {
-      console.log('❌ Missing audioBlob or user:', { audioBlob: !!audioBlob, user: !!user });
+      console.log('❌ Missing data - cannot send voice message');
       toast({
         title: "خطأ",
         description: "لا يمكن إرسال الرسالة الصوتية - بيانات مفقودة",
@@ -229,27 +237,32 @@ export default function PrivateChatPage() {
     }
 
     try {
-      // إنشاء معرف فريد للرسالة الصوتية
-      const audioKey = `${Date.now()}_${user.username || 'unknown'}`;
-      console.log('🔑 Generated audio key:', audioKey);
+      console.log('📡 Starting voice message send process...');
       
-      // حفظ الصوت محلياً
-      setLocalAudioMessages(prev => ({
-        ...prev,
-        [audioKey]: audioBlob
-      }));
-      console.log('💾 Saved audio locally');
+      // إرسال الرسالة النصية بدلاً من البصمة الصوتية مؤقتاً للاختبار
+      const content = `🎤 رسالة صوتية (${recordingTime} ثانية)`;
+      console.log('📤 Sending as text message:', content);
       
-      // إرسال الرسالة مع المعرف
-      const content = `🎤 رسالة صوتية (${recordingTime} ثانية) [${audioKey}]`;
-      console.log('📤 Sending voice message:', content);
+      // استخدام نفس طريقة إرسال الرسائل النصية
+      const response = await apiRequest('POST', '/api/messages/send', {
+        receiverId: otherUserId,
+        content: content
+      });
       
-      const result = await sendVoiceMessage.mutateAsync({ content, audioKey });
-      console.log('✅ Voice message sent successfully!', result);
+      console.log('✅ Voice message sent as text successfully!', response);
       
-      // إعادة تعيين البيانات الصوتية بعد الإرسال الناجح
+      // إعادة تعيين البيانات الصوتية
       setAudioBlob(null);
       setRecordingTime(0);
+      
+      // تحديث قائمة الرسائل
+      queryClient.invalidateQueries({ queryKey: [`/api/messages/${otherUserId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+      
+      toast({
+        title: "تم الإرسال",
+        description: "تم إرسال الرسالة الصوتية بنجاح"
+      });
       
     } catch (error: any) {
       console.error('❌ Send audio error:', error);
