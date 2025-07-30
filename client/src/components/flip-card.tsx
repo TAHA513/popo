@@ -28,15 +28,42 @@ interface FlipCardProps {
   content: any;
   type: 'video' | 'image' | 'live' | 'featured';
   onAction: (action: string) => void;
-  onLike: (id: string) => void;
-  isLiked: boolean;
+  onLike?: (id: string) => void;
+  isLiked?: boolean;
 }
 
-export default function FlipCard({ content, type, onAction, onLike, isLiked }: FlipCardProps) {
+export default function FlipCard({ content, type, onAction, onLike, isLiked = false }: FlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [location, setLocation] = useLocation();
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(content.likeCount || 0);
+  const [userLiked, setUserLiked] = useState(isLiked);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Handle like action
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(`/api/memories/${content.id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserLiked(data.liked);
+        if (data.liked) {
+          setCurrentLikeCount(prev => prev + 1);
+        } else {
+          setCurrentLikeCount(prev => prev - 1);
+        }
+      }
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
 
   const getCardStyle = () => {
     switch (type) {
@@ -224,11 +251,11 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <button 
-                onClick={(e) => { e.stopPropagation(); onLike?.(content.id); }}
+                onClick={handleLike}
                 className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-red-400 transition-colors"
               >
-                <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-400 text-red-400' : ''}`} />
-                <span className="text-xs">{content.likeCount || 0}</span>
+                <Heart className={`w-4 h-4 ${userLiked ? 'fill-red-400 text-red-400' : ''}`} />
+                <span className="text-xs">{currentLikeCount}</span>
               </button>
               
               <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-blue-400 transition-colors">
@@ -352,7 +379,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               <div className="text-white/70 text-xs">مشاهدة</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-xl text-white">{content.likeCount || 0}</div>
+              <div className="font-bold text-xl text-white">{currentLikeCount}</div>
               <div className="text-white/70 text-xs">إعجاب</div>
             </div>
             <div className="text-center">
@@ -387,13 +414,9 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <Button 
               size="sm" 
               className="flex-1 bg-red-500/80 hover:bg-red-500 text-white border-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onLike(content.id);
-              }}
+              onClick={handleLike}
             >
-              <Heart className={`w-4 h-4 ml-1 ${isLiked ? 'fill-white' : ''}`} />
+              <Heart className={`w-4 h-4 ml-1 ${userLiked ? 'fill-white' : ''}`} />
               إعجاب
             </Button>
             <Button 

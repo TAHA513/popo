@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "./db";
@@ -1339,6 +1339,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           caption: memoryFragments.caption,
           mediaUrls: memoryFragments.mediaUrls,
           type: memoryFragments.type,
+          likeCount: memoryFragments.likeCount,
+          viewCount: memoryFragments.viewCount,
+          shareCount: memoryFragments.shareCount,
+          giftCount: memoryFragments.giftCount,
           createdAt: memoryFragments.createdAt,
           author: {
             id: users.id,
@@ -1355,10 +1359,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Memory not found" });
       }
 
-      res.json(memory);
+      // Get comment count
+      const [commentCountResult] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(comments)
+        .where(and(
+          eq(comments.postId, memory.id),
+          eq(comments.postType, 'memory')
+        ));
+
+      res.json({
+        ...memory,
+        commentCount: commentCountResult.count || 0
+      });
     } catch (error) {
       console.error("Error fetching memory:", error);
       res.status(500).json({ message: "Failed to fetch memory" });
+    }
+  });
+
+  // Like/Unlike memory
+  app.post('/api/memories/:id/like', requireAuth, async (req: any, res) => {
+    try {
+      const memoryId = parseInt(req.params.id);
+      const userId = req.user.id;
+
+      // Check if user already liked this memory
+      const [existingLike] = await db
+        .select()
+        .from(memoryInteractions)
+        .where(and(
+          eq(memoryInteractions.fragmentId, memoryId),
+          eq(memoryInteractions.userId, userId),
+          eq(memoryInteractions.type, 'like')
+        ));
+
+      if (existingLike) {
+        // Remove like
+        await db
+          .delete(memoryInteractions)
+          .where(and(
+            eq(memoryInteractions.fragmentId, memoryId),
+            eq(memoryInteractions.userId, userId),
+            eq(memoryInteractions.type, 'like')
+          ));
+
+        // Decrease like count
+        await db
+          .update(memoryFragments)
+          .set({ 
+            likeCount: sql`${memoryFragments.likeCount} - 1`
+          })
+          .where(eq(memoryFragments.id, memoryId));
+
+        res.json({ liked: false, message: "تم إلغاء الإعجاب" });
+      } else {
+        // Add like
+        await db.insert(memoryInteractions).values({
+          fragmentId: memoryId,
+          userId,
+          type: 'like',
+          energyBoost: 1,
+          createdAt: new Date()
+        });
+
+        // Increase like count
+        await db
+          .update(memoryFragments)
+          .set({ 
+            likeCount: sql`${memoryFragments.likeCount} + 1`
+          })
+          .where(eq(memoryFragments.id, memoryId));
+
+        res.json({ liked: true, message: "تم الإعجاب بالمنشور" });
+      }
+    } catch (error) {
+      console.error("Error liking memory:", error);
+      res.status(500).json({ message: "Failed to like memory" });
+    }
+  });
+
+  // Check if user liked a memory
+  app.get('/api/memories/:id/like-status', requireAuth, async (req: any, res) => {
+    try {
+      const memoryId = parseInt(req.params.id);
+      const userId = req.user.id;
+
+      const [existingLike] = await db
+        .select()
+        .from(memoryInteractions)
+        .where(and(
+          eq(memoryInteractions.fragmentId, memoryId),
+          eq(memoryInteractions.userId, userId),
+          eq(memoryInteractions.type, 'like')
+        ));
+
+      res.json({ liked: !!existingLike });
+    } catch (error) {
+      console.error("Error checking like status:", error);
+      res.status(500).json({ message: "Failed to check like status" });
     }
   });
 
