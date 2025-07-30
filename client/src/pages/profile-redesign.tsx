@@ -218,10 +218,10 @@ export default function ProfileRedesign() {
   };
 
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Cover image change event triggered!', e.target.files);
+    console.log('🖼️ تم اختيار صورة غلاف!', e.target.files);
     const file = e.target.files?.[0];
     if (file) {
-      console.log('Cover file selected:', { name: file.name, size: file.size });
+      console.log('📂 معلومات الملف:', { name: file.name, size: file.size });
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
           title: "حجم الملف كبير جداً",
@@ -230,8 +230,10 @@ export default function ProfileRedesign() {
         });
         return;
       }
-      console.log('Starting cover image mutation...');
+      console.log('🚀 بدء رفع صورة الغلاف...');
       coverImageMutation.mutate(file);
+    } else {
+      console.log('❌ لم يتم اختيار أي ملف');
     }
   };
 
@@ -288,8 +290,19 @@ export default function ProfileRedesign() {
                     variant="secondary" 
                     className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30"
                     onClick={() => {
-                      console.log('Cover button clicked!', { coverImageRef: coverImageRef.current });
-                      coverImageRef.current?.click();
+                      console.log('🔘 تم النقر على زر تغيير الغلاف');
+                      const fileInput = document.getElementById('cover-image-input') as HTMLInputElement;
+                      if (fileInput) {
+                        console.log('📂 تشغيل منتقي الملفات...');
+                        fileInput.click();
+                      } else {
+                        console.error('❌ منتقي الملفات غير موجود!');
+                        toast({
+                          title: "خطأ في النظام",
+                          description: "لم يتم العثور على منتقي الملفات",
+                          variant: "destructive"
+                        });
+                      }
                     }}
                     disabled={coverImageMutation.isPending}
                   >
@@ -301,18 +314,15 @@ export default function ProfileRedesign() {
                     {coverImageMutation.isPending ? "جاري الرفع..." : "تغيير الغلاف"}
                   </Button>
                 )}
-                {/* Debug info */}
-                <div className="absolute -bottom-8 right-0 text-xs text-black bg-white px-2 py-1 rounded">
-                  {isOwnProfile ? 'Own Profile' : 'Not Own'} | User: {currentUser?.id} | Profile: {profileUserId}
-                </div>
               </div>
               {/* Hidden file input for cover image */}
               <input
-                ref={coverImageRef}
+                id="cover-image-input"
                 type="file"
                 accept="image/*"
                 onChange={handleCoverImageChange}
                 className="hidden"
+                style={{ display: 'none' }}
               />
             </div>
             

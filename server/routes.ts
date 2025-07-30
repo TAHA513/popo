@@ -386,7 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
       
       // Update user cover image URL in database
-      await db.update(users).set({ coverImageUrl }).where(eq(users.id, userId));
+      await db.update(users).set({ coverImageUrl: coverImageUrl }).where(eq(users.id, userId));
       
       console.log('✅ Cover image uploaded successfully for user:', userId);
       

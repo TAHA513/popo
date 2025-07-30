@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Cover Upload</title>
+</head>
+<body>
+    <h2>اختبار رفع صورة الغلاف</h2>
+    
+    <div>
+        <input type="file" id="testFile" accept="image/*">
+        <button onclick="testUpload()">اختبار الرفع</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testUpload() {
+            const fileInput = document.getElementById('testFile');
+            if (!fileInput.files[0]) return;
+            
+            try {
+                // Login as edndn6
+                await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: 'edndn6',
+                        password: '123456'
+                    })
+                });
+                
+                // Upload cover
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+
+                const response = await fetch('/api/upload/cover-image', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').innerHTML = 
+                    `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
