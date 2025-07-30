@@ -324,10 +324,20 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             <Button 
               size="sm" 
               className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                // Add follow functionality here
-                console.log('Follow clicked for user:', content.author?.id || content.authorId);
+                e.preventDefault();
+                try {
+                  const response = await fetch(`/api/users/${content.author?.id || content.authorId}/follow`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  if (response.ok) {
+                    console.log('تم المتابعة بنجاح');
+                  }
+                } catch (error) {
+                  console.error('خطأ في المتابعة:', error);
+                }
               }}
             >
               <Users className="w-4 h-4 ml-1" />
