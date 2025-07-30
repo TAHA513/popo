@@ -464,11 +464,9 @@ export default function PrivateChatPage() {
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-purple-700">تسجيل صوتي ({recordingTime} ثانية)</span>
             </div>
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
                   console.log('🔥 Send button clicked for voice message!', {
                     audioBlob: !!audioBlob,
                     user: !!user,
@@ -483,9 +481,8 @@ export default function PrivateChatPage() {
                   
                   sendAudioMessage();
                 }}
-                size="sm"
-                className="bg-green-500 hover:bg-green-600 text-white"
                 disabled={sendVoiceMessage.isPending}
+                className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg flex items-center justify-center min-w-[40px] h-[40px]"
                 type="button"
               >
                 {sendVoiceMessage.isPending ? (
@@ -493,15 +490,18 @@ export default function PrivateChatPage() {
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-              </Button>
-              <Button
-                onClick={() => setAudioBlob(null)}
-                size="sm"
-                variant="outline"
-                className="text-red-600 border-red-600 hover:bg-red-50"
+              </button>
+              <button
+                onClick={() => {
+                  console.log('🗑️ Cancel voice message');
+                  setAudioBlob(null);
+                  setRecordingTime(0);
+                }}
+                className="text-red-600 border-red-600 border hover:bg-red-50 px-3 py-2 rounded-lg flex items-center justify-center min-w-[40px] h-[40px]"
+                type="button"
               >
                 <X className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
           </div>
         ) : isRecording ? (
