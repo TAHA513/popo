@@ -389,6 +389,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               className="flex-1 bg-red-500/80 hover:bg-red-500 text-white border-0"
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 onLike(content.id);
               }}
             >
@@ -400,6 +401,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               className="flex-1 bg-blue-500/80 hover:bg-blue-500 text-white border-0"
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 setLocation(`/user/${content.author?.id || content.authorId}`);
               }}
             >
@@ -411,12 +413,12 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               className="flex-1 bg-yellow-500/80 hover:bg-yellow-500 text-white border-0"
               onClick={(e) => {
                 e.stopPropagation();
-                // Add comment/message functionality
-                console.log('Comments/Messages clicked for post:', content.id);
+                e.preventDefault();
+                setLocation(`/comments/${content.id}`);
               }}
             >
               <MessageCircle className="w-4 h-4 ml-1" />
-              رسائل
+              تعليقات
             </Button>
           </div>
 
@@ -427,6 +429,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
             className="w-full mt-3 text-white/80 hover:text-white hover:bg-white/10"
             onClick={(e) => {
               e.stopPropagation();
+              e.preventDefault();
               setIsFlipped(false);
             }}
           >
@@ -437,7 +440,13 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
     );
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // تجنب الانقلاب إذا تم النقر على زر أو رابط
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'BUTTON' || target.closest('button') || target.closest('a')) {
+      return;
+    }
+
     // فتح الفيديوهات والبث المباشر فقط - تجاهل الصور والمحتوى الآخر
     if (type === 'video' || type === 'live') {
       if (type === 'video' && content.id) {
