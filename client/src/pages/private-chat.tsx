@@ -99,6 +99,7 @@ export default function PrivateChatPage() {
   // إرسال رسالة نصية
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
+      console.log('📝 Sending text message:', { content, otherUserId });
       return apiRequest(`/api/messages/${otherUserId}`, 'POST', { content });
     },
     onSuccess: () => {
@@ -118,10 +119,13 @@ export default function PrivateChatPage() {
   // إرسال رسالة صوتية
   const sendVoiceMessage = useMutation({
     mutationFn: async ({ content, audioKey }: { content: string; audioKey: string }) => {
-      return apiRequest(`/api/messages/${otherUserId}`, 'POST', { 
+      console.log('🎙️ Voice message mutation called:', { content, audioKey, messageType: 'voice', otherUserId });
+      const response = await apiRequest(`/api/messages/${otherUserId}`, 'POST', { 
         content, 
         messageType: 'voice' 
       });
+      console.log('✅ Voice message API response:', response);
+      return response;
     },
     onSuccess: () => {
       setAudioBlob(null);

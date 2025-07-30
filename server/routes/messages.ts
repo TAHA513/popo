@@ -111,6 +111,78 @@ export function setupMessageRoutes(app: Express) {
     }
   });
 
+  // Send message to specific user (direct endpoint)
+  app.post('/api/messages/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user.id;
+      const recipientId = req.params.userId;
+      const { content, messageType } = req.body;
+
+      console.log('📥 Message received:', { senderId, recipientId, content, messageType });
+
+      if (!recipientId || !content?.trim()) {
+        console.log('❌ Missing required fields:', { recipientId: !!recipientId, content: !!content?.trim() });
+        return res.status(400).json({ message: "Recipient and content are required" });
+      }
+
+      // Insert the message with messageType support
+      const newMessage = await db
+        .insert(messages)
+        .values({
+          senderId,
+          recipientId,
+          content: content.trim(),
+          messageType: messageType || 'text',
+          createdAt: new Date()
+        })
+        .returning();
+
+      console.log('✅ Message inserted:', newMessage[0]);
+
+      // Update or create conversation
+      const conversationExists = await db
+        .select()
+        .from(conversations)
+        .where(
+          or(
+            and(eq(conversations.user1Id, senderId), eq(conversations.user2Id, recipientId)),
+            and(eq(conversations.user1Id, recipientId), eq(conversations.user2Id, senderId))
+          )
+        )
+        .limit(1);
+
+      if (conversationExists.length > 0) {
+        // Update existing conversation
+        await db
+          .update(conversations)
+          .set({
+            lastMessage: content.trim(),
+            lastMessageAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(conversations.id, conversationExists[0].id));
+      } else {
+        // Create new conversation
+        await db
+          .insert(conversations)
+          .values({
+            user1Id: senderId,
+            user2Id: recipientId,
+            lastMessage: content.trim(),
+            lastMessageAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+      }
+
+      console.log('✅ Conversation updated');
+      res.json(newMessage[0]);
+    } catch (error) {
+      console.error("❌ Error sending message:", error);
+      res.status(500).json({ message: "فشل إرسال الرسالة" });
+    }
+  });
+
   // Send message
   app.post('/api/messages/send', requireAuth, async (req: any, res) => {
     try {
