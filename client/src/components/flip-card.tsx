@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { RealTimeTimestamp } from "./real-time-timestamp";
 import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { VideoOptimizer } from "@/utils/video-optimizer";
 import { 
   Play, 
   Heart, 
@@ -34,6 +35,8 @@ interface FlipCardProps {
 export default function FlipCard({ content, type, onAction, onLike, isLiked }: FlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [location, setLocation] = useLocation();
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const getCardStyle = () => {
     switch (type) {
@@ -69,18 +72,44 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
         {content.mediaUrls && content.mediaUrls.length > 0 ? (
           type === 'video' || type === 'live' ? (
             <video
+              ref={videoRef}
               src={content.mediaUrls[0]}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-opacity duration-300"
               muted
-              autoPlay
               loop
               playsInline
+              preload="metadata"
               poster={content.thumbnailUrl}
-              onMouseEnter={(e) => {
-                e.currentTarget.play();
+              style={{ opacity: isVideoLoaded ? 1 : 0.7 }}
+              onLoadStart={() => {
+                // تحسين إعدادات الفيديو
+                if (videoRef.current) {
+                  VideoOptimizer.optimizeVideoElement(videoRef.current);
+                }
               }}
-              onMouseLeave={(e) => {
-                e.currentTarget.pause();
+              onLoadedData={() => {
+                setIsVideoLoaded(true);
+              }}
+              onCanPlay={async (e) => {
+                const video = e.currentTarget;
+                try {
+                  await VideoOptimizer.playVideoFast(video);
+                } catch (error) {
+                  console.log('Video autoplay failed:', error);
+                }
+              }}
+              onError={(e) => {
+                console.error('Video load error:', e);
+                e.currentTarget.style.display = 'none';
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const video = e.currentTarget;
+                if (video.paused) {
+                  video.play().catch(() => {});
+                } else {
+                  video.pause();
+                }
               }}
             />
           ) : (
@@ -161,8 +190,8 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked }: F
               <Play className="w-8 h-8 text-white ml-1" />
             </div>
             {/* Video Indicator Badge */}
-            <div className="absolute top-3 left-3 bg-red-500/80 text-white px-2 py-1 rounded text-xs font-bold backdrop-blur-sm">
-              VIDEO
+            <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm shadow-lg animate-pulse">
+              ▶️ فيديو
             </div>
           </div>
         )}

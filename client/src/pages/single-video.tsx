@@ -48,17 +48,34 @@ export default function SingleVideoPage() {
       return;
     }
 
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setVideoUrl(url);
-    setIsVideoPlaying(false);
-    setVideoError(false);
-    setIsVideoLoading(false);
+    // التحقق من مدة الفيديو (حد أقصى 90 ثانية)
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      if (video.duration > 90) {
+        toast({
+          title: "فيديو طويل جداً ⏰",
+          description: `مدة الفيديو ${Math.round(video.duration)} ثانية. الحد الأقصى 90 ثانية`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // إذا كان الفيديو مناسب، استمر في المعالجة
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setVideoUrl(url);
+      setIsVideoPlaying(false);
+      setVideoError(false);
+      setIsVideoLoading(false);
 
-    toast({
-      title: "تم تحديد الفيديو",
-      description: `تم اختيار: ${file.name}`,
-    });
+      toast({
+        title: "تم تحديد الفيديو ✅",
+        description: `${file.name} - ${Math.round(video.duration)} ثانية`,
+      });
+    };
+    video.src = URL.createObjectURL(file);
   };
 
   const handleVideoToggle = async () => {

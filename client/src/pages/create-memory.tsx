@@ -131,10 +131,34 @@ export default function CreateMemoryPage() {
       return;
     }
 
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    setCurrentStep('filter');
+    // التحقق من مدة الفيديو إذا كان ملف فيديو
+    if (file.type.startsWith('video/')) {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        if (video.duration > 90) {
+          toast({
+            title: "فيديو طويل جداً ⏰",
+            description: `مدة الفيديو ${Math.round(video.duration)} ثانية. الحد الأقصى 90 ثانية`,
+            variant: "destructive"
+          });
+          return;
+        }
+        // إذا كان الفيديو مناسب، استمر في المعالجة
+        setSelectedFile(file);
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+        setCurrentStep('filter');
+      };
+      video.src = URL.createObjectURL(file);
+    } else {
+      // للصور، استمر مباشرة
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setCurrentStep('filter');
+    }
   };
 
   const resetUpload = () => {
