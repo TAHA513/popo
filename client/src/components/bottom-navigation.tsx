@@ -42,7 +42,6 @@ export default function BottomNavigation() {
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
     { href: "/games", icon: GamepadIcon, label: "الألعاب" },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
-    { href: "/wallet", icon: Wallet, label: "المحفظة" },
     { href: "/profile", icon: User, label: "الملف" }
   ];
 

@@ -19,7 +19,8 @@ import {
   UserMinus,
   Users,
   MessageCircle,
-  Gift
+  Gift,
+  Wallet
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -563,12 +564,21 @@ export default function ProfileSimplePage() {
               {/* TikTok-Style Action Buttons */}
               <div className="flex flex-col items-center space-y-4 min-w-[80px]">
                 {isOwnProfile ? (
-                  <Link href="/create-memory">
-                    <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-                      <Plus className="w-6 h-6" />
-                    </div>
-                    <p className="text-xs text-gray-600 text-center mt-1">إنشاء</p>
-                  </Link>
+                  <>
+                    <Link href="/create-memory">
+                      <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                        <Plus className="w-6 h-6" />
+                      </div>
+                      <p className="text-xs text-gray-600 text-center mt-1">إنشاء</p>
+                    </Link>
+                    
+                    <Link href="/wallet">
+                      <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                        <Wallet className="w-6 h-6" />
+                      </div>
+                      <p className="text-xs text-gray-600 text-center mt-1">المحفظة</p>
+                    </Link>
+                  </>
                 ) : (
                   <>
                     {currentUser ? (
