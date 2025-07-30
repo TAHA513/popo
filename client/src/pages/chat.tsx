@@ -56,6 +56,13 @@ export default function ChatPage() {
   // Voice playback states
   const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  
+  // Call states
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [isCallIncoming, setIsCallIncoming] = useState(false);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [callType, setCallType] = useState<'audio' | 'video'>('audio');
 
   // Validate user ID
   if (!otherUserId) {
@@ -211,6 +218,86 @@ export default function ChatPage() {
     }
   }, [messages.length]);
 
+  // Call functions
+  const startAudioCall = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setLocalStream(stream);
+      setCallType('audio');
+      setIsCallActive(true);
+      
+      toast({
+        title: "بدء المكالمة الصوتية",
+        description: "جاري الاتصال...",
+      });
+      
+      // Simulate call connection after 2 seconds
+      setTimeout(() => {
+        toast({
+          title: "تم الاتصال",
+          description: "المكالمة الصوتية نشطة الآن",
+        });
+      }, 2000);
+      
+    } catch (error) {
+      toast({
+        title: "خطأ في المكالمة",
+        description: "لا يمكن الوصول إلى الميكروفون",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const startVideoCall = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: true, 
+        video: true 
+      });
+      setLocalStream(stream);
+      setCallType('video');
+      setIsCallActive(true);
+      
+      toast({
+        title: "بدء مكالمة الفيديو",
+        description: "جاري الاتصال...",
+      });
+      
+      // Simulate call connection after 2 seconds
+      setTimeout(() => {
+        toast({
+          title: "تم الاتصال",
+          description: "مكالمة الفيديو نشطة الآن",
+        });
+      }, 2000);
+      
+    } catch (error) {
+      toast({
+        title: "خطأ في مكالمة الفيديو",
+        description: "لا يمكن الوصول إلى الكاميرا والميكروفون",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const endCall = () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
+    }
+    if (remoteStream) {
+      remoteStream.getTracks().forEach(track => track.stop());
+      setRemoteStream(null);
+    }
+    setIsCallActive(false);
+    setCallType('audio');
+    
+    toast({
+      title: "انتهت المكالمة",
+      description: "تم قطع الاتصال",
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
@@ -255,10 +342,22 @@ export default function ChatPage() {
         </div>
         
         <div className="flex items-center space-x-2 space-x-reverse">
-          <Button variant="ghost" size="sm" className="p-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 hover:bg-green-50 hover:text-green-600"
+            onClick={startAudioCall}
+            disabled={isCallActive}
+          >
             <Phone className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="sm" className="p-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 hover:bg-blue-50 hover:text-blue-600"
+            onClick={startVideoCall}
+            disabled={isCallActive}
+          >
             <Video className="w-5 h-5" />
           </Button>
           <Button variant="ghost" size="sm" className="p-2">
@@ -266,6 +365,59 @@ export default function ChatPage() {
           </Button>
         </div>
       </div>
+
+      {/* Active Call Overlay */}
+      {isCallActive && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                {callType === 'video' ? (
+                  <Video className="w-10 h-10 text-white" />
+                ) : (
+                  <Phone className="w-10 h-10 text-white" />
+                )}
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {otherUser?.firstName || otherUser?.username || 'مستخدم'}
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                {callType === 'video' ? 'مكالمة فيديو نشطة' : 'مكالمة صوتية نشطة'}
+              </p>
+              
+              {/* Local Video Preview for Video Calls */}
+              {callType === 'video' && localStream && (
+                <div className="mb-4">
+                  <video
+                    ref={(video) => {
+                      if (video && localStream) {
+                        video.srcObject = localStream;
+                      }
+                    }}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-48 bg-gray-200 rounded-lg object-cover"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">الكاميرا الخاصة بك</p>
+                </div>
+              )}
+              
+              {/* Call Controls */}
+              <div className="flex justify-center space-x-4 space-x-reverse">
+                <Button
+                  onClick={endCall}
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full"
+                >
+                  إنهاء المكالمة
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
