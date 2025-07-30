@@ -472,68 +472,47 @@ export default function PrivateChatPage() {
       {/* منطقة إدخال الرسائل */}
       <div className="bg-white border-t border-gray-200 p-4">
         {audioBlob && (
-          <div className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-400 p-6 rounded-2xl mb-4 shadow-lg">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-6 h-6 bg-green-500 rounded-full animate-pulse shadow-lg"></div>
-                <span className="text-green-800 font-bold text-lg">
-                  🎤 رسالة صوتية جاهزة ({recordingTime} ثانية)
-                </span>
-              </div>
+          <div className="bg-green-100 border border-green-300 p-4 rounded-lg mb-4">
+            <div className="text-center mb-3">
+              <span className="text-green-700 font-medium">
+                🎤 رسالة صوتية جاهزة ({recordingTime} ثانية)
+              </span>
+            </div>
+            
+            <div className="flex justify-center gap-4">
+              <button 
+                onClick={() => {
+                  console.log('🚀🚀🚀 SEND BUTTON CLICKED!!! 🚀🚀🚀');
+                  console.log('Sending audio message now...');
+                  sendAudioMessage();
+                }}
+                className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-green-600"
+                style={{ 
+                  minWidth: '120px', 
+                  minHeight: '50px',
+                  zIndex: 999,
+                  position: 'relative'
+                }}
+              >
+                إرسال ➤
+              </button>
               
-              <div className="flex items-center justify-center gap-6">
-                <button
-                  type="button"
-                  onMouseDown={() => console.log('🖱️ Mouse down on send button')}
-                  onMouseUp={() => console.log('🖱️ Mouse up on send button')}
-                  onTouchStart={() => console.log('👆 Touch start on send button')}
-                  onTouchEnd={() => console.log('👆 Touch end on send button')}
-                  onClick={(e) => {
-                    console.log('🚀🚀🚀 VOICE SEND BUTTON CLICKED! 🚀🚀🚀');
-                    console.log('Event details:', e);
-                    console.log('Button data:', {
-                      hasAudioBlob: !!audioBlob,
-                      audioBlobSize: audioBlob?.size,
-                      hasUser: !!user,
-                      userId: user?.id,
-                      recordingTime,
-                      isPending: sendVoiceMessage.isPending,
-                      timestamp: new Date().toISOString()
-                    });
-                    
-                    try {
-                      sendAudioMessage();
-                      console.log('✅ sendAudioMessage() called successfully');
-                    } catch (error) {
-                      console.error('❌ Error calling sendAudioMessage:', error);
-                    }
-                  }}
-                  disabled={sendVoiceMessage.isPending}
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white w-16 h-16 rounded-full flex items-center justify-center cursor-pointer shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {sendVoiceMessage.isPending ? (
-                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <span className="text-white text-2xl font-bold">➤</span>
-                  )}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log('🗑️ Cancel voice message clicked');
-                    setAudioBlob(null);
-                    setRecordingTime(0);
-                  }}
-                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-16 h-16 rounded-full flex items-center justify-center cursor-pointer shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
-                >
-                  <span className="text-white text-2xl font-bold">✕</span>
-                </button>
-              </div>
-              
-              <div className="text-center text-green-600 text-sm font-medium">
-                اضغط على السهم الأخضر لإرسال البصمة الصوتية
-              </div>
+              <button 
+                onClick={() => {
+                  console.log('🗑️ Cancel clicked');
+                  setAudioBlob(null);
+                  setRecordingTime(0);
+                }}
+                className="bg-red-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-red-600"
+                style={{ 
+                  minWidth: '120px', 
+                  minHeight: '50px',
+                  zIndex: 999,
+                  position: 'relative'
+                }}
+              >
+                إلغاء ✕
+              </button>
             </div>
           </div>
         )}
