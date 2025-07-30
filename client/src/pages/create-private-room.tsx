@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Users, Gift, Crown, Heart, Star, Diamond } from "lucide-react";
+import { ArrowLeft, Users, Gift, Crown, Heart, Star, Diamond, Trash2, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 
 interface Follower {

@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Search, Send, ArrowRight, Gift, Crown, Users } from "lucide-react";
+import { MessageCircle, Search, Send, ArrowRight, Gift, Crown, Users, Trash2 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 
 export default function MessagesPage() {
@@ -62,7 +64,29 @@ export default function MessagesPage() {
       if (!response.ok) throw new Error('Failed to fetch active rooms');
       return response.json();  
     },
-    enabled: !!user
+    enabled: !!user,
+    refetchInterval: 5000
+  });
+
+  // Delete private room mutation
+  const deletePrivateRoomMutation = useMutation({
+    mutationFn: async (roomId: number) => {
+      return apiRequest(`/api/private-rooms/${roomId}`, 'DELETE');
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف الغرفة الخاصة بنجاح"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/private-rooms/active'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في الحذف",
+        description: error.message || "حدث خطأ أثناء حذف الغرفة",
+        variant: "destructive"
+      });
+    }
   });
 
   // Fetch available group rooms count
@@ -75,7 +99,30 @@ export default function MessagesPage() {
       if (!response.ok) throw new Error('Failed to fetch group rooms');
       return response.json();
     },
-    enabled: !!user
+    enabled: !!user,
+    refetchInterval: 5000
+  });
+
+  // Delete group room mutation
+  const deleteGroupRoomMutation = useMutation({
+    mutationFn: async (roomId: number) => {
+      return apiRequest(`/api/group-rooms/${roomId}`, 'DELETE');
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "تم الحذف",
+        description: `تم حذف الغرفة الجماعية واسترداد ${data.refundedAmount || 0} نقطة للمشاركين`
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/group-rooms/available'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/points'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في الحذف",
+        description: error.message || "حدث خطأ أثناء حذف الغرفة",
+        variant: "destructive"
+      });
+    }
   });
 
   const requestCount = requests.length;
@@ -227,6 +274,84 @@ export default function MessagesPage() {
                     <div className="text-red-700">في انتظار الرد</div>
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Active Private Rooms Management */}
+        {activePrivateRooms.length > 0 && (
+          <Card className="bg-red-50 border-red-200 mb-4">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-red-800 mb-3 text-center flex items-center justify-center">
+                🗑️ إدارة الغرف الخاصة النشطة
+              </h3>
+              <div className="space-y-2">
+                {activePrivateRooms.map((room: any) => (
+                  <div key={room.id} className="bg-white/80 rounded-lg p-3 flex items-center justify-between">
+                    <div className="text-right flex-1">
+                      <h4 className="font-bold text-gray-800">{room.title}</h4>
+                      <p className="text-sm text-gray-600">{room.description || "غرفة خاصة"}</p>
+                      <p className="text-xs text-gray-500">تم الإنشاء: {new Date(room.createdAt).toLocaleString('ar')}</p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (confirm("هل أنت متأكد من حذف هذه الغرفة؟ سيتم حذف جميع البيانات المرتبطة بها.")) {
+                          deletePrivateRoomMutation.mutate(room.id);
+                        }
+                      }}
+                      disabled={deletePrivateRoomMutation.isPending}
+                      variant="destructive"
+                      size="sm"
+                      className="mr-3"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {deletePrivateRoomMutation.isPending ? 'جاري الحذف...' : 'حذف'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* User's Group Rooms Management */}
+        {availableGroupRooms.filter((room: any) => room.hostId === user?.id).length > 0 && (
+          <Card className="bg-blue-50 border-blue-200 mb-4">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-blue-800 mb-3 text-center flex items-center justify-center">
+                🗑️ إدارة الغرف الجماعية
+              </h3>
+              <div className="space-y-2">
+                {availableGroupRooms.filter((room: any) => room.hostId === user?.id).map((room: any) => (
+                  <div key={room.id} className="bg-white/80 rounded-lg p-3 flex items-center justify-between">
+                    <div className="text-right flex-1">
+                      <h4 className="font-bold text-gray-800">{room.title}</h4>
+                      <p className="text-sm text-gray-600">{room.description || "غرفة جماعية"}</p>
+                      <p className="text-xs text-blue-600">
+                        المشاركين: {room.currentParticipants}/{room.maxParticipants} | 
+                        السعر: {room.entryPrice} نقطة
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        تنتهي في: {new Date(room.roomEndsAt).toLocaleString('ar')}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (confirm(`هل أنت متأكد من حذف هذه الغرفة؟ سيتم استرداد ${room.entryPrice * (room.currentParticipants - 1)} نقطة للمشاركين.`)) {
+                          deleteGroupRoomMutation.mutate(room.id);
+                        }
+                      }}
+                      disabled={deleteGroupRoomMutation.isPending}
+                      variant="destructive"
+                      size="sm"
+                      className="mr-3"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {deleteGroupRoomMutation.isPending ? 'جاري الحذف...' : 'حذف'}
+                    </Button>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

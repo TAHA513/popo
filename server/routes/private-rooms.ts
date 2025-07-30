@@ -282,5 +282,48 @@ export function setupPrivateRoomRoutes(app: Express) {
     }
   });
 
+  // Delete private room (only host can delete)
+  app.delete('/api/private-rooms/:roomId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const roomId = parseInt(req.params.roomId);
+
+      // Check if user is the host
+      const room = await db
+        .select()
+        .from(privateRooms)
+        .where(
+          and(
+            eq(privateRooms.id, roomId),
+            eq(privateRooms.hostId, userId)
+          )
+        )
+        .limit(1);
+
+      if (!room.length) {
+        return res.status(403).json({ message: "غير مسموح لك بحذف هذه الغرفة" });
+      }
+
+      // Delete all related data
+      // 1. Delete room invitations
+      await db
+        .delete(roomInvitations)
+        .where(eq(roomInvitations.roomId, roomId));
+
+      // 2. Delete the room itself
+      await db
+        .delete(privateRooms)
+        .where(eq(privateRooms.id, roomId));
+
+      console.log(`✅ Private room ${roomId} deleted by host ${userId}`);
+      
+      res.json({ message: "تم حذف الغرفة الخاصة بنجاح" });
+      
+    } catch (error) {
+      console.error("❌ Error deleting private room:", error);
+      res.status(500).json({ message: "خطأ في حذف الغرفة" });
+    }
+  });
+
   console.log("✅ Private room routes configured");
 }

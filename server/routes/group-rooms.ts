@@ -419,5 +419,135 @@ export function setupGroupRoomRoutes(app: Express) {
     }
   });
 
+  // Delete group room (only host can delete)
+  app.delete('/api/group-rooms/:roomId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const roomId = parseInt(req.params.roomId);
+
+      // Check if user is the host
+      const room = await db
+        .select()
+        .from(groupRooms)
+        .where(
+          and(
+            eq(groupRooms.id, roomId),
+            eq(groupRooms.hostId, userId)
+          )
+        )
+        .limit(1);
+
+      if (!room.length) {
+        return res.status(403).json({ message: "غير مسموح لك بحذف هذه الغرفة" });
+      }
+
+      const roomData = room[0];
+
+      // Refund points to all participants (except host)
+      const participants = await db
+        .select({
+          userId: groupRoomParticipants.userId,
+          giftPaid: groupRoomParticipants.giftPaid
+        })
+        .from(groupRoomParticipants)
+        .where(
+          and(
+            eq(groupRoomParticipants.roomId, roomId),
+            eq(groupRoomParticipants.isActive, true)
+          )
+        );
+
+      // Refund points to participants
+      for (const participant of participants) {
+        if (participant.userId !== userId) { // Don't refund to host
+          const giftPrice = participant.giftPaid?.price || 0;
+          
+          if (giftPrice > 0) {
+            // Add points back to participant
+            const user = await db
+              .select({ points: users.points })
+              .from(users)
+              .where(eq(users.id, participant.userId))
+              .limit(1);
+
+            if (user.length) {
+              await db
+                .update(users)
+                .set({ points: user[0].points + giftPrice })
+                .where(eq(users.id, participant.userId));
+
+              // Record refund transaction
+              await db
+                .insert(pointTransactions)
+                .values({
+                  userId: participant.userId,
+                  amount: giftPrice,
+                  type: 'group_room_refund',
+                  description: `استرداد نقاط من حذف الغرفة الجماعية - ${roomData.title}`
+                });
+            }
+          }
+        }
+      }
+
+      // Deduct points from host (lost earnings)
+      const totalEarnings = participants
+        .filter(p => p.userId !== userId)
+        .reduce((sum, p) => sum + (p.giftPaid?.price || 0), 0);
+
+      if (totalEarnings > 0) {
+        const hostUser = await db
+          .select({ points: users.points })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+
+        if (hostUser.length) {
+          await db
+            .update(users)
+            .set({ points: Math.max(0, hostUser[0].points - totalEarnings) })
+            .where(eq(users.id, userId));
+
+          // Record host deduction transaction
+          await db
+            .insert(pointTransactions)
+            .values({
+              userId,
+              amount: -totalEarnings,
+              type: 'group_room_deletion',
+              description: `خصم أرباح بسبب حذف الغرفة الجماعية - ${roomData.title}`
+            });
+        }
+      }
+
+      // Delete all related data
+      // 1. Delete messages
+      await db
+        .delete(groupRoomMessages)
+        .where(eq(groupRoomMessages.roomId, roomId));
+
+      // 2. Delete participants
+      await db
+        .delete(groupRoomParticipants)
+        .where(eq(groupRoomParticipants.roomId, roomId));
+
+      // 3. Delete the room itself
+      await db
+        .delete(groupRooms)
+        .where(eq(groupRooms.id, roomId));
+
+      console.log(`✅ Group room ${roomId} deleted by host ${userId}, refunded ${totalEarnings} points to participants`);
+      
+      res.json({ 
+        message: "تم حذف الغرفة الجماعية واسترداد النقاط للمشاركين",
+        refundedAmount: totalEarnings
+      });
+      
+    } catch (error) {
+      console.error("❌ Error deleting group room:", error);
+      res.status(500).json({ message: "خطأ في حذف الغرفة" });
+    }
+  });
+
   console.log("✅ Group room routes configured");
 }
