@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "./db";
@@ -1210,44 +1210,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Comments routes - simplified version
-  app.get('/api/memorys/:id/comments', async (req, res) => {
+  // Get single memory by ID
+  app.get('/api/memories/:id', async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      // Return empty for now while we fix the schema issues
-      res.json([]);
+      const memoryId = parseInt(req.params.id);
+      
+      const [memory] = await db
+        .select({
+          id: memoryFragments.id,
+          authorId: memoryFragments.authorId,
+          caption: memoryFragments.caption,
+          mediaUrls: memoryFragments.mediaUrls,
+          type: memoryFragments.type,
+          createdAt: memoryFragments.createdAt,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+          }
+        })
+        .from(memoryFragments)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .where(eq(memoryFragments.id, memoryId));
+
+      if (!memory) {
+        return res.status(404).json({ message: "Memory not found" });
+      }
+
+      res.json(memory);
+    } catch (error) {
+      console.error("Error fetching memory:", error);
+      res.status(500).json({ message: "Failed to fetch memory" });
+    }
+  });
+
+  // Comments routes - fixed version
+  app.get('/api/memories/:id/comments', async (req, res) => {
+    try {
+      const memoryId = parseInt(req.params.id);
+      
+      // Get comments from database
+      const commentsResult = await db
+        .select({
+          id: comments.id,
+          userId: comments.authorId,
+          memoryId: comments.postId,
+          content: comments.content,
+          createdAt: comments.createdAt,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+          }
+        })
+        .from(comments)
+        .leftJoin(users, eq(comments.authorId, users.id))
+        .where(and(eq(comments.postId, memoryId), eq(comments.postType, 'memory')))
+        .orderBy(desc(comments.createdAt));
+
+      res.json(commentsResult);
     } catch (error) {
       console.error("Error fetching comments:", error);
       res.status(500).json({ message: "Failed to fetch comments" });
     }
   });
 
-  app.post('/api/memorys/:id/comments', requireAuth, async (req: any, res) => {
+  app.post('/api/memories/:id/comments', requireAuth, async (req: any, res) => {
     try {
-      const postId = parseInt(req.params.id);
+      const memoryId = parseInt(req.params.id);
       const { content } = req.body;
       
       if (!content?.trim()) {
         return res.status(400).json({ message: "Content is required" });
       }
 
-      // Create comment with simplified approach
-      res.json({
-        id: Date.now(),
-        content: content.trim(),
+      // Insert comment into database
+      const [newComment] = await db.insert(comments).values({
         authorId: req.user.id,
-        postId,
-        parentId: null,
-        likeCount: 0,
-        createdAt: new Date().toISOString(),
-        author: {
-          id: req.user.id,
-          username: req.user.username,
-          firstName: req.user.firstName,
-          profileImageUrl: req.user.profileImageUrl || null,
-        },
-        replies: []
-      });
+        postId: memoryId,
+        postType: 'memory',
+        content: content.trim(),
+        createdAt: new Date()
+      }).returning();
+
+      // Get full comment with author info
+      const [commentWithAuthor] = await db
+        .select({
+          id: comments.id,
+          userId: comments.authorId,
+          memoryId: comments.postId,
+          content: comments.content,
+          createdAt: comments.createdAt,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+          }
+        })
+        .from(comments)
+        .leftJoin(users, eq(comments.authorId, users.id))
+        .where(eq(comments.id, newComment.id));
+
+      res.json(commentWithAuthor);
     } catch (error) {
       console.error("Error adding comment:", error);
       res.status(500).json({ message: "Failed to add comment" });

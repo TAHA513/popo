@@ -70,6 +70,9 @@ export default function CommentsPage() {
       if (commentsResponse.ok) {
         const commentsData = await commentsResponse.json();
         setComments(commentsData);
+      } else {
+        console.error('فشل في جلب التعليقات');
+        setComments([]);
       }
     } catch (error) {
       console.error('خطأ في جلب البيانات:', error);
@@ -99,14 +102,18 @@ export default function CommentsPage() {
 
       if (response.ok) {
         const newCommentData = await response.json();
-        setComments(prev => [...prev, newCommentData]);
+        setComments(prev => [newCommentData, ...prev]); // أضافة التعليق في المقدمة
         setNewComment("");
         toast({
           title: "تم إضافة التعليق ✅",
           description: "تم نشر تعليقك بنجاح"
         });
+        
+        // تحديث قائمة التعليقات
+        fetchMemoryAndComments();
       } else {
-        throw new Error('فشل في إضافة التعليق');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'فشل في إضافة التعليق');
       }
     } catch (error) {
       toast({
