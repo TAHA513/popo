@@ -127,6 +127,28 @@ export const pointTransactions = pgTable("point_transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User wallet for earnings from gifts (40% profit from received gifts)
+export const userWallets = pgTable("user_wallets", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().unique().references(() => users.id),
+  totalEarnings: integer("total_earnings").default(0).notNull(), // إجمالي الأرباح
+  availableBalance: integer("available_balance").default(0).notNull(), // الرصيد المتاح
+  totalWithdrawn: integer("total_withdrawn").default(0).notNull(), // إجمالي المسحوب
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Wallet transactions for tracking earnings and withdrawals
+export const walletTransactions = pgTable("wallet_transactions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  amount: integer("amount").notNull(),
+  type: varchar("type").notNull(), // 'gift_earning', 'withdrawal', 'bonus'
+  description: text("description"),
+  giftId: integer("gift_id").references(() => gifts.id), // reference to the gift that generated earnings
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 
 
 // Alliances - Player groups for cooperative gameplay

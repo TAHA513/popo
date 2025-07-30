@@ -31,6 +31,7 @@ import CreatePrivateRoomPage from "@/pages/create-private-room";
 import CreateGroupRoomPage from "@/pages/create-group-room";
 import BrowseGroupRoomsPage from "@/pages/browse-group-rooms";
 import RoomInvitationsPage from "@/pages/room-invitations";
+import WalletPage from "@/pages/wallet";
 // Core page imports
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
@@ -88,6 +89,7 @@ function Router() {
           <Route path="/create-group-room" component={CreateGroupRoomPage} />
           <Route path="/browse-group-rooms" component={BrowseGroupRoomsPage} />
           <Route path="/room-invitations" component={RoomInvitationsPage} />
+          <Route path="/wallet" component={WalletPage} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
         </Suspense>
       ) : (

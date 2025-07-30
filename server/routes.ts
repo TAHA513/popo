@@ -21,6 +21,7 @@ import fs from 'fs/promises';
 import { setupDirectMessageRoutes } from './routes/direct-messages';
 import { setupPrivateRoomRoutes } from './routes/private-rooms';
 import { setupGroupRoomRoutes } from './routes/group-rooms';
+import { setupWalletRoutes } from './routes/wallet';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import crypto from 'crypto';
 
@@ -175,6 +176,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup group room routes
   setupGroupRoomRoutes(app);
+  
+  // Setup wallet routes
+  setupWalletRoutes(app);
 
   // Local authentication routes
   app.post('/api/register', async (req, res) => {

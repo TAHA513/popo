@@ -168,11 +168,26 @@ export function setupGroupRoomRoutes(app: Express) {
         return res.status(400).json({ message: "رصيد النقاط غير كافي" });
       }
 
-      // Deduct points from user
+      // Deduct points from user  
       await db
         .update(users)
         .set({ points: user[0].points - giftPrice })
         .where(eq(users.id, userId));
+
+      // Add 40% earnings to host's wallet
+      try {
+        await fetch(`${process.env.REPLIT_DOMAIN || 'http://localhost:5000'}/api/wallet/process-gift-earnings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            giftId: null,
+            receiverId: roomData.hostId,
+            giftAmount: giftPrice
+          })
+        });
+      } catch (error) {
+        console.log("⚠️ Could not process gift earnings:", error);
+      }
 
       // Add points to host
       const hostUser = await db

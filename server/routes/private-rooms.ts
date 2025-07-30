@@ -199,18 +199,19 @@ export function setupPrivateRoomRoutes(app: Express) {
         .set({ points: user[0].points - giftPrice })
         .where(eq(users.id, userId));
 
-      // Add points to host
-      const hostUser = await db
-        .select({ points: users.points })
-        .from(users)
-        .where(eq(users.id, invitationData.fromUserId))
-        .limit(1);
-
-      if (hostUser.length) {
-        await db
-          .update(users)
-          .set({ points: hostUser[0].points + giftPrice })
-          .where(eq(users.id, invitationData.fromUserId));
+      // Add 40% earnings to host's wallet
+      try {
+        await fetch(`${process.env.REPLIT_DOMAIN || 'http://localhost:5000'}/api/wallet/process-gift-earnings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            giftId: null,
+            receiverId: invitationData.fromUserId,
+            giftAmount: giftPrice
+          })
+        });
+      } catch (error) {
+        console.log("⚠️ Could not process gift earnings:", error);
       }
 
       // Record transactions
