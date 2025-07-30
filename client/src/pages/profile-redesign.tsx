@@ -218,8 +218,10 @@ export default function ProfileRedesign() {
   };
 
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Cover image change event triggered!', e.target.files);
     const file = e.target.files?.[0];
     if (file) {
+      console.log('Cover file selected:', { name: file.name, size: file.size });
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
           title: "حجم الملف كبير جداً",
@@ -228,6 +230,7 @@ export default function ProfileRedesign() {
         });
         return;
       }
+      console.log('Starting cover image mutation...');
       coverImageMutation.mutate(file);
     }
   };
@@ -284,7 +287,10 @@ export default function ProfileRedesign() {
                     size="sm" 
                     variant="secondary" 
                     className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30"
-                    onClick={() => coverImageRef.current?.click()}
+                    onClick={() => {
+                      console.log('Cover button clicked!', { coverImageRef: coverImageRef.current });
+                      coverImageRef.current?.click();
+                    }}
                     disabled={coverImageMutation.isPending}
                   >
                     {coverImageMutation.isPending ? (
@@ -295,6 +301,10 @@ export default function ProfileRedesign() {
                     {coverImageMutation.isPending ? "جاري الرفع..." : "تغيير الغلاف"}
                   </Button>
                 )}
+                {/* Debug info */}
+                <div className="absolute -bottom-8 right-0 text-xs text-black bg-white px-2 py-1 rounded">
+                  {isOwnProfile ? 'Own Profile' : 'Not Own'} | User: {currentUser?.id} | Profile: {profileUserId}
+                </div>
               </div>
               {/* Hidden file input for cover image */}
               <input
