@@ -28,7 +28,9 @@ export default function BottomNavigation() {
       if (!response.ok) throw new Error('Failed to fetch conversations');
       return response.json();
     },
-    enabled: !!user
+    enabled: !!user,
+    refetchInterval: 3000, // تحديث كل 3 ثوان
+    staleTime: 1000 // البيانات تعتبر قديمة بعد ثانية واحدة
   });
 
   // Calculate total unread messages

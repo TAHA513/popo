@@ -23,6 +23,7 @@ import NewChatPage from "@/pages/new-chat";
 import MessageRequestsPage from "@/pages/message-requests";
 import SimplePrivateChatPage from "@/pages/simple-private-chat";
 import ConversationPage from "@/pages/conversation";
+import ChatPage from "@/pages/chat";
 import LockedAlbums from "@/components/LockedAlbums";
 import WatchStreamPage from "@/pages/watch-stream";
 import VideoPage from "@/pages/video";
@@ -88,6 +89,7 @@ function Router() {
           <Route path="/single-video" component={SingleVideoPage} />
           <Route path="/messages/new-chat" component={NewChatPage} />
           <Route path="/messages/requests" component={MessageRequestsPage} />
+          <Route path="/messages/chat/:userId" component={ChatPage} />
           <Route path="/messages/:userId" component={SimplePrivateChatPage} />
           <Route path="/create-private-room" component={CreatePrivateRoomPage} />
           <Route path="/create-group-room" component={CreateGroupRoomPage} />

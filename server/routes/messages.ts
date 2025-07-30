@@ -20,7 +20,7 @@ export function setupMessageRoutes(app: Express) {
           END`,
           lastMessage: conversations.lastMessage,
           lastMessageAt: conversations.lastMessageAt,
-          unreadCount: sql<number>`0` // TODO: Implement unread count
+          unreadCount: sql<number>`0`
         })
         .from(conversations)
         .where(
@@ -47,7 +47,7 @@ export function setupMessageRoutes(app: Express) {
 
           // Count unread messages from the other user
           const unreadMessages = await db
-            .select({ count: sql<number>`count(*)` })
+            .select({ count: sql<number>`cast(count(*) as integer)` })
             .from(messages)
             .where(
               and(
