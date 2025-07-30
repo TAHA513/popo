@@ -2641,6 +2641,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     ws.on('close', () => {
       connectedClients.delete(clientId);
+      // Remove user connection when they disconnect
+      for (const [userId, userWs] of userConnections.entries()) {
+        if (userWs === ws) {
+          userConnections.delete(userId);
+          console.log(`User ${userId} disconnected from WebSocket`);
+          break;
+        }
+      }
     });
   });
 
@@ -2651,6 +2659,9 @@ function generateClientId(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+// Store user connections for call signaling
+const userConnections = new Map<string, WebSocket>();
+
 async function handleWebSocketMessage(clientId: string, message: any) {
   const client = connectedClients.get(clientId);
   if (!client) {
@@ -2660,6 +2671,50 @@ async function handleWebSocketMessage(clientId: string, message: any) {
 
   try {
     switch (message.type) {
+      case 'user_connected':
+        // Store user connection for targeted messaging
+        userConnections.set(message.userId, client.ws);
+        console.log(`User ${message.userId} connected to WebSocket`);
+        break;
+        
+      case 'call_invitation':
+        // Send call invitation to specific recipient
+        const recipientWs = userConnections.get(message.recipientId);
+        if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
+          recipientWs.send(JSON.stringify({
+            type: 'incoming_call',
+            callType: message.callType,
+            callerName: message.callerName,
+            callerId: message.senderId || 'unknown'
+          }));
+          console.log(`Call invitation sent to user ${message.recipientId}`);
+        } else {
+          console.log(`User ${message.recipientId} not connected or offline`);
+        }
+        break;
+        
+      case 'call_response':
+        // Send call response back to caller
+        const callerWs = userConnections.get(message.recipientId);
+        if (callerWs && callerWs.readyState === WebSocket.OPEN) {
+          callerWs.send(JSON.stringify({
+            type: message.accepted ? 'call_accepted' : 'call_rejected'
+          }));
+          console.log(`Call ${message.accepted ? 'accepted' : 'rejected'} by user`);
+        }
+        break;
+        
+      case 'end_call':
+        // Notify other user that call ended
+        const otherUserWs = userConnections.get(message.recipientId);
+        if (otherUserWs && otherUserWs.readyState === WebSocket.OPEN) {
+          otherUserWs.send(JSON.stringify({
+            type: 'call_ended'
+          }));
+          console.log(`Call ended notification sent to user ${message.recipientId}`);
+        }
+        break;
+        
       case 'join_stream':
         console.log("🚀 User joining stream:", {
           userId: message.userId,

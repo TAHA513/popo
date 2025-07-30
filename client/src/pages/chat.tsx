@@ -218,6 +218,96 @@ export default function ChatPage() {
     }
   }, [messages.length]);
 
+  // WebSocket connection for real-time call signaling
+  const [ws, setWs] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    // Create WebSocket connection for call signaling
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
+    
+    socket.onopen = () => {
+      console.log('Call WebSocket connected');
+      setWs(socket);
+      
+      // Register user connection for call signaling
+      if (user?.id) {
+        socket.send(JSON.stringify({
+          type: 'user_connected',
+          userId: user.id
+        }));
+      }
+    };
+    
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      handleCallSignaling(data);
+    };
+    
+    socket.onclose = () => {
+      console.log('Call WebSocket disconnected');
+      setWs(null);
+    };
+    
+    return () => {
+      socket.close();
+    };
+  }, []);
+
+  // Handle incoming call signals
+  const handleCallSignaling = (data: any) => {
+    switch (data.type) {
+      case 'incoming_call':
+        setIsCallIncoming(true);
+        setCallType(data.callType);
+        toast({
+          title: "مكالمة واردة",
+          description: `${data.callerName} يريد ${data.callType === 'video' ? 'مكالمة فيديو' : 'مكالمة صوتية'}`,
+        });
+        break;
+      
+      case 'call_accepted':
+        toast({
+          title: "تم قبول المكالمة",
+          description: "المكالمة نشطة الآن",
+        });
+        break;
+      
+      case 'call_rejected':
+        endCall();
+        toast({
+          title: "تم رفض المكالمة",
+          description: "الشخص الآخر رفض المكالمة",
+          variant: "destructive"
+        });
+        break;
+      
+      case 'call_ended':
+        endCall();
+        toast({
+          title: "انتهت المكالمة",
+          description: "الشخص الآخر أنهى المكالمة",
+        });
+        break;
+    }
+  };
+
+  // Send call invitation
+  const sendCallInvitation = async (callType: 'audio' | 'video') => {
+    if (!ws || !otherUser || !user) return;
+    
+    const callData = {
+      type: 'call_invitation',
+      recipientId: otherUserId,
+      callType: callType,
+      callerName: user?.firstName || user?.username,
+      senderId: user.id
+    };
+    
+    ws.send(JSON.stringify(callData));
+  };
+
   // Call functions
   const startAudioCall = async () => {
     try {
@@ -226,18 +316,13 @@ export default function ChatPage() {
       setCallType('audio');
       setIsCallActive(true);
       
+      // Send call invitation to other user
+      await sendCallInvitation('audio');
+      
       toast({
         title: "بدء المكالمة الصوتية",
-        description: "جاري الاتصال...",
+        description: "جاري إرسال دعوة المكالمة...",
       });
-      
-      // Simulate call connection after 2 seconds
-      setTimeout(() => {
-        toast({
-          title: "تم الاتصال",
-          description: "المكالمة الصوتية نشطة الآن",
-        });
-      }, 2000);
       
     } catch (error) {
       toast({
@@ -258,18 +343,13 @@ export default function ChatPage() {
       setCallType('video');
       setIsCallActive(true);
       
+      // Send call invitation to other user
+      await sendCallInvitation('video');
+      
       toast({
         title: "بدء مكالمة الفيديو",
-        description: "جاري الاتصال...",
+        description: "جاري إرسال دعوة المكالمة...",
       });
-      
-      // Simulate call connection after 2 seconds
-      setTimeout(() => {
-        toast({
-          title: "تم الاتصال",
-          description: "مكالمة الفيديو نشطة الآن",
-        });
-      }, 2000);
       
     } catch (error) {
       toast({
@@ -278,6 +358,59 @@ export default function ChatPage() {
         variant: "destructive"
       });
     }
+  };
+
+  // Accept incoming call
+  const acceptCall = async () => {
+    try {
+      const constraints = callType === 'video' 
+        ? { audio: true, video: true }
+        : { audio: true };
+        
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      setLocalStream(stream);
+      setIsCallActive(true);
+      setIsCallIncoming(false);
+      
+      if (ws) {
+        ws.send(JSON.stringify({
+          type: 'call_response',
+          recipientId: otherUserId,
+          accepted: true
+        }));
+      }
+      
+      toast({
+        title: "تم قبول المكالمة",
+        description: "المكالمة نشطة الآن",
+      });
+      
+    } catch (error) {
+      rejectCall();
+      toast({
+        title: "خطأ في قبول المكالمة",
+        description: "لا يمكن الوصول إلى الكاميرا أو الميكروفون",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Reject incoming call
+  const rejectCall = () => {
+    setIsCallIncoming(false);
+    
+    if (ws) {
+      ws.send(JSON.stringify({
+        type: 'call_response',
+        recipientId: otherUserId,
+        accepted: false
+      }));
+    }
+    
+    toast({
+      title: "تم رفض المكالمة",
+      description: "رفضت المكالمة الواردة",
+    });
   };
 
   const endCall = () => {
@@ -289,7 +422,17 @@ export default function ChatPage() {
       remoteStream.getTracks().forEach(track => track.stop());
       setRemoteStream(null);
     }
+    
+    // Notify other user that call ended
+    if (ws && isCallActive) {
+      ws.send(JSON.stringify({
+        type: 'end_call',
+        recipientId: otherUserId
+      }));
+    }
+    
     setIsCallActive(false);
+    setIsCallIncoming(false);
     setCallType('audio');
     
     toast({
@@ -365,6 +508,51 @@ export default function ChatPage() {
           </Button>
         </div>
       </div>
+
+      {/* Incoming Call Overlay */}
+      {isCallIncoming && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
+                {callType === 'video' ? (
+                  <Video className="w-10 h-10 text-white" />
+                ) : (
+                  <Phone className="w-10 h-10 text-white" />
+                )}
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                مكالمة واردة
+              </h3>
+              
+              <p className="text-gray-600 mb-2">
+                {otherUser?.firstName || otherUser?.username || 'مستخدم'}
+              </p>
+              
+              <p className="text-gray-500 mb-6">
+                {callType === 'video' ? 'مكالمة فيديو' : 'مكالمة صوتية'}
+              </p>
+              
+              {/* Call Response Controls */}
+              <div className="flex justify-center space-x-4 space-x-reverse">
+                <Button
+                  onClick={rejectCall}
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full"
+                >
+                  رفض
+                </Button>
+                <Button
+                  onClick={acceptCall}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full"
+                >
+                  قبول
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Active Call Overlay */}
       {isCallActive && (
