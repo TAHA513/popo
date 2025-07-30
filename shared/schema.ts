@@ -267,6 +267,46 @@ export const roomInvitations = pgTable("room_invitations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Group chat rooms with gift-based entry
+export const groupRooms = pgTable("group_rooms", {
+  id: serial("id").primaryKey(),
+  hostId: varchar("host_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  giftRequired: jsonb("gift_required").notNull(), // Gift details including price, name, icon
+  entryPrice: integer("entry_price").notNull(), // Points required to enter
+  maxParticipants: integer("max_participants").default(10),
+  currentParticipants: integer("current_participants").default(0),
+  duration: integer("duration").default(60), // Duration in minutes
+  isActive: boolean("is_active").default(true),
+  isOpen: boolean("is_open").default(true), // Can people still join?
+  roomStartedAt: timestamp("room_started_at").defaultNow(),
+  roomEndsAt: timestamp("room_ends_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Group room participants
+export const groupRoomParticipants = pgTable("group_room_participants", {
+  id: serial("id").primaryKey(),
+  roomId: integer("room_id").notNull().references(() => groupRooms.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  giftPaid: jsonb("gift_paid").notNull(), // Gift details they paid
+  joinedAt: timestamp("joined_at").defaultNow(),
+  leftAt: timestamp("left_at"),
+  isActive: boolean("is_active").default(true),
+});
+
+// Group room messages
+export const groupRoomMessages = pgTable("group_room_messages", {
+  id: serial("id").primaryKey(),
+  roomId: integer("room_id").notNull().references(() => groupRooms.id),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  messageType: varchar("message_type").default("text"), // 'text', 'voice', 'image'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Private Messages table (legacy)
 export const privateMessages = pgTable("private_messages", {
   id: serial("id").primaryKey(),

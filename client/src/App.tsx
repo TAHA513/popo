@@ -28,6 +28,8 @@ import WatchStreamPage from "@/pages/watch-stream";
 import VideoPage from "@/pages/video";
 import SingleVideoPage from "@/pages/single-video";
 import CreatePrivateRoomPage from "@/pages/create-private-room";
+import CreateGroupRoomPage from "@/pages/create-group-room";
+import BrowseGroupRoomsPage from "@/pages/browse-group-rooms";
 import RoomInvitationsPage from "@/pages/room-invitations";
 // Core page imports
 import CreateMemoryPage from "@/pages/create-memory";
@@ -83,6 +85,8 @@ function Router() {
           <Route path="/messages/requests" component={MessageRequestsPage} />
           <Route path="/messages/:userId" component={SimplePrivateChatPage} />
           <Route path="/create-private-room" component={CreatePrivateRoomPage} />
+          <Route path="/create-group-room" component={CreateGroupRoomPage} />
+          <Route path="/browse-group-rooms" component={BrowseGroupRoomsPage} />
           <Route path="/room-invitations" component={RoomInvitationsPage} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
         </Suspense>
