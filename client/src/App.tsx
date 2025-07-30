@@ -34,6 +34,7 @@ import RoomInvitationsPage from "@/pages/room-invitations";
 import WalletPage from "@/pages/wallet";
 import CommentsPage from "@/pages/comments";
 import FollowersManagementPage from "@/pages/followers-management";
+import ProfileRedesignPage from "@/pages/profile-redesign";
 // Core page imports
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
@@ -79,8 +80,9 @@ function Router() {
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
           <Route path="/games" component={GamesSimplePage} />
-          <Route path="/profile" component={ProfileSimplePage} />
-          <Route path="/user/:userId" component={ProfileSimplePage} />
+          <Route path="/profile" component={ProfileRedesignPage} />
+          <Route path="/profile-old" component={ProfileSimplePage} />
+          <Route path="/user/:userId" component={ProfileRedesignPage} />
           <Route path="/messages" component={MessagesPage} />
           <Route path="/video/:videoId" component={VideoPage} />
           <Route path="/single-video" component={SingleVideoPage} />
