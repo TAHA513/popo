@@ -536,40 +536,44 @@ export default function PrivateChatPage() {
           </div>
         )}
 
-        <div className="flex items-center space-x-2 space-x-reverse">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="اكتب رسالتك هنا..."
-            className="flex-1"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            disabled={sendMessage.isPending}
-          />
-          
-          <Button
-            onClick={startRecording}
-            size="sm"
-            variant="outline"
-            className="text-purple-600 border-purple-600 hover:bg-purple-50"
-            disabled={isRecording || !!audioBlob}
-          >
-            <Mic className="w-4 h-4" />
-          </Button>
-          
-          <Button
-            onClick={handleSendMessage}
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-            disabled={!newMessage.trim() || sendMessage.isPending}
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+        {/* إرسال الرسائل النصية فقط عندما لا توجد بصمة صوتية */}
+        {!audioBlob && !isRecording && (
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="اكتب رسالتك هنا..."
+              className="flex-1"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              disabled={sendMessage.isPending}
+            />
+            
+            <button
+              onClick={() => {
+                console.log('🎤 Starting voice recording...');
+                startRecording();
+              }}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+              disabled={isRecording || !!audioBlob}
+            >
+              🎤 صوت
+            </button>
+            
+            <Button
+              onClick={handleSendMessage}
+              size="sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              disabled={!newMessage.trim() || sendMessage.isPending}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
       
       <BottomNavigation />
