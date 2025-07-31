@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, Star, Gift, Crown, Heart, Sparkles } from "lucide-react";
+import { X, Star, Gift, Crown, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function PromotionalBanner() {
   const [isVisible, setIsVisible] = useState(true);
@@ -14,111 +14,119 @@ export default function PromotionalBanner() {
       description: "اكتشف عالماً مليئاً بالألبومات الخاصة والهدايا المميزة",
       action: "ابدأ الآن",
       gradient: "from-purple-500 via-pink-500 to-blue-500",
-      icon: <Star className="w-6 h-6" />
+      icon: <Star className="w-4 h-4" />
     },
     {
       id: 2,
       title: "💎 أرسل هدايا حصرية",
-      description: "اشترِ الألبومات الخاصة وأرسل هدايا مميزة لأصدقائك",
+      description: "اشترِ الألبومات الخاصة وأرسل هدايا مميزة",
       action: "استكشف الهدايا",
       gradient: "from-pink-500 via-red-500 to-orange-500",
-      icon: <Gift className="w-6 h-6" />
+      icon: <Gift className="w-4 h-4" />
     },
     {
       id: 3,
       title: "👑 كن عضواً VIP",
-      description: "احصل على مميزات حصرية وشارات خاصة في المنصة",
+      description: "احصل على مميزات حصرية وشارات خاصة",
       action: "ترقية حسابك",
       gradient: "from-yellow-500 via-orange-500 to-red-500",
-      icon: <Crown className="w-6 h-6" />
+      icon: <Crown className="w-4 h-4" />
     },
     {
       id: 4,
       title: "💝 اربح من ألبوماتك",
-      description: "حول صورك الخاصة إلى مصدر دخل مع نظام الأرباح 40%",
+      description: "حول صورك الخاصة إلى مصدر دخل مع نظام الأرباح",
       action: "ابدأ الربح",
       gradient: "from-green-500 via-teal-500 to-blue-500",
-      icon: <Heart className="w-6 h-6" />
+      icon: <Heart className="w-4 h-4" />
     }
   ];
 
   const currentBannerData = banners[currentBanner];
 
-  // Auto-rotate banner every 5 seconds
-  useEffect(() => {
-    if (!isVisible) return;
-    
-    const interval = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 5000);
+  const goToPrevious = () => {
+    setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
+  };
 
-    return () => clearInterval(interval);
-  }, [isVisible, banners.length]);
+  const goToNext = () => {
+    setCurrentBanner((prev) => (prev + 1) % banners.length);
+  };
 
   if (!isVisible) return null;
 
   return (
-    <div className="w-full mb-6 relative">
-      <Card className={`overflow-hidden border-0 shadow-xl bg-gradient-to-r ${currentBannerData.gradient} text-white relative`}>
+    <div className="w-full mb-3 relative">
+      <Card className={`overflow-hidden border-0 shadow-md bg-gradient-to-r ${currentBannerData.gradient} text-white relative`}>
         {/* Close Button */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-2 left-2 z-10 text-white hover:bg-white/20 p-1"
+          className="absolute top-1 left-1 z-10 text-white hover:bg-white/20 p-1"
           onClick={() => setIsVisible(false)}
         >
-          <X className="w-4 h-4" />
+          <X className="w-3 h-3" />
+        </Button>
+
+        {/* Navigation Arrows */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-1/2 transform -translate-y-1/2 right-1 z-10 text-white hover:bg-white/20 p-1"
+          onClick={goToPrevious}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-1/2 transform -translate-y-1/2 left-6 z-10 text-white hover:bg-white/20 p-1"
+          onClick={goToNext}
+        >
+          <ChevronLeft className="w-4 h-4" />
         </Button>
 
         {/* Banner Content */}
-        <div className="p-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-              {currentBannerData.icon}
+        <div className="p-3 px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                {currentBannerData.icon}
+              </div>
+              <div>
+                <h3 className="text-sm font-bold">
+                  {currentBannerData.title}
+                </h3>
+                <p className="text-white/90 text-xs">
+                  {currentBannerData.description}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-bold mb-1">
-                {currentBannerData.title}
-              </h3>
-              <p className="text-white/90 text-sm">
-                {currentBannerData.description}
-              </p>
-            </div>
+            
+            <Button 
+              className="bg-white text-gray-800 hover:bg-gray-100 font-semibold px-3 py-1 text-xs"
+              onClick={() => {
+                console.log(`Banner action clicked: ${currentBannerData.action}`);
+              }}
+            >
+              {currentBannerData.action}
+            </Button>
           </div>
-          
-          <Button 
-            className="bg-white text-gray-800 hover:bg-gray-100 font-semibold px-6"
-            onClick={() => {
-              // Add action logic here
-              console.log(`Banner action clicked: ${currentBannerData.action}`);
-            }}
-          >
-            {currentBannerData.action}
-          </Button>
         </div>
 
         {/* Banner Navigation Dots */}
-        <div className="absolute bottom-2 right-1/2 transform translate-x-1/2 flex gap-2">
+        <div className="absolute bottom-1 right-1/2 transform translate-x-1/2 flex gap-1">
           {banners.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                 index === currentBanner ? 'bg-white' : 'bg-white/50'
               }`}
               onClick={() => setCurrentBanner(index)}
             />
           ))}
         </div>
-
-        {/* Animated Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full animate-pulse"></div>
-          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/5 rounded-full animate-pulse delay-1000"></div>
-          <Sparkles className="absolute top-1/2 right-8 w-6 h-6 text-white/30 animate-bounce" />
-        </div>
       </Card>
-
-
     </div>
   );
 }
