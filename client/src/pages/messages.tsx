@@ -140,15 +140,7 @@ export default function MessagesPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-        {/* Custom Messages Header */}
-        <div className="bg-white shadow-sm border-b p-4 sticky top-0 z-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 space-x-reverse">
-              <MessageCircle className="w-6 h-6 text-purple-600" />
-              <h1 className="text-xl font-bold text-gray-800">الرسائل</h1>
-            </div>
-          </div>
-        </div>
+        <SimpleNavigation />
         <div className="flex items-center justify-center h-screen">
           <div className="text-lg">جاري التحميل...</div>
         </div>
@@ -159,36 +151,11 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-      {/* Custom Messages Header - Only Message Icons */}
-      <div className="bg-white shadow-sm border-b p-4 sticky top-0 z-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3 space-x-reverse">
-            <MessageCircle className="w-6 h-6 text-purple-600" />
-            <h1 className="text-xl font-bold text-gray-800">الرسائل</h1>
-          </div>
-          <div className="flex items-center space-x-2 space-x-reverse">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-2"
-              onClick={() => setSearchQuery("")}
-            >
-              <Search className="w-5 h-5" />
-            </Button>
-            <Link href="/messages/new-chat">
-              <Button variant="ghost" size="sm" className="p-2">
-                <Send className="w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* Header removed - using only SimpleNavigation */}
+      <SimpleNavigation />
       
       <main className="container mx-auto px-4 py-4 max-w-4xl">
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-800">الرسائل</h1>
-          </div>
           
           {/* Organized button sections */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
