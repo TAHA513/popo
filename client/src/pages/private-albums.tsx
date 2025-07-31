@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Lock, Image, Gift, Star, Crown, Heart } from 'lucide-react';
+import { Camera, Lock, Image, Gift, Star, Crown, Heart, ArrowLeft } from 'lucide-react';
 
 interface Album {
   id: number;
@@ -220,6 +220,14 @@ export default function PrivateAlbums() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.history.back()}
+              className="text-white hover:text-pink-400 hover:bg-white/10 rounded-full p-2"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
             <Camera className="w-8 h-8 text-pink-400" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
               الألبومات الخاصة

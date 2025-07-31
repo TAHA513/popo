@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
-import { Search, UserPlus, MessageCircle } from "lucide-react";
+import { Search, UserPlus, MessageCircle, ArrowLeft } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -59,11 +59,25 @@ export default function NewChatPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 pb-20 md:pb-0">
-      <SimpleNavigation />
+      {/* Header with back button */}
+      <div className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-gray-200 sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 max-w-4xl">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.history.back()}
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl font-bold text-gray-900">غرفة دردشة جديدة</h1>
+          </div>
+        </div>
+      </div>
       
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">إنشاء غرفة دردشة جديدة</h1>
           <p className="text-gray-600 mb-6">ابحث عن صديق لبدء محادثة خاصة معه</p>
           
           {/* شريط البحث */}

@@ -24,7 +24,8 @@ import {
   Star,
   Trophy,
   TrendingUp,
-  Upload
+  Upload,
+  ArrowLeft
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -273,7 +274,28 @@ export default function ProfileRedesign() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-      <SimpleNavigation />
+      {/* Header with back button - only show for other users' profiles */}
+      {!isOwnProfile && (
+        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+          <div className="container mx-auto px-4 py-3 max-w-4xl">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.history.back()}
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-xl font-bold text-gray-900">
+                {profileUser?.username || 'الملف الشخصي'}
+              </h1>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {isOwnProfile && <SimpleNavigation />}
       
       {/* Profile Header Card */}
       <div className="bg-white shadow-sm">

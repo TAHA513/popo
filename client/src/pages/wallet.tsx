@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, TrendingUp, Gift, DollarSign, History, ArrowUp, ArrowDown } from "lucide-react";
+import { Wallet, TrendingUp, Gift, DollarSign, History, ArrowUp, ArrowDown, ArrowLeft } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -121,17 +121,29 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <SimpleNavigation />
+      {/* Header with back button */}
+      <div className="bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10">
+        <div className="flex items-center gap-3 p-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.history.back()}
+            className="text-white hover:text-purple-300 hover:bg-white/10 rounded-full p-2"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-white flex items-center">
+            <Wallet className="w-6 h-6 ml-2" />
+            محفظة الأرباح
+          </h1>
+        </div>
+      </div>
       
-      <div className="pt-16 pb-20 px-4">
+      <div className="pt-4 pb-20 px-4">
         <div className="max-w-4xl mx-auto space-y-6">
           
-          {/* Header */}
+          {/* Description */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center">
-              <Wallet className="w-8 h-8 ml-3" />
-              محفظة الأرباح
-            </h1>
             <p className="text-white/70">أرباحك من الهدايا المستلمة (40% صافي)</p>
           </div>
 
