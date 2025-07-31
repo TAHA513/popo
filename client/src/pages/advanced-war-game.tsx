@@ -118,7 +118,7 @@ export default function AdvancedWarGame() {
     const groundBody = new CANNON.Body({ mass: 0 });
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-    world.add(groundBody);
+    world.addBody(groundBody);
 
     // Create buildings/obstacles
     const buildings: THREE.Mesh[] = [];
@@ -148,7 +148,7 @@ export default function AdvancedWarGame() {
       const buildingBody = new CANNON.Body({ mass: 0 });
       buildingBody.addShape(buildingShape);
       buildingBody.position.set(pos.x, height / 2, pos.z);
-      world.add(buildingBody);
+      world.addBody(buildingBody);
     });
 
     // Create player
@@ -164,7 +164,7 @@ export default function AdvancedWarGame() {
     playerBody.addShape(playerShape);
     playerBody.position.set(0, 2, 0);
     playerBody.material = new CANNON.Material({ friction: 0.4, restitution: 0.0 });
-    world.add(playerBody);
+    world.addBody(playerBody);
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
@@ -245,7 +245,7 @@ export default function AdvancedWarGame() {
     const enemyBody = new CANNON.Body({ mass: 5 });
     enemyBody.addShape(enemyShape);
     enemyBody.position.set(position.x, position.y, position.z);
-    world.add(enemyBody);
+    world.addBody(enemyBody);
 
     // Create patrol points
     const patrolPoints = [];
@@ -334,7 +334,7 @@ export default function AdvancedWarGame() {
     direction.multiplyScalar(50);
     
     bulletBody.velocity = new CANNON.Vec3(direction.x, direction.y, direction.z);
-    world.add(bulletBody);
+    world.addBody(bulletBody);
 
     const bullet = {
       mesh: bulletMesh,
@@ -426,7 +426,7 @@ export default function AdvancedWarGame() {
             .multiplyScalar(30);
           
           bulletBody.velocity = new CANNON.Vec3(direction.x, direction.y, direction.z);
-          gameStateRef.current.world.add(bulletBody);
+          gameStateRef.current.world.addBody(bulletBody);
 
           const bullet = {
             mesh: bulletMesh,
@@ -507,7 +507,7 @@ export default function AdvancedWarGame() {
       // Remove old bullets
       if (bullet.lifeTime > 5) {
         scene.remove(bullet.mesh);
-        world.remove(bullet.body);
+        world.removeBody(bullet.body);
         return false;
       }
 
@@ -524,7 +524,7 @@ export default function AdvancedWarGame() {
             
             if (enemy.health <= 0) {
               scene.remove(enemy.mesh);
-              world.remove(enemy.body);
+              world.removeBody(enemy.body);
               gameState.enemies.splice(enemyIndex, 1);
               player.kills += 1;
               player.score += 100;
@@ -553,7 +553,7 @@ export default function AdvancedWarGame() {
 
       if (hit) {
         scene.remove(bullet.mesh);
-        world.remove(bullet.body);
+        world.removeBody(bullet.body);
         return false;
       }
 
