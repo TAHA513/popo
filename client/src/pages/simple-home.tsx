@@ -6,6 +6,7 @@ import { useLocation } from "wouter";
 import { Plus } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
+import PromotionalBanner from "@/components/promotional-banner";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -51,7 +52,10 @@ export default function SimpleHome() {
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
-
+      {/* Promotional Banner */}
+      <div className="max-w-sm mx-auto px-2 pt-4">
+        <PromotionalBanner />
+      </div>
 
       <div className="max-w-sm mx-auto">
         {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}

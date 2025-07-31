@@ -10,6 +10,7 @@ import BottomNavigation from "@/components/bottom-navigation";
 import { apiRequest } from "@/lib/queryClient";
 import FriendsGardens from "@/components/FriendsGardens";
 import MultiplayerGames from "@/components/MultiplayerGames";
+import PromotionalBanner from "@/components/promotional-banner";
 
 export default function SimpleExplore() {
   const { user } = useAuth();
@@ -110,6 +111,11 @@ export default function SimpleExplore() {
       </div>
 
       <div className="max-w-md mx-auto">
+        {/* Promotional Banner */}
+        <div className="px-4 pt-4">
+          <PromotionalBanner />
+        </div>
+        
         {/* Player Profile & Achievements */}
         <div className="p-4">
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl p-4 mb-6">
