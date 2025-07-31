@@ -25,7 +25,9 @@ import {
   Trophy,
   TrendingUp,
   Upload,
-  ArrowLeft
+  ArrowLeft,
+  Moon,
+  Sun
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -33,6 +35,7 @@ import { OnlineStatus } from "@/components/online-status";
 import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import MemoryCard from "@/components/memory-card";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function ProfileRedesign() {
   const { user: currentUser, isAuthenticated } = useAuth();
@@ -40,6 +43,7 @@ export default function ProfileRedesign() {
   const userId = params.userId;
   const profileUserId = userId || currentUser?.id;
   const isOwnProfile = !userId || userId === currentUser?.id;
+  const { theme, toggleTheme } = useTheme();
   
   const [activeTab, setActiveTab] = useState<"memories" | "stats" | "albums">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
@@ -274,28 +278,82 @@ export default function ProfileRedesign() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-      {/* Header with back button - only show for other users' profiles */}
+      {/* Header with back button and settings - only show for other users' profiles */}
       {!isOwnProfile && (
         <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
           <div className="container mx-auto px-4 py-3 max-w-4xl">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.history.back()}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-xl font-bold text-gray-900">
-                {profileUser?.username || 'الملف الشخصي'}
-              </h1>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.history.back()}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-xl font-bold text-gray-900">
+                  {profileUser?.username || 'الملف الشخصي'}
+                </h1>
+              </div>
+              
+              {/* Theme and Settings Icons */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleTheme}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                >
+                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation('/account')}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       )}
       
-      {isOwnProfile && <SimpleNavigation />}
+      {/* Header for own profile with settings */}
+      {isOwnProfile && (
+        <>
+          <SimpleNavigation />
+          <div className="bg-white shadow-sm border-b border-gray-200 sticky top-16 z-10">
+            <div className="container mx-auto px-4 py-2 max-w-4xl">
+              <div className="flex items-center justify-between">
+                <h1 className="text-lg font-bold text-gray-900">الملف الشخصي</h1>
+                
+                {/* Theme and Settings Icons */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                  >
+                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLocation('/account')}
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                  >
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       
       {/* Profile Header Card */}
       <div className="bg-white shadow-sm">
