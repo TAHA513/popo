@@ -61,7 +61,7 @@ export default function SimpleHome() {
         {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}
         <div className="p-2">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">🔍 الاستكشاف</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">🔍 المنشورات</h2>
             <p className="text-gray-600 text-sm">اكتشف المنشورات والذكريات</p>
           </div>
           {memories.length === 0 ? (

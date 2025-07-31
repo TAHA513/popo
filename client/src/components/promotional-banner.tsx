@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, Star, Gift, Crown, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function PromotionalBanner() {
   const [isVisible, setIsVisible] = useState(true);
@@ -14,7 +14,7 @@ export default function PromotionalBanner() {
       description: "اكتشف عالماً مليئاً بالألبومات الخاصة والهدايا المميزة",
       action: "ابدأ الآن",
       gradient: "from-purple-500 via-pink-500 to-blue-500",
-      icon: <Star className="w-4 h-4" />
+      icon: null
     },
     {
       id: 2,
@@ -22,7 +22,7 @@ export default function PromotionalBanner() {
       description: "اشترِ الألبومات الخاصة وأرسل هدايا مميزة",
       action: "استكشف الهدايا",
       gradient: "from-pink-500 via-red-500 to-orange-500",
-      icon: <Gift className="w-4 h-4" />
+      icon: null
     },
     {
       id: 3,
@@ -30,7 +30,7 @@ export default function PromotionalBanner() {
       description: "احصل على مميزات حصرية وشارات خاصة",
       action: "ترقية حسابك",
       gradient: "from-yellow-500 via-orange-500 to-red-500",
-      icon: <Crown className="w-4 h-4" />
+      icon: null
     },
     {
       id: 4,
@@ -38,7 +38,7 @@ export default function PromotionalBanner() {
       description: "حول صورك الخاصة إلى مصدر دخل مع نظام الأرباح",
       action: "ابدأ الربح",
       gradient: "from-green-500 via-teal-500 to-blue-500",
-      icon: <Heart className="w-4 h-4" />
+      icon: null
     }
   ];
 
@@ -89,22 +89,17 @@ export default function PromotionalBanner() {
         {/* Banner Content */}
         <div className="p-3 px-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
-                {currentBannerData.icon}
-              </div>
-              <div>
-                <h3 className="text-sm font-bold">
-                  {currentBannerData.title}
-                </h3>
-                <p className="text-white/90 text-xs">
-                  {currentBannerData.description}
-                </p>
-              </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold mb-1">
+                {currentBannerData.title}
+              </h3>
+              <p className="text-white/90 text-xs">
+                {currentBannerData.description}
+              </p>
             </div>
             
             <Button 
-              className="bg-white text-gray-800 hover:bg-gray-100 font-semibold px-3 py-1 text-xs"
+              className="bg-white text-gray-800 hover:bg-gray-100 font-semibold px-3 py-1 text-xs ml-3"
               onClick={() => {
                 console.log(`Banner action clicked: ${currentBannerData.action}`);
               }}
