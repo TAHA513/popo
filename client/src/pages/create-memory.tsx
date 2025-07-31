@@ -103,6 +103,8 @@ export default function CreateMemoryPage() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const [isUploading, setIsUploading] = useState(false);
@@ -320,7 +322,7 @@ export default function CreateMemoryPage() {
                 {/* Upload Options */}
                 <div className="grid grid-cols-2 gap-4">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => imageInputRef.current?.click()}
                     className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 text-center hover:bg-white/20 transition-all group tiktok-button"
                   >
                     <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
@@ -331,7 +333,7 @@ export default function CreateMemoryPage() {
                   </button>
 
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => videoInputRef.current?.click()}
                     className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 text-center hover:bg-white/20 transition-all group tiktok-button"
                   >
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
@@ -362,6 +364,21 @@ export default function CreateMemoryPage() {
                 </div>
               </div>
 
+              {/* Separate inputs for images and videos */}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
               <input
                 ref={fileInputRef}
                 type="file"
