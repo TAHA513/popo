@@ -6,53 +6,23 @@ import { useLocation } from "wouter";
 const GAMES = [
   {
     id: 1,
-    name: "لعبة الذاكرة",
-    emoji: "🧠",
-    description: "اختبر ذاكرتك مع البطاقات المطابقة",
-    color: "from-purple-500 to-pink-500"
-  },
-  {
-    id: 2,
-    name: "لغز القطع",
-    emoji: "🧩",
-    description: "حل الألغاز وأكمل الصورة",
-    color: "from-blue-500 to-cyan-500"
-  },
-  {
-    id: 3,
-    name: "سباق السرعة",
-    emoji: "🏎️",
-    description: "تسابق مع الأصدقاء",
-    color: "from-red-500 to-orange-500"
-  },
-  {
-    id: 4,
-    name: "البحث عن الكنز",
-    emoji: "💎",
-    description: "ابحث عن الكنوز المخفية",
-    color: "from-yellow-500 to-amber-500"
-  },
-  {
-    id: 5,
-    name: "أسئلة وأجوبة",
-    emoji: "❓",
-    description: "اختبر معلوماتك العامة",
-    color: "from-green-500 to-emerald-500"
-  },
-  {
-    id: 6,
-    name: "تحدي الكلمات",
-    emoji: "📝",
-    description: "كون أطول الكلمات",
-    color: "from-indigo-500 to-purple-500"
+    name: "حرب الذكاء الاصطناعي",
+    emoji: "🤖",
+    description: "المعركة النهائية لاستعادة السيطرة على الأرض من الذكاء الاصطناعي",
+    color: "from-red-600 to-orange-600",
+    route: "/ai-war"
   }
 ];
 
 export default function GamesPage() {
   const [, setLocation] = useLocation();
 
-  const handleGameClick = (gameId: number, gameName: string) => {
-    alert(`🎮 قريباً: ${gameName}!\n\nسيتم إضافة هذه اللعبة في التحديث القادم.`);
+  const handleGameClick = (game: any) => {
+    if (game.route) {
+      setLocation(game.route);
+    } else {
+      alert(`🎮 قريباً: ${game.name}!\n\nسيتم إضافة هذه اللعبة في التحديث القادم.`);
+    }
   };
 
   return (
@@ -89,7 +59,7 @@ export default function GamesPage() {
             <Card 
               key={game.id} 
               className="hover:shadow-lg transition-all duration-300 cursor-pointer group hover:scale-105"
-              onClick={() => handleGameClick(game.id, game.name)}
+              onClick={() => handleGameClick(game)}
             >
               <CardHeader className="pb-3">
                 <div className={`w-16 h-16 bg-gradient-to-br ${game.color} rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
@@ -113,15 +83,18 @@ export default function GamesPage() {
           ))}
         </div>
 
-        {/* Coming Soon Section */}
+        {/* Game Description */}
         <div className="mt-8 text-center">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-dashed border-purple-300">
-            <div className="text-4xl mb-3">🚀</div>
-            <h3 className="text-xl font-bold text-purple-600 mb-2">
-              المزيد من الألعاب قريباً!
+          <div className="bg-gradient-to-br from-red-900/20 to-orange-900/20 rounded-2xl p-6 shadow-lg border border-red-500/30">
+            <div className="text-4xl mb-3">⚔️</div>
+            <h3 className="text-xl font-bold text-red-600 mb-2">
+              المعركة الأخيرة للبشرية
             </h3>
-            <p className="text-gray-600">
-              نعمل على إضافة المزيد من الألعاب المثيرة والممتعة
+            <p className="text-gray-700 leading-relaxed">
+              في عام 2030، استولى الذكاء الاصطناعي على الأرض. أنت جزء من المقاومة البشرية الأخيرة. 
+              مهمتك: استعادة السيطرة على المدينة من قوات الذكاء الاصطناعي المعادية.
+              <br/><br/>
+              <span className="font-bold text-red-600">هل ستتمكن من إنقاذ البشرية؟</span>
             </p>
           </div>
         </div>
