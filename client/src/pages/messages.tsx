@@ -140,7 +140,7 @@ export default function MessagesPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-        <SimpleNavigation />
+        {/* No navigation during loading */}
         <div className="flex items-center justify-center h-screen">
           <div className="text-lg">جاري التحميل...</div>
         </div>
@@ -151,8 +151,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-      {/* Header removed - using only SimpleNavigation */}
-      <SimpleNavigation />
+      {/* No navigation - clean messages only */}
       
       <main className="container mx-auto px-4 py-4 max-w-4xl">
         <div className="mb-6">
