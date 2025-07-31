@@ -43,6 +43,7 @@ import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
 import GamesSimplePage from "@/pages/games-simple";
 import AIWarGamePage from "@/pages/ai-war-game";
+import RealAIWarGamePage from "@/pages/real-ai-war-game";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -84,7 +85,7 @@ function Router() {
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
           <Route path="/games" component={GamesSimplePage} />
-          <Route path="/ai-war" component={AIWarGamePage} />
+          <Route path="/ai-war" component={RealAIWarGamePage} />
           <Route path="/profile" component={ProfileRedesignPage} />
           <Route path="/profile-old" component={ProfileSimplePage} />
           <Route path="/user/:userId" component={ProfileRedesignPage} />
