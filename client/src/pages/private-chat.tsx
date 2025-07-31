@@ -481,18 +481,32 @@ export default function PrivateChatPage() {
             
             <div className="flex justify-center gap-4">
               <button 
-                onClick={() => {
-                  console.log('🚀🚀🚀 SEND BUTTON CLICKED!!! 🚀🚀🚀');
-                  console.log('Sending audio message now...');
-                  sendAudioMessage();
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🚀🚀🚀 VOICE SEND BUTTON CLICKED - EVENT TRIGGERED! 🚀🚀🚀');
+                  console.log('Event target:', e.target);
+                  console.log('Current time:', new Date().toISOString());
+                  console.log('Audio blob exists:', !!audioBlob);
+                  console.log('Audio blob size:', audioBlob?.size);
+                  
+                  if (audioBlob) {
+                    console.log('📤 Calling sendAudioMessage function...');
+                    sendAudioMessage();
+                  } else {
+                    console.log('❌ No audio blob found!');
+                  }
                 }}
-                className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-green-600"
+                className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-green-600 active:bg-green-700 transition-colors duration-200"
                 style={{ 
                   minWidth: '120px', 
                   minHeight: '50px',
-                  zIndex: 999,
-                  position: 'relative'
+                  zIndex: 9999,
+                  position: 'relative',
+                  pointerEvents: 'auto',
+                  touchAction: 'manipulation'
                 }}
+                type="button"
               >
                 إرسال ➤
               </button>
