@@ -333,7 +333,7 @@ export default function AdvancedWarGame() {
     direction.applyQuaternion(camera.quaternion);
     direction.multiplyScalar(50);
     
-    bulletBody.velocity.set(direction.x, direction.y, direction.z);
+    bulletBody.velocity = new CANNON.Vec3(direction.x, direction.y, direction.z);
     world.add(bulletBody);
 
     const bullet = {
@@ -381,8 +381,7 @@ export default function AdvancedWarGame() {
             .normalize()
             .multiplyScalar(2);
           
-          enemy.body.velocity.x = direction.x;
-          enemy.body.velocity.z = direction.z;
+          enemy.body.velocity = new CANNON.Vec3(direction.x, enemy.body.velocity.y, direction.z);
         }
         break;
 
@@ -398,8 +397,7 @@ export default function AdvancedWarGame() {
             .normalize()
             .multiplyScalar(3);
           
-          enemy.body.velocity.x = direction.x;
-          enemy.body.velocity.z = direction.z;
+          enemy.body.velocity = new CANNON.Vec3(direction.x, enemy.body.velocity.y, direction.z);
         }
         break;
 
@@ -407,8 +405,7 @@ export default function AdvancedWarGame() {
         enemy.ai.target = playerPosition.clone();
         
         // Stop moving and shoot
-        enemy.body.velocity.x = 0;
-        enemy.body.velocity.z = 0;
+        enemy.body.velocity = new CANNON.Vec3(0, enemy.body.velocity.y, 0);
         
         if (now - enemy.ai.lastShot > 2000) { // Shoot every 2 seconds
           // Create enemy bullet
@@ -428,7 +425,7 @@ export default function AdvancedWarGame() {
             .normalize()
             .multiplyScalar(30);
           
-          bulletBody.velocity.set(direction.x, direction.y, direction.z);
+          bulletBody.velocity = new CANNON.Vec3(direction.x, direction.y, direction.z);
           gameStateRef.current.world.add(bulletBody);
 
           const bullet = {
@@ -463,8 +460,10 @@ export default function AdvancedWarGame() {
     world.step(1/60);
 
     // Update player position based on physics body
-    player.mesh.position.copy(player.body.position as any);
-    player.mesh.quaternion.copy(player.body.quaternion as any);
+    const playerPos = player.body.position;
+    const playerQuat = player.body.quaternion;
+    player.mesh.position.set(playerPos.x, playerPos.y, playerPos.z);
+    player.mesh.quaternion.set(playerQuat.x, playerQuat.y, playerQuat.z, playerQuat.w);
 
     // Player movement
     const moveSpeed = 10;
@@ -481,11 +480,9 @@ export default function AdvancedWarGame() {
       direction.y = 0;
       direction.normalize();
       
-      player.body.velocity.x = direction.x * moveSpeed;
-      player.body.velocity.z = direction.z * moveSpeed;
+      player.body.velocity = new CANNON.Vec3(direction.x * moveSpeed, player.body.velocity.y, direction.z * moveSpeed);
     } else {
-      player.body.velocity.x = 0;
-      player.body.velocity.z = 0;
+      player.body.velocity = new CANNON.Vec3(0, player.body.velocity.y, 0);
     }
 
     // Camera follows player
@@ -495,14 +492,17 @@ export default function AdvancedWarGame() {
     // Update enemies
     gameState.enemies.forEach(enemy => {
       updateEnemyAI(enemy, 1/60);
-      enemy.mesh.position.copy(enemy.body.position as any);
-      enemy.mesh.quaternion.copy(enemy.body.quaternion as any);
+      const enemyPos = enemy.body.position;
+      const enemyQuat = enemy.body.quaternion;
+      enemy.mesh.position.set(enemyPos.x, enemyPos.y, enemyPos.z);
+      enemy.mesh.quaternion.set(enemyQuat.x, enemyQuat.y, enemyQuat.z, enemyQuat.w);
     });
 
     // Update bullets
     gameState.bullets = gameState.bullets.filter(bullet => {
       bullet.lifeTime += 1/60;
-      bullet.mesh.position.copy(bullet.body.position as any);
+      const bulletPos = bullet.body.position;
+      bullet.mesh.position.set(bulletPos.x, bulletPos.y, bulletPos.z);
       
       // Remove old bullets
       if (bullet.lifeTime > 5) {
