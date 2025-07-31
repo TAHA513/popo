@@ -144,9 +144,13 @@ export const walletTransactions = pgTable("wallet_transactions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id),
   amount: integer("amount").notNull(),
-  type: varchar("type").notNull(), // 'gift_earning', 'withdrawal', 'bonus'
+  type: varchar("type").notNull(), // 'gift_earning', 'withdrawal', 'bonus', 'album_purchase', 'photo_purchase', 'album_sale', 'photo_sale'
   description: text("description"),
   giftId: integer("gift_id").references(() => gifts.id), // reference to the gift that generated earnings
+  relatedUserId: varchar("related_user_id").references(() => users.id), // For album/photo sales
+  relatedAlbumId: integer("related_album_id"), // For album transactions
+  relatedPhotoId: integer("related_photo_id"), // For photo transactions
+  status: varchar("status").default("completed"), // 'pending', 'completed', 'failed'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -754,7 +758,85 @@ export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
   user: one(users, { fields: [userProfiles.userId], references: [users.id] }),
 }));
 
+// Private Photo Albums
+export const privateAlbums = pgTable("private_albums", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  albumType: varchar("album_type").notNull(), // 'locked_album' or 'individual_photos'
+  giftRequired: jsonb("gift_required"), // Gift details for locked albums
+  accessPrice: integer("access_price").default(0), // Points required for locked albums
+  isActive: boolean("is_active").default(true),
+  totalPhotos: integer("total_photos").default(0),
+  totalViews: integer("total_views").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Private Album Photos
+export const albumPhotos = pgTable("album_photos", {
+  id: serial("id").primaryKey(),
+  albumId: integer("album_id").notNull().references(() => privateAlbums.id),
+  imageUrl: text("image_url").notNull(),
+  caption: text("caption"),
+  giftRequired: jsonb("gift_required"), // Gift details for individual photos
+  accessPrice: integer("access_price").default(0), // Points required for individual photos
+  totalViews: integer("total_views").default(0),
+  isActive: boolean("is_active").default(true),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+// Album Access Purchases
+export const albumAccess = pgTable("album_access", {
+  id: serial("id").primaryKey(),
+  albumId: integer("album_id").notNull().references(() => privateAlbums.id),
+  photoId: integer("photo_id").references(() => albumPhotos.id), // For individual photo access
+  buyerId: varchar("buyer_id").notNull().references(() => users.id),
+  sellerId: varchar("seller_id").notNull().references(() => users.id),
+  accessType: varchar("access_type").notNull(), // 'full_album' or 'single_photo'
+  giftPaid: jsonb("gift_paid").notNull(), // Gift details that were paid
+  amountPaid: integer("amount_paid").notNull(),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Optional expiry for access
+});
+
+// Enhanced Wallet Transactions for all types including album purchases
+
+// Private Album Relations
+export const privateAlbumsRelations = relations(privateAlbums, ({ one, many }) => ({
+  user: one(users, { fields: [privateAlbums.userId], references: [users.id] }),
+  photos: many(albumPhotos),
+  access: many(albumAccess),
+}));
+
+export const albumPhotosRelations = relations(albumPhotos, ({ one, many }) => ({
+  album: one(privateAlbums, { fields: [albumPhotos.albumId], references: [privateAlbums.id] }),
+  access: many(albumAccess),
+}));
+
+export const albumAccessRelations = relations(albumAccess, ({ one }) => ({
+  album: one(privateAlbums, { fields: [albumAccess.albumId], references: [privateAlbums.id] }),
+  photo: one(albumPhotos, { fields: [albumAccess.photoId], references: [albumPhotos.id] }),
+  buyer: one(users, { fields: [albumAccess.buyerId], references: [users.id] }),
+  seller: one(users, { fields: [albumAccess.sellerId], references: [users.id] }),
+}));
+
+export const walletTransactionsRelations = relations(walletTransactions, ({ one }) => ({
+  user: one(users, { fields: [walletTransactions.userId], references: [users.id] }),
+  gift: one(gifts, { fields: [walletTransactions.giftId], references: [gifts.id] }),
+}));
+
 // Types
+export type PrivateAlbum = typeof privateAlbums.$inferSelect;
+export type InsertPrivateAlbum = typeof privateAlbums.$inferInsert;
+export type AlbumPhoto = typeof albumPhotos.$inferSelect;
+export type InsertAlbumPhoto = typeof albumPhotos.$inferInsert;
+export type AlbumAccess = typeof albumAccess.$inferSelect;
+export type InsertAlbumAccess = typeof albumAccess.$inferInsert;
+export type WalletTransaction = typeof walletTransactions.$inferSelect;
+export type InsertWalletTransaction = typeof walletTransactions.$inferInsert;
+
 export type VirtualPet = typeof virtualPets.$inferSelect;
 export type InsertVirtualPet = typeof virtualPets.$inferInsert;
 export type GardenItem = typeof gardenItems.$inferSelect;

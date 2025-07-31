@@ -16,6 +16,10 @@ import {
   gardenActivities,
   gardenVisits,
   petAchievements,
+  privateAlbums,
+  albumPhotos,
+  albumAccess,
+  walletTransactions,
   type User,
   type UpsertUser,
   type Stream,
@@ -47,6 +51,14 @@ import {
   type InsertGardenVisit,
   type PetAchievement,
   type InsertPetAchievement,
+  type PrivateAlbum,
+  type InsertPrivateAlbum,
+  type AlbumPhoto,
+  type InsertAlbumPhoto,
+  type AlbumAccess,
+  type InsertAlbumAccess,
+  type WalletTransaction,
+  type InsertWalletTransaction,
   gameRooms,
   gameParticipants,
   playerRankings,
@@ -189,6 +201,31 @@ export interface IStorage {
   getGardenSupport(gardenOwnerId: string): Promise<GardenSupport[]>;
   getUserProfile(userId: string): Promise<UserProfile | undefined>;
   upsertUserProfile(userId: string, profile: Partial<UserProfile>): Promise<UserProfile>;
+
+  // Private Album operations
+  createPrivateAlbum(album: InsertPrivateAlbum): Promise<PrivateAlbum>;
+  getUserAlbums(userId: string): Promise<PrivateAlbum[]>;
+  getAlbumById(albumId: number): Promise<PrivateAlbum | undefined>;
+  updateAlbum(albumId: number, updates: Partial<PrivateAlbum>): Promise<PrivateAlbum>;
+  deleteAlbum(albumId: number): Promise<void>;
+  
+  // Album Photo operations
+  addPhotoToAlbum(photo: InsertAlbumPhoto): Promise<AlbumPhoto>;
+  getAlbumPhotos(albumId: number): Promise<AlbumPhoto[]>;
+  getPhotoById(photoId: number): Promise<AlbumPhoto | undefined>;
+  updatePhoto(photoId: number, updates: Partial<AlbumPhoto>): Promise<AlbumPhoto>;
+  deletePhoto(photoId: number): Promise<void>;
+  
+  // Album Access operations
+  purchaseAlbumAccess(access: InsertAlbumAccess): Promise<AlbumAccess>;
+  checkAlbumAccess(buyerId: string, albumId: number): Promise<AlbumAccess | undefined>;
+  checkPhotoAccess(buyerId: string, photoId: number): Promise<AlbumAccess | undefined>;
+  getUserAlbumPurchases(userId: string): Promise<AlbumAccess[]>;
+  
+  // Wallet operations
+  addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction>;
+  getUserTransactions(userId: string): Promise<WalletTransaction[]>;
+  getUserEarnings(userId: string): Promise<{ totalEarnings: number; monthlyEarnings: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1682,6 +1719,118 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(conversations.id, conversationId));
+  }
+
+  // Private Album operations
+  async createPrivateAlbum(album: InsertPrivateAlbum): Promise<PrivateAlbum> {
+    const [newAlbum] = await db.insert(privateAlbums).values(album).returning();
+    return newAlbum;
+  }
+
+  async getUserAlbums(userId: string): Promise<PrivateAlbum[]> {
+    return await db.select().from(privateAlbums).where(eq(privateAlbums.userId, userId)).orderBy(desc(privateAlbums.createdAt));
+  }
+
+  async getAlbumById(albumId: number): Promise<PrivateAlbum | undefined> {
+    const [album] = await db.select().from(privateAlbums).where(eq(privateAlbums.id, albumId));
+    return album;
+  }
+
+  async updateAlbum(albumId: number, updates: Partial<PrivateAlbum>): Promise<PrivateAlbum> {
+    const [updatedAlbum] = await db.update(privateAlbums).set({...updates, updatedAt: new Date()}).where(eq(privateAlbums.id, albumId)).returning();
+    return updatedAlbum;
+  }
+
+  async deleteAlbum(albumId: number): Promise<void> {
+    await db.delete(privateAlbums).where(eq(privateAlbums.id, albumId));
+  }
+  
+  // Album Photo operations
+  async addPhotoToAlbum(photo: InsertAlbumPhoto): Promise<AlbumPhoto> {
+    const [newPhoto] = await db.insert(albumPhotos).values(photo).returning();
+    
+    // Update album photo count
+    await db.update(privateAlbums)
+      .set({totalPhotos: sql`${privateAlbums.totalPhotos} + 1`, updatedAt: new Date()})
+      .where(eq(privateAlbums.id, photo.albumId));
+    
+    return newPhoto;
+  }
+
+  async getAlbumPhotos(albumId: number): Promise<AlbumPhoto[]> {
+    return await db.select().from(albumPhotos).where(eq(albumPhotos.albumId, albumId)).orderBy(desc(albumPhotos.uploadedAt));
+  }
+
+  async getPhotoById(photoId: number): Promise<AlbumPhoto | undefined> {
+    const [photo] = await db.select().from(albumPhotos).where(eq(albumPhotos.id, photoId));
+    return photo;
+  }
+
+  async updatePhoto(photoId: number, updates: Partial<AlbumPhoto>): Promise<AlbumPhoto> {
+    const [updatedPhoto] = await db.update(albumPhotos).set(updates).where(eq(albumPhotos.id, photoId)).returning();
+    return updatedPhoto;
+  }
+
+  async deletePhoto(photoId: number): Promise<void> {
+    const photo = await this.getPhotoById(photoId);
+    if (photo) {
+      await db.delete(albumPhotos).where(eq(albumPhotos.id, photoId));
+      
+      // Update album photo count
+      await db.update(privateAlbums)
+        .set({totalPhotos: sql`${privateAlbums.totalPhotos} - 1`, updatedAt: new Date()})
+        .where(eq(privateAlbums.id, photo.albumId));
+    }
+  }
+  
+  // Album Access operations
+  async purchaseAlbumAccess(access: InsertAlbumAccess): Promise<AlbumAccess> {
+    const [newAccess] = await db.insert(albumAccess).values(access).returning();
+    
+    // Update album view count
+    await db.update(privateAlbums)
+      .set({totalViews: sql`${privateAlbums.totalViews} + 1`})
+      .where(eq(privateAlbums.id, access.albumId));
+    
+    return newAccess;
+  }
+
+  async checkAlbumAccess(buyerId: string, albumId: number): Promise<AlbumAccess | undefined> {
+    const [access] = await db.select().from(albumAccess)
+      .where(and(eq(albumAccess.buyerId, buyerId), eq(albumAccess.albumId, albumId), eq(albumAccess.accessType, 'full_album')));
+    return access;
+  }
+
+  async checkPhotoAccess(buyerId: string, photoId: number): Promise<AlbumAccess | undefined> {
+    const [access] = await db.select().from(albumAccess)
+      .where(and(eq(albumAccess.buyerId, buyerId), eq(albumAccess.photoId, photoId), eq(albumAccess.accessType, 'single_photo')));
+    return access;
+  }
+
+  async getUserAlbumPurchases(userId: string): Promise<AlbumAccess[]> {
+    return await db.select().from(albumAccess).where(eq(albumAccess.buyerId, userId)).orderBy(desc(albumAccess.purchasedAt));
+  }
+  
+  // Wallet operations
+  async addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction> {
+    const [newTransaction] = await db.insert(walletTransactions).values(transaction).returning();
+    return newTransaction;
+  }
+
+  async getUserTransactions(userId: string): Promise<WalletTransaction[]> {
+    return await db.select().from(walletTransactions).where(eq(walletTransactions.userId, userId)).orderBy(desc(walletTransactions.createdAt));
+  }
+
+  async getUserEarnings(userId: string): Promise<{ totalEarnings: number; monthlyEarnings: number }> {
+    const earnings = await db.select({
+      total: sql<number>`SUM(CASE WHEN ${walletTransactions.type} IN ('album_sale', 'photo_sale') THEN ${walletTransactions.amount} ELSE 0 END)`,
+      monthly: sql<number>`SUM(CASE WHEN ${walletTransactions.type} IN ('album_sale', 'photo_sale') AND ${walletTransactions.createdAt} >= date_trunc('month', now()) THEN ${walletTransactions.amount} ELSE 0 END)`
+    }).from(walletTransactions).where(eq(walletTransactions.userId, userId));
+    
+    return {
+      totalEarnings: Number(earnings[0]?.total || 0),
+      monthlyEarnings: Number(earnings[0]?.monthly || 0)
+    };
   }
 }
 

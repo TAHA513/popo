@@ -811,6 +811,316 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "فشل في البحث عن المستخدمين" });
     }
   });
+
+  // Private Albums API endpoints
+  
+  // Create new private album
+  app.post('/api/albums', requireAuth, async (req: any, res) => {
+    try {
+      const { title, description, albumType, giftRequired, accessPrice } = req.body;
+      
+      const album = await storage.createPrivateAlbum({
+        userId: req.user.id,
+        title,
+        description,
+        albumType,
+        giftRequired,
+        accessPrice: accessPrice || 0,
+      });
+      
+      res.json(album);
+    } catch (error) {
+      console.error("Error creating album:", error);
+      res.status(500).json({ message: "فشل في إنشاء الألبوم" });
+    }
+  });
+
+  // Get user's albums
+  app.get('/api/albums/user/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const currentUserId = req.user.id;
+      
+      const albums = await storage.getUserAlbums(userId);
+      
+      // Filter albums based on access
+      const accessibleAlbums = [];
+      
+      for (const album of albums) {
+        // Owner can see all their albums
+        if (album.userId === currentUserId) {
+          accessibleAlbums.push({
+            ...album,
+            hasAccess: true,
+            isOwner: true
+          });
+        } else {
+          // Check if user has purchased access
+          const hasAccess = await storage.checkAlbumAccess(currentUserId, album.id);
+          accessibleAlbums.push({
+            ...album,
+            hasAccess: !!hasAccess,
+            isOwner: false
+          });
+        }
+      }
+      
+      res.json(accessibleAlbums);
+    } catch (error) {
+      console.error("Error fetching albums:", error);
+      res.status(500).json({ message: "فشل في جلب الألبومات" });
+    }
+  });
+
+  // Get album details with photos
+  app.get('/api/albums/:albumId', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const currentUserId = req.user.id;
+      
+      const album = await storage.getAlbumById(albumId);
+      if (!album) {
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+      
+      const isOwner = album.userId === currentUserId;
+      let hasAccess = isOwner;
+      
+      if (!isOwner) {
+        const access = await storage.checkAlbumAccess(currentUserId, albumId);
+        hasAccess = !!access;
+      }
+      
+      if (!hasAccess && album.albumType === 'locked_album') {
+        return res.json({
+          ...album,
+          photos: [],
+          hasAccess: false,
+          isOwner: false,
+          requiresPayment: true
+        });
+      }
+      
+      const photos = await storage.getAlbumPhotos(albumId);
+      
+      // Filter photos based on access for individual photo albums
+      const accessiblePhotos = [];
+      
+      if (album.albumType === 'individual_photos' && !isOwner) {
+        for (const photo of photos) {
+          const photoAccess = await storage.checkPhotoAccess(currentUserId, photo.id);
+          accessiblePhotos.push({
+            ...photo,
+            hasAccess: !!photoAccess,
+            requiresPayment: !photoAccess
+          });
+        }
+      } else {
+        accessiblePhotos.push(...photos.map(photo => ({
+          ...photo,
+          hasAccess: true,
+          requiresPayment: false
+        })));
+      }
+      
+      res.json({
+        ...album,
+        photos: accessiblePhotos,
+        hasAccess,
+        isOwner,
+        requiresPayment: false
+      });
+    } catch (error) {
+      console.error("Error fetching album:", error);
+      res.status(500).json({ message: "فشل في جلب الألبوم" });
+    }
+  });
+
+  // Add photo to album
+  app.post('/api/albums/:albumId/photos', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const { imageUrl, caption, giftRequired, accessPrice } = req.body;
+      
+      const album = await storage.getAlbumById(albumId);
+      if (!album || album.userId !== req.user.id) {
+        return res.status(403).json({ message: "ليس لديك صلاحية لإضافة صور لهذا الألبوم" });
+      }
+      
+      const photo = await storage.addPhotoToAlbum({
+        albumId,
+        imageUrl,
+        caption,
+        giftRequired,
+        accessPrice: accessPrice || 0,
+      });
+      
+      res.json(photo);
+    } catch (error) {
+      console.error("Error adding photo:", error);
+      res.status(500).json({ message: "فشل في إضافة الصورة" });
+    }
+  });
+
+  // Purchase album access
+  app.post('/api/albums/:albumId/purchase', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const currentUserId = req.user.id;
+      const { giftPaid } = req.body;
+      
+      const album = await storage.getAlbumById(albumId);
+      if (!album) {
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+      
+      if (album.userId === currentUserId) {
+        return res.status(400).json({ message: "لا يمكنك شراء ألبومك الخاص" });
+      }
+      
+      // Check if already purchased
+      const existingAccess = await storage.checkAlbumAccess(currentUserId, albumId);
+      if (existingAccess) {
+        return res.status(400).json({ message: "لديك حق الوصول لهذا الألبوم بالفعل" });
+      }
+      
+      // Check user has enough points
+      const user = await storage.getUser(currentUserId);
+      if (!user || user.points < album.accessPrice) {
+        return res.status(400).json({ message: "ليس لديك نقاط كافية" });
+      }
+      
+      // Process purchase
+      const access = await storage.purchaseAlbumAccess({
+        albumId,
+        buyerId: currentUserId,
+        sellerId: album.userId,
+        accessType: 'full_album',
+        giftPaid,
+        amountPaid: album.accessPrice,
+      });
+      
+      // Deduct points from buyer
+      await storage.updateUser(currentUserId, {
+        points: user.points - album.accessPrice
+      });
+      
+      // Add earnings to seller (40% profit)
+      const sellerEarnings = Math.floor(album.accessPrice * 0.4);
+      const seller = await storage.getUser(album.userId);
+      if (seller) {
+        await storage.updateUser(album.userId, {
+          points: seller.points + sellerEarnings,
+          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
+        });
+      }
+      
+      // Record transactions
+      await storage.addWalletTransaction({
+        userId: currentUserId,
+        type: 'album_purchase',
+        amount: album.accessPrice.toString(),
+        description: `شراء ألبوم: ${album.title}`,
+        relatedUserId: album.userId,
+        relatedAlbumId: albumId,
+      });
+      
+      await storage.addWalletTransaction({
+        userId: album.userId,
+        type: 'album_sale',
+        amount: sellerEarnings.toString(),
+        description: `بيع ألبوم: ${album.title}`,
+        relatedUserId: currentUserId,
+        relatedAlbumId: albumId,
+      });
+      
+      res.json({ success: true, access });
+    } catch (error) {
+      console.error("Error purchasing album:", error);
+      res.status(500).json({ message: "فشل في شراء الألبوم" });
+    }
+  });
+
+  // Purchase individual photo access
+  app.post('/api/photos/:photoId/purchase', requireAuth, async (req: any, res) => {
+    try {
+      const photoId = parseInt(req.params.photoId);
+      const currentUserId = req.user.id;
+      const { giftPaid } = req.body;
+      
+      const photo = await storage.getPhotoById(photoId);
+      if (!photo) {
+        return res.status(404).json({ message: "الصورة غير موجودة" });
+      }
+      
+      const album = await storage.getAlbumById(photo.albumId);
+      if (!album || album.userId === currentUserId) {
+        return res.status(400).json({ message: "لا يمكنك شراء صورتك الخاصة" });
+      }
+      
+      // Check if already purchased
+      const existingAccess = await storage.checkPhotoAccess(currentUserId, photoId);
+      if (existingAccess) {
+        return res.status(400).json({ message: "لديك حق الوصول لهذه الصورة بالفعل" });
+      }
+      
+      // Check user has enough points
+      const user = await storage.getUser(currentUserId);
+      if (!user || user.points < photo.accessPrice) {
+        return res.status(400).json({ message: "ليس لديك نقاط كافية" });
+      }
+      
+      // Process purchase
+      const access = await storage.purchaseAlbumAccess({
+        albumId: photo.albumId,
+        photoId,
+        buyerId: currentUserId,
+        sellerId: album.userId,
+        accessType: 'single_photo',
+        giftPaid,
+        amountPaid: photo.accessPrice,
+      });
+      
+      // Deduct points from buyer
+      await storage.updateUser(currentUserId, {
+        points: user.points - photo.accessPrice
+      });
+      
+      // Add earnings to seller (40% profit)
+      const sellerEarnings = Math.floor(photo.accessPrice * 0.4);
+      const seller = await storage.getUser(album.userId);
+      if (seller) {
+        await storage.updateUser(album.userId, {
+          points: seller.points + sellerEarnings,
+          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
+        });
+      }
+      
+      // Record transactions
+      await storage.addWalletTransaction({
+        userId: currentUserId,
+        type: 'photo_purchase',
+        amount: photo.accessPrice.toString(),
+        description: `شراء صورة من ألبوم: ${album.title}`,
+        relatedUserId: album.userId,
+        relatedPhotoId: photoId,
+      });
+      
+      await storage.addWalletTransaction({
+        userId: album.userId,
+        type: 'photo_sale',
+        amount: sellerEarnings.toString(),
+        description: `بيع صورة من ألبوم: ${album.title}`,
+        relatedUserId: currentUserId,
+        relatedPhotoId: photoId,
+      });
+      
+      res.json({ success: true, access });
+    } catch (error) {
+      console.error("Error purchasing photo:", error);
+      res.status(500).json({ message: "فشل في شراء الصورة" });
+    }
+  });
   
   // Get user followers
   app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {

@@ -40,7 +40,7 @@ export default function ProfileRedesign() {
   const profileUserId = userId || currentUser?.id;
   const isOwnProfile = !userId || userId === currentUser?.id;
   
-  const [activeTab, setActiveTab] = useState<"memories" | "stats">("memories");
+  const [activeTab, setActiveTab] = useState<"memories" | "stats" | "albums">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showGiftDialog, setShowGiftDialog] = useState(false);
   const [messageText, setMessageText] = useState("");
@@ -71,6 +71,19 @@ export default function ProfileRedesign() {
     enabled: !!profileUserId,
     queryFn: async () => {
       const response = await fetch(`/api/memories/user/${profileUserId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+
+  // Fetch user albums (only for own profile)
+  const { data: albums = [], isLoading: albumsLoading } = useQuery({
+    queryKey: ['/api/albums/user', profileUserId],
+    enabled: isOwnProfile && !!profileUserId,
+    queryFn: async () => {
+      const response = await fetch(`/api/albums/user/${profileUserId}`, {
         credentials: 'include'
       });
       if (!response.ok) return [];
@@ -402,7 +415,7 @@ export default function ProfileRedesign() {
                         <Plus className="w-4 h-4 ml-2" />
                         إنشاء ذكرى
                       </Button>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <Button 
                           variant="outline"
                           onClick={() => setLocation('/followers-management')}
@@ -418,6 +431,15 @@ export default function ProfileRedesign() {
                         >
                           <Wallet className="w-4 h-4 ml-1" />
                           المحفظة
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setLocation('/private-albums')}
+                          size="sm"
+                          className="bg-gradient-to-r from-pink-100 to-purple-100 text-purple-700 border-purple-200 hover:from-pink-200 hover:to-purple-200"
+                        >
+                          <Camera className="w-4 h-4 ml-1" />
+                          الألبومات
                         </Button>
                       </div>
                     </>
@@ -483,6 +505,16 @@ export default function ProfileRedesign() {
               <Heart className="w-4 h-4 ml-2" />
               المنشورات
             </Button>
+            {isOwnProfile && (
+              <Button
+                variant={activeTab === "albums" ? "default" : "ghost"}
+                onClick={() => setActiveTab("albums")}
+                className={activeTab === "albums" ? "bg-purple-500 text-white" : ""}
+              >
+                <Camera className="w-4 h-4 ml-2" />
+                الألبومات الخاصة
+              </Button>
+            )}
             <Button
               variant={activeTab === "stats" ? "default" : "ghost"}
               onClick={() => setActiveTab("stats")}
@@ -527,6 +559,64 @@ export default function ProfileRedesign() {
                   key={memory.id} 
                   memory={memory} 
                 />
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === "albums" && isOwnProfile && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {albumsLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-lg p-4 shadow-sm animate-pulse">
+                  <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              ))
+            ) : albums.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <div className="text-6xl mb-4">📸</div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  لا توجد ألبومات خاصة
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  ابدأ بإنشاء أول ألبوم خاص لك
+                </p>
+                <Button 
+                  onClick={() => setLocation('/private-albums')}
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                >
+                  <Camera className="w-4 h-4 ml-2" />
+                  إنشاء ألبوم جديد
+                </Button>
+              </div>
+            ) : (
+              albums.map((album: any) => (
+                <Card key={album.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation(`/private-albums/${album.id}`)}>
+                  <div className="h-48 bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
+                    <Camera className="w-16 h-16 text-purple-400" />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-bold text-lg mb-2">{album.title}</h3>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{album.description}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                        {album.totalPhotos} صورة
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {album.totalViews} مشاهدة
+                      </span>
+                    </div>
+                    {album.albumType === 'locked_album' && (
+                      <div className="mt-2">
+                        <Badge variant="secondary" className="text-xs">
+                          ألبوم مدفوع - {album.accessPrice} نقطة
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               ))
             )}
           </div>
