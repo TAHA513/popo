@@ -66,7 +66,7 @@ export default function AdvancedWarGame() {
   const mountRef = useRef<HTMLDivElement>(null);
   const gameStateRef = useRef<GameState | null>(null);
   const keysPressed = useRef<Set<string>>(new Set());
-  const mouse = useRef({ x: 0, y: 0, isLocked: false });
+  const mouse = useRef({ x: 0, y: 0, isLocked: false, pitch: 0, yaw: 0 });
   const statsRef = useRef<Stats>();
   
   const [gameStatus, setGameStatus] = useState<'menu' | 'playing' | 'paused' | 'gameOver'>('menu');
@@ -90,8 +90,8 @@ export default function AdvancedWarGame() {
     scene.fog = new THREE.Fog(0x87CEEB, 100, 1000);
 
     // Create camera
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 10, 20);
+    const camera = new THREE.PerspectiveCamera(75, 800 / 600, 0.1, 1000);
+    camera.position.set(0, 5, 10);
 
     // Create renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -328,9 +328,9 @@ export default function AdvancedWarGame() {
     bulletBody.addShape(bulletShape);
     bulletBody.position.set(camera.position.x, camera.position.y, camera.position.z);
 
-    // Fire in camera direction
-    const direction = new THREE.Vector3(0, 0, -1);
-    direction.applyQuaternion(camera.quaternion);
+    // Fire in the direction camera is looking
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
     direction.multiplyScalar(50);
     
     bulletBody.velocity = new CANNON.Vec3(direction.x, direction.y, direction.z);
@@ -485,9 +485,14 @@ export default function AdvancedWarGame() {
       player.body.velocity = new CANNON.Vec3(0, player.body.velocity.y, 0);
     }
 
-    // Camera follows player
-    camera.position.copy(player.mesh.position);
-    camera.position.y += 2;
+    // Camera follows player with proper third-person view
+    const currentPlayerPos = player.mesh.position;
+    
+    // If mouse is not locked, use default third-person camera
+    if (!mouse.current.isLocked) {
+      camera.position.set(currentPlayerPos.x, currentPlayerPos.y + 8, currentPlayerPos.z + 15);
+      camera.lookAt(currentPlayerPos.x, currentPlayerPos.y + 1, currentPlayerPos.z);
+    }
 
     // Update enemies
     gameState.enemies.forEach(enemy => {
@@ -598,12 +603,28 @@ export default function AdvancedWarGame() {
     const handleMouseMove = (event: MouseEvent) => {
       if (!mouse.current.isLocked || !gameStateRef.current) return;
 
-      const { camera } = gameStateRef.current;
-      const sensitivity = 0.002;
+      const { camera, player } = gameStateRef.current;
+      const sensitivity = 0.005;
 
-      camera.rotation.y -= event.movementX * sensitivity;
-      camera.rotation.x -= event.movementY * sensitivity;
-      camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+      // Store current rotation
+      if (!mouse.current.pitch) mouse.current.pitch = 0;
+      if (!mouse.current.yaw) mouse.current.yaw = 0;
+
+      mouse.current.yaw -= event.movementX * sensitivity;
+      mouse.current.pitch -= event.movementY * sensitivity;
+      mouse.current.pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, mouse.current.pitch));
+
+      // Update camera rotation only when mouse is locked
+      const playerPos = player.mesh.position;
+      const distance = 15;
+      
+      // Calculate camera position in orbital movement around player
+      const x = playerPos.x + distance * Math.sin(mouse.current.yaw) * Math.cos(mouse.current.pitch);
+      const y = playerPos.y + 8 + distance * Math.sin(mouse.current.pitch) * 0.5; // Limit vertical movement
+      const z = playerPos.z + distance * Math.cos(mouse.current.yaw) * Math.cos(mouse.current.pitch);
+      
+      camera.position.set(x, y, z);
+      camera.lookAt(playerPos.x, playerPos.y + 1, playerPos.z);
     };
 
     const handleClick = () => {
