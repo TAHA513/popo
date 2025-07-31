@@ -65,6 +65,21 @@ export default function FollowersManagement() {
     }
   });
 
+  // Remove follower mutation
+  const removeFollowerMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`/api/users/${userId}/remove-follower`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Failed to remove follower');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'followers'] });
+    }
+  });
+
   const handleBlock = (userId: string, isBlocked: boolean) => {
     blockMutation.mutate({ 
       userId, 
@@ -74,6 +89,10 @@ export default function FollowersManagement() {
 
   const handleUnfollow = (userId: string) => {
     unfollowMutation.mutate(userId);
+  };
+
+  const handleRemoveFollower = (userId: string) => {
+    removeFollowerMutation.mutate(userId);
   };
 
   if (!user) {
@@ -180,7 +199,17 @@ export default function FollowersManagement() {
                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
                       <Button
                         size="sm"
-                        variant={follower.isBlocked ? "default" : "destructive"}
+                        variant="destructive"
+                        onClick={() => handleRemoveFollower(follower.id)}
+                        disabled={removeFollowerMutation.isPending}
+                      >
+                        <UserMinus className="w-4 h-4 ml-1" />
+                        إزالة
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant={follower.isBlocked ? "default" : "outline"}
                         onClick={() => handleBlock(follower.id, !!follower.isBlocked)}
                         disabled={blockMutation.isPending}
                       >

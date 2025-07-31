@@ -779,6 +779,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to unfollow user" });
     }
   });
+
+  // Remove follower (someone who follows you)
+  app.post('/api/users/:userId/remove-follower', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id; // The user being followed (removing their follower)
+      const followerId = req.params.userId; // The follower to be removed
+      
+      // Remove the follower relationship (followerId follows userId)
+      await storage.unfollowUser(followerId, userId);
+      res.json({ success: true, message: "تم إزالة المتابع بنجاح" });
+    } catch (error) {
+      console.error("Error removing follower:", error);
+      res.status(500).json({ message: "فشل في إزالة المتابع" });
+    }
+  });
   
   // Get user followers
   app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
