@@ -3,6 +3,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -97,6 +100,8 @@ const PRIVACY_OPTIONS = [
 export default function CreateMemoryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -190,73 +195,83 @@ export default function CreateMemoryPage() {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!selectedFile) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
-    
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('media', selectedFile);
-      formDataToSend.append('caption', formData.caption);
-      formDataToSend.append('memoryType', formData.memoryType);
-      formDataToSend.append('visibilityLevel', formData.visibilityLevel);
-      formDataToSend.append('allowComments', formData.allowComments.toString());
-      formDataToSend.append('allowSharing', formData.allowSharing.toString());
-      formDataToSend.append('allowGifts', formData.allowGifts.toString());
-      formDataToSend.append('filter', selectedFilter);
-
-      // Simulate upload progress with better timing
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return Math.min(prev + Math.random() * 10 + 5, 90);
-        });
-      }, 200);
-
+  // Create mutation for uploading memory
+  const uploadMutation = useMutation({
+    mutationFn: async (formDataToSend: FormData) => {
       const response = await fetch('/api/memories', {
         method: 'POST',
         body: formDataToSend,
       });
 
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
       if (!response.ok) {
         throw new Error('فشل في نشر المحتوى');
       }
 
+      return response.json();
+    },
+    onSuccess: () => {
+      // Update cache instead of reloading page
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      
       toast({
         title: "تم النشر بنجاح! 🎉",
         description: "تم نشر محتواك وهو متاح الآن للآخرين",
       });
 
-      // Wait a bit before resetting to show 100% progress
+      // Wait a bit to show success then navigate
       setTimeout(() => {
         resetUpload();
         setUploadProgress(0);
-        
-        // Navigate to feed
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 500);
+        setIsUploading(false);
+        // Use router navigation instead of window.location
+        setLocation('/');
       }, 1000);
-
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Upload error:', error);
       setUploadProgress(0);
+      setIsUploading(false);
       toast({
         title: "خطأ في النشر",
         description: "حدث خطأ أثناء نشر المحتوى. يرجى المحاولة مرة أخرى",
         variant: "destructive"
       });
-    } finally {
-      // Keep uploading state until navigation
     }
+  });
+
+  const handleSubmit = async () => {
+    if (!selectedFile || uploadMutation.isPending) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    const formDataToSend = new FormData();
+    formDataToSend.append('media', selectedFile);
+    formDataToSend.append('caption', formData.caption);
+    formDataToSend.append('memoryType', formData.memoryType);
+    formDataToSend.append('visibilityLevel', formData.visibilityLevel);
+    formDataToSend.append('allowComments', formData.allowComments.toString());
+    formDataToSend.append('allowSharing', formData.allowSharing.toString());
+    formDataToSend.append('allowGifts', formData.allowGifts.toString());
+    formDataToSend.append('filter', selectedFilter);
+
+    // Simulate upload progress
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return Math.min(prev + Math.random() * 10 + 5, 90);
+      });
+    }, 200);
+
+    // Execute mutation
+    uploadMutation.mutate(formDataToSend);
+    
+    // Clear progress interval and set to 100% when done
+    clearInterval(progressInterval);
+    setUploadProgress(100);
   };
 
   return (
