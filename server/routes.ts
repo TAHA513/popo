@@ -794,6 +794,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "فشل في إزالة المتابع" });
     }
   });
+
+  // Search users for live stream profile display
+  app.get('/api/users/search/:query', requireAuth, async (req: any, res) => {
+    try {
+      const query = req.params.query;
+      
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+      
+      const users = await storage.searchUsers(query);
+      res.json(users);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      res.status(500).json({ message: "فشل في البحث عن المستخدمين" });
+    }
+  });
   
   // Get user followers
   app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {

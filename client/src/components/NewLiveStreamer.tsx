@@ -1,8 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, CameraOff, Mic, MicOff, X, Eye, Settings, Users } from 'lucide-react';
+import { Camera, CameraOff, Mic, MicOff, X, Eye, Settings, Users, UserSearch } from 'lucide-react';
 import { Stream } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useQuery } from '@tanstack/react-query';
 
 interface NewLiveStreamerProps {
   stream: Stream;
@@ -17,6 +19,9 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [streamStatus, setStreamStatus] = useState<'starting' | 'live' | 'error'>('starting');
   const [viewerCount, setViewerCount] = useState(1);
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [displayedProfile, setDisplayedProfile] = useState<any>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -111,6 +116,24 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
     }
     onClose();
     console.log('📱 تم إنهاء البث المباشر');
+  };
+
+  // البحث عن المستخدمين
+  const { data: searchResults = [], isLoading: searchLoading } = useQuery({
+    queryKey: ['/api/users/search', searchQuery],
+    queryFn: () => fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`).then(res => res.json()),
+    enabled: !!searchQuery && searchQuery.length > 2,
+  });
+
+  const showUserProfile = (user: any) => {
+    setDisplayedProfile(user);
+    setShowUserSearch(false);
+    setSearchQuery('');
+    console.log('👤 عرض ملف المستخدم في البث:', user.username);
+  };
+
+  const hideUserProfile = () => {
+    setDisplayedProfile(null);
   };
 
   // شاشة البدء
@@ -306,6 +329,14 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
             {/* أزرار التحكم */}
             <div className="flex items-center space-x-4">
               <Button
+                onClick={() => setShowUserSearch(!showUserSearch)}
+                className="w-16 h-16 rounded-full bg-blue-600 hover:bg-blue-700"
+                title="عرض سول مستخدم"
+              >
+                <UserSearch className="w-7 h-7 text-white" />
+              </Button>
+
+              <Button
                 onClick={toggleVideo}
                 className={`w-16 h-16 rounded-full ${
                   isVideoEnabled 
@@ -344,6 +375,104 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
             </div>
           </div>
         </div>
+
+        {/* واجهة البحث عن المستخدمين */}
+        {showUserSearch && (
+          <div className="absolute top-20 right-4 bg-black/90 backdrop-blur-md rounded-2xl p-6 w-80 z-40">
+            <h3 className="text-white text-xl font-bold mb-4">🔍 البحث عن مستخدم</h3>
+            
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ابحث باسم المستخدم..."
+              className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-600 focus:border-blue-500 mb-4"
+            />
+
+            {searchLoading && (
+              <div className="text-center py-4">
+                <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full mx-auto"></div>
+              </div>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {searchResults.map((user: any) => (
+                  <div
+                    key={user.id}
+                    onClick={() => showUserProfile(user)}
+                    className="flex items-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                  >
+                    <Avatar className="w-10 h-10 mr-3">
+                      <AvatarImage src={user.profileImageUrl} />
+                      <AvatarFallback className="bg-blue-600 text-white">
+                        {user.username?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-white font-semibold">{user.firstName}</p>
+                      <p className="text-gray-400 text-sm">@{user.username}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button
+              onClick={() => setShowUserSearch(false)}
+              className="w-full mt-4 bg-gray-700 hover:bg-gray-600"
+            >
+              إغلاق
+            </Button>
+          </div>
+        )}
+
+        {/* عرض ملف المستخدم */}
+        {displayedProfile && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/95 backdrop-blur-lg rounded-3xl p-8 w-96 z-50 border border-white/20">
+            <div className="text-center text-white">
+              <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white/30">
+                <AvatarImage src={displayedProfile.profileImageUrl} />
+                <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-2xl">
+                  {displayedProfile.username?.[0]?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <h2 className="text-3xl font-bold mb-2">{displayedProfile.firstName}</h2>
+              <p className="text-xl text-gray-300 mb-4">@{displayedProfile.username}</p>
+              
+              <div className="bg-white/10 rounded-2xl p-4 mb-6">
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-yellow-400">{displayedProfile.points || 0}</p>
+                    <p className="text-sm text-gray-400">النقاط</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-400">
+                      {displayedProfile.isOnline ? 'متصل' : 'غير متصل'}
+                    </p>
+                    <p className="text-sm text-gray-400">الحالة</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 justify-center">
+                <Button
+                  onClick={hideUserProfile}
+                  className="bg-gray-700 hover:bg-gray-600 px-6 py-2"
+                >
+                  إغلاق
+                </Button>
+                <Button
+                  onClick={hideUserProfile}
+                  className="bg-blue-600 hover:bg-blue-700 px-6 py-2"
+                >
+                  إخفاء السول
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* تأثيرات إضافية */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-black/10 pointer-events-none"></div>
