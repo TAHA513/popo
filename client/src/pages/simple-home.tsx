@@ -1,9 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus } from "lucide-react";
+
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
@@ -61,23 +61,7 @@ export default function SimpleHome() {
         {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}
         <div className="p-2">
 
-          {memories.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📱</div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                لا توجد منشورات
-              </h3>
-              <p className="text-gray-500 mb-4">
-                لم يتم العثور على محتوى للعرض
-              </p>
-              <Button 
-                onClick={() => setLocation('/create-memory')}
-                className="bg-laa-pink hover:bg-laa-pink/90"
-              >
-                أنشئ منشور
-              </Button>
-            </div>
-          ) : (
+          {memories.length > 0 && (
             <div className="grid grid-cols-1 gap-4">
               {memories.map((memory: any) => {
                 // تحديد نوع المحتوى بناءً على البيانات الحقيقية
