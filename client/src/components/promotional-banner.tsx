@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function PromotionalBanner() {
   const [isVisible, setIsVisible] = useState(true);
-  const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
     {
@@ -42,15 +41,7 @@ export default function PromotionalBanner() {
     }
   ];
 
-  const currentBannerData = banners[currentBanner];
-
-  const goToPrevious = () => {
-    setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
-  };
-
-  const goToNext = () => {
-    setCurrentBanner((prev) => (prev + 1) % banners.length);
-  };
+  const currentBannerData = banners[0]; // Always show first banner
 
   if (!isVisible) return null;
 
@@ -67,24 +58,7 @@ export default function PromotionalBanner() {
           <X className="w-3 h-3" />
         </Button>
 
-        {/* Navigation Arrows */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-1/2 transform -translate-y-1/2 right-1 z-10 text-white hover:bg-white/20 p-1"
-          onClick={goToPrevious}
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-1/2 transform -translate-y-1/2 left-6 z-10 text-white hover:bg-white/20 p-1"
-          onClick={goToNext}
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
 
         {/* Banner Content */}
         <div className="p-3 px-8">
@@ -109,18 +83,7 @@ export default function PromotionalBanner() {
           </div>
         </div>
 
-        {/* Banner Navigation Dots */}
-        <div className="absolute bottom-1 right-1/2 transform translate-x-1/2 flex gap-1">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                index === currentBanner ? 'bg-white' : 'bg-white/50'
-              }`}
-              onClick={() => setCurrentBanner(index)}
-            />
-          ))}
-        </div>
+
       </Card>
     </div>
   );
