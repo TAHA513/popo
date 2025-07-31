@@ -25,9 +25,7 @@ import {
   Trophy,
   TrendingUp,
   Upload,
-  ArrowLeft,
-  Moon,
-  Sun
+  ArrowLeft
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -35,7 +33,6 @@ import { OnlineStatus } from "@/components/online-status";
 import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import MemoryCard from "@/components/memory-card";
-import { useTheme } from "@/hooks/useTheme";
 
 export default function ProfileRedesign() {
   const { user: currentUser, isAuthenticated } = useAuth();
@@ -43,7 +40,6 @@ export default function ProfileRedesign() {
   const userId = params.userId;
   const profileUserId = userId || currentUser?.id;
   const isOwnProfile = !userId || userId === currentUser?.id;
-  const { theme, toggleTheme } = useTheme();
   
   const [activeTab, setActiveTab] = useState<"memories" | "stats" | "albums">("memories");
   const [showMessageDialog, setShowMessageDialog] = useState(false);
@@ -297,16 +293,8 @@ export default function ProfileRedesign() {
                 </h1>
               </div>
               
-              {/* Theme and Settings Icons */}
+              {/* Settings Icon */}
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleTheme}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
-                >
-                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -330,16 +318,8 @@ export default function ProfileRedesign() {
               <div className="flex items-center justify-between">
                 <h1 className="text-lg font-bold text-gray-900">الملف الشخصي</h1>
                 
-                {/* Theme and Settings Icons */}
+                {/* Settings Icon */}
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleTheme}
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
-                  >
-                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
