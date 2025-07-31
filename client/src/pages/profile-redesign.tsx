@@ -277,10 +277,10 @@ export default function ProfileRedesign() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-0">
       {/* Header with back button and settings - only show for other users' profiles */}
       {!isOwnProfile && (
-        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
           <div className="container mx-auto px-4 py-3 max-w-4xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -303,7 +303,7 @@ export default function ProfileRedesign() {
                   variant="ghost"
                   size="sm"
                   onClick={toggleTheme}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2"
                 >
                   {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 </Button>
@@ -311,7 +311,7 @@ export default function ProfileRedesign() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation('/account')}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2"
                 >
                   <Settings className="h-5 w-5" />
                 </Button>
@@ -325,10 +325,10 @@ export default function ProfileRedesign() {
       {isOwnProfile && (
         <>
           <SimpleNavigation />
-          <div className="bg-white shadow-sm border-b border-gray-200 sticky top-16 z-10">
+          <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-16 z-10">
             <div className="container mx-auto px-4 py-2 max-w-4xl">
               <div className="flex items-center justify-between">
-                <h1 className="text-lg font-bold text-gray-900">الملف الشخصي</h1>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">الملف الشخصي</h1>
                 
                 {/* Theme and Settings Icons */}
                 <div className="flex items-center gap-2">
@@ -336,7 +336,7 @@ export default function ProfileRedesign() {
                     variant="ghost"
                     size="sm"
                     onClick={toggleTheme}
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                    className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2"
                   >
                     {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                   </Button>
@@ -344,7 +344,7 @@ export default function ProfileRedesign() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setLocation('/account')}
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                    className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2"
                   >
                     <Settings className="h-5 w-5" />
                   </Button>

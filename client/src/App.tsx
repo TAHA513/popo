@@ -101,6 +101,7 @@ function Router() {
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
           <Route path="/comments/:id" component={CommentsPage} />
           <Route path="/followers-management" component={FollowersManagementPage} />
+          <Route path="/account" component={AccountPage} />
         </Suspense>
       ) : (
         <>
