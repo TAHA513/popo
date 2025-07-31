@@ -84,21 +84,58 @@ export default function AdvancedWarGame() {
   const initializeGame = useCallback(() => {
     if (!mountRef.current) return;
 
-    // Create Three.js scene
+    // Create enhanced 3D scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87CEEB); // Sky blue
-    scene.fog = new THREE.Fog(0x87CEEB, 100, 1000);
+    
+    // Create realistic sky gradient
+    const skyGeometry = new THREE.SphereGeometry(1000, 32, 32);
+    const skyMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vWorldPosition;
+        void main() {
+          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPosition.xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+        varying vec3 vWorldPosition;
+        void main() {
+          float h = normalize(vWorldPosition + offset).y;
+          gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+        }
+      `,
+      uniforms: {
+        topColor: { value: new THREE.Color(0x0077ff) },
+        bottomColor: { value: new THREE.Color(0xffffff) },
+        offset: { value: 33 },
+        exponent: { value: 0.6 }
+      },
+      side: THREE.BackSide
+    });
+    const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+    scene.add(sky);
+    
+    scene.fog = new THREE.Fog(0x1a1a2e, 200, 1500);
 
-    // Create camera
-    const camera = new THREE.PerspectiveCamera(75, 800 / 600, 0.1, 1000);
+    // Create camera for mobile
+    const camera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 2000);
     camera.position.set(0, 5, 10);
 
-    // Create renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(800, 600);
-    renderer.setClearColor(0x87CEEB);
+    // Create renderer for full mobile screen
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const canvasWidth = window.innerWidth;
+    const canvasHeight = window.innerHeight;
+    renderer.setSize(canvasWidth, canvasHeight);
+    renderer.setClearColor(0x1a1a2e, 1.0);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
     mountRef.current.appendChild(renderer.domElement);
 
     // Create physics world
@@ -106,9 +143,22 @@ export default function AdvancedWarGame() {
     world.gravity.set(0, -9.82, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
 
-    // Create ground
-    const groundGeometry = new THREE.PlaneGeometry(200, 200);
-    const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x4a5d23 });
+    // Create realistic textured ground
+    const groundGeometry = new THREE.PlaneGeometry(400, 400, 100, 100);
+    const groundMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x2d4a3e,
+      roughness: 0.8,
+      metalness: 0.1
+    });
+    
+    // Add height variation to ground
+    const vertices = groundGeometry.attributes.position.array;
+    for (let i = 0; i < vertices.length; i += 3) {
+      vertices[i + 2] = Math.random() * 2 - 1; // Random height variation
+    }
+    groundGeometry.attributes.position.needsUpdate = true;
+    groundGeometry.computeVertexNormals();
+    
     const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
     groundMesh.rotation.x = -Math.PI / 2;
     groundMesh.receiveShadow = true;
@@ -128,18 +178,41 @@ export default function AdvancedWarGame() {
     ];
 
     buildingPositions.forEach((pos, index) => {
-      const height = 15 + Math.random() * 20;
-      const width = 8 + Math.random() * 5;
-      const depth = 8 + Math.random() * 5;
+      const height = 15 + Math.random() * 25;
+      const width = 8 + Math.random() * 6;
+      const depth = 8 + Math.random() * 6;
 
+      // Create realistic building with details
       const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
-      const buildingMaterial = new THREE.MeshLambertMaterial({ 
-        color: new THREE.Color().setHSL(0.1 + Math.random() * 0.1, 0.3, 0.4) 
+      const buildingMaterial = new THREE.MeshStandardMaterial({ 
+        color: new THREE.Color().setHSL(0.6 + Math.random() * 0.3, 0.4, 0.3 + Math.random() * 0.3),
+        roughness: 0.7,
+        metalness: 0.1
       });
       const buildingMesh = new THREE.Mesh(buildingGeometry, buildingMaterial);
       buildingMesh.position.set(pos.x, height / 2, pos.z);
       buildingMesh.castShadow = true;
       buildingMesh.receiveShadow = true;
+      
+      // Add windows
+      for (let w = 0; w < 3; w++) {
+        for (let h = 0; h < Math.floor(height / 5); h++) {
+          const windowGeometry = new THREE.PlaneGeometry(1, 1.5);
+          const windowMaterial = new THREE.MeshBasicMaterial({ 
+            color: Math.random() > 0.3 ? 0xffff88 : 0x333333,
+            transparent: true,
+            opacity: 0.8
+          });
+          const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
+          windowMesh.position.set(
+            pos.x + width/2 + 0.01,
+            height/2 - height/2 + h * 5 + 3,
+            pos.z - width/2 + w * 2
+          );
+          scene.add(windowMesh);
+        }
+      }
+      
       scene.add(buildingMesh);
       buildings.push(buildingMesh);
 
@@ -151,13 +224,46 @@ export default function AdvancedWarGame() {
       world.addBody(buildingBody);
     });
 
-    // Create player
-    const playerGeometry = new THREE.CapsuleGeometry(1, 2, 4, 8);
-    const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
-    const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-    playerMesh.position.set(0, 2, 0);
-    playerMesh.castShadow = true;
-    scene.add(playerMesh);
+    // Create detailed player character
+    const playerGroup = new THREE.Group();
+    
+    // Player body
+    const bodyGeometry = new THREE.CapsuleGeometry(0.8, 1.5, 8, 16);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x2a5d31,
+      roughness: 0.6,
+      metalness: 0.1
+    });
+    const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    bodyMesh.castShadow = true;
+    playerGroup.add(bodyMesh);
+    
+    // Player helmet
+    const helmetGeometry = new THREE.SphereGeometry(0.6, 16, 8);
+    const helmetMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x1a4022,
+      roughness: 0.3,
+      metalness: 0.4
+    });
+    const helmetMesh = new THREE.Mesh(helmetGeometry, helmetMaterial);
+    helmetMesh.position.set(0, 1.2, 0);
+    helmetMesh.castShadow = true;
+    playerGroup.add(helmetMesh);
+    
+    // Weapon
+    const weaponGeometry = new THREE.BoxGeometry(0.1, 0.1, 2);
+    const weaponMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x333333,
+      roughness: 0.2,
+      metalness: 0.8
+    });
+    const weaponMesh = new THREE.Mesh(weaponGeometry, weaponMaterial);
+    weaponMesh.position.set(0.5, 0.5, -1);
+    weaponMesh.castShadow = true;
+    playerGroup.add(weaponMesh);
+    
+    playerGroup.position.set(0, 2, 0);
+    scene.add(playerGroup);
 
     const playerShape = new CANNON.Cylinder(1, 1, 3, 8);
     const playerBody = new CANNON.Body({ mass: 5 });
@@ -166,22 +272,44 @@ export default function AdvancedWarGame() {
     playerBody.material = new CANNON.Material({ friction: 0.4, restitution: 0.0 });
     world.addBody(playerBody);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    // Enhanced realistic lighting
+    const ambientLight = new THREE.AmbientLight(0x404060, 0.4);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(50, 100, 50);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 500;
-    directionalLight.shadow.camera.left = -100;
-    directionalLight.shadow.camera.right = 100;
-    directionalLight.shadow.camera.top = 100;
-    directionalLight.shadow.camera.bottom = -100;
-    scene.add(directionalLight);
+    // Main sun light
+    const sunLight = new THREE.DirectionalLight(0xfff5b4, 1.0);
+    sunLight.position.set(100, 150, 50);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 4096;
+    sunLight.shadow.mapSize.height = 4096;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 800;
+    sunLight.shadow.camera.left = -200;
+    sunLight.shadow.camera.right = 200;
+    sunLight.shadow.camera.top = 200;
+    sunLight.shadow.camera.bottom = -200;
+    sunLight.shadow.bias = -0.0001;
+    scene.add(sunLight);
+    
+    // Fill light
+    const fillLight = new THREE.DirectionalLight(0x7ec0ee, 0.3);
+    fillLight.position.set(-50, 50, -50);
+    scene.add(fillLight);
+    
+    // Atmospheric point lights
+    for (let i = 0; i < 5; i++) {
+      const pointLight = new THREE.PointLight(
+        new THREE.Color().setHSL(Math.random(), 0.7, 0.5),
+        0.5,
+        50
+      );
+      pointLight.position.set(
+        (Math.random() - 0.5) * 200,
+        10 + Math.random() * 20,
+        (Math.random() - 0.5) * 200
+      );
+      scene.add(pointLight);
+    }
 
     // Initialize game state
     gameStateRef.current = {
@@ -190,7 +318,7 @@ export default function AdvancedWarGame() {
       renderer,
       world,
       player: {
-        mesh: playerMesh,
+        mesh: playerGroup,
         body: playerBody,
         health: 100,
         maxHealth: 100,
@@ -234,12 +362,60 @@ export default function AdvancedWarGame() {
 
     const config = enemyTypes[type as keyof typeof enemyTypes] || enemyTypes.soldier;
 
-    const enemyGeometry = new THREE.CapsuleGeometry(config.size, 2 * config.size, 4, 8);
-    const enemyMaterial = new THREE.MeshLambertMaterial({ color: config.color });
-    const enemyMesh = new THREE.Mesh(enemyGeometry, enemyMaterial);
-    enemyMesh.position.copy(position);
-    enemyMesh.castShadow = true;
-    scene.add(enemyMesh);
+    // Create detailed enemy robot
+    const enemyGroup = new THREE.Group();
+    
+    // Robot body
+    const bodyGeometry = new THREE.CylinderGeometry(config.size * 0.7, config.size, 2 * config.size, 8);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ 
+      color: config.color,
+      roughness: 0.3,
+      metalness: 0.8,
+      emissive: new THREE.Color(config.color).multiplyScalar(0.1)
+    });
+    const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    bodyMesh.castShadow = true;
+    enemyGroup.add(bodyMesh);
+    
+    // Robot head/sensor
+    const headGeometry = new THREE.SphereGeometry(config.size * 0.5, 8, 6);
+    const headMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xff3333,
+      roughness: 0.1,
+      metalness: 0.9,
+      emissive: 0x331111
+    });
+    const headMesh = new THREE.Mesh(headGeometry, headMaterial);
+    headMesh.position.set(0, config.size * 1.2, 0);
+    headMesh.castShadow = true;
+    enemyGroup.add(headMesh);
+    
+    // Glowing eyes
+    const eyeGeometry = new THREE.SphereGeometry(0.1, 6, 4);
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    
+    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.15, config.size * 1.2, config.size * 0.4);
+    enemyGroup.add(leftEye);
+    
+    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    rightEye.position.set(0.15, config.size * 1.2, config.size * 0.4);
+    enemyGroup.add(rightEye);
+    
+    // Weapon attachments
+    const weaponGeometry = new THREE.BoxGeometry(0.2, 0.2, 1.5);
+    const weaponMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x666666,
+      roughness: 0.2,
+      metalness: 0.9
+    });
+    const weaponMesh = new THREE.Mesh(weaponGeometry, weaponMaterial);
+    weaponMesh.position.set(config.size * 0.8, 0, 0);
+    weaponMesh.castShadow = true;
+    enemyGroup.add(weaponMesh);
+    
+    enemyGroup.position.copy(position);
+    scene.add(enemyGroup);
 
     const enemyShape = new CANNON.Cylinder(config.size, config.size, 3 * config.size, 8);
     const enemyBody = new CANNON.Body({ mass: 5 });
@@ -258,7 +434,7 @@ export default function AdvancedWarGame() {
     }
 
     const enemy = {
-      mesh: enemyMesh,
+      mesh: enemyGroup,
       body: enemyBody,
       health: config.health,
       maxHealth: config.health,
@@ -314,9 +490,14 @@ export default function AdvancedWarGame() {
 
     if (player.ammo <= 0) return;
 
-    // Create bullet
-    const bulletGeometry = new THREE.SphereGeometry(0.1);
-    const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    // Create enhanced bullet with trail
+    const bulletGeometry = new THREE.CylinderGeometry(0.05, 0.08, 0.3, 6);
+    const bulletMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xffaa00,
+      roughness: 0.1,
+      metalness: 0.8,
+      emissive: 0x664400
+    });
     const bulletMesh = new THREE.Mesh(bulletGeometry, bulletMaterial);
     
     // Position bullet at camera position
@@ -408,9 +589,14 @@ export default function AdvancedWarGame() {
         enemy.body.velocity = new CANNON.Vec3(0, enemy.body.velocity.y, 0);
         
         if (now - enemy.ai.lastShot > 2000) { // Shoot every 2 seconds
-          // Create enemy bullet
-          const bulletGeometry = new THREE.SphereGeometry(0.08);
-          const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+          // Create enemy laser bullet
+          const bulletGeometry = new THREE.CylinderGeometry(0.04, 0.06, 0.4, 6);
+          const bulletMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xff2222,
+            roughness: 0.1,
+            metalness: 0.9,
+            emissive: 0x882222
+          });
           const bulletMesh = new THREE.Mesh(bulletGeometry, bulletMaterial);
           bulletMesh.position.copy(enemyPosition);
           gameStateRef.current.scene.add(bulletMesh);
@@ -585,7 +771,7 @@ export default function AdvancedWarGame() {
     requestAnimationFrame(gameLoop);
   }, [updateEnemyAI, spawnWave]);
 
-  // Input handling
+  // Input handling for both desktop and mobile
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       keysPressed.current.add(event.key.toLowerCase());
@@ -598,6 +784,41 @@ export default function AdvancedWarGame() {
 
     const handleKeyUp = (event: KeyboardEvent) => {
       keysPressed.current.delete(event.key.toLowerCase());
+    };
+
+    // Touch controls for mobile
+    const handleTouchStart = (event: TouchEvent) => {
+      event.preventDefault();
+      const touch = event.touches[0];
+      const rect = mountRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      
+      // Check if touch is on movement area (left side)
+      if (x < rect.width / 2) {
+        // Handle movement based on touch position
+        const centerX = rect.width / 4;
+        const centerY = rect.height / 2;
+        
+        if (Math.abs(x - centerX) > Math.abs(y - centerY)) {
+          if (x < centerX) keysPressed.current.add('a');
+          else keysPressed.current.add('d');
+        } else {
+          if (y < centerY) keysPressed.current.add('w');
+          else keysPressed.current.add('s');
+        }
+      }
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      event.preventDefault();
+      // Clear all movement keys on touch end
+      keysPressed.current.delete('w');
+      keysPressed.current.delete('a');
+      keysPressed.current.delete('s');
+      keysPressed.current.delete('d');
     };
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -641,6 +862,8 @@ export default function AdvancedWarGame() {
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('click', handleClick);
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
     document.addEventListener('pointerlockchange', handlePointerLockChange);
 
     return () => {
@@ -648,6 +871,8 @@ export default function AdvancedWarGame() {
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('click', handleClick);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
       document.removeEventListener('pointerlockchange', handlePointerLockChange);
     };
   }, [gameStatus, fireBullet]);
@@ -676,8 +901,9 @@ export default function AdvancedWarGame() {
     spawnWave();
     gameLoop();
 
-    // Request pointer lock for first-person controls
-    if (mountRef.current?.firstChild) {
+    // Request pointer lock for desktop only
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isMobile && mountRef.current?.firstChild) {
       (mountRef.current.firstChild as HTMLElement).requestPointerLock();
     }
   };
@@ -787,17 +1013,17 @@ export default function AdvancedWarGame() {
           </div>
         )}
 
-        {/* Game Container */}
-        <div className="flex justify-center mb-6">
-          <div className="relative">
+        {/* Full Screen Game Container */}
+        <div className="fixed inset-0 z-10">
+          <div className="relative w-full h-full">
             <div 
               ref={mountRef} 
-              className="border-2 border-red-500/50 rounded-lg overflow-hidden"
-              style={{ width: '800px', height: '600px' }}
+              className="w-full h-full overflow-hidden bg-black"
+              style={{ width: '100vw', height: '100vh' }}
             />
             
             {gameStatus === 'menu' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/80 rounded-lg">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/90">
                 <Card className="bg-gradient-to-br from-red-900/50 to-orange-900/30 border-red-500/30">
                   <CardHeader>
                     <CardTitle className="text-center text-red-400 text-xl">
@@ -824,7 +1050,7 @@ export default function AdvancedWarGame() {
             )}
 
             {gameStatus === 'paused' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80">
                 <Card className="bg-gradient-to-br from-gray-900/50 to-black/30 border-gray-500/30">
                   <CardContent className="p-6 text-center">
                     <h3 className="text-xl font-bold text-gray-300 mb-4">اللعبة متوقفة</h3>
@@ -837,7 +1063,7 @@ export default function AdvancedWarGame() {
             )}
 
             {gameStatus === 'gameOver' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/80 rounded-lg">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/90">
                 <Card className="bg-gradient-to-br from-red-900/50 to-gray-900/30 border-red-500/30">
                   <CardHeader>
                     <CardTitle className="text-center text-red-400 text-xl">
@@ -866,6 +1092,71 @@ export default function AdvancedWarGame() {
                   </CardContent>
                 </Card>
               </div>
+            )}
+
+            {/* Mobile Touch Controls */}
+            {gameStatus === 'playing' && (
+              <>
+                {/* Movement Joystick */}
+                <div className="absolute bottom-8 left-8 w-24 h-24 bg-white/20 rounded-full border-2 border-white/40 flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/60 rounded-full shadow-lg"></div>
+                </div>
+
+                {/* Fire Button */}
+                <div 
+                  className="absolute bottom-8 right-8 w-20 h-20 bg-red-600/80 rounded-full border-4 border-red-400/60 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    fireBullet();
+                  }}
+                  onClick={fireBullet}
+                >
+                  <Target className="w-8 h-8 text-white" />
+                </div>
+
+                {/* Pause Button */}
+                <div 
+                  className="absolute top-8 right-8 w-12 h-12 bg-gray-700/80 rounded-full border-2 border-gray-500/60 flex items-center justify-center cursor-pointer"
+                  onClick={pauseGame}
+                >
+                  <div className="w-1 h-6 bg-white rounded mx-1"></div>
+                  <div className="w-1 h-6 bg-white rounded mx-1"></div>
+                </div>
+
+                {/* Mobile HUD */}
+                <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                  <div className="bg-black/60 backdrop-blur-sm rounded-lg p-2 space-y-1">
+                    <div className="flex items-center gap-2 text-green-400 text-sm">
+                      <Heart className="w-4 h-4" />
+                      <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300"
+                          style={{ width: `${(playerStats.health / playerStats.maxHealth) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs">{playerStats.health}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-400 text-sm">
+                      <Zap className="w-4 h-4" />
+                      <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-300"
+                          style={{ width: `${(playerStats.ammo / playerStats.maxAmmo) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs">{playerStats.ammo}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black/60 backdrop-blur-sm rounded-lg p-2 text-right">
+                    <div className="text-yellow-400 text-lg font-bold">{playerStats.score}</div>
+                    <div className="text-gray-300 text-xs">النقاط</div>
+                    <div className="text-red-400 text-sm font-bold">{playerStats.kills}</div>
+                    <div className="text-gray-300 text-xs">القتلى</div>
+                    <div className="text-purple-400 text-sm font-bold">الموجة {playerStats.wave}</div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
