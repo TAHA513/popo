@@ -60,9 +60,7 @@ export default function SimpleHome() {
       <div className="max-w-sm mx-auto">
         {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}
         <div className="p-2">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">🔍 المنشورات</h2>
-          </div>
+
           {memories.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📱</div>
