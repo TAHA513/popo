@@ -13,10 +13,15 @@ export default function SimpleHome() {
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // المنشورات العامة فقط (بدون البثوث)
-  const { data: memories = [] } = useQuery<any[]>({
+  // المنشورات العامة فقط (بدون البثوث) - محسّن للسرعة
+  const { data: memories = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 10000,
+    refetchInterval: 15000, // تقليل تحديث البيانات من 10 إلى 15 ثانية
+    staleTime: 30000, // البيانات تبقى صالحة لـ 30 ثانية
+    gcTime: 300000, // تنظيف الكاش بعد 5 دقائق
+    retry: 1, // محاولة واحدة فقط
+    refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
+    refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
   });
 
 
@@ -60,6 +65,11 @@ export default function SimpleHome() {
       <div className="max-w-sm mx-auto">
         {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}
         <div className="p-2">
+          {isLoading && memories.length === 0 && (
+            <div className="flex justify-center items-center py-4">
+              <div className="animate-spin w-6 h-6 border-2 border-laa-pink border-t-transparent rounded-full"></div>
+            </div>
+          )}
 
           {memories.length > 0 && (
             <div className="grid grid-cols-1 gap-4">
