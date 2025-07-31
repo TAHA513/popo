@@ -53,11 +53,13 @@ export default function SimpleHome() {
             {/* Create Memory Button - Right Side */}
             <button 
               onClick={() => setLocation('/create-memory')}
-              className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-lg hover:scale-105 transition-transform duration-200"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border border-white/20 backdrop-blur-sm"
             >
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
+              <span className="text-white font-medium text-sm hidden sm:block">إنشاء ذكرى</span>
+              <span className="text-white font-medium text-xs block sm:hidden">ذكرى</span>
             </button>
           </div>
         </div>
