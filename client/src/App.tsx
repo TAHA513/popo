@@ -41,6 +41,7 @@ import ProfileRedesignPage from "@/pages/profile-redesign";
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
+import GiftsPage from "@/pages/gifts";
 
 import { LanguageOption } from "@/types";
 
@@ -101,6 +102,7 @@ function Router() {
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
           <Route path="/comments/:id" component={CommentsPage} />
           <Route path="/followers-management" component={FollowersManagementPage} />
+          <Route path="/gifts" component={GiftsPage} />
         </Suspense>
       ) : (
         <>

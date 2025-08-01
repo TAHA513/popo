@@ -9,7 +9,8 @@ import {
   MessageCircle,
   User,
   LogOut,
-  Wallet
+  Wallet,
+  Gift
 } from "lucide-react";
 
 export default function BottomNavigation() {
@@ -41,13 +42,14 @@ export default function BottomNavigation() {
     { href: "/", icon: Home, label: "المنشورات" },
     { href: "/explore", icon: Radio, label: "البث" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
+    { href: "/gifts", icon: Gift, label: "الهدايا" },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" }
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
-      <div className="flex items-center justify-around py-1 px-2">
+      <div className="flex items-center justify-around py-1 px-1">
         {navItems.map((item, index) => {
           const isActive = location === item.href;
           const Icon = item.icon;
@@ -91,7 +93,7 @@ export default function BottomNavigation() {
           
           return (
             <Link key={item.href} href={item.href}>
-              <div className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 relative ${
+              <div className={`flex flex-col items-center justify-center py-2 px-2 rounded-xl transition-all duration-200 relative ${
                 isActive 
                   ? 'text-purple-600 bg-purple-50 scale-105' 
                   : 'text-gray-500 hover:text-purple-400 hover:bg-gray-50'
