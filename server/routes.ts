@@ -210,6 +210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
         email: validatedData.email,
+        countryCode: validatedData.countryCode,
+        countryName: validatedData.countryName,
+        countryFlag: validatedData.countryFlag,
         passwordHash,
       });
 

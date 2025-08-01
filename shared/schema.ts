@@ -39,6 +39,9 @@ export const users = pgTable("users", {
   username: varchar("username").unique().notNull(), // Required and unique
   passwordHash: varchar("password_hash").notNull(), // Required for local auth
   bio: text("bio"),
+  countryCode: varchar("country_code", { length: 2 }), // ISO country code (e.g., "US", "SA")
+  countryName: varchar("country_name", { length: 100 }), // Country name in English
+  countryFlag: varchar("country_flag", { length: 10 }), // Country flag emoji
   points: integer("points").default(100), // Start with 100 points
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0"),
   totalGiftsReceived: decimal("total_gifts_received", { precision: 10, scale: 2 }).default("0"), // Track gifts received

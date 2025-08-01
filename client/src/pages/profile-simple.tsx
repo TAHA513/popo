@@ -511,6 +511,14 @@ export default function ProfileSimplePage() {
                 
                 <p className="text-gray-600 mb-3">{user?.bio || 'لا يوجد وصف متاح'}</p>
                 
+                {/* Country Information */}
+                {(user?.countryName || user?.country_name) && (
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse mb-3">
+                    <span className="text-lg">{user?.countryFlag || user?.country_flag}</span>
+                    <span className="text-gray-600 text-sm">{user?.countryName || user?.country_name}</span>
+                  </div>
+                )}
+                
                 {/* Online Status */}
                 {!isOwnProfile && (
                   <div className="mb-3">

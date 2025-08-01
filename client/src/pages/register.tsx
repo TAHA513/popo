@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, Check, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import CountrySelector from "@/components/country-selector";
 
 const registerSchema = z.object({
   username: z.string()
@@ -23,6 +24,9 @@ const registerSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح"),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   confirmPassword: z.string(),
+  countryCode: z.string().optional(),
+  countryName: z.string().optional(),
+  countryFlag: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
   path: ["confirmPassword"],
@@ -33,6 +37,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<{name: string, code: string, flag: string} | null>(null);
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
@@ -63,9 +68,16 @@ export default function Register() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterForm) => {
+      const registrationData = {
+        ...data,
+        countryCode: selectedCountry?.code || "",
+        countryName: selectedCountry?.name || "",
+        countryFlag: selectedCountry?.flag || ""
+      };
+      
       const response = await fetch("/api/register", {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify(registrationData),
         headers: {
           "Content-Type": "application/json",
         },
@@ -285,6 +297,18 @@ export default function Register() {
                   {errors.confirmPassword && (
                     <p className="text-red-400 text-xs px-2">{errors.confirmPassword.message}</p>
                   )}
+                </div>
+              </div>
+
+              {/* Country Selector */}
+              <div className="space-y-1">
+                <div className="text-white text-sm mb-2">اختيار بلد الإقامة</div>
+                <div className="bg-white/10 border border-white/20 rounded-xl p-3 backdrop-blur-sm">
+                  <CountrySelector
+                    value={selectedCountry?.code}
+                    onChange={(country) => setSelectedCountry(country)}
+                    placeholder="اختر بلد الإقامة"
+                  />
                 </div>
               </div>
 
