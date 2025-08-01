@@ -10,7 +10,7 @@ const GAMES = [
     emoji: "🤖",
     description: "لعبة حرب ثلاثية الأبعاد مع محرك فيزياء حقيقي وذكاء اصطناعي متطور",
     color: "from-red-600 to-orange-600",
-    route: "/ai-war"
+    route: "/games/war-fixed"
   }
 ];
 
