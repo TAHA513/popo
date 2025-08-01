@@ -903,9 +903,16 @@ export default function AdvancedWarGame() {
 
   // Initialize game
   useEffect(() => {
-    initializeGame();
+    console.log('Initializing game...');
+    try {
+      initializeGame();
+      console.log('Game initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize game:', error);
+    }
     
     return () => {
+      console.log('Cleaning up game...');
       if (gameStateRef.current?.renderer.domElement.parentNode) {
         gameStateRef.current.renderer.domElement.parentNode.removeChild(
           gameStateRef.current.renderer.domElement
@@ -918,17 +925,47 @@ export default function AdvancedWarGame() {
   }, [initializeGame]);
 
   const startGame = () => {
-    if (!gameStateRef.current) return;
+    console.log('Starting game...');
+    if (!gameStateRef.current) {
+      console.error('Game state not initialized');
+      return;
+    }
     
-    setGameStatus('playing');
-    gameStateRef.current.isPlaying = true;
-    spawnWave();
-    gameLoop();
+    try {
+      setGameStatus('playing');
+      gameStateRef.current.isPlaying = true;
+      
+      // Initialize player stats
+      setPlayerStats({
+        health: 100,
+        maxHealth: 100,
+        ammo: 100,
+        maxAmmo: 100,
+        score: 0,
+        kills: 0,
+        wave: 1
+      });
+      
+      spawnWave();
+      gameLoop();
 
-    // Request pointer lock for desktop only
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isMobile && mountRef.current?.firstChild) {
-      (mountRef.current.firstChild as HTMLElement).requestPointerLock();
+      // Request pointer lock for desktop only
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      console.log('Is mobile device:', isMobile);
+      
+      if (!isMobile && mountRef.current?.firstChild) {
+        console.log('Requesting pointer lock...');
+        (mountRef.current.firstChild as HTMLElement).requestPointerLock();
+      }
+      
+      console.log('Game started successfully');
+    } catch (error) {
+      console.error('Error starting game:', error);
+      toast({
+        title: "خطأ في بدء اللعبة",
+        description: "حدث خطأ أثناء بدء اللعبة. جرب مرة أخرى.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1064,8 +1101,12 @@ export default function AdvancedWarGame() {
                       <br />
                       عالم ثلاثي الأبعاد مع أعداء ذكيين
                     </div>
-                    <Button onClick={startGame} className="bg-red-600 hover:bg-red-700">
-                      <Target className="w-4 h-4 mr-2" />
+                    <Button 
+                      onClick={startGame} 
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 text-lg"
+                      size="lg"
+                    >
+                      <Target className="w-5 h-5 mr-2" />
                       ادخل المعركة
                     </Button>
                   </CardContent>
