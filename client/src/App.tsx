@@ -46,6 +46,7 @@ import AIWarGamePage from "@/pages/ai-war-game";
 import RealAIWarGamePage from "@/pages/real-ai-war-game";
 import AdvancedWarGamePage from "@/pages/advanced-war-game";
 import SimpleWarTestPage from "@/pages/simple-war-test";
+import WarGameFixedPage from "@/pages/war-game-fixed";
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
@@ -88,6 +89,7 @@ function Router() {
           <Route path="/create-memory" component={CreateMemoryPage} />
           <Route path="/games" component={GamesSimplePage} />
           <Route path="/games/simple-test" component={SimpleWarTestPage} />
+          <Route path="/games/war-fixed" component={WarGameFixedPage} />
           <Route path="/ai-war" component={AdvancedWarGamePage} />
           <Route path="/profile" component={ProfileRedesignPage} />
           <Route path="/profile-old" component={ProfileSimplePage} />
