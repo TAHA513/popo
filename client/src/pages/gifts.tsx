@@ -14,13 +14,13 @@ interface GiftCharacter {
   name: string;
   emoji?: string;
   description?: string;
-  pointCost?: number;
-  point_cost?: number; // Database uses snake_case
+  pointCost: number;
   rarity?: string;
   animationType?: string;
-  animation_type?: string; // Database uses snake_case
   isActive?: boolean;
-  is_active?: boolean; // Database uses snake_case
+  hasSound?: boolean;
+  hasSpecialEffects?: boolean;
+  effectDuration?: number;
 }
 
 const giftIcons: Record<string, React.ReactNode> = {
@@ -71,7 +71,7 @@ export default function GiftsPage() {
     staleTime: 30000, // Cache for 30 seconds
   });
   
-  console.log('Gift characters data:', giftCharacters);
+
 
   // Fetch user's sent gifts
   const { data: sentGifts = [] } = useQuery({
@@ -143,7 +143,7 @@ export default function GiftsPage() {
           </TabsList>
 
           <TabsContent value="browse">
-            {giftCharacters.length === 0 ? (
+            {!giftCharacters || giftCharacters.length === 0 ? (
               <div className="text-center py-12">
                 <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-xl text-gray-500 mb-2">لا توجد هدايا متاحة حالياً</p>
@@ -170,16 +170,16 @@ export default function GiftsPage() {
                     <div className="flex items-center justify-center gap-1 mb-4">
                       <Coins className="w-5 h-5 text-yellow-500" />
                       <span className="text-xl font-bold text-gray-700">
-                        {gift.point_cost || gift.pointCost}
+                        {gift.pointCost}
                       </span>
                       <span className="text-sm text-gray-500">نقطة</span>
                     </div>
                     <Button 
                       onClick={() => handleGiftSelect(gift)}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
-                      disabled={(user?.points || 0) < (gift.point_cost || gift.pointCost)}
+                      disabled={(user?.points || 0) < gift.pointCost}
                     >
-                      {(user?.points || 0) < (gift.point_cost || gift.pointCost) ? (
+                      {(user?.points || 0) < gift.pointCost ? (
                         "نقاط غير كافية"
                       ) : (
                         "إرسال هدية"
