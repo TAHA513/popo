@@ -62,12 +62,10 @@ export default function GiftsPage() {
   const { user } = useAuth();
 
   // Fetch available gifts
-  const { data: giftCharacters = [], isLoading, error } = useQuery({
+  const { data: giftCharacters = [], isLoading } = useQuery({
     queryKey: ['/api/gifts/characters'],
     queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
   });
-
-  console.log('Gift characters data:', { giftCharacters, isLoading, error, length: giftCharacters?.length });
 
   // Fetch user's sent gifts
   const { data: sentGifts = [] } = useQuery({
@@ -139,12 +137,7 @@ export default function GiftsPage() {
           </TabsList>
 
           <TabsContent value="browse">
-            <div className="mb-4 p-4 bg-blue-100 rounded">
-              <p>عدد الهدايا: {giftCharacters?.length}</p>
-              <p>حالة التحميل: {isLoading ? 'جاري التحميل...' : 'مكتمل'}</p>
-              <p>خطأ: {error ? 'يوجد خطأ' : 'لا يوجد خطأ'}</p>
-            </div>
-            {(!giftCharacters || giftCharacters.length === 0) && !isLoading ? (
+            {giftCharacters.length === 0 ? (
               <div className="text-center py-12">
                 <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-xl text-gray-500 mb-2">لا توجد هدايا متاحة حالياً</p>
@@ -169,19 +162,22 @@ export default function GiftsPage() {
                   </CardHeader>
                   <CardContent className="text-center">
                     <div className="flex items-center justify-center gap-1 mb-4">
-                      <Gift className="w-5 h-5 text-green-500" />
-                      <span className="text-xl font-bold text-green-600">
-                        مجاني!
+                      <Coins className="w-5 h-5 text-yellow-500" />
+                      <span className="text-xl font-bold text-gray-700">
+                        {gift.pointCost}
                       </span>
-                      <span className="text-sm text-gray-400 line-through">
-                        {gift.pointCost} نقطة
-                      </span>
+                      <span className="text-sm text-gray-500">نقطة</span>
                     </div>
                     <Button 
                       onClick={() => handleGiftSelect(gift)}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
+                      disabled={(user?.points || 0) < gift.pointCost}
                     >
-                      إرسال هدية مجاناً
+                      {(user?.points || 0) < gift.pointCost ? (
+                        "نقاط غير كافية"
+                      ) : (
+                        "إرسال هدية"
+                      )}
                     </Button>
                   </CardContent>
                 </Card>

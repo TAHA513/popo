@@ -128,8 +128,7 @@ export default function HomeNew() {
   };
 
   const handleSendGift = (postId: number) => {
-    // Navigate to gifts page instead of showing modal
-    window.location.href = '/gifts';
+    interactionMutation.mutate({ memoryId: postId, type: 'gift' });
   };
 
   const getMemoryTypeIcon = (type: string) => {
