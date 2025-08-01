@@ -11,12 +11,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
+import { GiftShop } from "@/components/gift-shop";
 
 export default function MessagesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUserForGift, setSelectedUserForGift] = useState<any>(null);
+  const [showGiftShop, setShowGiftShop] = useState(false);
 
   // Fetch conversations with auto-refresh
   const { data: conversations = [], isLoading } = useQuery({
@@ -449,13 +452,26 @@ export default function MessagesPage() {
                             </div>
                           </div>
                           
-                          {/* Unread Badge & Arrow */}
+                          {/* Actions */}
                           <div className="flex items-center space-x-2 space-x-reverse">
                             {conversation.unreadCount > 0 && (
                               <Badge className="bg-red-500 text-white animate-pulse">
                                 جديد
                               </Badge>
                             )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200 text-pink-600 hover:from-pink-100 hover:to-purple-100"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedUserForGift(conversation.otherUser);
+                                setShowGiftShop(true);
+                              }}
+                            >
+                              <Gift className="w-4 h-4" />
+                            </Button>
                             <ArrowRight className="w-5 h-5 text-gray-400" />
                           </div>
                         </div>
@@ -468,6 +484,22 @@ export default function MessagesPage() {
           </CardContent>
         </Card>
       </main>
+      
+      {/* Gift Shop Modal */}
+      {showGiftShop && selectedUserForGift && (
+        <GiftShop
+          isOpen={showGiftShop}
+          onClose={() => {
+            setShowGiftShop(false);
+            setSelectedUserForGift(null);
+          }}
+          receiverId={selectedUserForGift.id}
+          receiverName={selectedUserForGift.firstName || selectedUserForGift.username}
+          onGiftSent={(gift) => {
+            console.log('Gift sent:', gift);
+          }}
+        />
+      )}
       
       <BottomNavigation />
     </div>

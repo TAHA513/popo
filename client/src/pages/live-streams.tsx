@@ -4,14 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Play, Users, Eye, MessageCircle, Clock, Heart, Video, Radio, Sparkles } from "lucide-react";
+import { Plus, Play, Users, Eye, MessageCircle, Clock, Heart, Video, Radio, Sparkles, Gift } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import { apiRequest } from "@/lib/queryClient";
+import { GiftShop } from "@/components/gift-shop";
 
 export default function LiveStreams() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const previewRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  const [selectedStreamForGift, setSelectedStreamForGift] = useState<any>(null);
+  const [showGiftShop, setShowGiftShop] = useState(false);
   
   // جلب البثوث المباشرة
   const { data: streams = [] } = useQuery<any[]>({
@@ -118,47 +121,66 @@ export default function LiveStreams() {
                 </div>
 
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 truncate">{stream.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{stream.hostUsername || 'مضيف مجهول'}</p>
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                      <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                  
+                  {/* Stream Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
                         <Eye className="w-4 h-4" />
                         <span>{stream.viewerCount || 0}</span>
                       </div>
-                      <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                        <Heart className="w-4 h-4" />
-                        <span>{stream.totalGifts || 0}</span>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="w-4 h-4" />
+                        <span>دردشة</span>
                       </div>
                     </div>
-                    <div className="text-xs">
-                      {stream.category || 'عام'}
-                    </div>
+                    
+                    {user && stream.hostId !== user.id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200 text-pink-600 hover:from-pink-100 hover:to-purple-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedStreamForGift(stream);
+                          setShowGiftShop(true);
+                        }}
+                      >
+                        <Gift className="w-4 h-4 mr-1" />
+                        هدية
+                      </Button>
+                    )}
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <Button 
-                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLocation(`/stream/${stream.id}`);
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4 ml-2" />
-                      انضم للدردشة
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
       </div>
+
+      {/* Gift Shop Modal */}
+      {showGiftShop && selectedStreamForGift && (
+        <GiftShop
+          isOpen={showGiftShop}
+          onClose={() => {
+            setShowGiftShop(false);
+            setSelectedStreamForGift(null);
+          }}
+          receiverId={selectedStreamForGift.hostId}
+          receiverName={selectedStreamForGift.hostUsername}
+          streamId={selectedStreamForGift.id}
+          onGiftSent={(gift) => {
+            console.log('Gift sent:', gift);
+          }}
+        />
+      )}
 
       <BottomNavigation />
     </div>

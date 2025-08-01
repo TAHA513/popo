@@ -123,7 +123,10 @@ export interface IStorage {
   
   // Gift operations
   getGiftCharacters(): Promise<GiftCharacter[]>;
-  sendGift(gift: InsertGift): Promise<Gift>;
+  getGiftCharacterById(id: number): Promise<GiftCharacter | undefined>;
+  sendGift(giftData: InsertGift): Promise<Gift>;
+  getReceivedGifts(userId: string): Promise<Gift[]>;
+  getSentGifts(userId: string): Promise<Gift[]>;
   getStreamGifts(streamId: number): Promise<Gift[]>;
   
   // Chat operations
@@ -367,6 +370,32 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(giftCharacters)
       .where(eq(giftCharacters.isActive, true));
+  }
+
+  async getGiftCharacterById(id: number): Promise<GiftCharacter | undefined> {
+    const [character] = await db
+      .select()
+      .from(giftCharacters)
+      .where(eq(giftCharacters.id, id));
+    return character;
+  }
+
+  async getReceivedGifts(userId: string): Promise<Gift[]> {
+    return await db
+      .select()
+      .from(gifts)
+      .where(eq(gifts.receiverId, userId))
+      .orderBy(desc(gifts.sentAt))
+      .limit(50);
+  }
+
+  async getSentGifts(userId: string): Promise<Gift[]> {
+    return await db
+      .select()
+      .from(gifts)
+      .where(eq(gifts.senderId, userId))
+      .orderBy(desc(gifts.sentAt))
+      .limit(50);
   }
 
   async sendGift(giftData: InsertGift): Promise<Gift> {

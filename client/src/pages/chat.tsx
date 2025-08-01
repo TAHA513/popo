@@ -14,7 +14,8 @@ import {
   Phone,
   Video,
   MoreVertical,
-  UserCheck
+  UserCheck,
+  Gift
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -22,6 +23,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { GiftShop } from "@/components/gift-shop";
 
 interface Message {
   id: number;
@@ -45,6 +47,9 @@ export default function ChatPage() {
   
   // Message states
   const [newMessage, setNewMessage] = useState("");
+  
+  // Gift system states
+  const [showGiftShop, setShowGiftShop] = useState(false);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -255,6 +260,14 @@ export default function ChatPage() {
         </div>
         
         <div className="flex items-center space-x-2 space-x-reverse">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2 text-pink-600 hover:bg-pink-50"
+            onClick={() => setShowGiftShop(true)}
+          >
+            <Gift className="w-5 h-5" />
+          </Button>
           <Button variant="ghost" size="sm" className="p-2">
             <MoreVertical className="w-5 h-5" />
           </Button>
@@ -353,6 +366,19 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      {/* Gift Shop Modal */}
+      {showGiftShop && otherUser && (
+        <GiftShop
+          isOpen={showGiftShop}
+          onClose={() => setShowGiftShop(false)}
+          receiverId={otherUser.id}
+          receiverName={otherUser.firstName || otherUser.username}
+          onGiftSent={(gift) => {
+            console.log('Gift sent:', gift);
+          }}
+        />
+      )}
 
       <BottomNavigation />
     </div>

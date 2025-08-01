@@ -1311,7 +1311,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send gift for chat access
+  // Get available gift characters
+  app.get('/api/gifts/characters', async (req, res) => {
+    try {
+      const giftCharacters = await storage.getGiftCharacters();
+      res.json(giftCharacters);
+    } catch (error) {
+      console.error("Error fetching gift characters:", error);
+      res.status(500).json({ message: "فشل في جلب الهدايا المتاحة" });
+    }
+  });
+
+  // Send gift to another user
+  app.post('/api/gifts/send', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user?.id;
+      const { receiverId, characterId, message, streamId } = req.body;
+      
+      if (!senderId || !receiverId || !characterId) {
+        return res.status(400).json({ message: "بيانات الهدية غير مكتملة" });
+      }
+
+      // Get gift character details
+      const giftCharacter = await storage.getGiftCharacterById(characterId);
+      if (!giftCharacter) {
+        return res.status(404).json({ message: "الهدية غير موجودة" });
+      }
+
+      // Check if sender has enough points
+      const sender = await storage.getUserById(senderId);
+      if (!sender || sender.points < giftCharacter.pointCost) {
+        return res.status(400).json({ 
+          message: `تحتاج إلى ${giftCharacter.pointCost} نقطة لإرسال هذه الهدية. لديك ${sender?.points || 0} نقطة فقط` 
+        });
+      }
+
+      // Check if receiver accepts gifts from strangers
+      const receiver = await storage.getUserById(receiverId);
+      if (!receiver) {
+        return res.status(404).json({ message: "المستقبل غير موجود" });
+      }
+
+      // Check if they are following each other or if receiver allows gifts from strangers
+      const isFollowing = await storage.isFollowing(senderId, receiverId);
+      if (!receiver.allowGiftsFromStrangers && !isFollowing) {
+        return res.status(403).json({ message: "هذا المستخدم لا يقبل هدايا من غير المتابعين" });
+      }
+
+      // Send the gift
+      const gift = await storage.sendGift({
+        senderId,
+        receiverId,
+        characterId,
+        pointCost: giftCharacter.pointCost,
+        message: message || null,
+        streamId: streamId || null
+      });
+
+      // Update sender and receiver supporter levels
+      await updateSupporterLevel(senderId);
+      await updateGiftsReceived(receiverId);
+
+      // Get updated user data
+      const updatedSender = await storage.getUserById(senderId);
+      const updatedReceiver = await storage.getUserById(receiverId);
+
+      res.json({
+        success: true,
+        gift,
+        giftCharacter,
+        senderPoints: updatedSender?.points || 0,
+        receiverEarnings: Math.floor(giftCharacter.pointCost * 0.6),
+        message: `تم إرسال ${giftCharacter.name} بنجاح!`
+      });
+    } catch (error) {
+      console.error("Error sending gift:", error);
+      res.status(500).json({ message: "فشل في إرسال الهدية" });
+    }
+  });
+
+  // Get gifts received by a user
+  app.get('/api/gifts/received/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const gifts = await storage.getReceivedGifts(userId);
+      res.json(gifts);
+    } catch (error) {
+      console.error("Error fetching received gifts:", error);
+      res.status(500).json({ message: "فشل في جلب الهدايا المستقبلة" });
+    }
+  });
+
+  // Get gifts sent by a user
+  app.get('/api/gifts/sent/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const gifts = await storage.getSentGifts(userId);
+      res.json(gifts);
+    } catch (error) {
+      console.error("Error fetching sent gifts:", error);
+      res.status(500).json({ message: "فشل في جلب الهدايا المرسلة" });
+    }
+  });
+
+  // Send gift for chat access (legacy endpoint)
   app.post('/api/send-gift', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user?.id;
