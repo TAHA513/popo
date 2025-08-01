@@ -37,52 +37,52 @@ export default function LiveStreams() {
         </div>
       </div>
 
-      {/* Live Streaming Features Banner */}
+      {/* Live Streaming Promotional Banner */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <Card className="mb-6 bg-gradient-to-r from-red-50 via-pink-50 to-orange-50 border-red-200 shadow-lg">
-          <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-red-700 mb-2 flex items-center justify-center">
-                <Radio className="w-6 h-6 mr-2 animate-pulse" />
-                مميزات البث المباشر
-              </h2>
-              <p className="text-red-600">تفاعل مباشر مع المتابعين وميزات احترافية</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Eye className="w-6 h-6 text-red-600" />
+        <Card className="mb-6 bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 text-white border-0 shadow-2xl overflow-hidden relative">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <CardContent className="relative p-8">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="md:w-2/3 text-center md:text-right mb-6 md:mb-0">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
+                  🔴 ابدأ البث المباشر الآن
+                </h2>
+                <p className="text-xl mb-6 text-white/90 leading-relaxed">
+                  شارك محتواك مع العالم • تفاعل مع المتابعين • اكسب المال من البث
+                </p>
+                <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-6">
+                  <div className="flex items-center bg-white/20 backdrop-blur px-4 py-2 rounded-full">
+                    <Eye className="w-5 h-5 mr-2" />
+                    <span className="font-medium">مشاهدة فورية</span>
+                  </div>
+                  <div className="flex items-center bg-white/20 backdrop-blur px-4 py-2 rounded-full">
+                    <Heart className="w-5 h-5 mr-2" />
+                    <span className="font-medium">تفاعل مباشر</span>
+                  </div>
+                  <div className="flex items-center bg-white/20 backdrop-blur px-4 py-2 rounded-full">
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    <span className="font-medium">جودة HD</span>
+                  </div>
                 </div>
-                <h3 className="font-bold text-red-700 mb-2">مشاهدة فورية</h3>
-                <p className="text-sm text-red-600">تفاعل لحظي مع المشاهدين</p>
+                <Button 
+                  size="lg"
+                  className="bg-white text-red-600 hover:bg-gray-100 font-bold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  onClick={() => setLocation('/start-stream')}
+                >
+                  <Radio className="w-6 h-6 mr-2" />
+                  ابدأ البث الآن مجاناً
+                </Button>
               </div>
-              
-              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Heart className="w-6 h-6 text-red-600" />
+              <div className="md:w-1/3 text-center">
+                <div className="relative">
+                  <div className="w-32 h-32 md:w-40 md:h-40 bg-white/10 backdrop-blur rounded-full flex items-center justify-center mx-auto animate-pulse">
+                    <Radio className="w-16 h-16 md:w-20 md:h-20 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                  </div>
                 </div>
-                <h3 className="font-bold text-red-700 mb-2">تفاعل مباشر</h3>
-                <p className="text-sm text-red-600">إعجابات وتعليقات فورية</p>
               </div>
-              
-              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Sparkles className="w-6 h-6 text-red-600" />
-                </div>
-                <h3 className="font-bold text-red-700 mb-2">جودة عالية</h3>
-                <p className="text-sm text-red-600">بث عالي الوضوح ومستقر</p>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <Button 
-                className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => setLocation('/start-stream')}
-              >
-                <Radio className="w-5 h-5 mr-2" />
-                ابدأ البث الآن
-              </Button>
             </div>
           </CardContent>
         </Card>
