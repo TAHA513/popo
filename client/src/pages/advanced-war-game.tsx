@@ -82,10 +82,19 @@ export default function AdvancedWarGame() {
 
   // Initialize Three.js and Cannon.js
   const initializeGame = useCallback(() => {
-    if (!mountRef.current) return;
+    console.log('initializeGame called');
+    if (!mountRef.current) {
+      console.error('mountRef.current is null');
+      return;
+    }
+
+    // Clear any existing renderer
+    mountRef.current.innerHTML = '';
+    console.log('Mount ref cleared');
 
     // Create enhanced 3D scene
     const scene = new THREE.Scene();
+    console.log('Scene created');
     
     // Create realistic sky gradient
     const skyGeometry = new THREE.SphereGeometry(1000, 32, 32);
@@ -368,6 +377,7 @@ export default function AdvancedWarGame() {
     document.body.appendChild(stats.dom);
     statsRef.current = stats;
 
+    console.log('Game initialized successfully!');
   }, []);
 
   // Create enemy
