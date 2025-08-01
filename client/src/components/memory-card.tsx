@@ -289,14 +289,15 @@ export default function MemoryCard({
               </div>
 
               {memory.allowGifts && !isOwner && (
-                <Button
-                  size="sm"
-                  onClick={onSendGift}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
-                >
-                  <Gift className="w-4 h-4 mr-1" />
-                  هدية ({memory.giftCount})
-                </Button>
+                <Link href="/gifts">
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
+                  >
+                    <Gift className="w-4 h-4 mr-1" />
+                    هدية ({memory.giftCount})
+                  </Button>
+                </Link>
               )}
             </div>
 

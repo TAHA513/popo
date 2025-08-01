@@ -128,7 +128,8 @@ export default function HomeNew() {
   };
 
   const handleSendGift = (postId: number) => {
-    interactionMutation.mutate({ memoryId: postId, type: 'gift' });
+    // Navigate to gifts page instead of showing modal
+    window.location.href = '/gifts';
   };
 
   const getMemoryTypeIcon = (type: string) => {

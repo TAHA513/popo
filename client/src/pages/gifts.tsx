@@ -162,22 +162,19 @@ export default function GiftsPage() {
                   </CardHeader>
                   <CardContent className="text-center">
                     <div className="flex items-center justify-center gap-1 mb-4">
-                      <Coins className="w-5 h-5 text-yellow-500" />
-                      <span className="text-xl font-bold text-gray-700">
-                        {gift.pointCost}
+                      <Gift className="w-5 h-5 text-green-500" />
+                      <span className="text-xl font-bold text-green-600">
+                        مجاني!
                       </span>
-                      <span className="text-sm text-gray-500">نقطة</span>
+                      <span className="text-sm text-gray-400 line-through">
+                        {gift.pointCost} نقطة
+                      </span>
                     </div>
                     <Button 
                       onClick={() => handleGiftSelect(gift)}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
-                      disabled={(user?.points || 0) < gift.pointCost}
                     >
-                      {(user?.points || 0) < gift.pointCost ? (
-                        "نقاط غير كافية"
-                      ) : (
-                        "إرسال هدية"
-                      )}
+                      إرسال هدية مجاناً
                     </Button>
                   </CardContent>
                 </Card>

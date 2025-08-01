@@ -155,8 +155,8 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
                     </div>
                     <h3 className="font-semibold text-lg mb-1">{gift.name}</h3>
                     <p className="text-sm text-gray-600 mb-2">{gift.description}</p>
-                    <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      {gift.pointCost} نقطة
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                      مجاني! 🎁
                     </div>
                     {gift.hasSpecialEffects && (
                       <div className="mt-2">
