@@ -16,7 +16,7 @@ interface GameState {
   renderer: THREE.WebGLRenderer;
   world: CANNON.World;
   player: {
-    mesh: THREE.Mesh;
+    mesh: THREE.Group | THREE.Mesh;
     body: CANNON.Body;
     health: number;
     maxHealth: number;
@@ -27,7 +27,7 @@ interface GameState {
     score: number;
   };
   enemies: Array<{
-    mesh: THREE.Mesh;
+    mesh: THREE.Group | THREE.Mesh;
     body: CANNON.Body;
     health: number;
     maxHealth: number;
@@ -122,20 +122,28 @@ export default function AdvancedWarGame() {
     
     scene.fog = new THREE.Fog(0x1a1a2e, 200, 1500);
 
+    // Get screen dimensions
+    const canvasWidth = window.innerWidth;
+    const canvasHeight = window.innerHeight;
+
     // Create camera for mobile
     const camera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 2000);
     camera.position.set(0, 5, 10);
 
     // Create renderer for full mobile screen
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    const canvasWidth = window.innerWidth;
-    const canvasHeight = window.innerHeight;
     renderer.setSize(canvasWidth, canvasHeight);
     renderer.setClearColor(0x1a1a2e, 1.0);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
+    
+    // Make canvas responsive
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
+    
     mountRef.current.appendChild(renderer.domElement);
 
     // Create physics world
@@ -310,6 +318,22 @@ export default function AdvancedWarGame() {
       );
       scene.add(pointLight);
     }
+
+    // Window resize handling
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+      
+      // Update canvas style
+      renderer.domElement.style.width = '100%';
+      renderer.domElement.style.height = '100%';
+    };
+    
+    window.addEventListener('resize', handleResize);
 
     // Initialize game state
     gameStateRef.current = {
