@@ -29,7 +29,7 @@ export default function ProfilePage() {
   });
 
   // جلب الألبومات المحمية للمستخدم
-  const { data: lockedAlbums = [] } = useQuery({
+  const { data: lockedAlbums = [] } = useQuery<any[]>({
     queryKey: ['/api/locked-albums/my-albums'],
     enabled: !!user
   });
