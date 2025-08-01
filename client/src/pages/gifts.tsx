@@ -62,10 +62,12 @@ export default function GiftsPage() {
   const { user } = useAuth();
 
   // Fetch available gifts
-  const { data: giftCharacters = [], isLoading } = useQuery({
+  const { data: giftCharacters = [], isLoading, error } = useQuery({
     queryKey: ['/api/gifts/characters'],
     queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
   });
+
+  console.log('Gift characters data:', { giftCharacters, isLoading, error, length: giftCharacters?.length });
 
   // Fetch user's sent gifts
   const { data: sentGifts = [] } = useQuery({
@@ -137,7 +139,12 @@ export default function GiftsPage() {
           </TabsList>
 
           <TabsContent value="browse">
-            {giftCharacters.length === 0 ? (
+            <div className="mb-4 p-4 bg-blue-100 rounded">
+              <p>عدد الهدايا: {giftCharacters?.length}</p>
+              <p>حالة التحميل: {isLoading ? 'جاري التحميل...' : 'مكتمل'}</p>
+              <p>خطأ: {error ? 'يوجد خطأ' : 'لا يوجد خطأ'}</p>
+            </div>
+            {(!giftCharacters || giftCharacters.length === 0) && !isLoading ? (
               <div className="text-center py-12">
                 <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-xl text-gray-500 mb-2">لا توجد هدايا متاحة حالياً</p>
