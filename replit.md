@@ -1,7 +1,7 @@
 # LaaBoBo Live - Live Streaming and Gift Platform
 
 ## Overview
-LaaBoBo Garden (حديقة LaaBoBo) is an innovative social virtual pet platform that revolutionizes social media interaction through virtual pet care and community engagement. The platform focuses on virtual pet ownership, social gardens, gift economies, and interactive community features. Each user owns a virtual pet, creating an emotional connection and encouraging daily engagement through care activities, social visits, and gift exchanges. The project also integrates real-time chat and previously experimented with live streaming, now focusing on a robust social gaming and gifting ecosystem with potential for advanced 3D game integration.
+LaaBoBo Garden (حديقة LaaBoBo) is an innovative social platform that revolutionizes social media interaction through memory sharing and community engagement. The platform focuses on content creation, social interactions, and community features. Users create and share memories, engage with others through likes and comments, and participate in live streaming. The project integrates real-time chat and live streaming capabilities, focusing on authentic social connections and content sharing.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language (Arabic).
@@ -29,10 +29,10 @@ The application follows a modern full-stack JavaScript/TypeScript architecture w
 - **Data Flow**: Authentication via Replit OpenID Connect, sessions in PostgreSQL. Streaming (when active) handled via REST API and WebSockets. Gift system involves point purchases, client-side animations, and real-time notifications.
 - **UI/UX Decisions**: Clean grid layouts, professional appearance, minimal branding, intuitive navigation. Color scheme uses LaaBoBo brand colors (pink, purple, blue). Incorporates Instagram/TikTok-inspired elements where appropriate for specific features like video browsing or profile pages, but prioritizes a clean grid. Features enhanced 3D-style Memory Cards.
 - **Feature Specifications**:
-    - **Virtual Pet Garden**: Core system with pet care, interactive buttons, gift shop, and social garden visits. Integrates a comprehensive character system with VIP features and tiered rarity.
-    - **Gaming System**: Supports a multi-game system (e.g., memory match, puzzle quest) with real-time multiplayer, point betting, player rankings (bronze, silver, gold, etc.), and achievements. Includes a premium point system and garden support economy. Potential for advanced 3D games (e.g., "Reclaim The City" strategy game, 3D war game with physics engine).
-    - **Gift Economy**: Comprehensive gift sending system for characters, upgrades, and points. Features a monetized chat system requiring gift selection and follower-only access for private conversations.
-    - **Chat System**: Real-time text chat, including private 1-on-1 conversations and voice messaging capabilities.
+    - **Memory System**: Core content creation and sharing system where users can upload images, videos, and create posts with rich media support.
+    - **Social Features**: User profiles, following/follower system, likes, comments, and social interactions around shared content.
+    - **Live Streaming**: Real-time video streaming capabilities allowing users to broadcast live content to their followers.
+    - **Chat System**: Real-time text chat, including private 1-on-1 conversations and group messaging capabilities.
 
 ## External Dependencies
 - **Database**: Neon PostgreSQL (serverless), Drizzle ORM, @neondatabase/serverless for connection pooling.

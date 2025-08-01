@@ -52,16 +52,6 @@ export default function SimpleHome() {
             
             {/* Action Buttons - Right Side */}
             <div className="flex items-center gap-2">
-              {/* AI War Game Button */}
-              <button 
-                onClick={() => setLocation('/ai-war')}
-                className="flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-red-600 via-orange-600 to-red-700 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border border-white/20 backdrop-blur-sm"
-                title="لعبة حرب الذكاء الاصطناعي"
-              >
-                <span className="text-lg">🤖</span>
-                <span className="text-white font-medium text-xs hidden sm:block">الحرب</span>
-              </button>
-              
               {/* Create Memory Button */}
               <button 
                 onClick={() => setLocation('/create-memory')}
