@@ -30,7 +30,8 @@ import {
   Globe,
   Timer,
   Crown,
-  Flame
+  Flame,
+  Radio
 } from "lucide-react";
 
 type ExploreMode = 'network' | 'trending' | 'nearby' | 'timeline' | 'energy';
