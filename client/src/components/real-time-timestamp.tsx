@@ -30,8 +30,8 @@ export function RealTimeTimestamp({ timestamp, className = "", prefix = "" }: Re
           const days = Math.floor(diffInMinutes / 1440);
           timeText = `منذ ${days} يوم`;
         } else {
-          // For older posts, show actual date
-          timeText = date.toLocaleDateString('ar-SA', {
+          // For older posts, show actual date in Gregorian calendar
+          timeText = date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'

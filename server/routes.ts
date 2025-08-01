@@ -1340,7 +1340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if sender has enough points
       const sender = await storage.getUserById(senderId);
-      if (!sender || sender.points < giftCharacter.pointCost) {
+      if (!sender || (sender.points || 0) < giftCharacter.pointCost) {
         return res.status(400).json({ 
           message: `تحتاج إلى ${giftCharacter.pointCost} نقطة لإرسال هذه الهدية. لديك ${sender?.points || 0} نقطة فقط` 
         });
@@ -1353,7 +1353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if they are following each other or if receiver allows gifts from strangers
-      const isFollowing = await storage.isFollowing(senderId, receiverId);
+      const isFollowing = await storage.isUserFollowing(senderId, receiverId);
       if (!receiver.allowGiftsFromStrangers && !isFollowing) {
         return res.status(403).json({ message: "هذا المستخدم لا يقبل هدايا من غير المتابعين" });
       }
@@ -1370,7 +1370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update sender and receiver supporter levels
       await updateSupporterLevel(senderId);
-      await updateGiftsReceived(receiverId);
+      await updateGiftsReceived(receiverId, giftCharacter.pointCost);
 
       // Get updated user data
       const updatedSender = await storage.getUserById(senderId);
@@ -1788,50 +1788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Gift routes
-  app.get('/api/gifts/characters', async (req, res) => {
-    try {
-      const characters = await storage.getGiftCharacters();
-      res.json(characters);
-    } catch (error) {
-      console.error("Error fetching gift characters:", error);
-      res.status(500).json({ message: "Failed to fetch gift characters" });
-    }
-  });
 
-  app.post('/api/gifts/send', requireAuth, async (req: any, res) => {
-    try {
-      const giftData = insertGiftSchema.parse({
-        ...req.body,
-        senderId: req.user.id,
-      });
-      
-      // Check if user has enough points
-      const userPoints = await storage.getUserPointBalance(giftData.senderId);
-      if (userPoints < giftData.pointCost) {
-        return res.status(400).json({ message: "Insufficient points" });
-      }
-      
-      const gift = await storage.sendGift(giftData);
-      
-      // Update supporter levels
-      const supporterUpdate = await updateSupporterLevel(giftData.senderId);
-      await updateGiftsReceived(giftData.receiverId, giftData.pointCost);
-      
-      // Broadcast gift to stream viewers with supporter level update
-      broadcastToStream(giftData.streamId!, {
-        type: 'gift_sent',
-        gift,
-        sender: req.user.claims,
-        supporterUpdate,
-      });
-      
-      res.json({ gift, supporterUpdate });
-    } catch (error) {
-      console.error("Error sending gift:", error);
-      res.status(500).json({ message: "Failed to send gift" });
-    }
-  });
 
   // Get single memory by ID
   app.get('/api/memories/:id', async (req, res) => {
