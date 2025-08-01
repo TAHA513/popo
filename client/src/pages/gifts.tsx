@@ -12,20 +12,28 @@ import { useAuth } from '@/hooks/useAuth';
 interface GiftCharacter {
   id: number;
   name: string;
-  nameEn: string;
-  icon: string;
+  emoji?: string;
+  description?: string;
   pointCost: number;
-  rarity: string;
+  rarity?: string;
+  animationType?: string;
+  isActive?: boolean;
 }
 
 const giftIcons: Record<string, React.ReactNode> = {
-  'قلب': <Heart className="w-12 h-12 text-red-500" />,
+  'قلب': <span className="text-5xl">❤️</span>,
   'وردة': <span className="text-5xl">🌹</span>,
-  'تاج': <Crown className="w-12 h-12 text-yellow-500" />,
-  'ألماسة': <Diamond className="w-12 h-12 text-blue-500" />,
-  'سيارة': <Car className="w-12 h-12 text-gray-700" />,
-  'طائرة': <Plane className="w-12 h-12 text-blue-600" />,
-  'قلعة': <Castle className="w-12 h-12 text-purple-600" />
+  'تاج': <span className="text-5xl">👑</span>,
+  'ألماسة': <span className="text-5xl">💎</span>,
+  'سيارة': <span className="text-5xl">🚗</span>,
+  'طائرة': <span className="text-5xl">✈️</span>,
+  'قلعة': <span className="text-5xl">🏰</span>,
+  'BoBo Love': <span className="text-5xl">🐰💕</span>,
+  'BoFire': <span className="text-5xl">🐲🔥</span>,
+  'Nunu Magic': <span className="text-5xl">🦄🌟</span>,
+  'Dodo Splash': <span className="text-5xl">🦆💦</span>,
+  'Meemo Wink': <span className="text-5xl">🐱🌈</span>,
+  'Love Heart': <span className="text-5xl">💝</span>
 };
 
 const getRarityColor = (rarity: string) => {
@@ -129,19 +137,28 @@ export default function GiftsPage() {
           </TabsList>
 
           <TabsContent value="browse">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {giftCharacters.map((gift: GiftCharacter) => (
+            {giftCharacters.length === 0 ? (
+              <div className="text-center py-12">
+                <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-500 mb-2">لا توجد هدايا متاحة حالياً</p>
+                <p className="text-gray-400">يرجى المحاولة لاحقاً</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {giftCharacters.map((gift: GiftCharacter) => (
                 <Card key={gift.id} className="hover:shadow-lg transition-all duration-300 group cursor-pointer border-2 hover:border-pink-300">
                   <CardHeader className="text-center pb-2">
                     <div className="flex justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
-                      {giftIcons[gift.name] || <Gift className="w-12 h-12 text-pink-500" />}
+                      {gift.emoji ? <span className="text-5xl">{gift.emoji}</span> : (giftIcons[gift.name] || <Gift className="w-12 h-12 text-pink-500" />)}
                     </div>
                     <CardTitle className="text-lg font-bold text-gray-800">
                       {gift.name}
                     </CardTitle>
-                    <Badge className={`${getRarityColor(gift.rarity)} text-white text-xs`}>
-                      {getRarityText(gift.rarity)}
-                    </Badge>
+                    {gift.rarity && (
+                      <Badge className={`${getRarityColor(gift.rarity)} text-white text-xs`}>
+                        {getRarityText(gift.rarity)}
+                      </Badge>
+                    )}
                   </CardHeader>
                   <CardContent className="text-center">
                     <div className="flex items-center justify-center gap-1 mb-4">
@@ -164,8 +181,9 @@ export default function GiftsPage() {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="sent">
