@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 
 import { 
-  Play, 
+  Home, 
   Radio,
   Plus,
   MessageCircle,
@@ -38,8 +38,8 @@ export default function BottomNavigation() {
   );
 
   const navItems = [
-    { href: "/", icon: Play, label: "المنشورات" },
-    { href: "/explore", icon: Radio, label: "البثوث" },
+    { href: "/", icon: Home, label: "المنشورات" },
+    { href: "/explore", icon: Radio, label: "البث" },
     { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
     { href: "/messages", icon: MessageCircle, label: "الرسائل" },
     { href: "/profile", icon: User, label: "الملف" }

@@ -289,14 +289,63 @@ export default function Explore() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4 flex items-center justify-center">
-            <Compass className="w-10 h-10 mr-3 text-purple-600" />
-            استكشف العالم
-            <Globe className="w-10 h-10 ml-3 text-blue-600" />
+            <Radio className="w-10 h-10 mr-3 text-red-600" />
+            البث المباشر
+            <Radio className="w-10 h-10 ml-3 text-red-600" />
           </h1>
           <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            اكتشف ذكريات رائعة من مبدعين حول العالم بطرق مبتكرة ومختلفة تماماً عن المنصات التقليدية
+            شاهد البثوث المباشرة من المبدعين حول العالم أو ابدأ البث الخاص بك
           </p>
         </div>
+
+        {/* Live Streaming Features Banner */}
+        <Card className="mb-8 bg-gradient-to-r from-red-50 via-pink-50 to-orange-50 border-red-200 shadow-lg">
+          <CardContent className="p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-red-700 mb-2 flex items-center justify-center">
+                <Radio className="w-6 h-6 mr-2 animate-pulse" />
+                مميزات البث المباشر
+              </h2>
+              <p className="text-red-600">تفاعل مباشر مع المتابعين وميزات احترافية</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Eye className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="font-bold text-red-700 mb-2">مشاهدة فورية</h3>
+                <p className="text-sm text-red-600">تفاعل لحظي مع المشاهدين</p>
+              </div>
+              
+              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Heart className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="font-bold text-red-700 mb-2">تفاعل مباشر</h3>
+                <p className="text-sm text-red-600">إعجابات وتعليقات فورية</p>
+              </div>
+              
+              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Sparkles className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="font-bold text-red-700 mb-2">جودة عالية</h3>
+                <p className="text-sm text-red-600">بث عالي الوضوح ومستقر</p>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <Button 
+                className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => window.location.href = '/start-stream'}
+              >
+                <Radio className="w-5 h-5 mr-2" />
+                ابدأ البث الآن
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Search Bar */}
         <div className="max-w-2xl mx-auto mb-8">
