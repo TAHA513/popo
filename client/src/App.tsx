@@ -42,6 +42,7 @@ import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
 import GiftsPage from "@/pages/gifts";
+import GiftsSimplePage from "@/pages/gifts-simple";
 
 import { LanguageOption } from "@/types";
 
@@ -103,6 +104,7 @@ function Router() {
           <Route path="/comments/:id" component={CommentsPage} />
           <Route path="/followers-management" component={FollowersManagementPage} />
           <Route path="/gifts" component={GiftsPage} />
+          <Route path="/gifts-simple" component={GiftsSimplePage} />
         </Suspense>
       ) : (
         <>

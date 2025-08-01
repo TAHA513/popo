@@ -143,15 +143,20 @@ export default function GiftsPage() {
           </TabsList>
 
           <TabsContent value="browse">
-            {!giftCharacters || giftCharacters.length === 0 ? (
-              <div className="text-center py-12">
-                <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-xl text-gray-500 mb-2">لا توجد هدايا متاحة حالياً</p>
-                <p className="text-gray-400">يرجى المحاولة لاحقاً</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {giftCharacters.map((gift: GiftCharacter) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {isLoading ? (
+                // Loading skeleton
+                Array.from({ length: 8 }).map((_, index) => (
+                  <Card key={index} className="animate-pulse">
+                    <CardContent className="text-center p-6">
+                      <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : giftCharacters && giftCharacters.length > 0 ? (
+                giftCharacters.map((gift: GiftCharacter) => (
                 <Card key={gift.id} className="hover:shadow-lg transition-all duration-300 group cursor-pointer border-2 hover:border-pink-300">
                   <CardHeader className="text-center pb-2">
                     <div className="flex justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
@@ -187,9 +192,15 @@ export default function GiftsPage() {
                     </Button>
                   </CardContent>
                 </Card>
-                ))}
-              </div>
-            )}
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-xl text-gray-500 mb-2">لا توجد هدايا متاحة حالياً</p>
+                  <p className="text-gray-400">يرجى المحاولة لاحقاً</p>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="sent">
@@ -262,16 +273,19 @@ export default function GiftsPage() {
         </Tabs>
 
         {/* Gift Shop Modal */}
-        {showGiftShop && selectedGift && (
-          <GiftShop
-            isOpen={showGiftShop}
-            onClose={() => {
-              setShowGiftShop(false);
-              setSelectedGift(null);
-            }}
-            receiverId="" // This will be filled when user selects a recipient
-          />
-        )}
+        <GiftShop
+          isOpen={showGiftShop}
+          onClose={() => {
+            setShowGiftShop(false);
+            setSelectedGift(null);
+          }}
+          receiverId="placeholder" // Will show user selector 
+          receiverName="اختر المستلم"
+          onGiftSent={() => {
+            setShowGiftShop(false);
+            setSelectedGift(null);
+          }}
+        />
       </div>
     </div>
   );
