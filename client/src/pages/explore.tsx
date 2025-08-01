@@ -117,51 +117,6 @@ export default function Explore() {
       case 'network':
         return (
           <div className="space-y-8">
-            {/* Live Streaming Promotional Banner */}
-            <Card className="bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 border-0 shadow-2xl overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-400/20 via-pink-400/20 to-purple-500/20 animate-pulse"></div>
-              <CardContent className="p-8 relative z-10">
-                <div className="flex flex-col md:flex-row items-center justify-between">
-                  <div className="text-center md:text-right mb-6 md:mb-0">
-                    <div className="flex items-center justify-center md:justify-start mb-4">
-                      <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-3 backdrop-blur-sm">
-                        <Flame className="w-6 h-6 text-white animate-pulse" />
-                      </div>
-                      <h2 className="text-3xl font-bold text-white">البث المباشر</h2>
-                    </div>
-                    <p className="text-xl text-white/90 mb-4 leading-relaxed">
-                      شارك لحظاتك المميزة مع العالم
-                    </p>
-                    <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-6">
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-sm px-3 py-1">
-                        🎥 فيديو عالي الجودة
-                      </Badge>
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-sm px-3 py-1">
-                        🎵 صوت واضح
-                      </Badge>
-                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-sm px-3 py-1">
-                        💬 تفاعل مباشر
-                      </Badge>
-                    </div>
-                    <Link href="/start-stream">
-                      <Button className="bg-white text-purple-600 hover:bg-white/90 font-bold text-lg px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                        ابدأ البث الآن
-                        <Crown className="w-5 h-5 mr-2" />
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border-4 border-white/30">
-                      <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
-                        <div className="w-6 h-6 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    <p className="text-white/80 text-sm font-medium">● مباشر الآن</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Network Visualization Concept */}
             <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
               <CardHeader>
