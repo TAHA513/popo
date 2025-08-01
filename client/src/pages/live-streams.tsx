@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Play, Users, Eye, MessageCircle, Clock, Heart, Video } from "lucide-react";
+import { Plus, Play, Users, Eye, MessageCircle, Clock, Heart, Video, Radio, Sparkles } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -28,50 +28,64 @@ export default function LiveStreams() {
             <h1 className="text-2xl font-bold text-gray-900">البثوث المباشرة</h1>
             <Button 
               onClick={() => setLocation('/start-stream')}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0"
+              className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-0"
             >
-              <Plus className="w-5 h-5 ml-2" />
-              بث جديد
+              <Radio className="w-5 h-5 ml-2" />
+              ابدأ البث
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Live Streaming Features Banner */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-gradient-to-r from-green-400 to-green-600 text-white border-0">
-            <CardContent className="p-4 text-center">
-              <Video className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{streams.filter(s => s.isLive).length}</div>
-              <div className="text-sm opacity-90">بث مباشر</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-blue-400 to-blue-600 text-white border-0">
-            <CardContent className="p-4 text-center">
-              <Users className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{streams.reduce((sum, s) => sum + (s.viewerCount || 0), 0)}</div>
-              <div className="text-sm opacity-90">مشاهد نشط</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-r from-purple-400 to-purple-600 text-white border-0">
-            <CardContent className="p-4 text-center">
-              <Heart className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{streams.reduce((sum, s) => sum + (s.totalGifts || 0), 0)}</div>
-              <div className="text-sm opacity-90">إجمالي الهدايا</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-r from-pink-400 to-pink-600 text-white border-0">
-            <CardContent className="p-4 text-center">
-              <Clock className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{streams.length}</div>
-              <div className="text-sm opacity-90">إجمالي البثوث</div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="mb-6 bg-gradient-to-r from-red-50 via-pink-50 to-orange-50 border-red-200 shadow-lg">
+          <CardContent className="p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-red-700 mb-2 flex items-center justify-center">
+                <Radio className="w-6 h-6 mr-2 animate-pulse" />
+                مميزات البث المباشر
+              </h2>
+              <p className="text-red-600">تفاعل مباشر مع المتابعين وميزات احترافية</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Eye className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="font-bold text-red-700 mb-2">مشاهدة فورية</h3>
+                <p className="text-sm text-red-600">تفاعل لحظي مع المشاهدين</p>
+              </div>
+              
+              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Heart className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="font-bold text-red-700 mb-2">تفاعل مباشر</h3>
+                <p className="text-sm text-red-600">إعجابات وتعليقات فورية</p>
+              </div>
+              
+              <div className="text-center p-4 bg-white/80 rounded-lg border border-red-100">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Sparkles className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="font-bold text-red-700 mb-2">جودة عالية</h3>
+                <p className="text-sm text-red-600">بث عالي الوضوح ومستقر</p>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <Button 
+                className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => setLocation('/start-stream')}
+              >
+                <Radio className="w-5 h-5 mr-2" />
+                ابدأ البث الآن
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Live Streams Grid */}
@@ -83,10 +97,10 @@ export default function LiveStreams() {
             <p className="text-gray-500 mb-6">كن أول من يبدأ البث واكسب المشاهدين!</p>
             <Button 
               onClick={() => setLocation('/start-stream')}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
+              className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white"
             >
-              <Plus className="w-5 h-5 ml-2" />
-              ابدأ البث الأول
+              <Radio className="w-5 h-5 ml-2" />
+              ابدأ البث الآن
             </Button>
           </div>
         ) : (
