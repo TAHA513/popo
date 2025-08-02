@@ -118,6 +118,7 @@ function Router() {
           <Route path="/simple-gifts" component={SimpleGiftsPage} />
           <Route path="/gifts-test" component={GiftsTestPage} />
           <Route path="/audio-room" component={AudioRoomPage} />
+          <Route path="/watch-stream/:streamId" component={WatchStreamPage} />
         </Suspense>
       ) : (
         <>

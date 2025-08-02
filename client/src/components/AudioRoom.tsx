@@ -1,250 +1,183 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useMeeting, useParticipant } from '@videosdk.live/react-sdk';
+import React, { useState, useEffect } from 'react';
+import { useMeeting } from '@videosdk.live/react-sdk';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
   Mic, 
   MicOff, 
-  Volume2, 
-  VolumeX, 
   Users, 
-  Phone, 
   PhoneOff,
-  Gift,
-  Heart,
-  Settings
+  Radio,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 
 interface AudioRoomProps {
   meetingId: string;
   onLeave: () => void;
 }
 
-// مكون المشارك الفردي
-function ParticipantView({ participantId }: { participantId: string }) {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const {
-    displayName,
-    micOn,
-    isLocal,
-    micStream,
-    setQuality
-  } = useParticipant(participantId);
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    if (audioRef.current && micStream) {
-      const mediaStream = new MediaStream();
-      mediaStream.addTrack(micStream.track);
-      audioRef.current.srcObject = mediaStream;
-      audioRef.current.play().catch(console.error);
-    }
-  }, [micStream]);
-
-  const sendGift = async () => {
-    try {
-      // إرسال هدية للمشارك
-      const response = await fetch('/api/send-gift', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          recipientId: participantId,
-          giftId: 1, // هدية قلب صغيرة
-          amount: 10
-        })
-      });
-      
-      if (response.ok) {
-        toast({
-          title: "تم إرسال الهدية",
-          description: `تم إرسال هدية إلى ${displayName}`,
-        });
-      }
-    } catch (error) {
-      console.error('Error sending gift:', error);
-    }
-  };
-
-  return (
-    <Card className="m-2 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                micOn ? 'bg-green-500' : 'bg-red-500'
-              } text-white`}>
-                {micOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-              </div>
-              {isLocal && (
-                <Badge className="absolute -top-1 -right-1 bg-blue-500 text-xs">أنت</Badge>
-              )}
-            </div>
-            <div>
-              <p className="font-semibold text-gray-800">{displayName || 'مشارك'}</p>
-              <p className="text-sm text-gray-600">
-                {micOn ? 'يتحدث الآن' : 'صامت'}
-              </p>
-            </div>
-          </div>
-          
-          {!isLocal && (
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={sendGift}
-                className="text-pink-600 border-pink-200 hover:bg-pink-50"
-              >
-                <Gift className="w-4 h-4 ml-1" />
-                هدية
-              </Button>
-            </div>
-          )}
-        </div>
-        
-        {/* مشغل الصوت للمشاركين الآخرين */}
-        {!isLocal && (
-          <audio ref={audioRef} autoPlay playsInline />
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// المكون الرئيسي لغرفة البث الصوتي
 export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [isHost, setIsHost] = useState(false);
-  const [roomTitle, setRoomTitle] = useState('غرفة صوتية');
-  
-  const {
-    join,
-    leave,
-    toggleMic,
-    toggleWebcam,
-    participants,
-    localMicOn,
-    localWebcamOn,
-    meetingId: currentMeetingId,
-    presenterId
-  } = useMeeting({
+  const { join, leave, toggleMic, participants, localMicOn } = useMeeting({
     onMeetingJoined: () => {
-      console.log('تم الانضمام للغرفة الصوتية');
-      toast({
-        title: "مرحباً بك",
-        description: "تم الانضمام للغرفة الصوتية بنجاح",
-      });
+      console.log('✅ Joined audio room successfully');
     },
     onMeetingLeft: () => {
-      console.log('تم مغادرة الغرفة');
+      console.log('👋 Left audio room');
       onLeave();
     },
     onParticipantJoined: (participant) => {
-      console.log('انضم مشارك جديد:', participant.displayName);
-      toast({
-        title: "مشارك جديد",
-        description: `انضم ${participant.displayName} للغرفة`,
-      });
+      console.log('👤 Participant joined:', participant.displayName);
     },
     onParticipantLeft: (participant) => {
-      console.log('غادر مشارك:', participant.displayName);
-      toast({
-        title: "مشارك غادر",
-        description: `غادر ${participant.displayName} الغرفة`,
-      });
-    }
+      console.log('👋 Participant left:', participant.displayName);
+    },
   });
 
-  useEffect(() => {
-    // الانضمام التلقائي عند تحميل المكون
-    join();
-    // تحديد ما إذا كان المستخدم مضيف الغرفة
-    setIsHost(user?.id === presenterId);
-  }, [join, user, presenterId]);
+  const [isJoined, setIsJoined] = useState(false);
+  const [participantsList, setParticipantsList] = useState<any[]>([]);
 
-  const handleLeaveRoom = () => {
+  useEffect(() => {
+    if (!isJoined) {
+      join();
+      setIsJoined(true);
+    }
+  }, [join, isJoined]);
+
+  useEffect(() => {
+    setParticipantsList([...participants.values()]);
+  }, [participants]);
+
+  const handleLeaveMeeting = () => {
     leave();
   };
 
-  const participantsList = [...participants.keys()];
+  const handleToggleMic = () => {
+    toggleMic();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 p-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-md mx-auto">
         {/* رأس الغرفة */}
-        <Card className="mb-6 bg-white/90 backdrop-blur-sm shadow-xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-800 mb-2">
-              {roomTitle}
+        <Card className="bg-white/90 backdrop-blur-sm shadow-xl mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+              <Radio className="w-6 h-6 text-red-500" />
+              بث صوتي مباشر
             </CardTitle>
-            <div className="flex justify-center items-center gap-4 text-gray-600">
-              <div className="flex items-center gap-1">
-                <Users className="w-5 h-5" />
-                <span>{participantsList.length} مشارك</span>
-              </div>
-              <Badge variant="outline" className="bg-green-100 text-green-700">
-                مباشر
-              </Badge>
-            </div>
           </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-600">
+                  {participantsList.length} مشارك
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-green-600">متصل</span>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
-        {/* أدوات التحكم */}
-        <Card className="mb-6 bg-white/90 backdrop-blur-sm">
+        {/* عناصر التحكم */}
+        <Card className="bg-white/90 backdrop-blur-sm shadow-xl mb-6">
           <CardContent className="p-6">
-            <div className="flex justify-center gap-4">
-              <Button
-                onClick={toggleMic}
-                variant={localMicOn ? "default" : "destructive"}
-                size="lg"
-                className="flex items-center gap-2"
-              >
-                {localMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-                {localMicOn ? 'إيقاف الميكروفون' : 'تشغيل الميكروفون'}
-              </Button>
+            <div className="text-center">
+              <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                {localMicOn ? (
+                  <Mic className="w-12 h-12 text-white" />
+                ) : (
+                  <MicOff className="w-12 h-12 text-white" />
+                )}
+              </div>
               
-              <Button
-                onClick={handleLeaveRoom}
-                variant="destructive"
-                size="lg"
-                className="flex items-center gap-2"
-              >
-                <PhoneOff className="w-5 h-5" />
-                مغادرة الغرفة
-              </Button>
+              <div className="flex gap-4 justify-center">
+                <Button
+                  onClick={handleToggleMic}
+                  variant={localMicOn ? "default" : "destructive"}
+                  size="lg"
+                  className="flex-1"
+                >
+                  {localMicOn ? (
+                    <>
+                      <Mic className="w-5 h-5 ml-2" />
+                      إيقاف المايك
+                    </>
+                  ) : (
+                    <>
+                      <MicOff className="w-5 h-5 ml-2" />
+                      تشغيل المايك
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  onClick={handleLeaveMeeting}
+                  variant="destructive"
+                  size="lg"
+                  className="flex-1"
+                >
+                  <PhoneOff className="w-5 h-5 ml-2" />
+                  إنهاء البث
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* قائمة المشاركين */}
-        <Card className="bg-white/90 backdrop-blur-sm">
+        <Card className="bg-white/90 backdrop-blur-sm shadow-xl">
           <CardHeader>
-            <CardTitle className="text-xl text-center">المشاركين في الغرفة</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              المشاركون ({participantsList.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {participantsList.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>لا يوجد مشاركين في الغرفة حالياً</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {participantsList.map((participantId) => (
-                  <ParticipantView
-                    key={participantId}
-                    participantId={participantId}
-                  />
-                ))}
-              </div>
-            )}
+            <div className="space-y-3">
+              {participantsList.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-gray-500">لا يوجد مشاركون حالياً</p>
+                </div>
+              ) : (
+                participantsList.map((participant) => (
+                  <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">
+                          {participant.displayName?.charAt(0) || '?'}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-800">{participant.displayName}</h4>
+                        <div className="flex items-center gap-2">
+                          {participant.isLocal && (
+                            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">أنت</span>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-green-600">متصل</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {participant.micOn ? (
+                        <Volume2 className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <VolumeX className="w-4 h-4 text-gray-400" />
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
