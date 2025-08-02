@@ -148,6 +148,27 @@ export default function ChatPage() {
     });
   };
 
+  // Handle send voice message
+  const handleSendVoiceMessage = () => {
+    if (!audioBlob) return;
+    
+    // Convert audio blob to base64 for transmission
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Audio = reader.result as string;
+      
+      sendMessageMutation.mutate({
+        recipientId: otherUserId,
+        content: base64Audio, // Store base64 audio data as content
+        messageType: 'voice'
+      });
+      
+      // Clear the audio blob after sending
+      setAudioBlob(null);
+    };
+    reader.readAsDataURL(audioBlob);
+  };
+
   // Handle voice recording
   const startRecording = async () => {
     try {
@@ -202,6 +223,45 @@ export default function ChatPage() {
   const cancelRecording = () => {
     stopRecording();
     setAudioBlob(null);
+  };
+
+  // Handle voice message playback
+  const playVoiceMessage = (messageId: number, audioData: string) => {
+    // If already playing this message, pause it
+    if (playingMessageId === messageId && audioElement && !audioElement.paused) {
+      audioElement.pause();
+      setPlayingMessageId(null);
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+    }
+
+    // Create new audio element and play
+    const audio = new Audio(audioData);
+    audio.onplay = () => setPlayingMessageId(messageId);
+    audio.onended = () => setPlayingMessageId(null);
+    audio.onerror = () => {
+      setPlayingMessageId(null);
+      toast({
+        title: "خطأ في التشغيل", 
+        description: "لا يمكن تشغيل الرسالة الصوتية",
+        variant: "destructive"
+      });
+    };
+
+    setAudioElement(audio);
+    audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+      toast({
+        title: "خطأ في التشغيل",
+        description: "لا يمكن تشغيل الرسالة الصوتية", 
+        variant: "destructive"
+      });
+    });
   };
 
   // Auto-scroll to bottom
@@ -294,7 +354,42 @@ export default function ChatPage() {
                     : 'bg-white text-gray-800 border'
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                {message.messageType === 'voice' ? (
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Button
+                      onClick={() => playVoiceMessage(message.id, message.content)}
+                      variant="ghost"
+                      size="sm"
+                      className={`p-1 ${
+                        message.senderId === user?.id
+                          ? 'text-white hover:bg-white/20'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {playingMessageId === message.id ? (
+                        <Pause className="w-4 h-4" />
+                      ) : (
+                        <Play className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <div className="flex-1">
+                      <div className={`text-xs ${
+                        message.senderId === user?.id ? 'text-purple-200' : 'text-gray-500'
+                      }`}>
+                        رسالة صوتية
+                      </div>
+                      <div className={`w-16 h-1 rounded-full mt-1 ${
+                        message.senderId === user?.id ? 'bg-white/30' : 'bg-gray-300'
+                      }`}>
+                        <div className={`h-full rounded-full ${
+                          message.senderId === user?.id ? 'bg-white' : 'bg-purple-600'
+                        } w-0`}></div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm">{message.content}</p>
+                )}
                 <div className="flex items-center justify-between mt-1">
                   <span className={`text-xs ${
                     message.senderId === user?.id ? 'text-purple-200' : 'text-gray-500'
@@ -327,7 +422,7 @@ export default function ChatPage() {
             <Button onClick={() => setAudioBlob(null)} variant="ghost" size="sm">
               <X className="w-4 h-4" />
             </Button>
-            <Button onClick={() => {/* TODO: Send voice message */}} className="bg-purple-600">
+            <Button onClick={handleSendVoiceMessage} className="bg-purple-600" disabled={sendMessageMutation.isPending}>
               <Send className="w-4 h-4" />
             </Button>
           </div>
