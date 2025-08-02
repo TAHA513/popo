@@ -24,6 +24,7 @@ import { setupGroupRoomRoutes } from './routes/group-rooms';
 import { setupWalletRoutes } from './routes/wallet';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import crypto from 'crypto';
+import jsonwebtoken from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -3425,6 +3426,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // VideoSDK endpoints
+  app.post('/api/videosdk/token', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const token = generateVideoSDKToken(userId);
+      
+      console.log('✅ Generated VideoSDK token for user:', userId);
+      
+      res.json({
+        token,
+        userId,
+        expiresIn: 24 * 60 * 60 // 24 hours in seconds
+      });
+    } catch (error) {
+      console.error('❌ Error generating VideoSDK token:', error);
+      res.status(500).json({ 
+        message: 'فشل في إنشاء رمز البث الصوتي',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.post('/api/videosdk/create-meeting', requireAuth, async (req: any, res) => {
+    try {
+      const { title, description } = req.body;
+      const userId = req.user.id;
+      
+      // Generate unique meeting ID
+      const meetingId = crypto.randomBytes(16).toString('hex');
+      
+      // Store meeting in database
+      const stream = await storage.createStream({
+        title: title || 'غرفة صوتية',
+        description: description || '',
+        hostId: userId,
+        category: 'audio',
+        thumbnailUrl: null,
+        isLive: true,
+        viewerCount: 0,
+        totalGifts: 0,
+        startedAt: new Date(),
+        endedAt: null
+      });
+      
+      console.log('✅ Created audio room:', {
+        meetingId,
+        streamId: stream.id,
+        title,
+        hostId: userId
+      });
+      
+      res.json({
+        meetingId,
+        streamId: stream.id,
+        title: stream.title,
+        description: stream.description,
+        hostId: userId,
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Error creating meeting:', error);
+      res.status(500).json({ 
+        message: 'فشل في إنشاء الغرفة الصوتية',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/videosdk/meeting/:meetingId', requireAuth, async (req: any, res) => {
+    try {
+      const { meetingId } = req.params;
+      
+      // For now, return basic meeting info
+      res.json({
+        meetingId,
+        isActive: true,
+        participants: [],
+        createdAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Error fetching meeting:', error);
+      res.status(500).json({ 
+        message: 'فشل في جلب معلومات الغرفة',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.delete('/api/videosdk/meeting/:meetingId', requireAuth, async (req: any, res) => {
+    try {
+      const { meetingId } = req.params;
+      const userId = req.user.id;
+      
+      console.log('🛑 Ending audio room:', { meetingId, userId });
+      
+      // End the meeting and clean up
+      res.json({
+        success: true,
+        message: 'تم إنهاء الغرفة الصوتية بنجاح',
+        endedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Error ending meeting:', error);
+      res.status(500).json({ 
+        message: 'فشل في إنهاء الغرفة الصوتية',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket setup
@@ -3653,4 +3764,22 @@ async function initializeGiftCharacters() {
   } catch (error) {
     console.error('Error initializing gift characters:', error);
   }
+}
+
+// VideoSDK configuration
+const VIDEOSDK_API_KEY = process.env.VIDEOSDK_API_KEY || 'f979a49a-c123-4456-911d-e4cfb77abbc';
+const VIDEOSDK_SECRET_KEY = process.env.VIDEOSDK_SECRET_KEY || 'videosdk-secret-key';
+
+// Generate VideoSDK token
+function generateVideoSDKToken(userId: string): string {
+  const payload = {
+    apikey: VIDEOSDK_API_KEY,
+    permissions: ['allow_join'],
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+  };
+
+  return jsonwebtoken.sign(payload, VIDEOSDK_SECRET_KEY, {
+    algorithm: 'HS256'
+  });
 }

@@ -25,7 +25,8 @@ import {
   Trophy,
   TrendingUp,
   Upload,
-  ArrowLeft
+  ArrowLeft,
+  Radio
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -510,6 +511,14 @@ export default function ProfileRedesign() {
                         >
                           <Camera className="w-4 h-4 ml-1" />
                           الألبومات المدفوعة
+                        </Button>
+                        <Button 
+                          onClick={() => setLocation('/audio-room')}
+                          size="sm"
+                          className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                        >
+                          <Radio className="w-4 h-4 ml-1" />
+                          البث الصوتي
                         </Button>
                       </div>
                     </>
