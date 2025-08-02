@@ -6,10 +6,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import { useStreamContext } from '@/contexts/StreamContext';
 
 export default function NewStreamPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { setStreamActive, setStreamInactive } = useStreamContext();
   const [step, setStep] = useState<'setup' | 'streaming'>('setup');
   const [streamTitle, setStreamTitle] = useState('');
   const [isLive, setIsLive] = useState(false);
@@ -24,6 +26,8 @@ export default function NewStreamPage() {
       console.log('✅ تم إنشاء البث:', newStream);
       setStep('streaming');
       startCamera();
+      // تفعيل مؤشر البث
+      setStreamActive(newStream.id.toString(), streamTitle || 'بث مباشر');
     },
     onError: (error) => {
       console.error('❌ خطأ في إنشاء البث:', error);
@@ -58,6 +62,8 @@ export default function NewStreamPage() {
       setMediaStream(null);
     }
     setIsLive(false);
+    // إيقاف مؤشر البث
+    setStreamInactive();
     setLocation('/');
   };
 

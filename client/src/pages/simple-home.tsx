@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
+import { StreamTestButton } from "@/components/StreamTestButton";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -63,6 +64,11 @@ export default function SimpleHome() {
                 <span className="text-white font-medium text-sm hidden sm:block">إنشاء ذكرى</span>
                 <span className="text-white font-medium text-xs block sm:hidden">ذكرى</span>
               </button>
+
+              {/* زر تجريبي للبث المباشر */}
+              <div className="ml-2">
+                <StreamTestButton />
+              </div>
             </div>
           </div>
         </div>
