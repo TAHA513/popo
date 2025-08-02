@@ -106,7 +106,7 @@ export default function ChatPage() {
 
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async (messageData: { recipientId: string; content: string }) => {
+    mutationFn: async (messageData: { recipientId: string; content: string; messageType?: string }) => {
       return await apiRequest('/api/messages/send', 'POST', messageData);
     },
     onSuccess: () => {
@@ -150,33 +150,104 @@ export default function ChatPage() {
 
   // Handle send voice message
   const handleSendVoiceMessage = () => {
-    if (!audioBlob) return;
+    if (!audioBlob) {
+      toast({
+        title: "خطأ",
+        description: "لا توجد رسالة صوتية للإرسال",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check file size (limit to 1MB to avoid server issues)
+    if (audioBlob.size > 1 * 1024 * 1024) {
+      toast({
+        title: "ملف كبير جداً",
+        description: "الرسالة الصوتية كبيرة جداً. حاول تسجيل رسالة أقصر",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Convert audio blob to base64 for transmission
     const reader = new FileReader();
     reader.onload = () => {
-      const base64Audio = reader.result as string;
-      
-      sendMessageMutation.mutate({
-        recipientId: otherUserId,
-        content: base64Audio, // Store base64 audio data as content
-        messageType: 'voice'
-      });
-      
-      // Clear the audio blob after sending
-      setAudioBlob(null);
+      try {
+        const base64Audio = reader.result as string;
+        
+        sendMessageMutation.mutate({
+          recipientId: otherUserId,
+          content: base64Audio, // Store base64 audio data as content
+          messageType: 'voice'
+        }, {
+          onSuccess: () => {
+            // Clear the audio blob after successful sending
+            setAudioBlob(null);
+            toast({
+              title: "تم الإرسال",
+              description: "تم إرسال الرسالة الصوتية بنجاح",
+            });
+          },
+          onError: (error) => {
+            console.error('Voice message send error:', error);
+            toast({
+              title: "فشل الإرسال",
+              description: "حدث خطأ أثناء إرسال الرسالة الصوتية. حاول مرة أخرى",
+              variant: "destructive"
+            });
+          }
+        });
+      } catch (error) {
+        console.error('FileReader error:', error);
+        toast({
+          title: "خطأ في المعالجة",
+          description: "حدث خطأ أثناء معالجة الملف الصوتي",
+          variant: "destructive"
+        });
+      }
     };
+    
+    reader.onerror = () => {
+      toast({
+        title: "خطأ في القراءة",
+        description: "لا يمكن قراءة الملف الصوتي",
+        variant: "destructive"
+      });
+    };
+    
     reader.readAsDataURL(audioBlob);
   };
 
   // Handle voice recording
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000, // Lower sample rate to reduce file size
+          channelCount: 1,   // Mono audio
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+      
+      // Use lower bitrate to reduce file size
+      const options = {
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: 32000 // Lower bitrate for smaller files
+      };
+      
+      let recorder;
+      try {
+        recorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        // Fallback to default if the options are not supported
+        recorder = new MediaRecorder(stream);
+      }
       
       recorder.ondataavailable = (e) => {
-        setAudioBlob(e.data);
+        if (e.data.size > 0) {
+          setAudioBlob(e.data);
+        }
       };
       
       recorder.start();
@@ -186,7 +257,7 @@ export default function ChatPage() {
       
       const interval = setInterval(() => {
         setRecordingTime(prev => {
-          if (prev >= 30) {
+          if (prev >= 15) { // Reduced max recording time to 15 seconds
             stopRecording();
             return prev;
           }
@@ -196,9 +267,10 @@ export default function ChatPage() {
       
       setRecordingInterval(interval);
     } catch (error) {
+      console.error('Recording error:', error);
       toast({
         title: "خطأ في التسجيل",
-        description: "لا يمكن الوصول إلى الميكروفون",
+        description: "لا يمكن الوصول إلى الميكروفون أو المتصفح لا يدعم التسجيل",
         variant: "destructive"
       });
     }
@@ -417,20 +489,35 @@ export default function ChatPage() {
         {audioBlob ? (
           <div className="flex items-center space-x-2 space-x-reverse">
             <div className="flex-1 bg-purple-50 rounded-lg p-3">
-              <div className="text-sm text-purple-800">رسالة صوتية جاهزة للإرسال</div>
+              <div className="text-sm text-purple-800">
+                {sendMessageMutation.isPending ? "جاري الإرسال..." : "رسالة صوتية جاهزة للإرسال"}
+              </div>
             </div>
-            <Button onClick={() => setAudioBlob(null)} variant="ghost" size="sm">
+            <Button 
+              onClick={() => setAudioBlob(null)} 
+              variant="ghost" 
+              size="sm"
+              disabled={sendMessageMutation.isPending}
+            >
               <X className="w-4 h-4" />
             </Button>
-            <Button onClick={handleSendVoiceMessage} className="bg-purple-600" disabled={sendMessageMutation.isPending}>
-              <Send className="w-4 h-4" />
+            <Button 
+              onClick={handleSendVoiceMessage} 
+              className="bg-purple-600" 
+              disabled={sendMessageMutation.isPending}
+            >
+              {sendMessageMutation.isPending ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         ) : isRecording ? (
           <div className="flex items-center space-x-2 space-x-reverse">
             <div className="flex-1 bg-red-50 rounded-lg p-3 flex items-center space-x-2 space-x-reverse">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-red-800 text-sm">جاري التسجيل... {recordingTime}s</span>
+              <span className="text-red-800 text-sm">جاري التسجيل... {recordingTime}s / 15s</span>
             </div>
             <Button onClick={cancelRecording} variant="ghost" size="sm">
               <X className="w-4 h-4" />

@@ -7,8 +7,8 @@ import passport from "passport";
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for proper session handling
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
