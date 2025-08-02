@@ -43,6 +43,7 @@ import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
 import GiftsPage from "@/pages/gifts";
 import GiftsSimplePage from "@/pages/gifts-simple";
+import SimpleGiftsPage from "@/pages/simple-gifts";
 
 import { LanguageOption } from "@/types";
 
@@ -105,6 +106,7 @@ function Router() {
           <Route path="/followers-management" component={FollowersManagementPage} />
           <Route path="/gifts" component={GiftsPage} />
           <Route path="/gifts-simple" component={GiftsSimplePage} />
+          <Route path="/simple-gifts" component={SimpleGiftsPage} />
         </Suspense>
       ) : (
         <>

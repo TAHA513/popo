@@ -46,6 +46,7 @@ export default function GiftsSimple() {
           <div className="text-center py-16">
             <div className="animate-spin w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-lg text-gray-600">جاري تحميل الهدايا...</p>
+            <p className="text-sm text-gray-500 mt-2">يرجى الانتظار قليلاً</p>
           </div>
         </div>
       </div>
@@ -71,10 +72,10 @@ export default function GiftsSimple() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <Link href="/home">
+          <Link href="/">
             <Button variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
               <ArrowLeft className="w-4 h-4" />
-              العودة
+              العودة للرئيسية
             </Button>
           </Link>
           

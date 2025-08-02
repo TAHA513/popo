@@ -184,11 +184,11 @@ export default function SimpleNavigation() {
                 <Camera className="w-4 h-4" />
               </Button>
             </Link>
-            <Link href="/gifts-simple">
+            <Link href="/simple-gifts">
               <Button 
-                variant={location === "/gifts-simple" ? "secondary" : "ghost"} 
+                variant={location === "/simple-gifts" ? "secondary" : "ghost"} 
                 size="sm"
-                className={`rounded-full ${location === "/gifts-simple" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                className={`rounded-full ${location === "/simple-gifts" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
               >
                 <Gift className="w-4 h-4" />
               </Button>
