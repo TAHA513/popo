@@ -152,7 +152,7 @@ export default function GiftsPage() {
           </TabsList>
 
           <TabsContent value="browse">
-            {Array.isArray(giftCharacters) && giftCharacters.length > 0 ? (
+            {giftCharacters && giftCharacters.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {giftCharacters.map((gift: GiftCharacter) => (
                 <Card key={gift.id} className="hover:shadow-lg transition-all duration-300 group cursor-pointer border-2 hover:border-pink-300">
@@ -204,7 +204,6 @@ export default function GiftsPage() {
                   <p>Length: {giftCharacters?.length || 'undefined'}</p>
                   <p>Raw data: {JSON.stringify(giftCharacters)?.substring(0, 200)}...</p>
                 </div>
-              </div>
             )}
           </TabsContent>
 

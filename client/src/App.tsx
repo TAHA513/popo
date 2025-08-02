@@ -41,7 +41,7 @@ import ProfileRedesignPage from "@/pages/profile-redesign";
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
-import GiftsPage from "@/pages/gifts";
+import GiftsPage from "@/pages/gifts-working";
 
 import { LanguageOption } from "@/types";
 
