@@ -454,16 +454,7 @@ export default function ChatPage() {
         </div>
         
         <div className="flex items-center space-x-2 space-x-reverse">
-          {/* Invite People Button - More Prominent */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="px-3 py-2 text-purple-600 border-purple-200 hover:bg-purple-50"
-            onClick={() => setShowInviteModal(true)}
-          >
-            <UserPlus className="w-4 h-4 ml-1" />
-            دعوة
-          </Button>
+
           
           <Button 
             variant="ghost" 
