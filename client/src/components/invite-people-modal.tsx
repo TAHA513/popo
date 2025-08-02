@@ -37,12 +37,15 @@ export function InvitePeopleModal({ isOpen, onClose, currentChatUserId }: Invite
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     queryKey: ['/api/users/search', searchQuery],
     queryFn: async () => {
-      if (!searchQuery.trim()) return [];
+      if (!searchQuery.trim() || searchQuery.length < 2) return [];
       
-      const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`, {
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery.trim())}`, {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to search users');
+      if (!response.ok) {
+        console.error('Search failed:', response.status);
+        return [];
+      }
       const results = await response.json();
       
       // Filter out current user and chat partner
@@ -50,7 +53,7 @@ export function InvitePeopleModal({ isOpen, onClose, currentChatUserId }: Invite
         u.id !== user?.id && u.id !== currentChatUserId
       );
     },
-    enabled: searchQuery.length > 2
+    enabled: searchQuery.trim().length >= 2
   });
 
   // Create group chat invitation
