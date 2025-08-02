@@ -18,13 +18,13 @@ interface AudioRoomProps {
 }
 
 export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
-  const { join, leave, toggleMic, participants, localMicOn, enableMic, disableMic } = useMeeting({
+  const [isJoined, setIsJoined] = useState(false);
+  const [participantsList, setParticipantsList] = useState<any[]>([]);
+  const [micPermissionGranted, setMicPermissionGranted] = useState(false);
+
+  const { join, leave, toggleMic, participants, localMicOn, unmuteMic, muteMic } = useMeeting({
     onMeetingJoined: () => {
       console.log('✅ Joined audio room successfully');
-      // تفعيل المايك تلقائياً عند الانضمام للبث
-      setTimeout(() => {
-        enableMic();
-      }, 1000);
     },
     onMeetingLeft: () => {
       console.log('👋 Left audio room');
@@ -42,61 +42,105 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
     onWebcamRequested: (data) => {
       console.log('📹 Webcam requested:', data);
     },
+    onError: (error) => {
+      console.error('❌ Meeting error:', error);
+    }
   });
 
-  const [isJoined, setIsJoined] = useState(false);
-  const [participantsList, setParticipantsList] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (!isJoined) {
-      join();
-      setIsJoined(true);
-    }
-  }, [join, isJoined]);
-
-  // تفعيل المايك تلقائياً عند التحميل
-  useEffect(() => {
-    if (isJoined && !localMicOn) {
-      const timer = setTimeout(() => {
-        enableMic();
-        console.log('🎤 Auto-enabling microphone for broadcaster');
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isJoined, localMicOn, enableMic]);
-
-  // طلب إذن المايك عند التحميل
+  // طلب إذن المايك أولاً
   useEffect(() => {
     const requestMicPermission = async () => {
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
         console.log('🎤 Microphone permission granted');
+        setMicPermissionGranted(true);
+        // إغلاق الستريم المؤقت
+        stream.getTracks().forEach(track => track.stop());
       } catch (error) {
         console.error('❌ Microphone permission denied:', error);
+        setMicPermissionGranted(false);
       }
     };
     
     requestMicPermission();
   }, []);
 
+  // الانضمام للغرفة بعد الحصول على إذن المايك
   useEffect(() => {
-    setParticipantsList([...participants.values()]);
+    if (micPermissionGranted && !isJoined) {
+      join();
+      setIsJoined(true);
+    }
+  }, [micPermissionGranted, isJoined, join]);
+
+  useEffect(() => {
+    const participantsArray = Array.from(participants?.values() || []);
+    setParticipantsList(participantsArray);
   }, [participants]);
 
   const handleLeaveMeeting = () => {
     leave();
   };
 
-  const handleToggleMic = () => {
-    if (localMicOn) {
-      disableMic();
-      console.log('🔇 Mic disabled');
-    } else {
-      enableMic();
-      console.log('🎤 Mic enabled');
+  const handleToggleMic = async () => {
+    try {
+      if (localMicOn) {
+        muteMic();
+        console.log('🔇 Mic disabled');
+      } else {
+        if (!micPermissionGranted) {
+          // إعادة طلب إذن المايك
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
+          stream.getTracks().forEach(track => track.stop());
+          setMicPermissionGranted(true);
+        }
+        unmuteMic();
+        console.log('🎤 Mic enabled');
+      }
+    } catch (error) {
+      console.error('❌ Error toggling microphone:', error);
+      alert('لا يمكن الوصول للمايك. يرجى السماح للموقع باستخدام المايك من إعدادات المتصفح.');
     }
   };
+
+  // عرض رسالة تحذيرية إذا لم يتم منح إذن المايك
+  if (!micPermissionGranted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 p-4 flex items-center justify-center">
+        <Card className="bg-white/90 backdrop-blur-sm shadow-xl max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl text-red-600">
+              <MicOff className="w-6 h-6" />
+              مطلوب إذن المايك
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-600 mb-4">
+              يحتاج البث الصوتي إلى الوصول للمايك. يرجى السماح للموقع باستخدام المايك من إعدادات المتصفح.
+            </p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="w-full"
+            >
+              إعادة المحاولة
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 p-4">
@@ -121,6 +165,12 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-sm text-green-600">متصل</span>
+                {!localMicOn && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span className="text-xs text-orange-600">المايك مغلق</span>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -138,35 +188,46 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
                 )}
               </div>
               
-              <div className="flex gap-4 justify-center">
+              <div className="space-y-3">
                 <Button
                   onClick={handleToggleMic}
                   variant={localMicOn ? "default" : "destructive"}
                   size="lg"
-                  className="flex-1"
+                  className="w-full"
                 >
                   {localMicOn ? (
                     <>
                       <Mic className="w-5 h-5 ml-2" />
-                      إيقاف المايك
+                      المايك مفعل - اضغط لإيقافه
                     </>
                   ) : (
                     <>
                       <MicOff className="w-5 h-5 ml-2" />
-                      تشغيل المايك
+                      المايك معطل - اضغط لتفعيله
                     </>
                   )}
                 </Button>
                 
-                <Button
-                  onClick={handleLeaveMeeting}
-                  variant="destructive"
-                  size="lg"
-                  className="flex-1"
-                >
-                  <PhoneOff className="w-5 h-5 ml-2" />
-                  إنهاء البث
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleLeaveMeeting}
+                    variant="destructive"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    <PhoneOff className="w-5 h-5 ml-2" />
+                    إنهاء البث
+                  </Button>
+                  
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    إعادة تشغيل
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
