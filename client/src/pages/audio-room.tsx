@@ -113,8 +113,12 @@ export default function AudioRoomPage() {
           webcamEnabled: false, // البث صوتي فقط
           name: user?.firstName || user?.username || 'مشارك',
           multiStream: false,
+          mode: 'CONFERENCE', // وضع المؤتمر للصوت
+          preferredProtocol: 'UDP_OVER_TCP',
         }}
         token={token}
+        reinitialiseMeetingOnConfigChange={true}
+        joinWithoutUserInteraction={true}
       >
         <AudioRoom meetingId={meetingId} onLeave={leaveRoom} />
       </MeetingProvider>

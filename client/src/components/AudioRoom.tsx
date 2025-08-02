@@ -18,9 +18,13 @@ interface AudioRoomProps {
 }
 
 export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
-  const { join, leave, toggleMic, participants, localMicOn } = useMeeting({
+  const { join, leave, toggleMic, participants, localMicOn, enableMic, disableMic } = useMeeting({
     onMeetingJoined: () => {
       console.log('✅ Joined audio room successfully');
+      // تفعيل المايك تلقائياً عند الانضمام للبث
+      setTimeout(() => {
+        enableMic();
+      }, 1000);
     },
     onMeetingLeft: () => {
       console.log('👋 Left audio room');
@@ -31,6 +35,12 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
     },
     onParticipantLeft: (participant) => {
       console.log('👋 Participant left:', participant.displayName);
+    },
+    onMicRequested: (data) => {
+      console.log('🎤 Mic requested:', data);
+    },
+    onWebcamRequested: (data) => {
+      console.log('📹 Webcam requested:', data);
     },
   });
 
@@ -44,6 +54,32 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
     }
   }, [join, isJoined]);
 
+  // تفعيل المايك تلقائياً عند التحميل
+  useEffect(() => {
+    if (isJoined && !localMicOn) {
+      const timer = setTimeout(() => {
+        enableMic();
+        console.log('🎤 Auto-enabling microphone for broadcaster');
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isJoined, localMicOn, enableMic]);
+
+  // طلب إذن المايك عند التحميل
+  useEffect(() => {
+    const requestMicPermission = async () => {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('🎤 Microphone permission granted');
+      } catch (error) {
+        console.error('❌ Microphone permission denied:', error);
+      }
+    };
+    
+    requestMicPermission();
+  }, []);
+
   useEffect(() => {
     setParticipantsList([...participants.values()]);
   }, [participants]);
@@ -53,7 +89,13 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
   };
 
   const handleToggleMic = () => {
-    toggleMic();
+    if (localMicOn) {
+      disableMic();
+      console.log('🔇 Mic disabled');
+    } else {
+      enableMic();
+      console.log('🎤 Mic enabled');
+    }
   };
 
   return (
