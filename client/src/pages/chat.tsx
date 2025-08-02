@@ -19,7 +19,9 @@ import {
   UserPlus,
   Settings,
   MessageSquare,
-  Info
+  Info,
+  UserX,
+  Shield
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
