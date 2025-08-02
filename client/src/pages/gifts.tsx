@@ -65,11 +65,20 @@ export default function GiftsPage() {
   const { user } = useAuth();
 
   // Fetch available gifts
-  const { data: giftCharacters = [], isLoading } = useQuery({
+  const { data: giftCharacters = [], isLoading, error } = useQuery({
     queryKey: ['/api/gifts/characters'],
-    queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
-    staleTime: 30000, // Cache for 30 seconds
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/gifts/characters');
+      const data = await response.json();
+      console.log('API Response:', data);
+      console.log('Response type:', typeof data);
+      console.log('Is array?', Array.isArray(data));
+      return data;
+    },
+    staleTime: 30000,
   });
+
+  console.log('Final giftCharacters:', giftCharacters);
   
 
 
