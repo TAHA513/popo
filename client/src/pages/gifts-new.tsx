@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SimpleNavigation from '@/components/simple-navigation';
 import { Heart, Crown, Diamond, Car, Plane, Castle, Gift, Coins, TrendingUp } from 'lucide-react';
 import { GiftShop } from '@/components/gift-shop';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,12 +19,10 @@ interface GiftCharacter {
   rarity?: string;
   animationType?: string;
   isActive?: boolean;
-  hasSound?: boolean;
-  hasSpecialEffects?: boolean;
-  effectDuration?: number;
 }
 
-const giftIcons: Record<string, React.ReactNode> = {
+// Gift icons mapping
+const giftIcons: Record<string, JSX.Element> = {
   'قلب': <span className="text-5xl">❤️</span>,
   'وردة': <span className="text-5xl">🌹</span>,
   'تاج': <span className="text-5xl">👑</span>,
@@ -41,7 +40,7 @@ const giftIcons: Record<string, React.ReactNode> = {
 
 const getRarityColor = (rarity: string) => {
   switch (rarity) {
-    case 'common': return 'bg-gray-500';
+    case 'common': return 'bg-green-500';
     case 'rare': return 'bg-blue-500';
     case 'epic': return 'bg-purple-500';
     case 'legendary': return 'bg-yellow-500';
@@ -65,13 +64,11 @@ export default function GiftsPage() {
   const { user } = useAuth();
 
   // Fetch available gifts
-  const { data: giftCharacters = [], isLoading } = useQuery({
+  const { data: giftCharacters = [], isLoading, error } = useQuery({
     queryKey: ['/api/gifts/characters'],
     queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 30000,
   });
-  
-
 
   // Fetch user's sent gifts
   const { data: sentGifts = [] } = useQuery({
@@ -90,6 +87,7 @@ export default function GiftsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 p-4">
+        <SimpleNavigation />
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -104,8 +102,11 @@ export default function GiftsPage() {
     setShowGiftShop(true);
   };
 
+  console.log('Gift data:', { giftCharacters, isLoading, error });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 p-4">
+      <SimpleNavigation />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -200,86 +201,103 @@ export default function GiftsPage() {
           </TabsContent>
 
           <TabsContent value="sent">
-            <div className="space-y-4">
-              {sentGifts.length === 0 ? (
-                <div className="text-center py-12">
-                  <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">لم ترسل أي هدايا بعد</p>
-                </div>
-              ) : (
-                sentGifts.map((gift: any) => (
-                  <Card key={gift.id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {giftIcons[gift.characterName] || <Gift className="w-8 h-8 text-pink-500" />}
-                        <div>
-                          <p className="font-semibold">{gift.characterName}</p>
-                          <p className="text-sm text-gray-500">إلى: {gift.receiverName}</p>
-                        </div>
+            {sentGifts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sentGifts.map((gift: any) => (
+                  <Card key={gift.id} className="border-blue-200 bg-blue-50">
+                    <CardHeader className="text-center pb-2">
+                      <div className="flex justify-center mb-2">
+                        {gift.character?.emoji || <Gift className="w-12 h-12 text-blue-500" />}
                       </div>
-                      <div className="text-left">
-                        <p className="flex items-center gap-1">
-                          <Coins className="w-4 h-4 text-yellow-500" />
-                          {gift.pointCost} نقطة
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(gift.sentAt).toLocaleDateString('ar-SA')}
-                        </p>
+                      <CardTitle className="text-lg font-bold text-gray-800">
+                        {gift.character?.name}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        إلى: {gift.receiver?.username}
+                      </p>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        <Coins className="w-4 h-4 text-yellow-500" />
+                        <span className="text-lg font-bold text-gray-700">
+                          {gift.pointCost}
+                        </span>
+                        <span className="text-sm text-gray-500">نقطة</span>
                       </div>
-                    </div>
+                      <p className="text-xs text-gray-500">
+                        {new Date(gift.createdAt).toLocaleDateString('ar')}
+                      </p>
+                    </CardContent>
                   </Card>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <TrendingUp className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-500 mb-2">لا توجد هدايا مرسلة</p>
+                <p className="text-gray-400">ابدأ بإرسال هدايا لأصدقائك</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="received">
-            <div className="space-y-4">
-              {receivedGifts.length === 0 ? (
-                <div className="text-center py-12">
-                  <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">لم تستقبل أي هدايا بعد</p>
-                </div>
-              ) : (
-                receivedGifts.map((gift: any) => (
-                  <Card key={gift.id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {giftIcons[gift.characterName] || <Gift className="w-8 h-8 text-pink-500" />}
-                        <div>
-                          <p className="font-semibold">{gift.characterName}</p>
-                          <p className="text-sm text-gray-500">من: {gift.senderName}</p>
-                        </div>
+            {receivedGifts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {receivedGifts.map((gift: any) => (
+                  <Card key={gift.id} className="border-green-200 bg-green-50">
+                    <CardHeader className="text-center pb-2">
+                      <div className="flex justify-center mb-2">
+                        {gift.character?.emoji || <Gift className="w-12 h-12 text-green-500" />}
                       </div>
-                      <div className="text-left">
-                        <p className="flex items-center gap-1 text-green-600">
-                          <Coins className="w-4 h-4" />
-                          +{Math.floor(gift.pointCost * 0.6)} نقطة
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(gift.sentAt).toLocaleDateString('ar-SA')}
-                        </p>
+                      <CardTitle className="text-lg font-bold text-gray-800">
+                        {gift.character?.name}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        من: {gift.sender?.username}
+                      </p>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        <Coins className="w-4 h-4 text-yellow-500" />
+                        <span className="text-lg font-bold text-gray-700">
+                          {gift.pointCost}
+                        </span>
+                        <span className="text-sm text-gray-500">نقطة</span>
                       </div>
-                    </div>
+                      <p className="text-xs text-gray-500">
+                        {new Date(gift.createdAt).toLocaleDateString('ar')}
+                      </p>
+                    </CardContent>
                   </Card>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-500 mb-2">لا توجد هدايا مستقبلة</p>
+                <p className="text-gray-400">عندما يرسل لك أحد هدية ستظهر هنا</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
-
-        {/* Gift Shop Modal */}
-        {showGiftShop && selectedGift && (
-          <GiftShop
-            isOpen={showGiftShop}
-            onClose={() => {
-              setShowGiftShop(false);
-              setSelectedGift(null);
-            }}
-            receiverId="" // This will be filled when user selects a recipient
-          />
-        )}
       </div>
+
+      {/* Gift Shop Modal */}
+      {showGiftShop && selectedGift && (
+        <GiftShop
+          isOpen={showGiftShop}
+          receiverId={user?.id || ""}
+          receiverName="Select Receiver"
+          onClose={() => {
+            setShowGiftShop(false);
+            setSelectedGift(null);
+          }}
+          onGiftSent={() => {
+            setShowGiftShop(false);
+            setSelectedGift(null);
+          }}
+        />
+      )}
     </div>
   );
 }
