@@ -28,6 +28,7 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { GiftShop } from "@/components/gift-shop";
+import { InvitePeopleModal } from "@/components/invite-people-modal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +62,9 @@ export default function ChatPage() {
   
   // Gift system states
   const [showGiftShop, setShowGiftShop] = useState(false);
+  
+  // Invite modal state
+  const [showInviteModal, setShowInviteModal] = useState(false);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -419,12 +423,7 @@ export default function ChatPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => {
-                toast({
-                  title: "دعوة أشخاص",
-                  description: "ميزة دعوة الأشخاص ستكون متاحة قريباً",
-                });
-              }}>
+              <DropdownMenuItem onClick={() => setShowInviteModal(true)}>
                 <UserPlus className="w-4 h-4 ml-2" />
                 دعوة أشخاص
               </DropdownMenuItem>
@@ -620,6 +619,13 @@ export default function ChatPage() {
           }}
         />
       )}
+
+      {/* Invite People Modal */}
+      <InvitePeopleModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        currentChatUserId={otherUserId}
+      />
 
       <BottomNavigation />
     </div>
