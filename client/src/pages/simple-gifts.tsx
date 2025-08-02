@@ -23,10 +23,21 @@ export default function SimpleGifts() {
   const { data: gifts = [], isLoading, error } = useQuery({
     queryKey: ['/api/gifts/characters'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/gifts/characters');
-      const data = await response.json();
-      return data;
+      try {
+        const response = await apiRequest('GET', '/api/gifts/characters');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        console.log('تم تحميل الهدايا:', data);
+        return data;
+      } catch (err) {
+        console.error('خطأ في تحميل الهدايا:', err);
+        throw err;
+      }
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 
   return (
@@ -59,6 +70,10 @@ export default function SimpleGifts() {
           <div className="text-center py-16">
             <div className="animate-spin w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-xl text-gray-700">جاري تحميل الهدايا...</p>
+            <p className="text-sm text-gray-500 mt-2">يرجى الانتظار قليلاً...</p>
+            <div className="mt-4 text-xs text-gray-400">
+              إذا استمر التحميل طويلاً، تحقق من الاتصال بالإنترنت
+            </div>
           </div>
         )}
 
@@ -67,7 +82,13 @@ export default function SimpleGifts() {
           <div className="text-center py-16">
             <Gift className="w-16 h-16 text-red-400 mx-auto mb-4" />
             <p className="text-xl text-red-600">خطأ في تحميل الهدايا</p>
-            <p className="text-gray-500 mt-2">يرجى المحاولة مرة أخرى</p>
+            <p className="text-gray-500 mt-2">تفاصيل الخطأ: {error.toString()}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-pink-500 hover:bg-pink-600 text-white"
+            >
+              إعادة المحاولة
+            </Button>
           </div>
         )}
 
