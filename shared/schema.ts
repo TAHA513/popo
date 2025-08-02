@@ -238,6 +238,54 @@ export const blockedUsers = pgTable("blocked_users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Premium Albums System
+export const premiumAlbums = pgTable("premium_albums", {
+  id: serial("id").primaryKey(),
+  creatorId: varchar("creator_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  coverImageUrl: text("cover_image_url"),
+  requiredGiftId: integer("required_gift_id").notNull().references(() => gifts.id),
+  requiredGiftAmount: integer("required_gift_amount").notNull().default(1),
+  totalPhotos: integer("total_photos").notNull().default(0),
+  totalViews: integer("total_views").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const premiumAlbumMedia = pgTable("premium_album_media", {
+  id: serial("id").primaryKey(),
+  albumId: integer("album_id").notNull().references(() => premiumAlbums.id, { onDelete: 'cascade' }),
+  mediaUrl: text("media_url").notNull(),
+  mediaType: varchar("media_type").notNull(), // 'image', 'video'
+  caption: text("caption"),
+  orderIndex: integer("order_index").notNull().default(0),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+export const premiumAlbumPurchases = pgTable("premium_album_purchases", {
+  id: serial("id").primaryKey(),
+  albumId: integer("album_id").notNull().references(() => premiumAlbums.id, { onDelete: 'cascade' }),
+  buyerId: varchar("buyer_id").notNull().references(() => users.id),
+  giftId: integer("gift_id").notNull().references(() => gifts.id),
+  giftAmount: integer("gift_amount").notNull(),
+  totalCost: integer("total_cost").notNull(), // في النقاط
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+});
+
+// Premium Messages System - رسائل مدفوعة
+export const premiumMessages = pgTable("premium_messages", {
+  id: serial("id").primaryKey(),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  recipientId: varchar("recipient_id").notNull().references(() => users.id),
+  albumId: integer("album_id").notNull().references(() => premiumAlbums.id, { onDelete: 'cascade' }),
+  message: text("message"),
+  isUnlocked: boolean("is_unlocked").notNull().default(false),
+  unlockedAt: timestamp("unlocked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Direct Messages table for TikTok-style chat
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -895,6 +943,18 @@ export type Follower = typeof followers.$inferSelect;
 
 export type InsertBlockedUser = typeof blockedUsers.$inferInsert;
 export type BlockedUser = typeof blockedUsers.$inferSelect;
+
+export type InsertPremiumAlbum = typeof premiumAlbums.$inferInsert;
+export type PremiumAlbum = typeof premiumAlbums.$inferSelect;
+
+export type InsertPremiumAlbumMedia = typeof premiumAlbumMedia.$inferInsert;
+export type PremiumAlbumMedia = typeof premiumAlbumMedia.$inferSelect;
+
+export type InsertPremiumAlbumPurchase = typeof premiumAlbumPurchases.$inferInsert;
+export type PremiumAlbumPurchase = typeof premiumAlbumPurchases.$inferSelect;
+
+export type InsertPremiumMessage = typeof premiumMessages.$inferInsert;
+export type PremiumMessage = typeof premiumMessages.$inferSelect;
 
 export type InsertMemoryFragment = typeof memoryFragments.$inferInsert;
 export type MemoryFragment = typeof memoryFragments.$inferSelect;

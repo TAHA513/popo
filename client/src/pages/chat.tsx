@@ -513,6 +513,11 @@ export default function ChatPage() {
                 )}
               </DropdownMenuItem>
               
+              <DropdownMenuItem onClick={() => setLocation('/premium-messages')}>
+                <Gift className="w-4 h-4 ml-2" />
+                الرسائل المدفوعة
+              </DropdownMenuItem>
+              
               <DropdownMenuItem onClick={() => {
                 toast({
                   title: "أرشيف الرسائل",

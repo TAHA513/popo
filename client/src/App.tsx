@@ -26,6 +26,8 @@ import ConversationPage from "@/pages/conversation";
 import ChatPage from "@/pages/chat";
 import LockedAlbums from "@/components/LockedAlbums";
 import PrivateAlbumsPage from "@/pages/private-albums";
+import PremiumAlbumsPage from "@/pages/premium-albums";
+import PremiumMessagesPage from "@/pages/premium-messages";
 import WatchStreamPage from "@/pages/watch-stream";
 import VideoPage from "@/pages/video";
 import SingleVideoPage from "@/pages/single-video";
@@ -83,6 +85,8 @@ function Router() {
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/private-albums" component={PrivateAlbumsPage} />
+          <Route path="/premium-albums" component={PremiumAlbumsPage} />
+          <Route path="/premium-messages" component={PremiumMessagesPage} />
           <Route path="/start-stream" component={SimpleStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />

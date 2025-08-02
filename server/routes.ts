@@ -189,6 +189,359 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup wallet routes
   setupWalletRoutes(app);
 
+  // Premium Messages API
+  
+  // Get premium messages for current user
+  app.get("/api/premium-messages", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const messages = await storage.getPremiumMessages(userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching premium messages:", error);
+      res.status(500).json({ error: "Failed to fetch premium messages" });
+    }
+  });
+
+  // Send premium message
+  app.post("/api/premium-messages/send", requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user.claims.sub;
+      const { recipientId, albumId, message } = req.body;
+
+      // Validate album ownership
+      const album = await storage.getPremiumAlbum(albumId);
+      if (!album || album.userId !== senderId) {
+        return res.status(403).json({ error: "Album not found or not owned by user" });
+      }
+
+      const premiumMessage = await storage.createPremiumMessage({
+        senderId,
+        recipientId,
+        albumId,
+        message,
+      });
+
+      res.json(premiumMessage);
+    } catch (error) {
+      console.error("Error sending premium message:", error);
+      res.status(500).json({ error: "Failed to send premium message" });
+    }
+  });
+
+  // Unlock premium message  
+  app.post("/api/premium-messages/:id/unlock", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const messageId = parseInt(req.params.id);
+
+      // Get the message
+      const message = await storage.getPremiumMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ error: "Message not found" });
+      }
+
+      // Check if user is the recipient
+      if (message.recipientId !== userId) {
+        return res.status(403).json({ error: "Not authorized to unlock this message" });
+      }
+
+      // Check if already unlocked
+      if (message.unlockedAt) {
+        return res.status(400).json({ error: "Message already unlocked" });
+      }
+
+      // Get album details
+      const album = await storage.getPremiumAlbum(message.albumId);
+      if (!album) {
+        return res.status(404).json({ error: "Album not found" });
+      }
+
+      // Get required gift
+      const gift = await storage.getGiftCharacter(album.requiredGiftId);
+      if (!gift) {
+        return res.status(404).json({ error: "Gift not found" });
+      }
+
+      const totalCost = gift.pointCost * album.requiredGiftAmount;
+
+      // Check user balance
+      const userBalance = await storage.getUserBalance(userId);
+      if (userBalance < totalCost) {
+        return res.status(400).json({ error: "Insufficient balance" });
+      }
+
+      // Process the transaction
+      await storage.processAlbumUnlock(userId, album.userId, messageId, totalCost);
+
+      const updatedMessage = await storage.getPremiumMessage(messageId);
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error("Error unlocking premium message:", error);
+      res.status(500).json({ error: "Failed to unlock premium message" });
+    }
+  });
+
+  // Premium Albums API Routes
+  
+  // Create premium album
+  app.post('/api/premium-albums', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { title, description, coverImageUrl, requiredGiftId, requiredGiftAmount } = req.body;
+
+      if (!title || !requiredGiftId || !requiredGiftAmount) {
+        return res.status(400).json({ message: "العنوان ومتطلبات الهدية مطلوبة" });
+      }
+
+      const albumData = {
+        creatorId: userId,
+        title,
+        description,
+        coverImageUrl,
+        requiredGiftId,
+        requiredGiftAmount,
+      };
+
+      const album = await storage.createPremiumAlbum(albumData);
+      res.json(album);
+    } catch (error) {
+      console.error("Error creating premium album:", error);
+      res.status(500).json({ message: "فشل في إنشاء الألبوم المدفوع" });
+    }
+  });
+
+  // Get user's premium albums
+  app.get('/api/premium-albums/my-albums', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const albums = await storage.getPremiumAlbums(userId);
+      res.json(albums);
+    } catch (error) {
+      console.error("Error fetching user albums:", error);
+      res.status(500).json({ message: "فشل في جلب الألبومات" });
+    }
+  });
+
+  // Get premium album details
+  app.get('/api/premium-albums/:albumId', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const userId = req.user.id;
+
+      if (isNaN(albumId)) {
+        return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
+      }
+
+      const album = await storage.getPremiumAlbum(albumId);
+      if (!album) {
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+
+      // Check if user has access
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      
+      const albumWithAccess = {
+        ...album,
+        hasAccess,
+      };
+
+      res.json(albumWithAccess);
+    } catch (error) {
+      console.error("Error fetching album:", error);
+      res.status(500).json({ message: "فشل في جلب الألبوم" });
+    }
+  });
+
+  // Add media to album
+  app.post('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const userId = req.user.id;
+      const { mediaUrl, mediaType, caption, orderIndex } = req.body;
+
+      if (isNaN(albumId)) {
+        return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
+      }
+
+      // Check if user is the album creator
+      const album = await storage.getPremiumAlbum(albumId);
+      if (!album || album.creatorId !== userId) {
+        return res.status(403).json({ message: "غير مصرح لك بإضافة محتوى لهذا الألبوم" });
+      }
+
+      const mediaData = {
+        albumId,
+        mediaUrl,
+        mediaType,
+        caption,
+        orderIndex: orderIndex || 0,
+      };
+
+      const media = await storage.addAlbumMedia(mediaData);
+      res.json(media);
+    } catch (error) {
+      console.error("Error adding media to album:", error);
+      res.status(500).json({ message: "فشل في إضافة المحتوى للألبوم" });
+    }
+  });
+
+  // Get album media
+  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const userId = req.user.id;
+
+      if (isNaN(albumId)) {
+        return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
+      }
+
+      // Check if user has access to this album
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "يجب شراء الألبوم أولاً لعرض المحتوى" });
+      }
+
+      const media = await storage.getAlbumMedia(albumId);
+      res.json(media);
+    } catch (error) {
+      console.error("Error fetching album media:", error);
+      res.status(500).json({ message: "فشل في جلب محتوى الألبوم" });
+    }
+  });
+
+  // Purchase premium album access
+  app.post('/api/premium-albums/:albumId/purchase', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const userId = req.user.id;
+
+      if (isNaN(albumId)) {
+        return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
+      }
+
+      // Check if already has access
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      if (hasAccess) {
+        return res.status(400).json({ message: "لديك وصول لهذا الألبوم مسبقاً" });
+      }
+
+      // Get album details
+      const album = await storage.getPremiumAlbum(albumId);
+      if (!album) {
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+
+      if (album.creatorId === userId) {
+        return res.status(400).json({ message: "لا يمكنك شراء ألبومك الخاص" });
+      }
+
+      // Get gift details
+      const gift = await storage.getGiftById(album.requiredGiftId);
+      if (!gift) {
+        return res.status(404).json({ message: "الهدية المطلوبة غير موجودة" });
+      }
+
+      const totalCost = gift.pointCost * album.requiredGiftAmount;
+
+      // Check user points
+      const user = await storage.getUser(userId);
+      if (!user || (user.points || 0) < totalCost) {
+        return res.status(400).json({ message: "نقاط غير كافية لشراء هذا الألبوم" });
+      }
+
+      // Create purchase
+      const purchaseData = {
+        albumId,
+        buyerId: userId,
+        giftId: album.requiredGiftId,
+        giftAmount: album.requiredGiftAmount,
+        totalCost,
+      };
+
+      const purchase = await storage.purchasePremiumAlbum(purchaseData);
+
+      // Deduct points from buyer
+      await storage.updateUser(userId, {
+        points: (user.points || 0) - totalCost
+      });
+
+      // Add points to seller
+      const creator = await storage.getUser(album.creatorId);
+      if (creator) {
+        await storage.updateUser(album.creatorId, {
+          points: (creator.points || 0) + totalCost
+        });
+      }
+
+      res.json(purchase);
+    } catch (error) {
+      console.error("Error purchasing album:", error);
+      res.status(500).json({ message: "فشل في شراء الألبوم" });
+    }
+  });
+
+  // Send premium message with album
+  app.post('/api/premium-messages/send', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user.id;
+      const { recipientId, albumId, message } = req.body;
+
+      if (!recipientId || !albumId) {
+        return res.status(400).json({ message: "معرف المستلم والألبوم مطلوبان" });
+      }
+
+      // Check if album exists and sender has access
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, senderId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "لا يمكنك إرسال ألبوم لا تملك وصولاً إليه" });
+      }
+
+      const messageData = {
+        senderId,
+        recipientId,
+        albumId,
+        message: message || '',
+      };
+
+      const premiumMessage = await storage.sendPremiumMessage(messageData);
+      res.json(premiumMessage);
+    } catch (error) {
+      console.error("Error sending premium message:", error);
+      res.status(500).json({ message: "فشل في إرسال الرسالة المدفوعة" });
+    }
+  });
+
+  // Get premium messages for user
+  app.get('/api/premium-messages', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const messages = await storage.getPremiumMessages(userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching premium messages:", error);
+      res.status(500).json({ message: "فشل في جلب الرسائل المدفوعة" });
+    }
+  });
+
+  // Unlock premium message
+  app.post('/api/premium-messages/:messageId/unlock', requireAuth, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const userId = req.user.id;
+
+      if (isNaN(messageId)) {
+        return res.status(400).json({ message: "معرف الرسالة غير صحيح" });
+      }
+
+      const unlockedMessage = await storage.unlockPremiumMessage(messageId, userId);
+      res.json(unlockedMessage);
+    } catch (error) {
+      console.error("Error unlocking premium message:", error);
+      res.status(500).json({ message: "فشل في فتح الرسالة المدفوعة" });
+    }
+  });
+
   // Local authentication routes
   app.post('/api/register', async (req, res) => {
     try {

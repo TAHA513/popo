@@ -7,6 +7,10 @@ import {
   pointTransactions,
   followers,
   blockedUsers,
+  premiumAlbums,
+  premiumAlbumMedia,
+  premiumAlbumPurchases,
+  premiumMessages,
   memoryFragments,
   memoryInteractions,
   memoryCollections,
@@ -36,6 +40,14 @@ import {
   type InsertFollower,
   type BlockedUser,
   type InsertBlockedUser,
+  type PremiumAlbum,
+  type InsertPremiumAlbum,
+  type PremiumAlbumMedia,
+  type InsertPremiumAlbumMedia,
+  type PremiumAlbumPurchase,
+  type InsertPremiumAlbumPurchase,
+  type PremiumMessage,
+  type InsertPremiumMessage,
   type MemoryFragment,
   type InsertMemoryFragment,
   type MemoryInteraction,
@@ -103,7 +115,8 @@ import {
   type InsertVoiceChatParticipant,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, count, ne } from "drizzle-orm";
+import { eq, desc, and, sql, count, ne, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
 export interface IStorage {
@@ -127,6 +140,7 @@ export interface IStorage {
   // Gift operations
   getGiftCharacters(): Promise<GiftCharacter[]>;
   getGiftCharacterById(id: number): Promise<GiftCharacter | undefined>;
+  getGiftById(id: number): Promise<GiftCharacter | undefined>;
   sendGift(giftData: InsertGift): Promise<Gift>;
   getReceivedGifts(userId: string): Promise<Gift[]>;
   getSentGifts(userId: string): Promise<Gift[]>;
@@ -232,6 +246,39 @@ export interface IStorage {
   addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction>;
   getUserTransactions(userId: string): Promise<WalletTransaction[]>;
   getUserEarnings(userId: string): Promise<{ totalEarnings: number; monthlyEarnings: number }>;
+
+  // Block/unblock users
+  blockUser(blockerId: string, blockedId: string): Promise<void>;
+  unblockUser(blockerId: string, blockedId: string): Promise<void>;
+  isUserBlocked(blockerId: string, blockedId: string): Promise<boolean>;
+
+  // Premium Albums
+  createPremiumAlbum(album: InsertPremiumAlbum): Promise<PremiumAlbum>;
+  getPremiumAlbums(creatorId: string): Promise<PremiumAlbum[]>;
+  getPremiumAlbum(albumId: number): Promise<PremiumAlbum | undefined>;
+  updatePremiumAlbum(albumId: number, updates: Partial<InsertPremiumAlbum>): Promise<PremiumAlbum>;
+  deletePremiumAlbum(albumId: number): Promise<void>;
+  
+  // Premium Messages  
+  getPremiumMessages(userId: string): Promise<any[]>;
+  getPremiumMessage(messageId: number): Promise<any | null>;
+  createPremiumMessage(data: any): Promise<any>;
+  processAlbumUnlock(buyerId: string, sellerId: string, messageId: number, amount: number): Promise<void>;
+  
+  // Premium Album Media
+  addAlbumMedia(media: InsertPremiumAlbumMedia): Promise<PremiumAlbumMedia>;
+  getAlbumMedia(albumId: number): Promise<PremiumAlbumMedia[]>;
+  removeAlbumMedia(mediaId: number): Promise<void>;
+  
+  // Album Purchases
+  purchasePremiumAlbum(purchase: InsertPremiumAlbumPurchase): Promise<PremiumAlbumPurchase>;
+  getUserPurchases(userId: string): Promise<PremiumAlbumPurchase[]>;
+  checkPremiumAlbumAccess(albumId: number, userId: string): Promise<boolean>;
+  
+  // Premium Messages
+  sendPremiumMessage(message: InsertPremiumMessage): Promise<PremiumMessage>;
+  unlockPremiumMessage(messageId: number, userId: string): Promise<PremiumMessage>;
+  getPremiumMessages(userId: string): Promise<PremiumMessage[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -376,6 +423,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGiftCharacterById(id: number): Promise<GiftCharacter | undefined> {
+    const [character] = await db
+      .select()
+      .from(giftCharacters)
+      .where(eq(giftCharacters.id, id));
+    return character;
+  }
+
+  async getGiftById(id: number): Promise<GiftCharacter | undefined> {
     const [character] = await db
       .select()
       .from(giftCharacters)
@@ -1923,6 +1978,259 @@ export class DatabaseStorage implements IStorage {
       console.error("Error fetching blocked users:", error);
       throw error;
     }
+  }
+
+  // Premium Albums
+  async createPremiumAlbum(album: InsertPremiumAlbum): Promise<PremiumAlbum> {
+    const [newAlbum] = await db.insert(premiumAlbums).values(album).returning();
+    return newAlbum;
+  }
+
+  async getPremiumAlbums(creatorId: string): Promise<PremiumAlbum[]> {
+    return await db.select().from(premiumAlbums)
+      .where(and(eq(premiumAlbums.userId, creatorId), eq(premiumAlbums.isActive, true)))
+      .orderBy(desc(premiumAlbums.createdAt));
+  }
+
+  async getPremiumAlbum(albumId: number): Promise<PremiumAlbum | undefined> {
+    const [album] = await db.select().from(premiumAlbums).where(eq(premiumAlbums.id, albumId));
+    return album;
+  }
+
+  async updatePremiumAlbum(albumId: number, updates: Partial<InsertPremiumAlbum>): Promise<PremiumAlbum> {
+    const [updated] = await db.update(premiumAlbums)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(premiumAlbums.id, albumId))
+      .returning();
+    return updated;
+  }
+
+  async deletePremiumAlbum(albumId: number): Promise<void> {
+    await db.update(premiumAlbums)
+      .set({ isActive: false })
+      .where(eq(premiumAlbums.id, albumId));
+  }
+
+  // Premium Messages
+  async getPremiumMessages(userId: string): Promise<any[]> {
+    const senderAlias = alias(users, 'sender');
+    const recipientAlias = alias(users, 'recipient');
+    
+    const messages = await db
+      .select({
+        id: premiumMessages.id,
+        senderId: premiumMessages.senderId,
+        recipientId: premiumMessages.recipientId,
+        albumId: premiumMessages.albumId,
+        message: premiumMessages.message,
+        unlockedAt: premiumMessages.unlockedAt,
+        createdAt: premiumMessages.createdAt,
+        album: {
+          id: premiumAlbums.id,
+          title: premiumAlbums.title,
+          description: premiumAlbums.description,
+          coverImageUrl: premiumAlbums.coverImageUrl,
+          requiredGiftId: premiumAlbums.requiredGiftId,
+          requiredGiftAmount: premiumAlbums.requiredGiftAmount,
+          gift: {
+            id: giftCharacters.id,
+            name: giftCharacters.name,
+            emoji: giftCharacters.emoji,
+            pointCost: giftCharacters.pointCost,
+          },
+        },
+        sender: {
+          id: senderAlias.id,
+          firstName: senderAlias.firstName,
+          username: senderAlias.username,
+          profileImageUrl: senderAlias.profileImageUrl,
+        },
+        recipient: {
+          id: recipientAlias.id,
+          firstName: recipientAlias.firstName,
+          username: recipientAlias.username,
+          profileImageUrl: recipientAlias.profileImageUrl,
+        },
+      })
+      .from(premiumMessages)
+      .innerJoin(premiumAlbums, eq(premiumMessages.albumId, premiumAlbums.id))
+      .innerJoin(giftCharacters, eq(premiumAlbums.requiredGiftId, giftCharacters.id))
+      .innerJoin(senderAlias, eq(premiumMessages.senderId, senderAlias.id))
+      .innerJoin(recipientAlias, eq(premiumMessages.recipientId, recipientAlias.id))
+      .where(or(eq(premiumMessages.senderId, userId), eq(premiumMessages.recipientId, userId)))
+      .orderBy(desc(premiumMessages.createdAt));
+
+    return messages;
+  }
+
+  async getPremiumMessage(messageId: number): Promise<any | null> {
+    const [message] = await db
+      .select()
+      .from(premiumMessages)
+      .where(eq(premiumMessages.id, messageId));
+    
+    return message || null;
+  }
+
+  async createPremiumMessage(data: {
+    senderId: string;
+    recipientId: string;
+    albumId: number;
+    message?: string;
+  }): Promise<any> {
+    const [message] = await db
+      .insert(premiumMessages)
+      .values({
+        senderId: data.senderId,
+        recipientId: data.recipientId,
+        albumId: data.albumId,
+        message: data.message,
+      })
+      .returning();
+
+    return message;
+  }
+
+  async processAlbumUnlock(
+    buyerId: string,
+    sellerId: string,
+    messageId: number,
+    amount: number
+  ): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Deduct points from buyer
+      await tx
+        .update(users)
+        .set({ points: sql`${users.points} - ${amount}` })
+        .where(eq(users.id, buyerId));
+
+      // Add points to seller (80% of the amount)
+      const sellerEarnings = Math.floor(amount * 0.8);
+      await tx
+        .update(users)
+        .set({ points: sql`${users.points} + ${sellerEarnings}` })
+        .where(eq(users.id, sellerId));
+
+      // Record the transaction
+      await tx.insert(pointTransactions).values({
+        userId: buyerId,
+        type: 'purchase',
+        amount: -amount,
+        description: 'Premium album unlock',
+      });
+
+      await tx.insert(pointTransactions).values({
+        userId: sellerId,
+        type: 'earning',
+        amount: sellerEarnings,
+        description: 'Premium album sale earnings',
+      });
+
+      // Mark message as unlocked
+      await tx
+        .update(premiumMessages)
+        .set({ unlockedAt: new Date() })
+        .where(eq(premiumMessages.id, messageId));
+    });
+  }
+
+  // Premium Album Media
+  async addAlbumMedia(media: InsertPremiumAlbumMedia): Promise<PremiumAlbumMedia> {
+    const [newMedia] = await db.insert(premiumAlbumMedia).values(media).returning();
+    
+    // Update album's total photos count
+    await db.update(premiumAlbums)
+      .set({ totalPhotos: sql`${premiumAlbums.totalPhotos} + 1` })
+      .where(eq(premiumAlbums.id, media.albumId));
+    
+    return newMedia;
+  }
+
+  async getAlbumMedia(albumId: number): Promise<PremiumAlbumMedia[]> {
+    return await db.select().from(premiumAlbumMedia)
+      .where(eq(premiumAlbumMedia.albumId, albumId))
+      .orderBy(premiumAlbumMedia.orderIndex);
+  }
+
+  async removeAlbumMedia(mediaId: number): Promise<void> {
+    // First get the album ID to update count
+    const [media] = await db.select({ albumId: premiumAlbumMedia.albumId })
+      .from(premiumAlbumMedia)
+      .where(eq(premiumAlbumMedia.id, mediaId));
+    
+    if (media) {
+      await db.delete(premiumAlbumMedia).where(eq(premiumAlbumMedia.id, mediaId));
+      
+      // Update album's total photos count
+      await db.update(premiumAlbums)
+        .set({ totalPhotos: sql`${premiumAlbums.totalPhotos} - 1` })
+        .where(eq(premiumAlbums.id, media.albumId));
+    }
+  }
+
+  // Album Purchases
+  async purchasePremiumAlbum(purchase: InsertPremiumAlbumPurchase): Promise<PremiumAlbumPurchase> {
+    const [newPurchase] = await db.insert(premiumAlbumPurchases).values(purchase).returning();
+    
+    // Update album's total views count
+    await db.update(premiumAlbums)
+      .set({ totalViews: sql`${premiumAlbums.totalViews} + 1` })
+      .where(eq(premiumAlbums.id, purchase.albumId));
+    
+    return newPurchase;
+  }
+
+  async getUserPurchases(userId: string): Promise<PremiumAlbumPurchase[]> {
+    return await db.select().from(premiumAlbumPurchases)
+      .where(eq(premiumAlbumPurchases.buyerId, userId))
+      .orderBy(desc(premiumAlbumPurchases.purchasedAt));
+  }
+
+  async checkPremiumAlbumAccess(albumId: number, userId: string): Promise<boolean> {
+    // Check if user is the creator
+    const [album] = await db.select({ creatorId: premiumAlbums.creatorId })
+      .from(premiumAlbums)
+      .where(eq(premiumAlbums.id, albumId));
+    
+    if (album && album.creatorId === userId) {
+      return true;
+    }
+
+    // Check if user has purchased access
+    const [purchase] = await db.select()
+      .from(premiumAlbumPurchases)
+      .where(and(
+        eq(premiumAlbumPurchases.albumId, albumId),
+        eq(premiumAlbumPurchases.buyerId, userId)
+      ));
+    
+    return !!purchase;
+  }
+
+  // Premium Messages
+  async sendPremiumMessage(message: InsertPremiumMessage): Promise<PremiumMessage> {
+    const [newMessage] = await db.insert(premiumMessages).values(message).returning();
+    return newMessage;
+  }
+
+  async unlockPremiumMessage(messageId: number, userId: string): Promise<PremiumMessage> {
+    const [updated] = await db.update(premiumMessages)
+      .set({ 
+        isUnlocked: true, 
+        unlockedAt: new Date() 
+      })
+      .where(and(
+        eq(premiumMessages.id, messageId),
+        eq(premiumMessages.recipientId, userId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async getPremiumMessages(userId: string): Promise<PremiumMessage[]> {
+    return await db.select().from(premiumMessages)
+      .where(eq(premiumMessages.recipientId, userId))
+      .orderBy(desc(premiumMessages.createdAt));
   }
 }
 
