@@ -798,6 +798,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Block user
+  app.post('/api/users/:userId/block', requireAuth, async (req: any, res) => {
+    try {
+      const blockerId = req.user.id;
+      const blockedId = req.params.userId;
+      
+      if (blockerId === blockedId) {
+        return res.status(400).json({ message: "لا يمكن حظر نفسك" });
+      }
+      
+      await storage.blockUser(blockerId, blockedId);
+      res.json({ success: true, message: "تم حظر المستخدم بنجاح" });
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      res.status(500).json({ message: "فشل في حظر المستخدم" });
+    }
+  });
+
+  // Unblock user
+  app.post('/api/users/:userId/unblock', requireAuth, async (req: any, res) => {
+    try {
+      const blockerId = req.user.id;
+      const blockedId = req.params.userId;
+      
+      await storage.unblockUser(blockerId, blockedId);
+      res.json({ success: true, message: "تم إلغاء حظر المستخدم" });
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      res.status(500).json({ message: "فشل في إلغاء الحظر" });
+    }
+  });
+
+  // Check if user is blocked
+  app.get('/api/users/:userId/block-status', requireAuth, async (req: any, res) => {
+    try {
+      const blockerId = req.user.id;
+      const blockedId = req.params.userId;
+      
+      const isBlocked = await storage.isUserBlocked(blockerId, blockedId);
+      res.json({ isBlocked });
+    } catch (error) {
+      console.error("Error checking block status:", error);
+      res.status(500).json({ message: "فشل في فحص حالة الحظر" });
+    }
+  });
+
   // Search users for live stream profile display
   app.get('/api/users/search/:query', requireAuth, async (req: any, res) => {
     try {

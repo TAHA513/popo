@@ -19,7 +19,9 @@ import {
   UserPlus,
   Settings,
   MessageSquare,
-  Info
+  Info,
+  UserX,
+  Shield
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -65,6 +67,9 @@ export default function ChatPage() {
   
   // Invite modal state
   const [showInviteModal, setShowInviteModal] = useState(false);
+  
+  // Block status state
+  const [isBlocked, setIsBlocked] = useState(false);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -138,6 +143,25 @@ export default function ChatPage() {
     }
   });
 
+  // Check block status
+  const { data: blockStatus } = useQuery({
+    queryKey: [`/api/users/${otherUserId}/block-status`],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${otherUserId}/block-status`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch block status');
+      return response.json();
+    }
+  });
+
+  // Update block status when data changes
+  useEffect(() => {
+    if (blockStatus?.isBlocked !== undefined) {
+      setIsBlocked(blockStatus.isBlocked);
+    }
+  }, [blockStatus]);
+
   // Mark messages as read
   const markAsReadMutation = useMutation({
     mutationFn: async () => {
@@ -150,6 +174,29 @@ export default function ChatPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+    }
+  });
+
+  // Block/Unblock user mutation
+  const blockUserMutation = useMutation({
+    mutationFn: async (block: boolean) => {
+      return await apiRequest(`/api/users/${otherUserId}/${block ? 'block' : 'unblock'}`, 'POST');
+    },
+    onSuccess: (data, block) => {
+      setIsBlocked(block);
+      toast({
+        title: block ? "تم حظر المستخدم" : "تم إلغاء حظر المستخدم",
+        description: block ? "لن تتلقى رسائل من هذا المستخدم" : "يمكنك الآن تلقي رسائل من هذا المستخدم",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${otherUserId}/block-status`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "حدث خطأ أثناء العملية",
+        variant: "destructive"
+      });
     }
   });
 
@@ -444,8 +491,6 @@ export default function ChatPage() {
                 معلومات المحادثة
               </DropdownMenuItem>
               
-              <DropdownMenuSeparator />
-              
               <DropdownMenuItem onClick={() => {
                 toast({
                   title: "إعدادات الدردشة",
@@ -454,6 +499,27 @@ export default function ChatPage() {
               }}>
                 <Settings className="w-4 h-4 ml-2" />
                 إعدادات الدردشة
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              {/* Block/Unblock User Option */}
+              <DropdownMenuItem 
+                onClick={() => blockUserMutation.mutate(!isBlocked)}
+                disabled={blockUserMutation.isPending}
+                className={isBlocked ? "text-green-600" : "text-red-600"}
+              >
+                {isBlocked ? (
+                  <>
+                    <Shield className="w-4 h-4 ml-2" />
+                    إلغاء حظر المستخدم
+                  </>
+                ) : (
+                  <>
+                    <UserX className="w-4 h-4 ml-2" />
+                    حظر المستخدم
+                  </>
+                )}
               </DropdownMenuItem>
               
               <DropdownMenuItem onClick={() => {

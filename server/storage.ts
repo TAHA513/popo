@@ -6,6 +6,7 @@ import {
   chatMessages,
   pointTransactions,
   followers,
+  blockedUsers,
   memoryFragments,
   memoryInteractions,
   memoryCollections,
@@ -33,6 +34,8 @@ import {
   type InsertPointTransaction,
   type Follower,
   type InsertFollower,
+  type BlockedUser,
+  type InsertBlockedUser,
   type MemoryFragment,
   type InsertMemoryFragment,
   type MemoryInteraction,
@@ -1860,6 +1863,66 @@ export class DatabaseStorage implements IStorage {
       totalEarnings: Number(earnings[0]?.total || 0),
       monthlyEarnings: Number(earnings[0]?.monthly || 0)
     };
+  }
+
+  // Block operations
+  async blockUser(blockerId: string, blockedId: string): Promise<void> {
+    try {
+      await db.insert(blockedUsers).values({
+        blockerId,
+        blockedId,
+      });
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      throw error;
+    }
+  }
+
+  async unblockUser(blockerId: string, blockedId: string): Promise<void> {
+    try {
+      await db.delete(blockedUsers)
+        .where(and(
+          eq(blockedUsers.blockerId, blockerId),
+          eq(blockedUsers.blockedId, blockedId)
+        ));
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      throw error;
+    }
+  }
+
+  async isUserBlocked(blockerId: string, blockedId: string): Promise<boolean> {
+    try {
+      const [block] = await db.select()
+        .from(blockedUsers)
+        .where(and(
+          eq(blockedUsers.blockerId, blockerId),
+          eq(blockedUsers.blockedId, blockedId)
+        ));
+      return !!block;
+    } catch (error) {
+      console.error("Error checking block status:", error);
+      return false;
+    }
+  }
+
+  async getBlockedUsers(userId: string): Promise<User[]> {
+    try {
+      return await db.select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        isOnline: users.isOnline,
+      })
+        .from(blockedUsers)
+        .leftJoin(users, eq(blockedUsers.blockedId, users.id))
+        .where(eq(blockedUsers.blockerId, userId));
+    } catch (error) {
+      console.error("Error fetching blocked users:", error);
+      throw error;
+    }
   }
 }
 

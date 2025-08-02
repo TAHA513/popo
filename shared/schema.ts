@@ -231,6 +231,13 @@ export const followers = pgTable("followers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const blockedUsers = pgTable("blocked_users", {
+  id: serial("id").primaryKey(),
+  blockerId: varchar("blocker_id").notNull().references(() => users.id),
+  blockedId: varchar("blocked_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Direct Messages table for TikTok-style chat
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -885,6 +892,9 @@ export type PointTransaction = typeof pointTransactions.$inferSelect;
 
 export type InsertFollower = typeof followers.$inferInsert;
 export type Follower = typeof followers.$inferSelect;
+
+export type InsertBlockedUser = typeof blockedUsers.$inferInsert;
+export type BlockedUser = typeof blockedUsers.$inferSelect;
 
 export type InsertMemoryFragment = typeof memoryFragments.$inferInsert;
 export type MemoryFragment = typeof memoryFragments.$inferSelect;
