@@ -23,6 +23,8 @@ Gift System: Fully activated across all platform components with real working tr
 - ✅ Added comprehensive UI for album management with Arabic interface
 - ✅ Integrated gift-based payment system for album unlocking
 - ✅ Set up complete backend infrastructure for paid content
+- ✅ Added live stream indicator that persists across pages to prevent accidental stream abandonment
+- ✅ Fixed settings page route (/account) and added settings button to profile page
 - Ready for deployment with fully functional gift economy and premium content
 
 ## System Architecture

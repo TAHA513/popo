@@ -96,6 +96,7 @@ function Router() {
           <Route path="/profile" component={ProfileRedesignPage} />
           <Route path="/profile-old" component={ProfileSimplePage} />
           <Route path="/user/:userId" component={ProfileRedesignPage} />
+          <Route path="/account" component={AccountPage} />
           <Route path="/messages" component={MessagesPage} />
           <Route path="/video/:videoId" component={VideoPage} />
           <Route path="/single-video" component={SingleVideoPage} />
