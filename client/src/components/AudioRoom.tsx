@@ -108,18 +108,30 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
       } else {
         if (!micPermissionGranted) {
           // إعادة طلب إذن المايك
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true
-            }
-          });
-          stream.getTracks().forEach(track => track.stop());
-          setMicPermissionGranted(true);
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+                sampleRate: 44100,
+                channelCount: 2
+              }
+            });
+            console.log('🎤 New microphone permission granted');
+            stream.getTracks().forEach(track => track.stop());
+            setMicPermissionGranted(true);
+          } catch (permError) {
+            console.error('❌ Microphone permission failed:', permError);
+            return;
+          }
         }
-        unmuteMic();
-        console.log('🎤 Mic enabled');
+        
+        // تفعيل المايك مع تأخير قصير
+        setTimeout(() => {
+          unmuteMic();
+          console.log('🎤 Mic enabled with audio configuration');
+        }, 500);
       }
     } catch (error) {
       console.error('❌ Error toggling microphone:', error);
