@@ -60,14 +60,28 @@ const getRarityText = (rarity: string) => {
 };
 
 export default function GiftsPage() {
+  console.log('🎁 GiftsPage component rendered');
   const [selectedGift, setSelectedGift] = useState<GiftCharacter | null>(null);
   const [showGiftShop, setShowGiftShop] = useState(false);
   const { user } = useAuth();
+  
+  console.log('🎁 Current user:', user);
 
   // Fetch available gifts
-  const { data: giftCharacters = [], isLoading } = useQuery({
+  const { data: giftCharacters = [], isLoading, error } = useQuery({
     queryKey: ['/api/gifts/characters'],
-    queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
+    queryFn: async () => {
+      console.log('🎁 Fetching gift characters...');
+      try {
+        const response = await apiRequest('GET', '/api/gifts/characters');
+        const data = await response.json();
+        console.log('🎁 Gift characters loaded:', data);
+        return data;
+      } catch (err) {
+        console.error('🎁 Error fetching gift characters:', err);
+        throw err;
+      }
+    },
     staleTime: 30000, // Cache for 30 seconds
   });
   
@@ -88,11 +102,38 @@ export default function GiftsPage() {
   });
 
   if (isLoading) {
+    console.log('🎁 Loading gifts page...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 p-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+            <div className="text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-lg text-gray-600">جاري تحميل الهدايا...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error('🎁 Error in gifts page:', error);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Gift className="w-16 h-16 text-red-400 mx-auto mb-4" />
+              <p className="text-lg text-red-600">خطأ في تحميل الهدايا</p>
+              <p className="text-gray-500 mt-2">{error.toString()}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+              >
+                إعادة المحاولة
+              </button>
+            </div>
           </div>
         </div>
       </div>
