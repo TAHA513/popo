@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Home, Video, Gift, User } from "lucide-react";
+import { Home, Gift, User } from "lucide-react";
 
 interface MobileNavigationProps {
   activeTab: string;
@@ -13,12 +13,6 @@ export default function MobileNavigation({ activeTab, onTabChange }: MobileNavig
       label: 'Home',
       icon: Home,
       labelAr: 'الرئيسية'
-    },
-    {
-      id: 'live',
-      label: 'Live',
-      icon: Video,
-      labelAr: 'مباشر'
     },
     {
       id: 'gifts',
