@@ -46,6 +46,9 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
   const [selectedGift, setSelectedGift] = useState<GiftCharacter | null>(null);
   const [message, setMessage] = useState('');
   const [showAnimation, setShowAnimation] = useState(false);
+  const [actualReceiverId, setActualReceiverId] = useState(receiverId);
+  const [actualReceiverName, setActualReceiverName] = useState(receiverName || '');
+  const [showUserSelector, setShowUserSelector] = useState(receiverId === 'placeholder');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -91,7 +94,23 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
     }
   });
 
+  // Fetch users for selection
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/users/search'],
+    queryFn: () => apiRequest('GET', '/api/users/search?limit=50').then(res => res.json()),
+    enabled: showUserSelector
+  });
+
   const handleSendGift = () => {
+    if (showUserSelector && (!actualReceiverId || actualReceiverId === 'placeholder')) {
+      toast({
+        title: "اختر المستقبل",
+        description: "يرجى اختيار الشخص الذي تريد إرسال الهدية إليه",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!selectedGift) {
       toast({
         title: "اختر هدية",
@@ -102,11 +121,17 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
     }
 
     sendGiftMutation.mutate({
-      receiverId,
+      receiverId: actualReceiverId,
       characterId: selectedGift.id,
       message: message.trim(),
       streamId
     });
+  };
+
+  const selectReceiver = (userId: string, userName: string) => {
+    setActualReceiverId(userId);
+    setActualReceiverName(userName);
+    setShowUserSelector(false);
   };
 
   if (isLoading) {
@@ -129,16 +154,67 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
             <DialogTitle className="text-2xl font-bold text-center text-pink-600">
               🎁 متجر الهدايا
             </DialogTitle>
-            {receiverName && (
+            {showUserSelector ? (
               <p className="text-center text-gray-600 mt-2">
-                إرسال هدية إلى {receiverName}
+                اختر الشخص الذي تريد إرسال الهدية إليه
+              </p>
+            ) : actualReceiverName && (
+              <p className="text-center text-gray-600 mt-2">
+                إرسال هدية إلى {actualReceiverName}
               </p>
             )}
           </DialogHeader>
 
           <div className="space-y-6">
+            {/* User Selection */}
+            {showUserSelector && (
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-700">
+                  اختر المستقبل:
+                </label>
+                <div className="max-h-40 overflow-y-auto space-y-2 border rounded-lg p-2">
+                  {users.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">لا توجد مستخدمين متاحين</p>
+                  ) : (
+                    users.map((user: any) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                        onClick={() => selectReceiver(user.id, user.username || user.firstName)}
+                      >
+                        <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                          {(user.username || user.firstName || 'U')[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium">{user.username || user.firstName}</p>
+                          {user.firstName && user.username && (
+                            <p className="text-sm text-gray-500">{user.firstName}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Change Receiver Button */}
+            {!showUserSelector && actualReceiverName && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowUserSelector(true)}
+                  className="text-pink-600 border-pink-300 hover:bg-pink-50"
+                >
+                  تغيير المستقبل
+                </Button>
+              </div>
+            )}
+
             {/* Gift Selection Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {!showUserSelector && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {giftCharacters.map((gift: GiftCharacter) => (
                 <Card 
                   key={gift.id}
@@ -168,7 +244,8 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
 
             {/* Selected Gift Details */}
             {selectedGift && (

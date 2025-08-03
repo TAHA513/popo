@@ -6,7 +6,7 @@ import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
 import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts } from "@shared/schema";
 import { z } from "zod";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, ne } from "drizzle-orm";
 import { db } from "./db";
 import bcrypt from "bcryptjs";
 import passport from "passport";
@@ -981,6 +981,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching memory:", error);
       res.status(500).json({ message: "Failed to fetch memory" });
+    }
+  });
+
+  // Search users endpoint
+  app.get('/api/users/search', requireAuth, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const search = req.query.q as string || '';
+      
+      // Get users excluding the current user
+      const usersResult = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName,
+          profileImageUrl: users.profileImageUrl,
+          isOnline: users.isOnline
+        })
+        .from(users)
+        .where(ne(users.id, req.user.id))
+        .limit(limit);
+      
+      res.json(usersResult);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      res.status(500).json({ message: 'فشل في البحث عن المستخدمين' });
     }
   });
 
