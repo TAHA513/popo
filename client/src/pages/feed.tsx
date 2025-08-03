@@ -507,6 +507,11 @@ export default function Feed() {
       <BottomNavigation />
       
       {/* Gift Panel */}
+      {console.log('Rendering MobileGiftPanel with props:', {
+        isOpen: showGiftPanel,
+        selectedRecipient,
+        userPoints: user?.points || 0
+      })}
       <MobileGiftPanel
         isOpen={showGiftPanel}
         onClose={() => {
