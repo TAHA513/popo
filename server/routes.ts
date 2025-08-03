@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "./db";
@@ -2786,6 +2786,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error adding interaction:', error);
       res.status(500).json({ message: 'Failed to add interaction' });
+    }
+  });
+
+  // Gift sending API endpoint
+  app.post('/api/gifts/send', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user.id;
+      const { receiverId, memoryId, giftId, message } = req.body;
+
+      if (!receiverId || !giftId) {
+        return res.status(400).json({ message: 'Receiver ID and Gift ID are required' });
+      }
+
+      // Get gift character details
+      const [giftCharacter] = await db
+        .select()
+        .from(giftCharacters)
+        .where(eq(giftCharacters.id, giftId))
+        .limit(1);
+
+      if (!giftCharacter) {
+        return res.status(404).json({ message: 'Gift character not found' });
+      }
+
+      // Check if sender has enough points
+      const [sender] = await db
+        .select({ points: users.points })
+        .from(users)
+        .where(eq(users.id, senderId))
+        .limit(1);
+
+      if (!sender || (sender.points || 0) < giftCharacter.pointCost) {
+        return res.status(400).json({ message: 'Insufficient points' });
+      }
+
+      // Start transaction
+      const giftData = {
+        senderId,
+        receiverId,
+        streamId: memoryId ? null : undefined, // For memories, streamId is null
+        characterId: giftId,
+        pointCost: giftCharacter.pointCost,
+        message: message || null,
+      };
+
+      // Record the gift
+      const [gift] = await db
+        .insert(gifts)
+        .values(giftData)
+        .returning();
+
+      // Deduct points from sender
+      await db
+        .update(users)
+        .set({
+          points: sql`${users.points} - ${giftCharacter.pointCost}`,
+          totalGiftsSent: sql`${users.totalGiftsSent} + ${giftCharacter.pointCost}`
+        })
+        .where(eq(users.id, senderId));
+
+      // Add points to receiver (conversion rate: 1 gift point = 0.5 user points)
+      const receiverBonus = Math.floor(giftCharacter.pointCost * 0.5);
+      await db
+        .update(users)
+        .set({
+          points: sql`${users.points} + ${receiverBonus}`,
+          totalGiftsReceived: sql`${users.totalGiftsReceived} + ${giftCharacter.pointCost}`
+        })
+        .where(eq(users.id, receiverId));
+
+      // Update memory gift count if this is for a memory
+      if (memoryId) {
+        await db
+          .update(memoryFragments)
+          .set({
+            giftCount: sql`${memoryFragments.giftCount} + 1`,
+            currentEnergy: sql`${memoryFragments.currentEnergy} + 5`
+          })
+          .where(eq(memoryFragments.id, memoryId));
+      }
+
+      res.json({
+        message: 'Gift sent successfully!',
+        gift: {
+          ...gift,
+          giftCharacter: {
+            name: giftCharacter.name,
+            emoji: giftCharacter.emoji,
+            pointCost: giftCharacter.pointCost
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('Error sending gift:', error);
+      res.status(500).json({ message: 'Failed to send gift' });
     }
   });
 

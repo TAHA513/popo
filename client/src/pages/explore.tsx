@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import MemoryCard from "@/components/memory-card";
 import SimpleNavigation from "@/components/simple-navigation";
+import MobileGiftPanel from "@/components/mobile-gift-panel";
 import {
   Search,
   Users,
@@ -44,6 +45,8 @@ export default function Explore() {
   const [exploreMode, setExploreMode] = useState<ExploreMode>('network');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEnergy, setSelectedEnergy] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [selectedMemoryForGift, setSelectedMemoryForGift] = useState<any>(null);
 
   // Fetch public memories
   const { data: publicMemories = [], isLoading: memoriesLoading } = useQuery({
@@ -87,15 +90,63 @@ export default function Explore() {
     });
   };
 
-  const handleMemoryInteraction = async (memoryId: number, type: string) => {
+  // Gift sending mutation
+  const sendGiftMutation = useMutation({
+    mutationFn: async ({ memoryId, gift }: { memoryId: number; gift: any }) => {
+      // First, send the gift to the memory owner
+      const response = await apiRequest('/api/gifts/send', 'POST', {
+        receiverId: selectedMemoryForGift?.authorId,
+        memoryId: memoryId,
+        giftId: gift.id,
+        message: `هدية على منشورك الرائع!`
+      });
+      
+      // Then record the interaction
+      await apiRequest(`/api/memories/${memoryId}/interact`, 'POST', { type: 'gift' });
+      
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم إرسال الهدية! 🎁",
+        description: "تم إرسال هديتك بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); // Refresh user points
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إرسال الهدية",
+        description: error?.message || "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSendGift = (gift: any) => {
+    if (selectedMemoryForGift) {
+      sendGiftMutation.mutate({
+        memoryId: selectedMemoryForGift.id,
+        gift
+      });
+    }
+  };
+
+  const handleMemoryInteraction = async (memoryId: number, type: string, memory?: any) => {
     try {
+      if (type === 'gift') {
+        // Open gift panel instead of direct interaction
+        setSelectedMemoryForGift(memory || typedMemories.find(m => m.id === memoryId));
+        setShowGiftPanel(true);
+        return;
+      }
+
       await apiRequest(`/api/memories/${memoryId}/interact`, 'POST', { type });
       
       const messages = {
         like: "تم الإعجاب! ❤️",
         view: "تم عرض الذكرى",
         share: "تم نسخ الرابط للمشاركة",
-        gift: "تم إرسال هدية!"
       };
       
       toast({
@@ -139,7 +190,7 @@ export default function Explore() {
                       onLike={() => handleMemoryInteraction(memory.id, 'like')}
                       onComment={() => handleMemoryInteraction(memory.id, 'view')}
                       onShare={() => handleMemoryInteraction(memory.id, 'share')}
-                      onSendGift={() => handleMemoryInteraction(memory.id, 'gift')}
+                      onSendGift={() => handleMemoryInteraction(memory.id, 'gift', memory)}
                     />
                   ))}
                 </div>
@@ -174,7 +225,7 @@ export default function Explore() {
                   onLike={() => handleMemoryInteraction(memory.id, 'like')}
                   onComment={() => handleMemoryInteraction(memory.id, 'view')}
                   onShare={() => handleMemoryInteraction(memory.id, 'share')}
-                  onSendGift={() => handleMemoryInteraction(memory.id, 'gift')}
+                  onSendGift={() => handleMemoryInteraction(memory.id, 'gift', memory)}
                 />
               ))}
             </div>
@@ -227,7 +278,7 @@ export default function Explore() {
                   onLike={() => handleMemoryInteraction(memory.id, 'like')}
                   onComment={() => handleMemoryInteraction(memory.id, 'view')}
                   onShare={() => handleMemoryInteraction(memory.id, 'share')}
-                  onSendGift={() => handleMemoryInteraction(memory.id, 'gift')}
+                  onSendGift={() => handleMemoryInteraction(memory.id, 'gift', memory)}
                 />
               ))}
             </div>
@@ -268,7 +319,7 @@ export default function Explore() {
                       onLike={() => handleMemoryInteraction(memory.id, 'like')}
                       onComment={() => handleMemoryInteraction(memory.id, 'view')}
                       onShare={() => handleMemoryInteraction(memory.id, 'share')}
-                      onSendGift={() => handleMemoryInteraction(memory.id, 'gift')}
+                      onSendGift={() => handleMemoryInteraction(memory.id, 'gift', memory)}
                     />
                   </div>
                 </div>
@@ -492,6 +543,14 @@ export default function Explore() {
           </Card>
         )}
       </div>
+
+      {/* Gift Panel */}
+      <MobileGiftPanel
+        isOpen={showGiftPanel}
+        onClose={() => setShowGiftPanel(false)}
+        onSendGift={handleSendGift}
+        userPoints={user?.points || 0}
+      />
     </div>
   );
 }
