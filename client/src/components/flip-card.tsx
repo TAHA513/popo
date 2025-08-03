@@ -313,7 +313,14 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                 <Share2 className="w-4 h-4" />
               </button>
               
-              <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setLocation('/gifts');
+                }}
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors"
+              >
                 <Gift className="w-4 h-4" />
               </button>
             </div>
