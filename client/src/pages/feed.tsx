@@ -107,6 +107,7 @@ export default function Feed() {
   };
 
   const handleShare = (memoryId: number) => {
+    console.log('Share button clicked for memory ID:', memoryId);
     navigator.clipboard?.writeText(`${window.location.origin}/memory/${memoryId}`);
     interactionMutation.mutate({ memoryId, type: 'share' });
   };
@@ -150,6 +151,7 @@ export default function Feed() {
   });
 
   const handleGiftClick = (memory: any) => {
+    console.log('Gift button clicked for memory:', memory);
     setSelectedRecipient({
       id: memory.authorId,
       username: memory.author?.username,
