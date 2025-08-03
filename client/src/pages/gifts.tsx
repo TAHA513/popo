@@ -73,7 +73,18 @@ export default function GiftsPage() {
     queryFn: async () => {
       console.log('🎁 Fetching gift characters...');
       try {
-        const response = await apiRequest('GET', '/api/gifts/characters');
+        const response = await fetch('/api/gifts/characters', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         console.log('🎁 Gift characters loaded:', data);
         return data;
@@ -90,14 +101,34 @@ export default function GiftsPage() {
   // Fetch user's sent gifts
   const { data: sentGifts = [] } = useQuery({
     queryKey: ['/api/gifts/sent', user?.id],
-    queryFn: () => apiRequest('GET', `/api/gifts/sent/${user?.id}`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/gifts/sent/${user?.id}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch sent gifts');
+      return response.json();
+    },
     enabled: !!user?.id,
   });
 
   // Fetch user's received gifts
   const { data: receivedGifts = [] } = useQuery({
     queryKey: ['/api/gifts/received', user?.id],
-    queryFn: () => apiRequest('GET', `/api/gifts/received/${user?.id}`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/gifts/received/${user?.id}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch received gifts');
+      return response.json();
+    },
     enabled: !!user?.id,
   });
 
