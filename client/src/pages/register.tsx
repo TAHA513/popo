@@ -24,9 +24,9 @@ const registerSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح"),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   confirmPassword: z.string(),
-  countryCode: z.string().optional(),
-  countryName: z.string().optional(),
-  countryFlag: z.string().optional(),
+  countryCode: z.string().min(2, "كود البلد مطلوب"),
+  countryName: z.string().min(2, "اسم البلد مطلوب"),
+  countryFlag: z.string().min(1, "علم البلد مطلوب"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
   path: ["confirmPassword"],
@@ -116,6 +116,15 @@ export default function Register() {
       toast({
         title: "خطأ",
         description: "اسم المستخدم غير متاح",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedCountry) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار بلد الإقامة",
         variant: "destructive",
       });
       return;

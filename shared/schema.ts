@@ -994,6 +994,9 @@ export const registerSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح"),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   confirmPassword: z.string(),
+  countryCode: z.string().min(2, "كود البلد مطلوب"),
+  countryName: z.string().min(2, "اسم البلد مطلوب"),
+  countryFlag: z.string().min(1, "علم البلد مطلوب"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
   path: ["confirmPassword"],
