@@ -2056,7 +2056,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: stream.title,
         isLive: stream.isLive,
         hostId: stream.hostId,
-        hostName: streamWithHost.hostName
+        hostName: streamWithHost.hostName,
+        meetingId: stream.meetingId
       });
       
       res.json(streamWithHost);
@@ -3458,11 +3459,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Store meeting in database
       const stream = await storage.createStream({
-        title: title || 'غرفة صوتية',
-        description: description || '',
+        title: title || `بث ${req.user.firstName || req.user.username} المباشر`,
+        description: description || 'غرفة صوتية مباشرة',
         hostId: userId,
         category: 'audio',
         thumbnailUrl: null,
+        meetingId: meetingId, // حفظ meetingId في قاعدة البيانات
         isLive: true,
         viewerCount: 0,
         totalGifts: 0,
