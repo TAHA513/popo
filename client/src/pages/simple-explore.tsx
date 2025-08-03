@@ -4,12 +4,10 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Heart, ShoppingBag, Sparkles, Users, GamepadIcon } from "lucide-react";
-import CharacterSelector from "@/components/CharacterSelector";
+import { Plus, Heart, ShoppingBag, Sparkles, Users } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import { apiRequest } from "@/lib/queryClient";
 import FriendsGardens from "@/components/FriendsGardens";
-import MultiplayerGames from "@/components/MultiplayerGames";
 import PromotionalBanner from "@/components/promotional-banner";
 
 export default function SimpleExplore() {
@@ -122,10 +120,10 @@ export default function SimpleExplore() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3 space-x-reverse">
                 <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl">
-                  🎮
+                  👤
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">{user?.username || "اللاعب"}</h2>
+                  <h2 className="text-xl font-bold">{user?.username || "المستخدم"}</h2>
                   <p className="text-sm opacity-90">المستوى {Math.floor((user?.points || 0) / 100) + 1}</p>
                 </div>
               </div>
@@ -150,8 +148,8 @@ export default function SimpleExplore() {
             
             <div className="flex items-center justify-between">
               <div className="text-center">
-                <div className="text-lg font-bold">🎮</div>
-                <div className="text-xs">4 شخصيات مملوكة</div>
+                <div className="text-lg font-bold">📸</div>
+                <div className="text-xs">4 ألبومات مملوكة</div>
               </div>
               
               <div className="grid grid-cols-3 gap-2">
@@ -161,8 +159,8 @@ export default function SimpleExplore() {
                   <div className="text-sm font-bold">{Math.floor((user?.points || 0) / 100) + 1}</div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                  <div className="text-lg font-bold">🏆</div>
-                  <div className="text-xs">الانتصارات</div>
+                  <div className="text-lg font-bold">❤️</div>
+                  <div className="text-xs">الإعجابات</div>
                   <div className="text-sm font-bold">45</div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-lg p-2">
@@ -225,7 +223,7 @@ export default function SimpleExplore() {
                       setShowGiftSending(false);
                     }}
                   >
-                    🎮 شخصيات
+                    📷 صور
                   </Button>
                   <Button 
                     size="sm" 
@@ -251,10 +249,12 @@ export default function SimpleExplore() {
                   </Button>
                 </div>
 
-                {/* Character Selection Section */}
+                {/* Photo Gallery Section */}
                 {showCharacters && (
                   <div className="bg-white/80 rounded-xl p-4">
-                    <CharacterSelector />
+                    <div className="text-center">
+                      <p className="text-gray-600">📸 معرض الصور قريباً!</p>
+                    </div>
                   </div>
                 )}
 
@@ -262,7 +262,7 @@ export default function SimpleExplore() {
                 {showGiftSending && (
                   <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-4 mt-4 border-2 border-pink-200">
                     <h5 className="text-lg font-bold text-pink-700 mb-4 text-center flex items-center justify-center">
-                      🎁 إرسال الهدايا والشخصيات
+                      🎁 إرسال الهدايا
                     </h5>
                     
                     {/* Friend Selection */}
@@ -615,10 +615,7 @@ export default function SimpleExplore() {
             <FriendsGardens />
           </div>
 
-          {/* الألعاب الجماعية */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <MultiplayerGames />
-          </div>
+
         </div>
       </div>
 
