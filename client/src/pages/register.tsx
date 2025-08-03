@@ -68,12 +68,21 @@ export default function Register() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterForm) => {
+      console.log('Selected country:', selectedCountry);
+      console.log('Form data:', data);
+      
+      if (!selectedCountry) {
+        throw new Error("يرجى اختيار بلد الإقامة");
+      }
+      
       const registrationData = {
         ...data,
-        countryCode: selectedCountry?.code || "",
-        countryName: selectedCountry?.name || "",
-        countryFlag: selectedCountry?.flag || ""
+        countryCode: selectedCountry.code,
+        countryName: selectedCountry.name,
+        countryFlag: selectedCountry.flag
       };
+      
+      console.log('Registration data:', registrationData);
       
       const response = await fetch("/api/register", {
         method: "POST",
@@ -103,9 +112,10 @@ export default function Register() {
       }, 1500);
     },
     onError: (error: Error) => {
+      console.error('Registration error:', error);
       toast({
-        title: "خطأ",
-        description: error.message,
+        title: "خطأ في التسجيل",
+        description: error.message || "حدث خطأ غير متوقع أثناء إنشاء الحساب",
         variant: "destructive",
       });
     },
