@@ -394,8 +394,13 @@ export default function Feed() {
                         </button>
                         
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group"
-                          onClick={() => handleShare(memory.id)}
+                          className="p-1.5 md:p-2 -m-2 group relative z-10 bg-red-100 border-2 border-red-500"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('Share button clicked!');
+                            handleShare(memory.id);
+                          }}
                         >
                           <Share2 className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-green-500 transition-colors duration-200" />
                         </button>
@@ -403,8 +408,13 @@ export default function Feed() {
                       
                       <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group"
-                          onClick={() => handleGiftClick(memory)}
+                          className="p-1.5 md:p-2 -m-2 group relative z-10 bg-purple-100 border-2 border-purple-500"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('Gift button clicked!');
+                            handleGiftClick(memory);
+                          }}
                         >
                           <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
                         </button>
