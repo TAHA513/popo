@@ -25,6 +25,13 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
   const { join, leave, toggleMic, participants, localMicOn, unmuteMic, muteMic } = useMeeting({
     onMeetingJoined: () => {
       console.log('✅ Joined audio room successfully');
+      // تفعيل المايك فور الانضمام
+      setTimeout(() => {
+        if (!localMicOn) {
+          unmuteMic();
+          console.log('🎤 Force unmuted microphone after joining');
+        }
+      }, 1000);
     },
     onMeetingLeft: () => {
       console.log('👋 Left audio room');
@@ -71,13 +78,18 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
     requestMicPermission();
   }, []);
 
-  // الانضمام للغرفة بعد الحصول على إذن المايك
+  // الانضمام للغرفة بعد الحصول على إذن المايك وتفعيل المايك تلقائياً
   useEffect(() => {
     if (micPermissionGranted && !isJoined) {
       join();
       setIsJoined(true);
+      // تفعيل المايك تلقائياً بعد الانضمام
+      setTimeout(() => {
+        unmuteMic();
+        console.log('🎤 Auto-unmuted microphone after joining');
+      }, 2000);
     }
-  }, [micPermissionGranted, isJoined, join]);
+  }, [micPermissionGranted, isJoined, join, unmuteMic]);
 
   useEffect(() => {
     const participantsArray = Array.from(participants?.values() || []);
@@ -198,15 +210,30 @@ export default function AudioRoom({ meetingId, onLeave }: AudioRoomProps) {
                   {localMicOn ? (
                     <>
                       <Mic className="w-5 h-5 ml-2" />
-                      المايك مفعل - اضغط لإيقافه
+                      المايك يعمل - اضغط لإيقافه
                     </>
                   ) : (
                     <>
                       <MicOff className="w-5 h-5 ml-2" />
-                      المايك معطل - اضغط لتفعيله
+                      المايك متوقف - اضغط لتشغيله
                     </>
                   )}
                 </Button>
+                
+                {!localMicOn && (
+                  <Button
+                    onClick={() => {
+                      console.log('🔄 Force activating microphone...');
+                      unmuteMic();
+                    }}
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                  >
+                    <Mic className="w-5 h-5 ml-2" />
+                    فرض تشغيل المايك
+                  </Button>
+                )}
                 
                 <div className="flex gap-2">
                   <Button

@@ -115,6 +115,9 @@ export default function AudioRoomPage() {
           multiStream: false,
           mode: 'CONFERENCE', // وضع المؤتمر للصوت
           preferredProtocol: 'UDP_OVER_TCP',
+          participantCanToggleSelfWebcam: false,
+          participantCanToggleSelfMic: true,
+          joinWithoutUserInteraction: true,
         }}
         token={token}
         reinitialiseMeetingOnConfigChange={true}

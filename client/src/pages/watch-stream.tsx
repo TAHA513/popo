@@ -16,7 +16,7 @@ import {
 
 // مكون مشاهدة البث
 function StreamViewer({ meetingId, onLeave }: { meetingId: string; onLeave: () => void }) {
-  const { join, leave, participants, enableMic, disableMic, localMicOn } = useMeeting({
+  const { join, leave, participants } = useMeeting({
     onMeetingJoined: () => {
       console.log('🎧 Joined as viewer successfully');
     },
@@ -265,11 +265,14 @@ export default function WatchStreamPage() {
         webcamEnabled: false,
         name: user?.firstName || user?.username || 'مستمع',
         multiStream: false,
-        mode: 'VIEWER', // وضع المشاهدة فقط
+        mode: 'CONFERENCE', // استخدام نفس وضع البث
         preferredProtocol: 'UDP_OVER_TCP',
+        participantCanToggleSelfWebcam: false,
+        participantCanToggleSelfMic: false,
+        joinWithoutUserInteraction: true,
       }}
       token={token}
-      reinitialiseMeetingOnConfigChange={true}
+      reinitialiseMeetingOnConfigChange={false}
       joinWithoutUserInteraction={true}
     >
       <StreamViewer meetingId={meetingId} onLeave={leaveStream} />
