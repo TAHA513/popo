@@ -152,12 +152,24 @@ export default function Feed() {
 
   const handleGiftClick = (memory: any) => {
     console.log('Gift button clicked for memory:', memory);
-    setSelectedRecipient({
+    console.log('Current showGiftPanel state:', showGiftPanel);
+    
+    const recipient = {
       id: memory.authorId,
       username: memory.author?.username,
       profileImageUrl: memory.author?.profileImageUrl
-    });
+    };
+    
+    console.log('Setting recipient:', recipient);
+    setSelectedRecipient(recipient);
+    
+    console.log('Setting showGiftPanel to true...');
     setShowGiftPanel(true);
+    
+    // Debug: Check state after setting
+    setTimeout(() => {
+      console.log('After timeout - showGiftPanel:', showGiftPanel);
+    }, 100);
   };
 
   const handleSendGift = (gift: any) => {
@@ -394,11 +406,24 @@ export default function Feed() {
                         </button>
                         
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group relative z-10 bg-red-100 border-2 border-red-500"
+                          className="p-1.5 md:p-2 -m-2 group relative z-10"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            alert('Share button clicked!');
+                            
+                            // Try native mobile share first
+                            if (navigator.share) {
+                              navigator.share({
+                                title: `منشور من ${memory.author?.username || 'LaaBoBo'}`,
+                                text: memory.caption || 'شاهد هذا المنشور الرائع!',
+                                url: `${window.location.origin}/memory/${memory.id}`
+                              }).catch(console.error);
+                            } else {
+                              // Fallback to clipboard
+                              navigator.clipboard?.writeText(`${window.location.origin}/memory/${memory.id}`);
+                              alert('تم نسخ الرابط للحافظة!');
+                            }
+                            
                             handleShare(memory.id);
                           }}
                         >
@@ -408,11 +433,11 @@ export default function Feed() {
                       
                       <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group relative z-10 bg-purple-100 border-2 border-purple-500"
+                          className="p-1.5 md:p-2 -m-2 group relative z-10"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            alert('Gift button clicked!');
+                            console.log('Gift button clicked, calling handleGiftClick...');
                             handleGiftClick(memory);
                           }}
                         >
@@ -482,9 +507,15 @@ export default function Feed() {
       <BottomNavigation />
       
       {/* Gift Panel */}
+      {console.log('Rendering MobileGiftPanel with props:', {
+        isOpen: showGiftPanel,
+        selectedRecipient,
+        userPoints: user?.points || 0
+      })}
       <MobileGiftPanel
         isOpen={showGiftPanel}
         onClose={() => {
+          console.log('MobileGiftPanel onClose called');
           setShowGiftPanel(false);
           setSelectedRecipient(null);
         }}
