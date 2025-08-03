@@ -427,15 +427,25 @@ export default function Feed() {
                       
                       <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group relative z-10"
+                          className="p-1.5 md:p-2 -m-2 group relative z-10 bg-purple-100 border border-purple-300"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('Gift button clicked, calling handleGiftClick...');
-                            handleGiftClick(memory);
+                            console.log('🎁 Gift button clicked!');
+                            alert('Gift button clicked!');
+                            
+                            // Set states directly for testing
+                            setSelectedRecipient({
+                              id: memory.authorId,
+                              username: memory.author?.username || 'مستخدم',
+                              profileImageUrl: memory.author?.profileImageUrl
+                            });
+                            setShowGiftPanel(true);
+                            
+                            console.log('🎁 States set - showGiftPanel should be true');
                           }}
                         >
-                          <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
+                          <Gift className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
                         </button>
                         <button className="p-1.5 md:p-2 -m-2 group">
                           <Bookmark className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-yellow-500 transition-colors duration-200" />
@@ -499,6 +509,13 @@ export default function Feed() {
       </main>
       
       <BottomNavigation />
+      
+      {/* Debug State Display */}
+      {showGiftPanel && (
+        <div className="fixed top-4 left-4 bg-red-500 text-white p-2 rounded z-50">
+          Gift Panel State: OPEN
+        </div>
+      )}
       
       {/* Gift Panel */}
       <MobileGiftPanel
