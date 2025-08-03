@@ -72,7 +72,6 @@ export const streams = pgTable("streams", {
   description: text("description"),
   category: varchar("category").notNull(),
   thumbnailUrl: text("thumbnail_url"),
-  meetingId: varchar("meeting_id"), // VideoSDK meeting ID
 
   isLive: boolean("is_live").default(true),
   viewerCount: integer("viewer_count").default(0),

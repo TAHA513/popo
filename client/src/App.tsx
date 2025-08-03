@@ -49,7 +49,6 @@ import GiftsPage from "@/pages/gifts";
 import GiftsSimplePage from "@/pages/gifts-simple";
 import SimpleGiftsPage from "@/pages/simple-gifts";
 import GiftsTestPage from "@/pages/gifts-test";
-import AudioRoomPage from "@/pages/audio-room";
 
 import { LanguageOption } from "@/types";
 
@@ -117,8 +116,6 @@ function Router() {
           <Route path="/gifts-simple" component={GiftsSimplePage} />
           <Route path="/simple-gifts" component={SimpleGiftsPage} />
           <Route path="/gifts-test" component={GiftsTestPage} />
-          <Route path="/audio-room" component={AudioRoomPage} />
-          <Route path="/watch-stream/:streamId" component={WatchStreamPage} />
         </Suspense>
       ) : (
         <>
