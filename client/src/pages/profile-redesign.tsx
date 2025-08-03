@@ -440,20 +440,9 @@ export default function ProfileRedesign() {
                     {profileUser?.firstName || profileUser?.username || 'مستخدم'}
                   </h1>
                   <p className="text-purple-600 font-medium mb-2">@{profileUser?.username}</p>
-                  <p className="text-gray-600 text-sm mb-2 max-w-md">
+                  <p className="text-gray-600 text-sm mb-4 max-w-md">
                     {profileUser?.bio || 'مرحباً بكم في ملفي الشخصي'}
                   </p>
-
-                  {/* Country Info */}
-                  {profileUser?.countryFlag && profileUser?.countryName && (
-                    <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
-                      <span className="text-xl">{profileUser.countryFlag}</span>
-                      <span className="text-gray-600 text-sm font-medium">{profileUser.countryName}</span>
-                      {profileUser.countryCode && (
-                        <span className="text-gray-400 text-xs uppercase">({profileUser.countryCode})</span>
-                      )}
-                    </div>
-                  )}
 
                   {/* Stats */}
                   <div className="flex justify-center md:justify-start gap-6 text-sm mb-4">
