@@ -151,8 +151,7 @@ export default function Feed() {
   });
 
   const handleGiftClick = (memory: any) => {
-    console.log('Gift button clicked for memory:', memory);
-    console.log('Current showGiftPanel state:', showGiftPanel);
+    console.log('🎁 Gift button clicked for memory:', memory);
     
     const recipient = {
       id: memory.authorId,
@@ -160,16 +159,11 @@ export default function Feed() {
       profileImageUrl: memory.author?.profileImageUrl
     };
     
-    console.log('Setting recipient:', recipient);
+    console.log('🎁 Setting recipient:', recipient);
     setSelectedRecipient(recipient);
     
-    console.log('Setting showGiftPanel to true...');
+    console.log('🎁 Opening gift panel...');
     setShowGiftPanel(true);
-    
-    // Debug: Check state after setting
-    setTimeout(() => {
-      console.log('After timeout - showGiftPanel:', showGiftPanel);
-    }, 100);
   };
 
   const handleSendGift = (gift: any) => {
@@ -507,11 +501,6 @@ export default function Feed() {
       <BottomNavigation />
       
       {/* Gift Panel */}
-      {console.log('Rendering MobileGiftPanel with props:', {
-        isOpen: showGiftPanel,
-        selectedRecipient,
-        userPoints: user?.points || 0
-      })}
       <MobileGiftPanel
         isOpen={showGiftPanel}
         onClose={() => {

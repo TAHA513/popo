@@ -55,6 +55,7 @@ const quickGifts = [
 ];
 
 export default function MobileGiftPanel({ isOpen, onClose, onSendGift, userPoints }: MobileGiftPanelProps) {
+  console.log('MobileGiftPanel render:', { isOpen, userPoints });
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
