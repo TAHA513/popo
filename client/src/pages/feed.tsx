@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Users, Play, Video, Heart, MessageCircle, Share2, Gift, User, Bookmark } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
+import MobileGiftPanel from "@/components/mobile-gift-panel";
 import { Stream } from "@/types";
 import { Link } from "wouter";
 
@@ -15,6 +17,10 @@ export default function Feed() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Gift panel state
+  const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
 
   // Fetch live streams
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
@@ -103,6 +109,62 @@ export default function Feed() {
   const handleShare = (memoryId: number) => {
     navigator.clipboard?.writeText(`${window.location.origin}/memory/${memoryId}`);
     interactionMutation.mutate({ memoryId, type: 'share' });
+  };
+
+  // Gift sending mutation
+  const sendGiftMutation = useMutation({
+    mutationFn: async ({ recipientId, gift }: { recipientId: string; gift: any }) => {
+      // Map quick gifts to character IDs (based on typical gift characters)
+      const giftToCharacterMap: { [key: string]: number } = {
+        'heart': 1,    // Love Heart character
+        'star': 2,     // Star character  
+        'crown': 3,    // Crown character
+        'sparkle': 4,  // Sparkle character
+      };
+      
+      const characterId = giftToCharacterMap[gift.id] || 1; // Default to heart
+      
+      return await apiRequest('/api/gifts/send', 'POST', {
+        receiverId: recipientId,  // Backend expects receiverId
+        characterId: characterId, // Backend expects characterId
+        message: `هدية ${gift.name}`, // Optional message
+        streamId: null  // Not in a stream context
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم إرسال الهدية! 🎁",
+        description: "تم إرسال الهدية بنجاح",
+      });
+      setShowGiftPanel(false);
+      setSelectedRecipient(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); // Refresh user points
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إرسال الهدية",
+        description: error.message || "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleGiftClick = (memory: any) => {
+    setSelectedRecipient({
+      id: memory.authorId,
+      username: memory.author?.username,
+      profileImageUrl: memory.author?.profileImageUrl
+    });
+    setShowGiftPanel(true);
+  };
+
+  const handleSendGift = (gift: any) => {
+    if (selectedRecipient) {
+      sendGiftMutation.mutate({
+        recipientId: selectedRecipient.id,
+        gift
+      });
+    }
   };
 
   const isLoading = streamsLoading || memoriesLoading;
@@ -338,11 +400,12 @@ export default function Feed() {
                       </div>
                       
                       <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
-                        <Link href={`/user/${memory.authorId}`}>
-                          <button className="p-1.5 md:p-2 -m-2 group">
-                            <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
-                          </button>
-                        </Link>
+                        <button 
+                          className="p-1.5 md:p-2 -m-2 group"
+                          onClick={() => handleGiftClick(memory)}
+                        >
+                          <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
+                        </button>
                         <button className="p-1.5 md:p-2 -m-2 group">
                           <Bookmark className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-yellow-500 transition-colors duration-200" />
                         </button>
@@ -405,6 +468,17 @@ export default function Feed() {
       </main>
       
       <BottomNavigation />
+      
+      {/* Gift Panel */}
+      <MobileGiftPanel
+        isOpen={showGiftPanel}
+        onClose={() => {
+          setShowGiftPanel(false);
+          setSelectedRecipient(null);
+        }}
+        onSendGift={handleSendGift}
+        userPoints={user?.points || 0}
+      />
     </div>
   );
 }
