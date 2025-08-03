@@ -24,9 +24,9 @@ const registerSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح"),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   confirmPassword: z.string(),
-  countryCode: z.string().optional(),
-  countryName: z.string().optional(),
-  countryFlag: z.string().optional(),
+  countryCode: z.string().min(2, "كود البلد مطلوب"),
+  countryName: z.string().min(2, "اسم البلد مطلوب"),
+  countryFlag: z.string().min(1, "علم البلد مطلوب"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
   path: ["confirmPassword"],
@@ -68,12 +68,21 @@ export default function Register() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterForm) => {
+      console.log('Selected country:', selectedCountry);
+      console.log('Form data:', data);
+      
+      if (!selectedCountry) {
+        throw new Error("يرجى اختيار بلد الإقامة");
+      }
+      
       const registrationData = {
         ...data,
-        countryCode: selectedCountry?.code || "",
-        countryName: selectedCountry?.name || "",
-        countryFlag: selectedCountry?.flag || ""
+        countryCode: selectedCountry.code,
+        countryName: selectedCountry.name,
+        countryFlag: selectedCountry.flag
       };
+      
+      console.log('Registration data:', registrationData);
       
       const response = await fetch("/api/register", {
         method: "POST",
@@ -103,9 +112,10 @@ export default function Register() {
       }, 1500);
     },
     onError: (error: Error) => {
+      console.error('Registration error:', error);
       toast({
-        title: "خطأ",
-        description: error.message,
+        title: "خطأ في التسجيل",
+        description: error.message || "حدث خطأ غير متوقع أثناء إنشاء الحساب",
         variant: "destructive",
       });
     },
@@ -116,6 +126,15 @@ export default function Register() {
       toast({
         title: "خطأ",
         description: "اسم المستخدم غير متاح",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedCountry) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار بلد الإقامة",
         variant: "destructive",
       });
       return;

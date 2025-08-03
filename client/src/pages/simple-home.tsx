@@ -24,15 +24,6 @@ export default function SimpleHome() {
     refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
   });
 
-  // البثوث المباشرة النشطة
-  const { data: liveStreams = [] } = useQuery<any[]>({
-    queryKey: ['/api/streams'], 
-    refetchInterval: 10000, // تحديث كل 10 ثوان للبثوث المباشرة
-    staleTime: 5000,
-    gcTime: 60000,
-    retry: 1,
-  });
-
 
 
   const handleLike = (id: string) => {
@@ -78,44 +69,6 @@ export default function SimpleHome() {
         {/* Colored Line */}
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
-
-      {/* Live Streams Section */}
-      {liveStreams.length > 0 && (
-        <div className="max-w-sm mx-auto px-2 pt-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <h2 className="text-lg font-bold text-gray-800">بثوث مباشرة</h2>
-            </div>
-            <div className="space-y-3">
-              {liveStreams.map((stream) => (
-                <div 
-                  key={stream.id}
-                  onClick={() => setLocation(`/watch-stream/${stream.id}`)}
-                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-100 cursor-pointer hover:shadow-md transition-all duration-200"
-                >
-                  <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 text-sm">{stream.title}</h3>
-                    <p className="text-xs text-gray-500">بواسطة {stream.host?.firstName || stream.host?.username}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-green-600">نشط الآن</span>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    انضم →
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Promotional Banner */}
       <div className="max-w-sm mx-auto px-2 pt-4">

@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
+import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -10,8 +11,11 @@ import { Suspense } from "react";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
 import Landing from "@/pages/landing";
+import LiveStreams from "@/pages/live-streams";
 
 import SimpleHome from "@/pages/simple-home";
+import SimpleExplore from "@/pages/simple-explore";
+import SimpleStreamPage from "@/pages/simple-stream";
 import AccountPage from "@/pages/account";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
@@ -26,6 +30,7 @@ import LockedAlbums from "@/components/LockedAlbums";
 import PrivateAlbumsPage from "@/pages/private-albums";
 import PremiumAlbumsPage from "@/pages/premium-albums";
 import PremiumMessagesPage from "@/pages/premium-messages";
+import WatchStreamPage from "@/pages/watch-stream";
 import VideoPage from "@/pages/video";
 import SingleVideoPage from "@/pages/single-video";
 import CreatePrivateRoomPage from "@/pages/create-private-room";
@@ -78,11 +83,14 @@ function Router() {
         }>
           <Route path="/" component={SimpleHome} />
           <Route path="/home" component={SimpleHome} />
+          <Route path="/explore" component={LiveStreams} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/private-albums" component={PrivateAlbumsPage} />
           <Route path="/premium-albums" component={PremiumAlbumsPage} />
           <Route path="/premium-messages" component={PremiumMessagesPage} />
+          <Route path="/start-stream" component={SimpleStreamPage} />
+          <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
 
           <Route path="/profile" component={ProfileRedesignPage} />
@@ -139,6 +147,7 @@ function App() {
       <StreamProvider>
         <div className={`${language === 'ar' ? 'rtl' : 'ltr'} min-h-screen`}>
           <Router />
+          <LiveStreamIndicator />
           <Toaster />
         </div>
       </StreamProvider>

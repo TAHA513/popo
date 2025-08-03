@@ -25,8 +25,7 @@ import {
   Trophy,
   TrendingUp,
   Upload,
-  ArrowLeft,
-  Radio
+  ArrowLeft
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -441,9 +440,20 @@ export default function ProfileRedesign() {
                     {profileUser?.firstName || profileUser?.username || 'مستخدم'}
                   </h1>
                   <p className="text-purple-600 font-medium mb-2">@{profileUser?.username}</p>
-                  <p className="text-gray-600 text-sm mb-4 max-w-md">
+                  <p className="text-gray-600 text-sm mb-2 max-w-md">
                     {profileUser?.bio || 'مرحباً بكم في ملفي الشخصي'}
                   </p>
+
+                  {/* Country Info */}
+                  {profileUser?.countryFlag && profileUser?.countryName && (
+                    <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
+                      <span className="text-xl">{profileUser.countryFlag}</span>
+                      <span className="text-gray-600 text-sm font-medium">{profileUser.countryName}</span>
+                      {profileUser.countryCode && (
+                        <span className="text-gray-400 text-xs uppercase">({profileUser.countryCode})</span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Stats */}
                   <div className="flex justify-center md:justify-start gap-6 text-sm mb-4">
@@ -511,14 +521,6 @@ export default function ProfileRedesign() {
                         >
                           <Camera className="w-4 h-4 ml-1" />
                           الألبومات المدفوعة
-                        </Button>
-                        <Button 
-                          onClick={() => setLocation('/audio-room')}
-                          size="sm"
-                          className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-                        >
-                          <Radio className="w-4 h-4 ml-1" />
-                          البث الصوتي
                         </Button>
                       </div>
                     </>
