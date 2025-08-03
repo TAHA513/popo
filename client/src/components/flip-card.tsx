@@ -2,11 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RealTimeTimestamp } from "./real-time-timestamp";
 import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
-import GiftShop from "./gift-shop";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VideoOptimizer } from "@/utils/video-optimizer";
 import { 
@@ -42,7 +40,6 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
   const [userLiked, setUserLiked] = useState(isLiked);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
-  const [showGiftShop, setShowGiftShop] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Check follow status on component mount
@@ -316,14 +313,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                 <Share2 className="w-4 h-4" />
               </button>
               
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setShowGiftShop(true);
-                }}
-                className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors"
-              >
+              <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors">
                 <Gift className="w-4 h-4" />
               </button>
             </div>
@@ -530,47 +520,25 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
   };
 
   return (
-    <>
-      <div 
-        className="relative w-full aspect-[4/5] cursor-pointer group"
-        onClick={handleCardClick}
-      >
-        <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`} style={{ transformStyle: 'preserve-3d' }}>
-          {/* Front side */}
-          {!isFlipped && (
-            <div className="w-full h-full">
-              {renderFrontContent()}
-            </div>
-          )}
-          
-          {/* Back side */}
-          {isFlipped && (
-            <div className="w-full h-full">
-              {renderBackContent()}
-            </div>
-          )}
-        </div>
+    <div 
+      className="relative w-full aspect-[4/5] cursor-pointer group"
+      onClick={handleCardClick}
+    >
+      <div className={`w-full h-full transition-transform duration-700 ${isFlipped ? 'transform rotateY-180' : ''}`} style={{ transformStyle: 'preserve-3d' }}>
+        {/* Front side */}
+        {!isFlipped && (
+          <div className="w-full h-full">
+            {renderFrontContent()}
+          </div>
+        )}
+        
+        {/* Back side */}
+        {isFlipped && (
+          <div className="w-full h-full">
+            {renderBackContent()}
+          </div>
+        )}
       </div>
-
-      {/* Gift Shop Modal */}
-      <Dialog open={showGiftShop} onOpenChange={setShowGiftShop}>
-        <DialogContent className="max-w-md mx-auto">
-          <DialogHeader>
-            <DialogTitle className="text-right">
-              🎁 إرسال هدية إلى {content.author?.username || content.author?.firstName || 'المستخدم'}
-            </DialogTitle>
-          </DialogHeader>
-          <GiftShop
-            recipientId={content.author?.id || content.authorId}
-            recipientName={content.author?.username || content.author?.firstName || 'المستخدم'}
-            onGiftSent={(giftData) => {
-              console.log('Gift sent:', giftData);
-              setShowGiftShop(false);
-            }}
-            onClose={() => setShowGiftShop(false)}
-          />
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 }
