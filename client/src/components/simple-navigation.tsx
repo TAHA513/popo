@@ -91,16 +91,8 @@ export default function SimpleNavigation() {
             </Link>
           </div>
 
-          {/* Right Side - Search & Stream Button */}
+          {/* Right Side - Settings Button */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
-            <button className="p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">
-              <Search className="w-5 h-5" />
-            </button>
-            
-            
-            
-            
-            
             <Link href="/account">
               <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full">
                 <Settings className="w-5 h-5" />
