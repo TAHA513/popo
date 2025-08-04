@@ -217,39 +217,49 @@ export default function MemoryCard({
           </div>
         </div>
 
-        {/* Media Content - Clickable */}
+        {/* Media Content */}
         <CardContent className="p-0">
-          <Link href={`/memory/${memory.id}`}>
-            <div className="relative cursor-pointer hover:opacity-95 transition-opacity">
-              {memory.thumbnailUrl ? (
+          <div className="relative">
+            {memory.type === 'image' && memory.thumbnailUrl ? (
+              <Link href={`/memory/${memory.id}`}>
                 <img
                   src={memory.thumbnailUrl}
                   alt={memory.title || 'Memory'}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-64 object-cover cursor-pointer hover:opacity-95 transition-opacity"
                 />
-              ) : (
-                <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl`}>
+              </Link>
+            ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
+              <video
+                src={memory.mediaUrls[0]}
+                className="w-full h-64 object-cover"
+                muted
+                loop
+                preload="metadata"
+                poster={memory.thumbnailUrl}
+                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseLeave={(e) => e.currentTarget.pause()}
+                onClick={() => {
+                  if (onComment) {
+                    onComment();
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
+              />
+            ) : (
+              <Link href={`/memory/${memory.id}`}>
+                <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl cursor-pointer hover:opacity-95 transition-opacity`}>
                   {getMemoryIcon(memory.memoryType)}
                 </div>
-              )}
-              
-              {/* Play button overlay for videos */}
-              {memory.type === 'video' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                    <div className="w-0 h-0 border-l-6 border-l-gray-800 border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Overlay with memory type */}
-              <div className="absolute top-2 left-2">
-                <Badge className={`bg-black/70 text-white`}>
-                  {memory.type === 'video' ? '📹' : '📷'} {memory.type === 'video' ? 'فيديو' : 'صورة'}
-                </Badge>
-              </div>
+              </Link>
+            )}
+            
+            {/* Overlay with memory type */}
+            <div className="absolute top-2 left-2">
+              <Badge className={`bg-black/70 text-white`}>
+                {memory.type === 'video' ? '📹' : '📷'} {memory.type === 'video' ? 'فيديو' : 'صورة'}
+              </Badge>
             </div>
-          </Link>
+          </div>
 
           {/* Caption */}
           {memory.caption && (
