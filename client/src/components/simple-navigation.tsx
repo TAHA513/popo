@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuthFixed";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Home, 
@@ -20,7 +20,7 @@ import {
 import NotificationBell from "@/components/notification-bell";
 
 export default function SimpleNavigation() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
 
   // Fetch conversations to get unread count
@@ -90,13 +90,24 @@ export default function SimpleNavigation() {
             </Link>
           </div>
 
-          {/* Right Side - Settings Button */}
+          {/* Right Side - Settings & Logout Buttons */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
             <Link href="/account">
               <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full">
                 <Settings className="w-5 h-5" />
               </Button>
             </Link>
+            
+            {/* Logout Button */}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={logout}
+              className="text-white/80 hover:text-white hover:bg-red-500/20 p-2 rounded-full transition-colors"
+              title="تسجيل الخروج"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
           </div>
         </div>
 
