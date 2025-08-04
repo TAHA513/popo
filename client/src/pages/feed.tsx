@@ -11,7 +11,7 @@ import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
 import { Stream } from "@/types";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export default function Feed() {
   const { user } = useAuth();
@@ -133,10 +133,11 @@ export default function Feed() {
   };
 
   // إضافة دالة لفتح التعليقات
+  const [, setLocation] = useLocation();
   const handleCommentsClick = (memoryId: number) => {
     console.log('💬 Comments button clicked for memory:', memoryId);
-    // التنقل إلى صفحة المنشور مع فتح التعليقات
-    window.location.href = `/memory/${memoryId}#comments`;
+    // التنقل إلى صفحة المنشور
+    setLocation(`/memory/${memoryId}`);
   };
 
   // لا نحتاج handleSendGift بعد الآن - EnhancedGiftModal يتعامل مع إرسال الهدايا مباشرة
@@ -476,7 +477,7 @@ export default function Feed() {
         }}
         receiverId={selectedRecipient?.id || ''}
         receiverName={selectedRecipient?.username || 'مستخدم'}
-        memoryId={selectedRecipient?.memoryId || undefined}
+        memoryId={selectedRecipient?.memoryId}
         onGiftSent={() => {
           setShowGiftPanel(false);
           setSelectedRecipient(null);

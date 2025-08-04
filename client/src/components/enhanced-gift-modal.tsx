@@ -48,6 +48,9 @@ export function EnhancedGiftModal({
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
+  // Debug logging for memoryId
+  console.log('🎁 EnhancedGiftModal props:', { receiverId, receiverName, streamId, memoryId });
+
   // Fetch available gifts
   const { data: giftCharacters = [], isLoading } = useQuery({
     queryKey: ['/api/gifts/characters'],
