@@ -366,7 +366,7 @@ export default function Feed() {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('💬 Comments button clicked for memory:', memory.id);
-                            setLocation(`/memory/${memory.id}`);
+                            setLocation(`/comments/${memory.id}`);
                           }}
                         >
                           <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
