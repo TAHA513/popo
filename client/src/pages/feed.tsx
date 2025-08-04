@@ -348,7 +348,7 @@ export default function Feed() {
                     )}
                     
                     {/* Interaction Buttons - Instagram/TikTok Style */}
-                    <div className="flex items-center justify-between py-2" style={{ pointerEvents: 'auto' }}>
+                    <div className="flex items-center justify-between py-2" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
                       <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
                         <button 
                           className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
@@ -364,23 +364,21 @@ export default function Feed() {
                           </span>
                         </button>
                         
-                        <button 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-3 group relative z-50 bg-transparent hover:bg-blue-50 rounded-md transition-colors"
-                          style={{ minWidth: '60px', minHeight: '40px', pointerEvents: 'auto' }}
-                          onClick={(e) => {
-                            console.log('💬 BUTTON CLICKED!!!');
+                        <div 
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-3 group relative z-50 bg-transparent hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                          style={{ minWidth: '60px', minHeight: '40px' }}
+                          onMouseDown={(e) => {
+                            console.log('💬 DIV MOUSEDOWN!!!');
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('💬 Comments button clicked for memory:', memory.id);
-                            
-                            // Force navigation using window.location
-                            console.log('💬 Using window.location.href for navigation');
+                            console.log('💬 Comments div clicked for memory:', memory.id);
+                            console.log('💬 Direct navigation to /comments/' + memory.id);
                             window.location.href = `/comments/${memory.id}`;
                           }}
                         >
                           <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
                           <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
-                        </button>
+                        </div>
                         
                         <button 
                           className="p-1.5 md:p-2 -m-2 group relative z-10"
