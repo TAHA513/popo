@@ -361,11 +361,14 @@ export default function Feed() {
                         </button>
                         
                         <button 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group relative z-20"
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-3 group relative z-30 bg-transparent hover:bg-blue-50 rounded-md transition-colors"
+                          style={{ minWidth: '60px', minHeight: '40px' }}
                           onClick={(e) => {
+                            console.log('💬 BUTTON CLICKED!!!');
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('💬 Comments button clicked for memory:', memory.id);
+                            console.log('💬 Navigating to /comments/' + memory.id);
                             setLocation(`/comments/${memory.id}`);
                           }}
                         >
