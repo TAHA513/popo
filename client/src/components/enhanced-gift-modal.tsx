@@ -104,19 +104,56 @@ export function EnhancedGiftModal({
 
   const getGiftIcon = (giftName: string) => {
     const iconMap: Record<string, string> = {
+      // Characters
       'BoBo Love': '🐰💕',
       'BoFire': '🐲🔥',
       'Nunu Magic': '🦄🌟',
       'Dodo Splash': '🦆💦',
       'Meemo Wink': '🐱🌈',
       'Love Heart': '💝',
+      
+      // Love & Romance
       'قلب': '❤️',
       'وردة': '🌹',
+      
+      // Luxury & Status
       'تاج': '👑',
       'ألماسة': '💎',
       'سيارة': '🚗',
       'طائرة': '✈️',
-      'قلعة': '🏰'
+      'قلعة': '🏰',
+      'صاروخ': '🚀',
+      'يخت': '🛥️',
+      'جوهرة': '💍',
+      'كأس': '🏆',
+      'ساعة': '⌚',
+      
+      // Nature & Elements
+      'نجمة': '⭐',
+      'قمر': '🌙',
+      'شمس': '☀️',
+      'فراشة': '🦋',
+      'نار': '🔥',
+      'برق': '⚡',
+      'قوس قزح': '🌈',
+      
+      // Celebration & Fun
+      'كعكة': '🎂',
+      'بالون': '🎈',
+      'هدية': '🎁',
+      
+      // Cute & Sweet
+      'دب': '🧸',
+      
+      // Technology & Modern
+      'هاتف': '📱',
+      'كاميرا': '📷',
+      
+      // Style & Cool
+      'نظارة': '🕶️',
+      
+      // Special Items
+      'مفتاح': '🗝️'
     };
     return iconMap[giftName] || '🎁';
   };
@@ -192,14 +229,29 @@ export function EnhancedGiftModal({
               <div className="space-y-4 relative z-10">
                 <h3 className="text-lg font-semibold text-center text-purple-100">اختر هديتك المفضلة</h3>
                 
-                <div className="grid grid-cols-3 gap-3 max-h-60 overflow-y-auto">
-                  {availableGifts.slice(0, 12).map((gift: GiftCharacter) => (
+                {/* Gift categories info */}
+                <div className="flex justify-center gap-2 text-xs">
+                  <span className="bg-green-500/20 text-green-200 px-2 py-1 rounded-full">🎈 رخيصة (10-100)</span>
+                  <span className="bg-yellow-500/20 text-yellow-200 px-2 py-1 rounded-full">💎 متوسطة (100-500)</span>
+                  <span className="bg-red-500/20 text-red-200 px-2 py-1 rounded-full">👑 فاخرة (500+)</span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
+                  {availableGifts.map((gift: GiftCharacter) => {
+                    // Define gift category colors based on price
+                    const getCategoryColor = (cost: number) => {
+                      if (cost <= 100) return 'border-green-400/50 bg-green-500/10';
+                      if (cost <= 500) return 'border-yellow-400/50 bg-yellow-500/10';
+                      return 'border-red-400/50 bg-red-500/10';
+                    };
+                    
+                    return (
                     <motion.div
                       key={gift.id}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedGift(gift)}
-                      className="bg-white/20 backdrop-blur-sm rounded-xl p-3 cursor-pointer transition-all duration-200 hover:bg-white/30 text-center"
+                      className={`bg-white/20 backdrop-blur-sm rounded-xl p-3 cursor-pointer transition-all duration-200 hover:bg-white/30 text-center border ${getCategoryColor(gift.pointCost)}`}
                     >
                       <div className="text-3xl mb-2">
                         {getGiftIcon(gift.name)}
@@ -213,8 +265,17 @@ export function EnhancedGiftModal({
                           {gift.pointCost}
                         </span>
                       </div>
+                      
+                      {/* Special gift indicator */}
+                      {gift.hasSpecialEffects && (
+                        <div className="absolute -top-1 -right-1 text-xs">✨</div>
+                      )}
+                      {gift.hasSound && (
+                        <div className="absolute -top-1 -left-1 text-xs">🔊</div>
+                      )}
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
