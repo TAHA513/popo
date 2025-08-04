@@ -114,7 +114,7 @@ export default function Feed() {
 
   // Gift sending mutation
   const sendGiftMutation = useMutation({
-    mutationFn: async ({ recipientId, gift }: { recipientId: string; gift: any }) => {
+    mutationFn: async ({ recipientId, gift, memoryId }: { recipientId: string; gift: any; memoryId?: number }) => {
       // Map quick gifts to character IDs (based on typical gift characters)
       const giftToCharacterMap: { [key: string]: number } = {
         'heart': 1,    // Love Heart character
@@ -125,12 +125,14 @@ export default function Feed() {
       
       const characterId = giftToCharacterMap[gift.id] || 1; // Default to heart
       
+      console.log('🎁 Sending gift API request:', { recipientId, characterId, memoryId });
+      
       return await apiRequest('/api/gifts/send', 'POST', {
         receiverId: recipientId,  // Backend expects receiverId
         characterId: characterId, // Backend expects characterId
         message: `هدية ${gift.name}`, // Optional message
         streamId: null,  // Not in a stream context
-        memoryId: selectedRecipient?.memoryId || null // إضافة memoryId للتعليق التلقائي
+        memoryId: memoryId || null // إضافة memoryId للتعليق التلقائي
       });
     },
     onSuccess: () => {
@@ -174,9 +176,11 @@ export default function Feed() {
 
   const handleSendGift = (gift: any) => {
     if (selectedRecipient) {
+      console.log('🎁 Sending gift with recipient data:', selectedRecipient);
       sendGiftMutation.mutate({
         recipientId: selectedRecipient.id,
-        gift
+        gift,
+        memoryId: selectedRecipient.memoryId // تمرير memoryId من selectedRecipient
       });
     }
   };
