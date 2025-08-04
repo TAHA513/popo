@@ -229,22 +229,38 @@ export default function MemoryCard({
                 />
               </Link>
             ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
-              <video
-                src={memory.mediaUrls[0]}
-                className="w-full h-64 object-cover"
-                muted
-                loop
-                preload="metadata"
-                poster={memory.thumbnailUrl}
-                onMouseEnter={(e) => e.currentTarget.play()}
-                onMouseLeave={(e) => e.currentTarget.pause()}
-                onClick={() => {
-                  if (onComment) {
-                    onComment();
-                  }
-                }}
-                style={{ cursor: 'pointer' }}
-              />
+              <div className="relative">
+                <video
+                  src={memory.mediaUrls[0]}
+                  className="w-full h-64 object-cover"
+                  muted
+                  loop
+                  preload="metadata"
+                  poster={memory.thumbnailUrl}
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
+                  controls
+                  style={{ cursor: 'pointer' }}
+                />
+                {/* Play button overlay */}
+                <div 
+                  className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors cursor-pointer"
+                  onClick={() => {
+                    const videoElement = document.querySelector(`video[src="${memory.mediaUrls[0]}"]`) as HTMLVideoElement;
+                    if (videoElement) {
+                      if (videoElement.paused) {
+                        videoElement.play();
+                      } else {
+                        videoElement.pause();
+                      }
+                    }
+                  }}
+                >
+                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
+                    <div className="w-0 h-0 border-l-6 border-l-gray-800 border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
+                  </div>
+                </div>
+              </div>
             ) : (
               <Link href={`/memory/${memory.id}`}>
                 <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl cursor-pointer hover:opacity-95 transition-opacity`}>
