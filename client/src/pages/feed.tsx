@@ -372,18 +372,10 @@ export default function Feed() {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('💬 Comments button clicked for memory:', memory.id);
-                            console.log('💬 setLocation function:', setLocation);
-                            console.log('💬 Current location before navigation:', window.location.href);
-                            console.log('💬 Attempting to navigate to /comments/' + memory.id);
                             
-                            // Try direct navigation as fallback
-                            try {
-                              setLocation(`/comments/${memory.id}`);
-                              console.log('💬 setLocation called successfully');
-                            } catch (error) {
-                              console.error('💬 setLocation failed:', error);
-                              window.location.href = `/comments/${memory.id}`;
-                            }
+                            // Force navigation using window.location
+                            console.log('💬 Using window.location.href for navigation');
+                            window.location.href = `/comments/${memory.id}`;
                           }}
                         >
                           <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
