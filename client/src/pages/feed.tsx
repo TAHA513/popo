@@ -243,7 +243,7 @@ export default function Feed() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {typedMemories.map((memory) => (
-                <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]" style={{ pointerEvents: 'auto' }}>
+                <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
                       <Link href={`/user/${memory.authorId}`}>
@@ -346,15 +346,16 @@ export default function Feed() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>
                     )}
-                    
-                    {/* Interaction Buttons - Instagram/TikTok Style */}
-                    <div className="flex items-center justify-between py-2" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
+                  </CardContent>
+                  
+                  {/* Interaction Buttons - OUTSIDE CardContent to avoid Link conflicts */}
+                  <div className="px-4 pb-4">
+                    <div className="flex items-center justify-between py-2">
                       <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
                         <button 
                           className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                          onClick={() => {
+                            console.log('Like button clicked for memory:', memory.id);
                             handleLike(memory.id);
                           }}
                         >
@@ -366,9 +367,7 @@ export default function Feed() {
                         
                         <button 
                           className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                          onClick={() => {
                             console.log('💬 Comments Button clicked for memory:', memory.id);
                             window.location.href = `/comments/${memory.id}`;
                           }}
@@ -378,10 +377,9 @@ export default function Feed() {
                         </button>
                         
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group relative z-10"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                          className="p-1.5 md:p-2 -m-2 group"
+                          onClick={() => {
+                            console.log('Share button clicked for memory:', memory.id);
                             
                             // Try native mobile share first
                             if (navigator.share) {
@@ -405,10 +403,8 @@ export default function Feed() {
                       
                       <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group relative z-10"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                          className="p-1.5 md:p-2 -m-2 group"
+                          onClick={() => {
                             console.log('Gift button clicked, calling handleGiftClick...');
                             handleGiftClick(memory);
                           }}
@@ -468,7 +464,7 @@ export default function Feed() {
                         </div>
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
               ))}
             </div>
