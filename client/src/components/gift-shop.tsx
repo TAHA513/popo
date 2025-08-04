@@ -102,8 +102,8 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
 
   // Fetch users for selection
   const { data: users = [] } = useQuery({
-    queryKey: ['/api/users/search'],
-    queryFn: () => apiRequest('GET', '/api/users/search?limit=50').then(res => res.json()),
+    queryKey: ['/api/users/suggested'],
+    queryFn: () => apiRequest('GET', '/api/users/suggested').then(res => res.json()),
     enabled: showUserSelector
   });
 

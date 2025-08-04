@@ -990,6 +990,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.q as string || '';
       
+      console.log('🔍 Searching users for gifts:', {
+        currentUserId: req.user?.id,
+        limit,
+        search
+      });
+      
       // Get users excluding the current user
       const usersResult = await db
         .select({
@@ -1002,6 +1008,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(users)
         .where(ne(users.id, req.user.id))
         .limit(limit);
+      
+      console.log('👥 Found users:', usersResult.length);
       
       res.json(usersResult);
     } catch (error) {
