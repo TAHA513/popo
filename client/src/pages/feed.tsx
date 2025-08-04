@@ -116,6 +116,7 @@ export default function Feed() {
 
   const handleGiftClick = (memory: any) => {
     console.log('🎁 Gift button clicked for memory:', memory);
+    console.log('🎁 Memory ID:', memory.id);
     
     const recipient = {
       id: memory.authorId,
@@ -124,11 +125,18 @@ export default function Feed() {
       memoryId: memory.id // إضافة memoryId للتعليق التلقائي
     };
     
-    console.log('🎁 Setting recipient:', recipient);
+    console.log('🎁 Setting recipient with memoryId:', recipient);
     setSelectedRecipient(recipient);
     
     console.log('🎁 Opening gift panel...');
     setShowGiftPanel(true);
+  };
+
+  // إضافة دالة لفتح التعليقات
+  const handleCommentsClick = (memoryId: number) => {
+    console.log('💬 Comments button clicked for memory:', memoryId);
+    // التنقل إلى صفحة المنشور مع فتح التعليقات
+    window.location.href = `/memory/${memoryId}#comments`;
   };
 
   // لا نحتاج handleSendGift بعد الآن - EnhancedGiftModal يتعامل مع إرسال الهدايا مباشرة
@@ -351,7 +359,7 @@ export default function Feed() {
                         
                         <button 
                           className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
-                          onClick={() => handleComment(memory.id)}
+                          onClick={() => handleCommentsClick(memory.id)}
                         >
                           <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
                           <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>

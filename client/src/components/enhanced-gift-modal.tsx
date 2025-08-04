@@ -97,6 +97,14 @@ export function EnhancedGiftModal({
   const handleSendGift = () => {
     if (!selectedGift) return;
 
+    console.log('🎁 EnhancedGiftModal handleSendGift called:', {
+      receiverId,
+      characterId: selectedGift.id,
+      message: "",
+      streamId,
+      memoryId
+    });
+
     sendGiftMutation.mutate({
       receiverId,
       characterId: selectedGift.id,
