@@ -242,17 +242,13 @@ export default function MemoryCard({
                   muted
                   loop
                   playsInline
-                  preload="auto"
+                  preload="metadata"
                   poster={memory.thumbnailUrl}
                   onMouseEnter={(e) => e.currentTarget.play()}
                   onMouseLeave={(e) => e.currentTarget.pause()}
-                  onLoadedData={(e) => {
-                    // إجبار عرض الإطار الأول
-                    e.currentTarget.currentTime = 0.1;
-                  }}
-                  style={{
-                    objectFit: 'cover',
-                    backgroundColor: '#f0f0f0'
+                  onLoadedMetadata={(e) => {
+                    // إجبار عرض الإطار الأول فوراً
+                    e.currentTarget.currentTime = 0.01;
                   }}
                 />
                 {/* Play button overlay */}

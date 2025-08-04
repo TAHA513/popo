@@ -375,10 +375,14 @@ export default function Feed() {
                             className="w-full h-full object-cover"
                             muted
                             loop
+                            playsInline
                             preload="metadata"
                             poster={memory.thumbnailUrl}
                             onMouseEnter={(e) => e.currentTarget.play()}
                             onMouseLeave={(e) => e.currentTarget.pause()}
+                            onLoadedMetadata={(e) => {
+                              e.currentTarget.currentTime = 0.01;
+                            }}
                           />
                         ) : (
                           <div className="flex items-center justify-center h-full">
