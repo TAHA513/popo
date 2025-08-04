@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, desc, ne } from "drizzle-orm";
 import { db } from "./db";
@@ -30,6 +30,32 @@ const __dirname = dirname(__filename);
 
 // Security functions for ZegoCloud protection
 const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
+
+// Notification helper function
+async function createNotification(data: {
+  userId: string;
+  fromUserId: string;
+  type: 'comment' | 'like' | 'gift' | 'share' | 'follow' | 'message';
+  title: string;
+  message: string;
+  relatedId?: number;
+  relatedType?: string;
+}) {
+  try {
+    await db.insert(notifications).values({
+      userId: data.userId,
+      fromUserId: data.fromUserId,
+      type: data.type,
+      title: data.title,
+      message: data.message,
+      relatedId: data.relatedId,
+      relatedType: data.relatedType,
+      isRead: false
+    });
+  } catch (error) {
+    console.error("Error creating notification:", error);
+  }
+}
 
 function generateSecureToken(userId: string): string {
   // Generate a secure temporary token
@@ -1187,6 +1213,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ success: true, isFollowing: false, message: "تم إلغاء المتابعة" });
       } else {
         await storage.followUser(followerId, followedId);
+        
+        // Send notification to followed user
+        await createNotification({
+          userId: followedId,
+          fromUserId: followerId,
+          type: 'follow',
+          title: 'متابع جديد',
+          message: `بدأ ${req.user.firstName || req.user.username} في متابعتك`,
+          relatedId: null,
+          relatedType: 'follow'
+        });
+        
         res.json({ success: true, isFollowing: true, message: "تم المتابعة بنجاح" });
       }
     } catch (error) {
@@ -1266,6 +1304,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error checking block status:", error);
       res.status(500).json({ message: "فشل في فحص حالة الحظر" });
+    }
+  });
+
+  // NOTIFICATIONS API
+  
+  // Get user notifications
+  app.get('/api/notifications', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = parseInt(req.query.offset) || 0;
+      
+      const userNotifications = await db
+        .select({
+          id: notifications.id,
+          type: notifications.type,
+          title: notifications.title,
+          message: notifications.message,
+          relatedId: notifications.relatedId,
+          relatedType: notifications.relatedType,
+          isRead: notifications.isRead,
+          createdAt: notifications.createdAt,
+          fromUser: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl
+          }
+        })
+        .from(notifications)
+        .leftJoin(users, eq(notifications.fromUserId, users.id))
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit)
+        .offset(offset);
+      
+      res.json(userNotifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "فشل في جلب الإشعارات" });
+    }
+  });
+  
+  // Get unread notifications count
+  app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      const [result] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(notifications)
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        ));
+      
+      res.json({ count: result.count || 0 });
+    } catch (error) {
+      console.error("Error getting unread count:", error);
+      res.status(500).json({ message: "فشل في جلب عدد الإشعارات غير المقروءة" });
+    }
+  });
+  
+  // Mark notification as read
+  app.patch('/api/notifications/:id/read', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const notificationId = parseInt(req.params.id);
+      
+      await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(and(
+          eq(notifications.id, notificationId),
+          eq(notifications.userId, userId)
+        ));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "فشل في تحديث حالة الإشعار" });
+    }
+  });
+  
+  // Mark all notifications as read
+  app.patch('/api/notifications/mark-all-read', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.userId, userId));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "فشل في تحديث جميع الإشعارات" });
     }
   });
 
@@ -1862,6 +1998,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Send notification to receiver
+      await createNotification({
+        userId: receiverId,
+        fromUserId: senderId,
+        type: 'gift',
+        title: 'هدية جديدة',
+        message: `أرسل لك ${sender.firstName || sender.username} ${giftCharacter.name}`,
+        relatedId: gift.id,
+        relatedType: 'gift'
+      });
+
       // Update sender and receiver supporter levels
       await updateSupporterLevel(senderId);
       await updateGiftsReceived(receiverId, giftCharacter.pointCost);
@@ -2371,6 +2518,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({ liked: false, message: "تم إلغاء الإعجاب" });
       } else {
+        // Get memory author info
+        const [memory] = await db
+          .select({ authorId: memoryFragments.authorId })
+          .from(memoryFragments)
+          .where(eq(memoryFragments.id, memoryId));
+
         // Add like
         await db.insert(memoryInteractions).values({
           fragmentId: memoryId,
@@ -2387,6 +2540,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             likeCount: sql`${memoryFragments.likeCount} + 1`
           })
           .where(eq(memoryFragments.id, memoryId));
+
+        // Send notification to memory author if it's not their own like
+        if (memory && memory.authorId !== userId) {
+          await createNotification({
+            userId: memory.authorId,
+            fromUserId: userId,
+            type: 'like',
+            title: 'إعجاب جديد',
+            message: `أعجب ${req.user.firstName || req.user.username} بمنشورك`,
+            relatedId: memoryId,
+            relatedType: 'memory'
+          });
+        }
 
         res.json({ liked: true, message: "تم الإعجاب بالمنشور" });
       }
@@ -2459,6 +2625,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Content is required" });
       }
 
+      // Get memory author info
+      const [memory] = await db
+        .select({ authorId: memoryFragments.authorId })
+        .from(memoryFragments)
+        .where(eq(memoryFragments.id, memoryId));
+
       // Insert comment into database
       const [newComment] = await db.insert(comments).values({
         authorId: req.user.id,
@@ -2467,6 +2639,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: content.trim(),
         createdAt: new Date()
       }).returning();
+
+      // Send notification to memory author if it's not their own comment
+      if (memory && memory.authorId !== req.user.id) {
+        await createNotification({
+          userId: memory.authorId,
+          fromUserId: req.user.id,
+          type: 'comment',
+          title: 'تعليق جديد',
+          message: `علق ${req.user.firstName || req.user.username} على منشورك`,
+          relatedId: memoryId,
+          relatedType: 'memory'
+        });
+      }
 
       // Get full comment with author info
       const [commentWithAuthor] = await db

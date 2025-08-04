@@ -17,6 +17,7 @@ import {
   Search,
   MessageCircle
 } from "lucide-react";
+import NotificationBell from "@/components/notification-bell";
 
 export default function SimpleNavigation() {
   const { user } = useAuth();
@@ -61,6 +62,9 @@ export default function SimpleNavigation() {
                 )}
               </div>
             </Link>
+            
+            {/* Notification Bell */}
+            <NotificationBell />
             
             <Link href="/messages">
               <button className="relative p-2 text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-sm rounded-full">

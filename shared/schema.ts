@@ -64,6 +64,20 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Notifications table for user notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id), // User receiving the notification
+  fromUserId: varchar("from_user_id").notNull().references(() => users.id), // User who triggered the notification
+  type: varchar("type").notNull(), // 'comment', 'like', 'gift', 'share', 'follow', 'message'
+  title: text("title").notNull(), // Notification title
+  message: text("message").notNull(), // Notification message
+  relatedId: integer("related_id"), // ID of related item (memory, comment, gift, etc.)
+  relatedType: varchar("related_type"), // Type of related item ('memory', 'comment', 'gift')
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Live streams table
 export const streams = pgTable("streams", {
   id: serial("id").primaryKey(),
@@ -599,6 +613,14 @@ export type InsertVoiceChatParticipant = typeof voiceChatParticipants.$inferInse
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Notifications types
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+// Create notification schema for validation
+export const insertNotificationSchema = createInsertSchema(notifications);
+export type InsertNotificationSchema = z.infer<typeof insertNotificationSchema>;
 
 // Virtual Pets System
 export const virtualPets = pgTable("virtual_pets", {
