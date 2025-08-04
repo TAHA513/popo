@@ -129,7 +129,8 @@ export default function Feed() {
         receiverId: recipientId,  // Backend expects receiverId
         characterId: characterId, // Backend expects characterId
         message: `هدية ${gift.name}`, // Optional message
-        streamId: null  // Not in a stream context
+        streamId: null,  // Not in a stream context
+        memoryId: selectedRecipient?.memoryId || null // إضافة memoryId للتعليق التلقائي
       });
     },
     onSuccess: () => {
@@ -156,7 +157,8 @@ export default function Feed() {
     const recipient = {
       id: memory.authorId,
       username: memory.author?.username,
-      profileImageUrl: memory.author?.profileImageUrl
+      profileImageUrl: memory.author?.profileImageUrl,
+      memoryId: memory.id // إضافة memoryId للتعليق التلقائي
     };
     
     console.log('🎁 Setting recipient:', recipient);

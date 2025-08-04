@@ -113,6 +113,9 @@ import {
   voiceChatParticipants,
   type VoiceChatParticipant,
   type InsertVoiceChatParticipant,
+  type InsertComment,
+  type Comment,
+  comments,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, count, ne, or } from "drizzle-orm";
@@ -179,6 +182,10 @@ export interface IStorage {
   updateMemoryFragmentEnergy(id: number, energyChange: number): Promise<void>;
   getExpiredMemoryFragments(): Promise<MemoryFragment[]>;
   deleteExpiredMemoryFragments(): Promise<void>;
+  
+  // Comments operations
+  addComment(comment: InsertComment): Promise<Comment>;
+  getComments(postId: number, postType: string): Promise<Comment[]>;
   
   // Memory Collection operations
   createMemoryCollection(collection: InsertMemoryCollection): Promise<MemoryCollection>;
@@ -874,6 +881,28 @@ export class DatabaseStorage implements IStorage {
         eq(memoryFragments.isActive, true),
         sql`${memoryFragments.expiresAt} < ${now} OR ${memoryFragments.currentEnergy} <= 0`
       ));
+  }
+
+  // Comment operations
+  async addComment(commentData: InsertComment): Promise<Comment> {
+    const [comment] = await db
+      .insert(comments)
+      .values(commentData)
+      .returning();
+    return comment;
+  }
+
+  async getComments(postId: number, postType: string): Promise<Comment[]> {
+    return await db
+      .select()
+      .from(comments)
+      .where(
+        and(
+          eq(comments.postId, postId),
+          eq(comments.postType, postType)
+        )
+      )
+      .orderBy(desc(comments.createdAt));
   }
 
   // Memory Collection operations

@@ -1762,7 +1762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/gifts/send', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user?.id;
-      const { receiverId, characterId, message, streamId } = req.body;
+      const { receiverId, characterId, message, streamId, memoryId } = req.body;
       
       if (!senderId || !receiverId || !characterId) {
         return res.status(400).json({ message: "بيانات الهدية غير مكتملة" });
@@ -1803,6 +1803,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: message || null,
         streamId: streamId || null
       });
+
+      // If this gift is for a specific memory, add a comment notification
+      if (memoryId) {
+        const giftCommentContent = `🎁 ${sender.firstName || sender.username} أرسل ${giftCharacter.emoji} ${giftCharacter.name} (@${sender.username})`;
+        
+        await storage.addComment({
+          content: giftCommentContent,
+          authorId: senderId,
+          postId: memoryId,
+          postType: 'memory'
+        });
+      }
 
       // Update sender and receiver supporter levels
       await updateSupporterLevel(senderId);

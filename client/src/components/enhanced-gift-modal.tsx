@@ -29,6 +29,7 @@ interface EnhancedGiftModalProps {
   receiverId: string;
   receiverName?: string;
   streamId?: number | null;
+  memoryId?: number | null;
   onGiftSent?: (gift: any) => void;
 }
 
@@ -38,6 +39,7 @@ export function EnhancedGiftModal({
   receiverId, 
   receiverName, 
   streamId, 
+  memoryId,
   onGiftSent 
 }: EnhancedGiftModalProps) {
   const [selectedGift, setSelectedGift] = useState<GiftCharacter | null>(null);
@@ -54,7 +56,7 @@ export function EnhancedGiftModal({
 
   // Send gift mutation
   const sendGiftMutation = useMutation({
-    mutationFn: async (giftData: { receiverId: string; characterId: number; message: string; streamId?: number | null }) => {
+    mutationFn: async (giftData: { receiverId: string; characterId: number; message: string; streamId?: number | null; memoryId?: number | null }) => {
       const response = await apiRequest('POST', '/api/gifts/send', giftData);
       return response.json();
     },
@@ -94,7 +96,8 @@ export function EnhancedGiftModal({
       receiverId,
       characterId: selectedGift.id,
       message: "",
-      streamId
+      streamId,
+      memoryId
     });
   };
 
