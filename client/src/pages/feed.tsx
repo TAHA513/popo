@@ -376,11 +376,10 @@ export default function Feed() {
                             muted
                             loop
                             playsInline
-                            preload="metadata"
-                            poster={memory.thumbnailUrl}
+                            preload="auto"
                             onMouseEnter={(e) => e.currentTarget.play()}
                             onMouseLeave={(e) => e.currentTarget.pause()}
-                            onLoadedMetadata={(e) => {
+                            onCanPlay={(e) => {
                               e.currentTarget.currentTime = 0.01;
                             }}
                           />

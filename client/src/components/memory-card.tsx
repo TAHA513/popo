@@ -242,12 +242,11 @@ export default function MemoryCard({
                   muted
                   loop
                   playsInline
-                  preload="metadata"
-                  poster={memory.thumbnailUrl}
+                  preload="auto"
                   onMouseEnter={(e) => e.currentTarget.play()}
                   onMouseLeave={(e) => e.currentTarget.pause()}
-                  onLoadedMetadata={(e) => {
-                    // إجبار عرض الإطار الأول فوراً
+                  onCanPlay={(e) => {
+                    // عرض الإطار الأول فوراً عند جاهزية الفيديو
                     e.currentTarget.currentTime = 0.01;
                   }}
                 />
