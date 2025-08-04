@@ -246,44 +246,46 @@ export default function Feed() {
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
-                      <Link href={`/user/${memory.authorId}`}>
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
-                          <div className="relative">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
-                              {memory.author?.profileImageUrl ? (
-                                <img 
-                                  src={memory.author.profileImageUrl} 
-                                  alt={memory.author.username} 
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                  decoding="async"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    target.nextElementSibling?.classList.remove('hidden');
-                                  }}
-                                />
-                              ) : null}
-                              <User className={`w-6 h-6 text-white m-3 ${memory.author?.profileImageUrl ? 'hidden' : ''}`} />
+                      <div>
+                        <Link href={`/user/${memory.authorId}`}>
+                          <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                            <div className="relative">
+                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
+                                {memory.author?.profileImageUrl ? (
+                                  <img 
+                                    src={memory.author.profileImageUrl} 
+                                    alt={memory.author.username} 
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                    decoding="async"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                      target.nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                <User className={`w-6 h-6 text-white m-3 ${memory.author?.profileImageUrl ? 'hidden' : ''}`} />
+                              </div>
+                              {/* Online Status Indicator - TikTok Style */}
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                              </div>
                             </div>
-                            {/* Online Status Indicator - TikTok Style */}
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                            <div>
+                              <p className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors flex items-center gap-1">
+                                {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
+                                {/* Verification Badge */}
+                                <span className="text-blue-500">✓</span>
+                              </p>
+                              <p className="text-xs text-gray-500 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                نشط الآن • منذ دقيقتين
+                              </p>
                             </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors flex items-center gap-1">
-                              {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
-                              {/* Verification Badge */}
-                              <span className="text-blue-500">✓</span>
-                            </p>
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                              نشط الآن • منذ دقيقتين
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
+                        </Link>
+                      </div>
                       
                       <div className="flex items-center space-x-2 rtl:space-x-reverse">
                         {memory.authorId !== user?.id && (
