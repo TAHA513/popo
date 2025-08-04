@@ -244,19 +244,8 @@ export default function MemoryCard({
                   playsInline
                   preload="metadata"
                   poster={memory.thumbnailUrl}
-                  onMouseEnter={(e) => {
-                    console.log('🎬 Mouse enter - starting video playback');
-                    e.currentTarget.currentTime = 0;
-                    e.currentTarget.play().catch(console.log);
-                  }}
-                  onMouseLeave={(e) => {
-                    console.log('🎬 Mouse leave - pausing video');
-                    e.currentTarget.pause();
-                    e.currentTarget.currentTime = 0;
-                  }}
-                  onCanPlay={(e) => {
-                    console.log('🎬 Video can play - ready for hover interaction');
-                  }}
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
                 />
                 {/* Play button overlay */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
