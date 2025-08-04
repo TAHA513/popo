@@ -66,7 +66,8 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
     giftCharacters, 
     length: giftCharacters?.length, 
     loading: giftCharactersLoading,
-    showQuickGifts
+    showQuickGifts,
+    firstGift: giftCharacters?.[0]
   });
 
   // Quick gift icons - use emojis from database
@@ -463,8 +464,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                           ))
                         ) : giftCharacters.length > 0 ? (
                           giftCharacters
-                            .filter((gift: any) => gift.pointCost <= 1000) // Show more gifts including premium ones
-                            .slice(0, 9) // Show 9 gifts in 3x3 grid
+                            .slice(0, 9) // Show first 9 gifts in 3x3 grid (no filtering by price)
                             .map((gift: any) => (
                             <button
                               key={gift.id}
