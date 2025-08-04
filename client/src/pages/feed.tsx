@@ -327,52 +327,28 @@ export default function Feed() {
                             متابعة
                           </Button>
                         )}
-                        {(() => {
-                          console.log('🔍 Delete button check:', {
-                            memoryAuthorId: memory.authorId,
-                            currentUserId: user?.id,
-                            isEqual: memory.authorId === user?.id,
-                            memoryAuthor: memory.author?.username,
-                            currentUser: user?.username,
-                            userObject: user,
-                            memoryObject: memory
-                          });
-                          
-                          // لضمان ظهور الزر، دعنا نجرب عدة طرق للمقارنة
-                          const isOwner = memory.authorId === user?.id || 
-                                        memory.authorId === user?.claims?.sub ||
-                                        memory.author?.id === user?.id;
-                          
-                          console.log('🔍 Ownership check:', {
-                            directMatch: memory.authorId === user?.id,
-                            claimsMatch: memory.authorId === user?.claims?.sub,
-                            authorIdMatch: memory.author?.id === user?.id,
-                            finalResult: isOwner
-                          });
-                          
-                          return isOwner ? (
-                            <button 
-                              className="p-2 text-red-600 hover:text-red-800 transition-colors bg-red-100 hover:bg-red-200 rounded-lg border border-red-300"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('🗑️ Delete button clicked for memory:', memory.id);
-                                if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
-                                  handleDeleteMemory(memory.id);
-                                }
-                              }}
-                              title="حذف المنشور"
-                            >
-                              🗑️
-                            </button>
-                          ) : (
-                            <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                              </svg>
-                            </button>
-                          );
-                        })()}
+                        {memory.authorId === user?.id ? (
+                          <button 
+                            className="p-2 text-red-600 hover:text-red-800 transition-colors bg-red-100 hover:bg-red-200 rounded-lg border border-red-300"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('🗑️ Delete button clicked for memory:', memory.id);
+                              if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
+                                handleDeleteMemory(memory.id);
+                              }
+                            }}
+                            title="حذف المنشور"
+                          >
+                            🗑️
+                          </button>
+                        ) : (
+                          <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </CardHeader>

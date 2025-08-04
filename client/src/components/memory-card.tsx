@@ -217,28 +217,39 @@ export default function MemoryCard({
           </div>
         </div>
 
-        {/* Media Content */}
+        {/* Media Content - Clickable */}
         <CardContent className="p-0">
-          <div className="relative">
-            {memory.thumbnailUrl ? (
-              <img
-                src={memory.thumbnailUrl}
-                alt={memory.title || 'Memory'}
-                className="w-full h-64 object-cover"
-              />
-            ) : (
-              <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl`}>
-                {getMemoryIcon(memory.memoryType)}
+          <Link href={`/memory/${memory.id}`}>
+            <div className="relative cursor-pointer hover:opacity-95 transition-opacity">
+              {memory.thumbnailUrl ? (
+                <img
+                  src={memory.thumbnailUrl}
+                  alt={memory.title || 'Memory'}
+                  className="w-full h-64 object-cover"
+                />
+              ) : (
+                <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl`}>
+                  {getMemoryIcon(memory.memoryType)}
+                </div>
+              )}
+              
+              {/* Play button overlay for videos */}
+              {memory.type === 'video' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
+                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
+                    <div className="w-0 h-0 border-l-6 border-l-gray-800 border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Overlay with memory type */}
+              <div className="absolute top-2 left-2">
+                <Badge className={`bg-black/70 text-white`}>
+                  {memory.type === 'video' ? '📹' : '📷'} {memory.type === 'video' ? 'فيديو' : 'صورة'}
+                </Badge>
               </div>
-            )}
-            
-            {/* Overlay with memory type */}
-            <div className="absolute top-2 left-2">
-              <Badge className={`bg-black/70 text-white`}>
-                {memory.type === 'video' ? '📹' : '📷'} {memory.type === 'video' ? 'فيديو' : 'صورة'}
-              </Badge>
             </div>
-          </div>
+          </Link>
 
           {/* Caption */}
           {memory.caption && (

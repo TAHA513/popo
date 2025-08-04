@@ -628,7 +628,16 @@ export default function ProfileRedesign() {
               memories.map((memory: any) => (
                 <MemoryCard 
                   key={memory.id} 
-                  memory={memory} 
+                  memory={memory}
+                  isOwner={isOwnProfile}
+                  onComment={() => setLocation(`/memory/${memory.id}`)}
+                  onShare={() => {
+                    navigator.clipboard?.writeText(`${window.location.origin}/memory/${memory.id}`);
+                    toast({
+                      title: "تم نسخ الرابط",
+                      description: "تم نسخ رابط المنشور للمشاركة"
+                    });
+                  }}
                 />
               ))
             )}
