@@ -61,14 +61,18 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
     enabled: showQuickGifts
   });
 
-  // Debug log
-  console.log('🎁 Gift characters debug:', { 
-    giftCharacters, 
-    length: giftCharacters?.length, 
-    loading: giftCharactersLoading,
-    showQuickGifts,
-    firstGift: giftCharacters?.[0]
-  });
+  // Debug log with more details
+  if (showQuickGifts) {
+    console.log('🎁 Gift modal opened:', { 
+      showQuickGifts,
+      giftCharacters, 
+      length: giftCharacters?.length, 
+      loading: giftCharactersLoading,
+      firstGift: giftCharacters?.[0],
+      enabled: showQuickGifts,
+      queryEnabled: showQuickGifts
+    });
+  }
 
   // Quick gift icons - use emojis from database
   const getGiftIcon = (gift: any) => {
@@ -425,6 +429,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    console.log('🎁 Gift button clicked, opening modal...');
                     setShowQuickGifts(!showQuickGifts);
                   }}
                   className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors"
@@ -463,8 +468,10 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                             </div>
                           ))
                         ) : giftCharacters.length > 0 ? (
-                          giftCharacters
-                            .slice(0, 9) // Show first 9 gifts in 3x3 grid (no filtering by price)
+                          (() => {
+                            console.log('🎁 Rendering gifts:', giftCharacters.length, 'gifts found');
+                            return giftCharacters.slice(0, 9); // Show first 9 gifts in 3x3 grid
+                          })()
                             .map((gift: any) => (
                             <button
                               key={gift.id}
