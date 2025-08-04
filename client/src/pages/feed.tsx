@@ -351,8 +351,8 @@ export default function Feed() {
                   </CardContent>
                   
                   {/* Interaction Buttons - OUTSIDE CardContent to avoid Link conflicts */}
-                  <div className="px-4 pb-4">
-                    <div className="flex items-center justify-between py-2">
+                  <div className="px-4 pb-4 relative z-50" style={{ pointerEvents: 'auto' }}>
+                    <div className="flex items-center justify-between py-2" style={{ position: 'relative', zIndex: 100 }}>
                       <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
                         <button 
                           className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
@@ -368,23 +368,28 @@ export default function Feed() {
                         </button>
                         
                         <div 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer relative z-50"
-                          onMouseDown={(e) => {
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer relative"
+                          onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('💬 Comments DIV clicked for memory:', memory.id);
                             alert('Comments clicked!');
-                            window.open(`/comments/${memory.id}`, '_self');
+                            window.location.href = `/comments/${memory.id}`;
                           }}
-                          style={{ pointerEvents: 'auto', userSelect: 'none' }}
+                          style={{ 
+                            pointerEvents: 'auto',
+                            zIndex: 9999,
+                            position: 'relative',
+                            touchAction: 'manipulation'
+                          }}
                         >
                           <MessageCircle className="w-4 h-4 text-blue-600 pointer-events-none" />
                           <span className="text-xs font-medium text-blue-600 pointer-events-none">تعليق</span>
                         </div>
                         
                         <div 
-                          className="p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors cursor-pointer relative z-50"
-                          onMouseDown={(e) => {
+                          className="p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors cursor-pointer relative"
+                          onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('Share DIV clicked for memory:', memory.id);
@@ -405,7 +410,12 @@ export default function Feed() {
                             
                             handleShare(memory.id);
                           }}
-                          style={{ pointerEvents: 'auto', userSelect: 'none' }}
+                          style={{ 
+                            pointerEvents: 'auto',
+                            zIndex: 9999,
+                            position: 'relative',
+                            touchAction: 'manipulation'
+                          }}
                         >
                           <Share2 className="w-4 h-4 text-green-600 pointer-events-none" />
                         </div>
