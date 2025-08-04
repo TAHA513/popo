@@ -211,7 +211,13 @@ export default function CommentsPage() {
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex items-start gap-3">
-                <button onClick={() => setLocation(`/profile/${comment.author?.id}`)}>
+                <button 
+                  onClick={() => {
+                    console.log('Navigating to profile:', comment.userId);
+                    setLocation(`/profile/${comment.userId}`);
+                  }}
+                  className="transition-all hover:scale-105"
+                >
                   <Avatar className="w-8 h-8 hover:opacity-80 transition-opacity cursor-pointer">
                     <AvatarImage src={comment.author?.profileImageUrl} />
                     <AvatarFallback className="bg-purple-500 text-xs">
@@ -223,7 +229,10 @@ export default function CommentsPage() {
                   <div className="bg-purple-500/10 rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2 mb-1">
                       <button
-                        onClick={() => setLocation(`/profile/${comment.author?.id}`)}
+                        onClick={() => {
+                          console.log('Navigating to username profile:', comment.userId);
+                          setLocation(`/profile/${comment.userId}`);
+                        }}
                         className="font-semibold text-purple-300 text-sm hover:text-purple-200 transition-colors cursor-pointer"
                       >
                         {comment.author?.username || 'مستخدم'}
