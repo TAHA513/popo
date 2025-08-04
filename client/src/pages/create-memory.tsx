@@ -87,6 +87,14 @@ const MEMORY_TYPES = [
     color: 'from-yellow-500 to-yellow-600',
     duration: 'أسبوع',
     description: 'للحظات الاستثنائية'
+  },
+  {
+    id: 'permanent',
+    name: 'كرة دائيمية',
+    emoji: '🌐',
+    color: 'from-blue-500 to-cyan-500',
+    duration: 'دائمة',
+    description: 'ذكريات تبقى للأبد'
   }
 ];
 
@@ -117,7 +125,7 @@ export default function CreateMemoryPage() {
   
   const [formData, setFormData] = useState({
     caption: "",
-    memoryType: "star" as "flash" | "trending" | "star" | "legend",
+    memoryType: "star" as "flash" | "trending" | "star" | "legend" | "permanent",
     visibilityLevel: "public" as "public" | "followers" | "private",
     allowComments: true,
     allowSharing: true,

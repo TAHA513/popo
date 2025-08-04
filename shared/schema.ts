@@ -450,7 +450,7 @@ export const memoryFragments = pgTable("memory_fragments", {
   giftCount: integer("gift_count").default(0),
   
   // Memory classification
-  memoryType: varchar("memory_type").default("fleeting"), // 'fleeting', 'precious', 'legendary'
+  memoryType: varchar("memory_type").default("fleeting"), // 'fleeting', 'precious', 'legendary', 'permanent'
   mood: varchar("mood"), // 'happy', 'nostalgic', 'creative', 'mysterious'
   tags: jsonb("tags"), // Array of tags
   

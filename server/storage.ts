@@ -729,20 +729,25 @@ export class DatabaseStorage implements IStorage {
   // Memory Fragment operations
   async createMemoryFragment(fragmentData: InsertMemoryFragment): Promise<MemoryFragment> {
     // Calculate expiration based on memory type
-    const expiresAt = new Date();
-    switch (fragmentData.memoryType) {
-      case 'fleeting':
-        expiresAt.setHours(expiresAt.getHours() + 24); // 1 day
-        break;
-      case 'precious':
-        expiresAt.setDate(expiresAt.getDate() + 7); // 1 week
-        break;
-      case 'legendary':
-        expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month
-        break;
-      default:
-        expiresAt.setHours(expiresAt.getHours() + 24);
+    let expiresAt: Date | null = null;
+    
+    if (fragmentData.memoryType !== 'permanent') {
+      expiresAt = new Date();
+      switch (fragmentData.memoryType) {
+        case 'fleeting':
+          expiresAt.setHours(expiresAt.getHours() + 24); // 1 day
+          break;
+        case 'precious':
+          expiresAt.setDate(expiresAt.getDate() + 7); // 1 week
+          break;
+        case 'legendary':
+          expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month
+          break;
+        default:
+          expiresAt.setHours(expiresAt.getHours() + 24);
+      }
     }
+    // For 'permanent' type, expiresAt remains null (never expires)
     
     const [fragment] = await db
       .insert(memoryFragments)
@@ -876,6 +881,7 @@ export class DatabaseStorage implements IStorage {
       .from(memoryFragments)
       .where(and(
         eq(memoryFragments.isActive, true),
+        ne(memoryFragments.memoryType, 'permanent'), // Exclude permanent memories
         sql`${memoryFragments.expiresAt} < ${now} OR ${memoryFragments.currentEnergy} <= 0`
       ));
   }
@@ -887,6 +893,7 @@ export class DatabaseStorage implements IStorage {
       .set({ isActive: false })
       .where(and(
         eq(memoryFragments.isActive, true),
+        ne(memoryFragments.memoryType, 'permanent'), // Exclude permanent memories
         sql`${memoryFragments.expiresAt} < ${now} OR ${memoryFragments.currentEnergy} <= 0`
       ));
   }
