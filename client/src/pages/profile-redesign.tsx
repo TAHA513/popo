@@ -47,6 +47,8 @@ export default function ProfileRedesign() {
   const [showGiftDialog, setShowGiftDialog] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [memoryToDelete, setMemoryToDelete] = useState<any>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
@@ -275,6 +277,8 @@ export default function ProfileRedesign() {
 
   const handleDeleteMemory = (memoryId: number) => {
     deleteMemoryMutation.mutate(memoryId);
+    setShowDeleteModal(false);
+    setMemoryToDelete(null);
   };
 
   if (!isAuthenticated) {
@@ -675,9 +679,8 @@ export default function ProfileRedesign() {
                     });
                   }}
                   onDelete={() => {
-                    if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
-                      handleDeleteMemory(memory.id);
-                    }
+                    setMemoryToDelete(memory);
+                    setShowDeleteModal(true);
                   }}
                 />
               ))
@@ -822,6 +825,38 @@ export default function ProfileRedesign() {
           }}
         />
       )}
+
+      {/* Custom Delete Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-red-600">حذف المنشور</DialogTitle>
+            <DialogDescription className="text-center">
+              هل أنت متأكد من حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center gap-4 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDeleteModal(false);
+                setMemoryToDelete(null);
+              }}
+              className="min-w-[100px]"
+            >
+              إلغاء
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => handleDeleteMemory(memoryToDelete?.id)}
+              disabled={deleteMemoryMutation.isPending}
+              className="min-w-[100px]"
+            >
+              {deleteMemoryMutation.isPending ? "جاري الحذف..." : "حذف"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
