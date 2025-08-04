@@ -243,71 +243,74 @@ export default function Feed() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {typedMemories.map((memory) => (
-                <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <Link href={`/user/${memory.authorId}`}>
-                          <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
-                            <div className="relative">
-                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
-                                {memory.author?.profileImageUrl ? (
-                                  <img 
-                                    src={memory.author.profileImageUrl} 
-                                    alt={memory.author.username} 
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                    decoding="async"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.style.display = 'none';
-                                      target.nextElementSibling?.classList.remove('hidden');
-                                    }}
-                                  />
-                                ) : null}
-                                <User className={`w-6 h-6 text-white m-3 ${memory.author?.profileImageUrl ? 'hidden' : ''}`} />
+                <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02] group/card perspective-1000">
+                  <div className="relative w-full h-full preserve-3d transition-transform duration-700 group-hover/card:rotate-y-180">
+                    {/* Front Face */}
+                    <div className="absolute inset-0 backface-hidden">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <Link href={`/user/${memory.authorId}`}>
+                              <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                                <div className="relative">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
+                                    {memory.author?.profileImageUrl ? (
+                                      <img 
+                                        src={memory.author.profileImageUrl} 
+                                        alt={memory.author.username} 
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.display = 'none';
+                                          target.nextElementSibling?.classList.remove('hidden');
+                                        }}
+                                      />
+                                    ) : null}
+                                    <User className={`w-6 h-6 text-white m-3 ${memory.author?.profileImageUrl ? 'hidden' : ''}`} />
+                                  </div>
+                                  {/* Online Status Indicator - TikTok Style */}
+                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors flex items-center gap-1">
+                                    {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
+                                    {/* Verification Badge */}
+                                    <span className="text-blue-500">✓</span>
+                                  </p>
+                                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                    نشط الآن • منذ دقيقتين
+                                  </p>
+                                </div>
                               </div>
-                              {/* Online Status Indicator - TikTok Style */}
-                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                              </div>
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors flex items-center gap-1">
-                                {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
-                                {/* Verification Badge */}
-                                <span className="text-blue-500">✓</span>
-                              </p>
-                              <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                                نشط الآن • منذ دقيقتين
-                              </p>
-                            </div>
+                            </Link>
                           </div>
-                        </Link>
-                      </div>
                       
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        {memory.authorId !== user?.id && (
-                          <Button 
-                            size="sm" 
-                            className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4 py-1 text-xs font-medium"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleFollow(memory.authorId);
-                            }}
-                          >
-                            متابعة
-                          </Button>
-                        )}
-                        <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </CardHeader>
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            {memory.authorId !== user?.id && (
+                              <Button 
+                                size="sm" 
+                                className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4 py-1 text-xs font-medium"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleFollow(memory.authorId);
+                                }}
+                              >
+                                متابعة
+                              </Button>
+                            )}
+                            <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </CardHeader>
                   
                   <CardContent className="px-4 pb-3">
                     {/* Media Preview */}
@@ -348,84 +351,126 @@ export default function Feed() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>
                     )}
-                  </CardContent>
-                  
-                  {/* Interaction Buttons - OUTSIDE CardContent to avoid Link conflicts */}
-                  <div className="px-4 pb-4">
-                    <div className="flex items-center justify-between py-2">
-                      <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
-                        <button 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
-                          onClick={() => {
-                            console.log('Like button clicked for memory:', memory.id);
-                            handleLike(memory.id);
-                          }}
-                        >
-                          <Heart className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-red-500 group-active:scale-125 transition-all duration-200" />
-                          <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-red-500">
-                            {memory.likeCount || 0}
-                          </span>
-                        </button>
-                        
-                        <div 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer relative z-50"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('💬 Comments DIV clicked for memory:', memory.id);
-                            alert('Comments clicked!');
-                            window.open(`/comments/${memory.id}`, '_self');
-                          }}
-                          style={{ pointerEvents: 'auto', userSelect: 'none' }}
-                        >
-                          <MessageCircle className="w-4 h-4 text-blue-600 pointer-events-none" />
-                          <span className="text-xs font-medium text-blue-600 pointer-events-none">تعليق</span>
-                        </div>
-                        
-                        <div 
-                          className="p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors cursor-pointer relative z-50"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Share DIV clicked for memory:', memory.id);
-                            alert('Share clicked!');
-                            
-                            // Try native mobile share first
-                            if (navigator.share) {
-                              navigator.share({
-                                title: `منشور من ${memory.author?.username || 'LaaBoBo'}`,
-                                text: memory.caption || 'شاهد هذا المنشور الرائع!',
-                                url: `${window.location.origin}/memory/${memory.id}`
-                              }).catch(console.error);
-                            } else {
-                              // Fallback to clipboard
-                              navigator.clipboard?.writeText(`${window.location.origin}/memory/${memory.id}`);
-                              alert('تم نسخ الرابط للحافظة!');
-                            }
-                            
-                            handleShare(memory.id);
-                          }}
-                          style={{ pointerEvents: 'auto', userSelect: 'none' }}
-                        >
-                          <Share2 className="w-4 h-4 text-green-600 pointer-events-none" />
-                        </div>
-                      </div>
+                      </CardContent>
                       
-                      <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
-                        <button 
-                          className="p-1.5 md:p-2 -m-2 group"
-                          onClick={() => {
-                            console.log('Gift button clicked, calling handleGiftClick...');
-                            handleGiftClick(memory);
-                          }}
-                        >
-                          <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
-                        </button>
-                        <button className="p-1.5 md:p-2 -m-2 group">
-                          <Bookmark className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-yellow-500 transition-colors duration-200" />
-                        </button>
+                      {/* Basic front actions */}
+                      <div className="px-4 pb-4">
+                        <div className="flex items-center justify-between py-2">
+                          <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
+                            <button 
+                              className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleLike(memory.id);
+                              }}
+                            >
+                              <Heart className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-red-500 group-active:scale-125 transition-all duration-200" />
+                              <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-red-500">
+                                {memory.likeCount || 0}
+                              </span>
+                            </button>
+                            
+                            <div className="text-xs text-gray-500">اضغط للمزيد</div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
+                            <button 
+                              className="p-1.5 md:p-2 -m-2 group"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleGiftClick(memory);
+                              }}
+                            >
+                              <Gift className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-purple-500 transition-colors duration-200" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    
+                    {/* Back Face */}
+                    <div className="absolute inset-0 backface-hidden rotate-y-180">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <Link href={`/user/${memory.authorId}`}>
+                              <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                                <div className="relative">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
+                                    {memory.author?.profileImageUrl ? (
+                                      <img 
+                                        src={memory.author.profileImageUrl} 
+                                        alt={memory.author.username} 
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
+                                      />
+                                    ) : null}
+                                    <User className={`w-6 h-6 text-white m-3 ${memory.author?.profileImageUrl ? 'hidden' : ''}`} />
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors flex items-center gap-1">
+                                    {memory.author?.username || `مستخدم #${memory.authorId?.slice(0, 6)}`}
+                                    <span className="text-blue-500">✓</span>
+                                  </p>
+                                  <p className="text-xs text-gray-500">خيارات التفاعل</p>
+                                </div>
+                              </div>
+                            </Link>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="px-4 pb-3">
+                        {/* Full interaction options on back */}
+                        <div className="space-y-3">
+                          <button 
+                            className="w-full flex items-center justify-center space-x-2 rtl:space-x-reverse p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/comments/${memory.id}`;
+                            }}
+                          >
+                            <MessageCircle className="w-5 h-5 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-600">عرض التعليقات</span>
+                          </button>
+                          
+                          <button 
+                            className="w-full flex items-center justify-center space-x-2 rtl:space-x-reverse p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (navigator.share) {
+                                navigator.share({
+                                  title: `منشور من ${memory.author?.username || 'LaaBoBo'}`,
+                                  text: memory.caption || 'شاهد هذا المنشور الرائع!',
+                                  url: `${window.location.origin}/memory/${memory.id}`
+                                }).catch(console.error);
+                              } else {
+                                navigator.clipboard?.writeText(`${window.location.origin}/memory/${memory.id}`);
+                                alert('تم نسخ الرابط للحافظة!');
+                              }
+                              handleShare(memory.id);
+                            }}
+                          >
+                            <Share2 className="w-5 h-5 text-green-600" />
+                            <span className="text-sm font-medium text-green-600">مشاركة المنشور</span>
+                          </button>
+                          
+                          <button 
+                            className="w-full flex items-center justify-center space-x-2 rtl:space-x-reverse p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGiftClick(memory);
+                            }}
+                          >
+                            <Gift className="w-5 h-5 text-purple-600" />
+                            <span className="text-sm font-medium text-purple-600">إرسال هدية</span>
+                          </button>
+                        </div>
+                      </CardContent>
+                    </div>
+                  </div>
                     
                     {/* Like count and comments preview */}
                     <div className="space-y-1 text-sm">
