@@ -984,6 +984,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete memory fragment by ID (only by author)
+  app.delete('/api/memories/:memoryId', requireAuth, async (req: any, res) => {
+    try {
+      const memoryId = parseInt(req.params.memoryId);
+      const userId = req.user.id;
+      
+      if (isNaN(memoryId)) {
+        return res.status(400).json({ message: "معرف المنشور غير صحيح" });
+      }
+      
+      // First, check if memory exists and get its author
+      const memory = await storage.getMemoryFragmentById(memoryId);
+      if (!memory) {
+        return res.status(404).json({ message: "المنشور غير موجود" });
+      }
+      
+      // Check if user is the author of the memory
+      if (memory.authorId !== userId) {
+        return res.status(403).json({ message: "غير مسموح لك بحذف هذا المنشور" });
+      }
+      
+      // Soft delete by setting isActive to false
+      await db
+        .update(memoryFragments)
+        .set({ 
+          isActive: false,
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(memoryFragments.id, memoryId));
+      
+      console.log(`Memory ${memoryId} deleted by user ${userId}`);
+      res.json({ message: "تم حذف المنشور بنجاح" });
+    } catch (error) {
+      console.error("Error deleting memory:", error);
+      res.status(500).json({ message: "فشل في حذف المنشور" });
+    }
+  });
+
   // Search users endpoint
   app.get('/api/users/search', requireAuth, async (req: any, res) => {
     try {
