@@ -229,7 +229,44 @@ export default function MemoryCard({
                 />
               </Link>
             ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
-              <div className="relative">
+              <div 
+                className="relative cursor-pointer"
+                onClick={() => {
+                  // فتح الفيديو في نافذة منبثقة ملء الشاشة
+                  const videoModal = document.createElement('div');
+                  videoModal.className = 'fixed inset-0 bg-black/95 z-50 flex items-center justify-center';
+                  videoModal.style.zIndex = '9999';
+                  
+                  videoModal.innerHTML = `
+                    <div class="relative w-full h-full flex items-center justify-center">
+                      <video 
+                        src="${memory.mediaUrls[0]}" 
+                        class="max-w-full max-h-full" 
+                        controls 
+                        autoplay
+                        poster="${memory.thumbnailUrl || ''}"
+                      />
+                      <button 
+                        class="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70"
+                        onclick="this.closest('.fixed').remove()"
+                      >
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  `;
+                  
+                  // إضافة إغلاق عند النقر على الخلفية
+                  videoModal.addEventListener('click', (e) => {
+                    if (e.target === videoModal) {
+                      videoModal.remove();
+                    }
+                  });
+                  
+                  document.body.appendChild(videoModal);
+                }}
+              >
                 <video
                   src={memory.mediaUrls[0]}
                   className="w-full h-64 object-cover"
@@ -239,23 +276,9 @@ export default function MemoryCard({
                   poster={memory.thumbnailUrl}
                   onMouseEnter={(e) => e.currentTarget.play()}
                   onMouseLeave={(e) => e.currentTarget.pause()}
-                  controls
-                  style={{ cursor: 'pointer' }}
                 />
                 {/* Play button overlay */}
-                <div 
-                  className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors cursor-pointer"
-                  onClick={() => {
-                    const videoElement = document.querySelector(`video[src="${memory.mediaUrls[0]}"]`) as HTMLVideoElement;
-                    if (videoElement) {
-                      if (videoElement.paused) {
-                        videoElement.play();
-                      } else {
-                        videoElement.pause();
-                      }
-                    }
-                  }}
-                >
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
                   <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
                     <div className="w-0 h-0 border-l-6 border-l-gray-800 border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
                   </div>

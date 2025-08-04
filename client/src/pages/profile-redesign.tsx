@@ -660,7 +660,12 @@ export default function ProfileRedesign() {
                   key={memory.id} 
                   memory={memory}
                   isOwner={isOwnProfile}
-                  onComment={() => setLocation(`/memory/${memory.id}`)}
+                  onComment={() => {
+                    // عدم فتح صفحة التعليقات للفيديوهات - الفيديو يفتح مباشرة
+                    if (memory.type !== 'video') {
+                      setLocation(`/memory/${memory.id}`);
+                    }
+                  }}
                   onShare={() => {
                     navigator.clipboard?.writeText(`${window.location.origin}/memory/${memory.id}`);
                     toast({
