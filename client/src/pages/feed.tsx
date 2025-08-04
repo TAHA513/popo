@@ -17,6 +17,7 @@ export default function Feed() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   // Gift panel state
   const [showGiftPanel, setShowGiftPanel] = useState(false);
@@ -133,7 +134,6 @@ export default function Feed() {
   };
 
   // إضافة دالة لفتح التعليقات
-  const [, setLocation] = useLocation();
   const handleCommentsClick = (memoryId: number) => {
     console.log('💬 Comments button clicked for memory:', memoryId);
     // التنقل إلى صفحة المنشور
