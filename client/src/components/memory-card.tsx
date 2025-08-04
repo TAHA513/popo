@@ -232,39 +232,8 @@ export default function MemoryCard({
               <div 
                 className="relative cursor-pointer"
                 onClick={() => {
-                  // فتح الفيديو في نافذة منبثقة ملء الشاشة
-                  const videoModal = document.createElement('div');
-                  videoModal.className = 'fixed inset-0 bg-black/95 z-50 flex items-center justify-center';
-                  videoModal.style.zIndex = '9999';
-                  
-                  videoModal.innerHTML = `
-                    <div class="relative w-full h-full flex items-center justify-center">
-                      <video 
-                        src="${memory.mediaUrls[0]}" 
-                        class="max-w-full max-h-full" 
-                        controls 
-                        autoplay
-                        poster="${memory.thumbnailUrl || ''}"
-                      />
-                      <button 
-                        class="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70"
-                        onclick="this.closest('.fixed').remove()"
-                      >
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  `;
-                  
-                  // إضافة إغلاق عند النقر على الخلفية
-                  videoModal.addEventListener('click', (e) => {
-                    if (e.target === videoModal) {
-                      videoModal.remove();
-                    }
-                  });
-                  
-                  document.body.appendChild(videoModal);
+                  // فتح الفيديو في صفحة كاملة مثل TikTok بنفس أسلوب الصفحة الرئيسية
+                  window.location.href = `/video/${memory.id}`;
                 }}
               >
                 <video

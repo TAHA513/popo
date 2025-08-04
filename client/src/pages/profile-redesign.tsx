@@ -661,7 +661,8 @@ export default function ProfileRedesign() {
                   memory={memory}
                   isOwner={isOwnProfile}
                   onComment={() => {
-                    // عدم فتح صفحة التعليقات للفيديوهات - الفيديو يفتح مباشرة
+                    // للفيديوهات: لا حاجة لفعل شيء، النقر على الفيديو يفتحه
+                    // للصور: فتح صفحة التعليقات
                     if (memory.type !== 'video') {
                       setLocation(`/memory/${memory.id}`);
                     }
