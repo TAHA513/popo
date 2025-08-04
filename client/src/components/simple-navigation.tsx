@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { 
   Home, 
   User, 
@@ -19,12 +18,10 @@ import {
   MessageCircle
 } from "lucide-react";
 import NotificationBell from "@/components/notification-bell";
-import { LogoutConfirmationDialog } from "@/components/logout-confirmation-dialog";
 
 export default function SimpleNavigation() {
   const { user } = useAuth();
-  const [location, setLocation] = useLocation();
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [location] = useLocation();
 
   // Fetch conversations to get unread count
   const { data: conversations = [] } = useQuery({
@@ -43,25 +40,6 @@ export default function SimpleNavigation() {
   const totalUnreadCount = conversations.reduce((total: number, conv: any) => 
     total + (conv.unreadCount || 0), 0
   );
-
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        // Force redirect to login page
-        window.location.href = '/login';
-      }
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // Fallback: still redirect to login
-      window.location.href = '/login';
-    }
-  };
 
   return (
     <header className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 shadow-lg sticky top-0 z-50">
@@ -181,24 +159,8 @@ export default function SimpleNavigation() {
                 <Gift className="w-4 h-4" />
               </Button>
             </Link>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="rounded-full text-white/80 hover:text-red-400 hover:bg-red-500/10"
-              onClick={() => setShowLogoutDialog(true)}
-              title="تسجيل الخروج"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
           </div>
         </div>
-
-        {/* Logout Confirmation Dialog */}
-        <LogoutConfirmationDialog
-          open={showLogoutDialog}
-          onOpenChange={setShowLogoutDialog}
-          onConfirm={handleLogout}
-        />
       </div>
     </header>
   );
