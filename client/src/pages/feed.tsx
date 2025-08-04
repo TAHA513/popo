@@ -134,7 +134,9 @@ export default function Feed() {
   };
 
   // إضافة دالة لفتح التعليقات
-  const handleCommentsClick = (memoryId: number) => {
+  const handleCommentsClick = (e: React.MouseEvent, memoryId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
     console.log('💬 Comments button clicked for memory:', memoryId);
     // التنقل إلى صفحة المنشور
     setLocation(`/memory/${memoryId}`);
@@ -360,7 +362,7 @@ export default function Feed() {
                         
                         <button 
                           className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
-                          onClick={() => handleCommentsClick(memory.id)}
+                          onClick={(e) => handleCommentsClick(e, memory.id)}
                         >
                           <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
                           <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
@@ -479,8 +481,13 @@ export default function Feed() {
         receiverName={selectedRecipient?.username || 'مستخدم'}
         memoryId={selectedRecipient?.memoryId}
         onGiftSent={() => {
+          console.log('🎁 Gift sent successfully, clearing state');
           setShowGiftPanel(false);
           setSelectedRecipient(null);
+          // تحديث التعليقات بعد إرسال الهدية
+          if (selectedRecipient?.memoryId) {
+            queryClient.invalidateQueries({ queryKey: [`/api/memories/${selectedRecipient.memoryId}/comments`] });
+          }
         }}
       />
     </div>
