@@ -242,10 +242,18 @@ export default function MemoryCard({
                   muted
                   loop
                   playsInline
-                  preload="metadata"
+                  preload="auto"
                   poster={memory.thumbnailUrl}
                   onMouseEnter={(e) => e.currentTarget.play()}
                   onMouseLeave={(e) => e.currentTarget.pause()}
+                  onLoadedData={(e) => {
+                    // إجبار عرض الإطار الأول
+                    e.currentTarget.currentTime = 0.1;
+                  }}
+                  style={{
+                    objectFit: 'cover',
+                    backgroundColor: '#f0f0f0'
+                  }}
                 />
                 {/* Play button overlay */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
