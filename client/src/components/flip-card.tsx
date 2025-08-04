@@ -82,8 +82,9 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
   const sendGiftMutation = useMutation({
     mutationFn: async (giftData: { giftCharacterId: number; pointCost: number }) => {
       const response = await apiRequest('POST', '/api/gifts/send', {
-        giftCharacterId: giftData.giftCharacterId,
-        recipientId: content.author?.id || content.authorId,
+        characterId: giftData.giftCharacterId,
+        receiverId: content.author?.id || content.authorId,
+        message: `هدية لمنشورك الرائع!`,
         postId: content.id
       });
       return response.json();
@@ -415,49 +416,75 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                   <Gift className="w-4 h-4" />
                 </button>
 
-                {/* Quick Gifts Popup */}
+                {/* Quick Gifts Popup - Fixed at center of screen */}
                 {showQuickGifts && (
-                  <div className="absolute bottom-8 left-0 bg-black/90 backdrop-blur-sm rounded-xl p-3 border border-white/20 z-50 min-w-[200px]">
-                    <div className="text-white text-xs mb-2 text-center">هدايا سريعة 🎁</div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {giftCharacters
-                        .filter((gift: any) => gift.pointCost <= 500) // Show only affordable gifts for quick selection
-                        .slice(0, 6) // Show only first 6 gifts
-                        .map((gift: any) => (
-                        <button
-                          key={gift.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            handleQuickGiftSend(gift);
-                          }}
-                          disabled={sendGiftMutation.isPending || (currentUser && currentUser.points < gift.pointCost)}
-                          className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
-                            currentUser && currentUser.points < gift.pointCost 
-                              ? 'bg-gray-600/50 cursor-not-allowed opacity-50' 
-                              : 'bg-white/10 hover:bg-white/20'
-                          }`}
-                        >
-                          <div className="mb-1">
-                            {giftIcons[gift.name] || <span className="text-xl">🎁</span>}
-                          </div>
-                          <span className="text-white text-xs font-bold">{gift.pointCost}</span>
-                        </button>
-                      ))}
-                    </div>
-                    
-                    {currentUser && (
-                      <div className="text-center mt-2 pt-2 border-t border-white/20">
-                        <span className="text-white/70 text-xs">نقاطك: {currentUser.points}</span>
+                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]" 
+                       onClick={() => setShowQuickGifts(false)}>
+                    <div className="bg-gradient-to-br from-purple-900/95 to-pink-900/95 backdrop-blur-md rounded-2xl p-6 border border-white/20 max-w-sm w-full mx-4 shadow-2xl"
+                         onClick={(e) => e.stopPropagation()}>
+                      
+                      {/* Header */}
+                      <div className="text-center mb-4">
+                        <h3 className="text-white text-lg font-bold mb-1">🎁 إرسال هدية</h3>
+                        <p className="text-white/70 text-sm">اختر هدية لإرسالها إلى {content.author?.username || 'هذا المستخدم'}</p>
                       </div>
-                    )}
-                    
-                    <button
-                      onClick={() => setShowQuickGifts(false)}
-                      className="w-full mt-2 text-white/60 hover:text-white text-xs py-1"
-                    >
-                      إغلاق
-                    </button>
+                      
+                      {/* User Points */}
+                      {currentUser && (
+                        <div className="text-center mb-4 p-3 bg-white/10 rounded-xl">
+                          <span className="text-yellow-300 font-bold text-lg">💰 {currentUser.points} نقطة</span>
+                        </div>
+                      )}
+                      
+                      {/* Gifts Grid */}
+                      <div className="grid grid-cols-3 gap-3 mb-4">
+                        {giftCharacters
+                          .filter((gift: any) => gift.pointCost <= 500) // Show affordable gifts
+                          .slice(0, 9) // Show 9 gifts in 3x3 grid
+                          .map((gift: any) => (
+                          <button
+                            key={gift.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleQuickGiftSend(gift);
+                            }}
+                            disabled={sendGiftMutation.isPending || (currentUser && currentUser.points < gift.pointCost)}
+                            className={`flex flex-col items-center p-3 rounded-xl transition-all duration-200 hover:scale-110 ${
+                              currentUser && currentUser.points < gift.pointCost 
+                                ? 'bg-gray-600/50 cursor-not-allowed opacity-50' 
+                                : sendGiftMutation.isPending 
+                                  ? 'bg-yellow-500/50 cursor-wait'
+                                  : 'bg-white/10 hover:bg-white/20 hover:shadow-lg'
+                            }`}
+                          >
+                            <div className="mb-2 text-3xl">
+                              {giftIcons[gift.name] || <span className="text-3xl">🎁</span>}
+                            </div>
+                            <span className="text-white text-xs font-bold">{gift.pointCost}</span>
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* Loading State */}
+                      {sendGiftMutation.isPending && (
+                        <div className="text-center py-2">
+                          <div className="inline-flex items-center gap-2 text-white/80">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span className="text-sm">جاري الإرسال...</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Close Button */}
+                      <button
+                        onClick={() => setShowQuickGifts(false)}
+                        className="w-full py-3 text-white/70 hover:text-white text-sm border border-white/20 rounded-xl hover:bg-white/10 transition-colors"
+                        disabled={sendGiftMutation.isPending}
+                      >
+                        إغلاق
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
