@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Users, Play, Video, Heart, MessageCircle, Share2, Gift, User, Bookmark } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
-import MobileGiftPanel from "@/components/mobile-gift-panel";
+import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
 import { Stream } from "@/types";
 import { Link } from "wouter";
 
@@ -112,50 +112,7 @@ export default function Feed() {
     interactionMutation.mutate({ memoryId, type: 'share' });
   };
 
-  // Gift sending mutation
-  const sendGiftMutation = useMutation({
-    mutationFn: async ({ recipientId, gift, memoryId }: { recipientId: string; gift: any; memoryId?: number }) => {
-      // Map quick gifts to character IDs (based on typical gift characters)
-      const giftToCharacterMap: { [key: string]: number } = {
-        'heart': 1,    // Love Heart character
-        'star': 2,     // Star character  
-        'crown': 3,    // Crown character
-        'sparkle': 4,  // Sparkle character
-      };
-      
-      const characterId = giftToCharacterMap[gift.id] || 1; // Default to heart
-      
-      console.log('🎁 Sending gift API request:', { recipientId, characterId, memoryId });
-      
-      return await apiRequest('/api/gifts/send', 'POST', {
-        receiverId: recipientId,  // Backend expects receiverId
-        characterId: characterId, // Backend expects characterId
-        message: `هدية ${gift.name}`, // Optional message
-        streamId: null,  // Not in a stream context
-        memoryId: memoryId || null // إضافة memoryId للتعليق التلقائي
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "تم إرسال الهدية! 🎁",
-        description: "تم إرسال الهدية بنجاح",
-      });
-      setShowGiftPanel(false);
-      setSelectedRecipient(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); // Refresh user points
-      // تحديث التعليقات إذا تم إرسال الهدية لمنشور معين
-      if (selectedRecipient?.memoryId) {
-        queryClient.invalidateQueries({ queryKey: [`/api/memories/${selectedRecipient.memoryId}/comments`] });
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في إرسال الهدية",
-        description: error.message || "حاول مرة أخرى",
-        variant: "destructive",
-      });
-    }
-  });
+  // تم استبدال sendGiftMutation بـ EnhancedGiftModal الذي يدير إرسال الهدايا بنفسه
 
   const handleGiftClick = (memory: any) => {
     console.log('🎁 Gift button clicked for memory:', memory);
@@ -174,16 +131,7 @@ export default function Feed() {
     setShowGiftPanel(true);
   };
 
-  const handleSendGift = (gift: any) => {
-    if (selectedRecipient) {
-      console.log('🎁 Sending gift with recipient data:', selectedRecipient);
-      sendGiftMutation.mutate({
-        recipientId: selectedRecipient.id,
-        gift,
-        memoryId: selectedRecipient.memoryId // تمرير memoryId من selectedRecipient
-      });
-    }
-  };
+  // لا نحتاج handleSendGift بعد الآن - EnhancedGiftModal يتعامل مع إرسال الهدايا مباشرة
 
   const isLoading = streamsLoading || memoriesLoading;
 
@@ -510,16 +458,21 @@ export default function Feed() {
       
       <BottomNavigation />
       
-      {/* Gift Panel */}
-      <MobileGiftPanel
+      {/* Enhanced Gift Modal */}
+      <EnhancedGiftModal
         isOpen={showGiftPanel}
         onClose={() => {
-          console.log('MobileGiftPanel onClose called');
+          console.log('EnhancedGiftModal onClose called');
           setShowGiftPanel(false);
           setSelectedRecipient(null);
         }}
-        onSendGift={handleSendGift}
-        userPoints={user?.points || 0}
+        receiverId={selectedRecipient?.id || ''}
+        receiverName={selectedRecipient?.username || 'مستخدم'}
+        memoryId={selectedRecipient?.memoryId || undefined}
+        onGiftSent={() => {
+          setShowGiftPanel(false);
+          setSelectedRecipient(null);
+        }}
       />
     </div>
   );
