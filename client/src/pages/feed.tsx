@@ -367,26 +367,28 @@ export default function Feed() {
                           </span>
                         </button>
                         
-                        <button 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors group relative z-50"
-                          onClick={(e) => {
-                            console.log('💬 Comments Button clicked for memory:', memory.id);
-                            console.log('💬 Event target:', e.target);
-                            alert('Comments button clicked!'); // للتأكد من أن النقرة تعمل
-                            window.location.href = `/comments/${memory.id}`;
+                        <div 
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer relative z-50"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('💬 Comments DIV clicked for memory:', memory.id);
+                            alert('Comments clicked!');
+                            window.open(`/comments/${memory.id}`, '_self');
                           }}
-                          style={{ pointerEvents: 'auto' }}
+                          style={{ pointerEvents: 'auto', userSelect: 'none' }}
                         >
-                          <MessageCircle className="w-4 h-4 text-blue-600" />
-                          <span className="text-xs font-medium text-blue-600">تعليق</span>
-                        </button>
+                          <MessageCircle className="w-4 h-4 text-blue-600 pointer-events-none" />
+                          <span className="text-xs font-medium text-blue-600 pointer-events-none">تعليق</span>
+                        </div>
                         
-                        <button 
-                          className="p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors group relative z-50"
-                          onClick={(e) => {
-                            console.log('Share button clicked for memory:', memory.id);
-                            console.log('Share Event target:', e.target);
-                            alert('Share button clicked!'); // للتأكد من أن النقرة تعمل
+                        <div 
+                          className="p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors cursor-pointer relative z-50"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Share DIV clicked for memory:', memory.id);
+                            alert('Share clicked!');
                             
                             // Try native mobile share first
                             if (navigator.share) {
@@ -403,10 +405,10 @@ export default function Feed() {
                             
                             handleShare(memory.id);
                           }}
-                          style={{ pointerEvents: 'auto' }}
+                          style={{ pointerEvents: 'auto', userSelect: 'none' }}
                         >
-                          <Share2 className="w-4 h-4 text-green-600" />
-                        </button>
+                          <Share2 className="w-4 h-4 text-green-600 pointer-events-none" />
+                        </div>
                       </div>
                       
                       <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
