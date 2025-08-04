@@ -7,6 +7,9 @@ import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VideoOptimizer } from "@/utils/video-optimizer";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Play, 
   Heart, 
@@ -40,7 +43,94 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
   const [userLiked, setUserLiked] = useState(isLiked);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [showQuickGifts, setShowQuickGifts] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch current user to get points
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/user'],
+    queryFn: () => apiRequest('GET', '/api/auth/user').then(res => res.json())
+  });
+
+  // Fetch gift characters for quick selection
+  const { data: giftCharacters = [] } = useQuery({
+    queryKey: ['/api/gifts/characters'],
+    queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
+    enabled: showQuickGifts
+  });
+
+  // Quick gift icons
+  const giftIcons: { [key: string]: JSX.Element } = {
+    'BoBo Love': <span className="text-2xl">💖</span>,
+    'Rose': <span className="text-2xl">🌹</span>,
+    'Coffee': <span className="text-2xl">☕</span>,
+    'Star': <span className="text-2xl">⭐</span>,
+    'Crown': <span className="text-2xl">👑</span>,
+    'Diamond': <span className="text-2xl">💎</span>,
+    'Fire': <span className="text-2xl">🔥</span>,
+    'Rocket': <span className="text-2xl">🚀</span>,
+    'Trophy': <span className="text-2xl">🏆</span>,
+    'Galaxy': <span className="text-2xl">🌌</span>,
+    'Castle': <span className="text-2xl">🏰</span>,
+    'Dragon': <span className="text-2xl">🐉</span>,
+    'Unicorn': <span className="text-2xl">🦄</span>
+  };
+
+  // Send gift mutation
+  const sendGiftMutation = useMutation({
+    mutationFn: async (giftData: { giftCharacterId: number; pointCost: number }) => {
+      const response = await apiRequest('POST', '/api/gifts/send', {
+        giftCharacterId: giftData.giftCharacterId,
+        recipientId: content.author?.id || content.authorId,
+        postId: content.id
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "🎁 تم إرسال الهدية!",
+        description: "تم إرسال الهدية بنجاح وخصم النقاط من حسابك",
+      });
+      setShowQuickGifts(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.message || 'فشل إرسال الهدية';
+      toast({
+        title: "❌ خطأ في الإرسال",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle quick gift send
+  const handleQuickGiftSend = (gift: any) => {
+    if (!currentUser) {
+      toast({
+        title: "❌ يجب تسجيل الدخول",
+        description: "يجب تسجيل الدخول أولاً لإرسال الهدايا",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (currentUser.points < gift.pointCost) {
+      toast({
+        title: "❌ نقاط غير كافية",
+        description: `تحتاج ${gift.pointCost} نقطة لإرسال هذه الهدية`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    sendGiftMutation.mutate({
+      giftCharacterId: gift.id,
+      pointCost: gift.pointCost
+    });
+  };
 
   // Check follow status on component mount
   useEffect(() => {
@@ -313,16 +403,64 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                 <Share2 className="w-4 h-4" />
               </button>
               
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setLocation('/gifts');
-                }}
-                className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors"
-              >
-                <Gift className="w-4 h-4" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setShowQuickGifts(!showQuickGifts);
+                  }}
+                  className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors"
+                >
+                  <Gift className="w-4 h-4" />
+                </button>
+
+                {/* Quick Gifts Popup */}
+                {showQuickGifts && (
+                  <div className="absolute bottom-8 left-0 bg-black/90 backdrop-blur-sm rounded-xl p-3 border border-white/20 z-50 min-w-[200px]">
+                    <div className="text-white text-xs mb-2 text-center">هدايا سريعة 🎁</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {giftCharacters
+                        .filter((gift: any) => gift.pointCost <= 500) // Show only affordable gifts for quick selection
+                        .slice(0, 6) // Show only first 6 gifts
+                        .map((gift: any) => (
+                        <button
+                          key={gift.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleQuickGiftSend(gift);
+                          }}
+                          disabled={sendGiftMutation.isPending || (currentUser && currentUser.points < gift.pointCost)}
+                          className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
+                            currentUser && currentUser.points < gift.pointCost 
+                              ? 'bg-gray-600/50 cursor-not-allowed opacity-50' 
+                              : 'bg-white/10 hover:bg-white/20'
+                          }`}
+                        >
+                          <div className="mb-1">
+                            {giftIcons[gift.name] || <span className="text-xl">🎁</span>}
+                          </div>
+                          <span className="text-white text-xs font-bold">{gift.pointCost}</span>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {currentUser && (
+                      <div className="text-center mt-2 pt-2 border-t border-white/20">
+                        <span className="text-white/70 text-xs">نقاطك: {currentUser.points}</span>
+                      </div>
+                    )}
+                    
+                    <button
+                      onClick={() => setShowQuickGifts(false)}
+                      className="w-full mt-2 text-white/60 hover:text-white text-xs py-1"
+                    >
+                      إغلاق
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Time */}
