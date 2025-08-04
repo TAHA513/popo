@@ -1089,6 +1089,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Record a view for a memory
+  app.post('/api/memories/:memoryId/view', requireAuth, async (req: any, res) => {
+    try {
+      const memoryId = parseInt(req.params.memoryId);
+      const userId = req.user.id;
+      
+      if (isNaN(memoryId)) {
+        return res.status(400).json({ message: "معرف المنشور غير صحيح" });
+      }
+      
+      await storage.recordMemoryView(memoryId, userId);
+      const viewCount = await storage.getMemoryViewCount(memoryId);
+      
+      res.json({ success: true, viewCount });
+    } catch (error) {
+      console.error("Error recording memory view:", error);
+      res.status(500).json({ message: "فشل في تسجيل المشاهدة" });
+    }
+  });
+
+  // Get view count for a memory
+  app.get('/api/memories/:memoryId/views', async (req, res) => {
+    try {
+      const memoryId = parseInt(req.params.memoryId);
+      
+      if (isNaN(memoryId)) {
+        return res.status(400).json({ message: "معرف المنشور غير صحيح" });
+      }
+      
+      const viewCount = await storage.getMemoryViewCount(memoryId);
+      res.json({ viewCount });
+    } catch (error) {
+      console.error("Error fetching memory view count:", error);
+      res.status(500).json({ message: "فشل في جلب عدد المشاهدات" });
+    }
+  });
+
   // Search users endpoint
   app.get('/api/users/search', requireAuth, async (req: any, res) => {
     try {

@@ -116,6 +116,9 @@ import {
   type InsertComment,
   type Comment,
   comments,
+  memoryViews,
+  type MemoryView,
+  type InsertMemoryView,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, count, ne, or } from "drizzle-orm";
@@ -186,6 +189,10 @@ export interface IStorage {
   // Comments operations
   addComment(comment: InsertComment): Promise<Comment>;
   getComments(postId: number, postType: string): Promise<Comment[]>;
+  
+  // Memory Views operations
+  recordMemoryView(memoryId: number, viewerId: string): Promise<void>;
+  getMemoryViewCount(memoryId: number): Promise<number>;
   
   // Memory Collection operations
   createMemoryCollection(collection: InsertMemoryCollection): Promise<MemoryCollection>;
@@ -918,6 +925,40 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(comments.createdAt));
+  }
+
+  // Memory Views operations
+  async recordMemoryView(memoryId: number, viewerId: string): Promise<void> {
+    try {
+      // Try to insert a new view record
+      await db
+        .insert(memoryViews)
+        .values({
+          memoryId,
+          viewerId,
+        });
+      
+      // Increment the view count on the memory
+      await db
+        .update(memoryFragments)
+        .set({
+          viewCount: sql`${memoryFragments.viewCount} + 1`,
+          currentEnergy: sql`LEAST(100, ${memoryFragments.currentEnergy} + 1)` // Small energy boost
+        })
+        .where(eq(memoryFragments.id, memoryId));
+    } catch (error) {
+      // If duplicate view (same user viewing same memory), ignore the error
+      // This prevents counting multiple views from the same user
+    }
+  }
+
+  async getMemoryViewCount(memoryId: number): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(memoryViews)
+      .where(eq(memoryViews.memoryId, memoryId));
+    
+    return result[0]?.count || 0;
   }
 
   // Memory Collection operations

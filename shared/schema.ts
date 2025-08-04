@@ -472,6 +472,17 @@ export const memoryFragments = pgTable("memory_fragments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Memory Views - track individual views
+export const memoryViews = pgTable("memory_views", {
+  id: serial("id").primaryKey(),
+  memoryId: integer("memory_id").notNull().references(() => memoryFragments.id, { onDelete: 'cascade' }),
+  viewerId: varchar("viewer_id").notNull().references(() => users.id),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+  // Unique constraint to prevent duplicate views from same user
+}, (table) => [
+  index("memory_views_memory_viewer_idx").on(table.memoryId, table.viewerId),
+]);
+
 // Memory Interactions - likes, views, etc.
 export const memoryInteractions = pgTable("memory_interactions", {
   id: serial("id").primaryKey(),
@@ -981,6 +992,9 @@ export type PremiumMessage = typeof premiumMessages.$inferSelect;
 
 export type InsertMemoryFragment = typeof memoryFragments.$inferInsert;
 export type MemoryFragment = typeof memoryFragments.$inferSelect;
+
+export type InsertMemoryView = typeof memoryViews.$inferInsert;
+export type MemoryView = typeof memoryViews.$inferSelect;
 
 export type InsertMemoryInteraction = typeof memoryInteractions.$inferInsert;
 export type MemoryInteraction = typeof memoryInteractions.$inferSelect;

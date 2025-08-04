@@ -174,6 +174,26 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
     });
   };
 
+  // Record memory view when component mounts
+  useEffect(() => {
+    const recordView = async () => {
+      if (!content.id || !currentUser?.id) return;
+      
+      try {
+        await fetch(`/api/memories/${content.id}/view`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+      } catch (error) {
+        // Silently fail - view tracking is not critical
+        console.log('View tracking error:', error);
+      }
+    };
+
+    recordView();
+  }, [content.id, currentUser?.id]);
+
   // Check follow status on component mount
   useEffect(() => {
     const checkFollowStatus = async () => {
