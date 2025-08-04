@@ -31,7 +31,10 @@ Gift System: Fully activated across all platform components with real working tr
 - ✅ Added special indicators for gifts with sound effects (🔊) and special effects (✨)
 - ✅ Fixed duplicate API endpoint that was causing gift sending errors
 - ✅ Improved gift display with scroll functionality and organized layout
-- Ready for deployment with fully functional gift economy, premium content, and comprehensive gift collection
+- ✅ Added "كرة دائيمية" (permanent) memory type that never expires
+- ✅ Updated memory expiration logic to exclude permanent memories from deletion
+- ✅ Made usernames and profile pictures clickable in comments to navigate to user profiles
+- Ready for deployment with fully functional gift economy, premium content, permanent memories, and comprehensive gift collection
 
 ## System Architecture
 The application follows a modern full-stack JavaScript/TypeScript architecture with clear separation between client and server code.

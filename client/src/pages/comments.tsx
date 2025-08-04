@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RealTimeTimestamp } from "@/components/real-time-timestamp";
+import { useLocation } from "wouter";
 import { 
   ArrowLeft, 
   Send, 
@@ -41,6 +42,7 @@ interface Memory {
 export default function CommentsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [comments, setComments] = useState<Comment[]>([]);
   const [memory, setMemory] = useState<Memory | null>(null);
   const [newComment, setNewComment] = useState("");
@@ -209,18 +211,23 @@ export default function CommentsPage() {
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex items-start gap-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={comment.author?.profileImageUrl} />
-                  <AvatarFallback className="bg-purple-500 text-xs">
-                    {comment.author?.username?.[0]?.toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+                <button onClick={() => setLocation(`/profile/${comment.author?.id}`)}>
+                  <Avatar className="w-8 h-8 hover:opacity-80 transition-opacity cursor-pointer">
+                    <AvatarImage src={comment.author?.profileImageUrl} />
+                    <AvatarFallback className="bg-purple-500 text-xs">
+                      {comment.author?.username?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
                 <div className="flex-1">
                   <div className="bg-purple-500/10 rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-purple-300 text-sm">
+                      <button
+                        onClick={() => setLocation(`/profile/${comment.author?.id}`)}
+                        className="font-semibold text-purple-300 text-sm hover:text-purple-200 transition-colors cursor-pointer"
+                      >
                         {comment.author?.username || 'مستخدم'}
-                      </span>
+                      </button>
                       <span className="text-purple-400 text-xs">
                         <RealTimeTimestamp timestamp={comment.createdAt} />
                       </span>
