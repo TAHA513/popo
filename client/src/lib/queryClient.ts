@@ -8,8 +8,8 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  url: string,
   method: string,
+  url: string,
   data?: unknown | undefined,
 ): Promise<any> {
   const isFormData = data instanceof FormData;
@@ -22,7 +22,7 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  return await res.json();
+  return res;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
