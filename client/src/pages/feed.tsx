@@ -141,6 +141,10 @@ export default function Feed() {
       setShowGiftPanel(false);
       setSelectedRecipient(null);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); // Refresh user points
+      // تحديث التعليقات إذا تم إرسال الهدية لمنشور معين
+      if (selectedRecipient?.memoryId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/memories/${selectedRecipient.memoryId}/comments`] });
+      }
     },
     onError: (error: any) => {
       toast({

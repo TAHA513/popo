@@ -72,6 +72,11 @@ export function EnhancedGiftModal({
       // Update user points
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
+      // تحديث التعليقات إذا تم إرسال الهدية لمنشور معين
+      if (memoryId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/memories/${memoryId}/comments`] });
+      }
+      
       // Clear form and close after animation
       setTimeout(() => {
         setSelectedGift(null);
