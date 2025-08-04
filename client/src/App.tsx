@@ -112,6 +112,7 @@ function Router() {
           <Route path="/wallet" component={WalletPage} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
           <Route path="/comments/:id" component={CommentsPage} />
+          <Route path="/memory/:id" component={CommentsPage} />
           <Route path="/followers-management" component={FollowersManagementPage} />
           <Route path="/gifts" component={GiftsPage} />
           <Route path="/gifts-simple" component={GiftsSimplePage} />

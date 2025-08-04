@@ -247,6 +247,36 @@ export default function ProfileRedesign() {
     }
   };
 
+  // Delete memory mutation
+  const deleteMemoryMutation = useMutation({
+    mutationFn: async (memoryId: number) => {
+      const response = await fetch(`/api/memories/${memoryId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('فشل في حذف المنشور');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/user', profileUserId] });
+      toast({
+        title: "تم حذف المنشور",
+        description: "تم حذف المنشور بنجاح"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في حذف المنشور",
+        description: error.message || "حدث خطأ أثناء حذف المنشور",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleDeleteMemory = (memoryId: number) => {
+    deleteMemoryMutation.mutate(memoryId);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -637,6 +667,11 @@ export default function ProfileRedesign() {
                       title: "تم نسخ الرابط",
                       description: "تم نسخ رابط المنشور للمشاركة"
                     });
+                  }}
+                  onDelete={() => {
+                    if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
+                      handleDeleteMemory(memory.id);
+                    }
                   }}
                 />
               ))
