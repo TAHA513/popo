@@ -368,20 +368,25 @@ export default function Feed() {
                         </button>
                         
                         <button 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
-                          onClick={() => {
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors group relative z-50"
+                          onClick={(e) => {
                             console.log('💬 Comments Button clicked for memory:', memory.id);
+                            console.log('💬 Event target:', e.target);
+                            alert('Comments button clicked!'); // للتأكد من أن النقرة تعمل
                             window.location.href = `/comments/${memory.id}`;
                           }}
+                          style={{ pointerEvents: 'auto' }}
                         >
-                          <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
-                          <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
+                          <MessageCircle className="w-4 h-4 text-blue-600" />
+                          <span className="text-xs font-medium text-blue-600">تعليق</span>
                         </button>
                         
                         <button 
-                          className="p-1.5 md:p-2 -m-2 group"
-                          onClick={() => {
+                          className="p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors group relative z-50"
+                          onClick={(e) => {
                             console.log('Share button clicked for memory:', memory.id);
+                            console.log('Share Event target:', e.target);
+                            alert('Share button clicked!'); // للتأكد من أن النقرة تعمل
                             
                             // Try native mobile share first
                             if (navigator.share) {
@@ -398,8 +403,9 @@ export default function Feed() {
                             
                             handleShare(memory.id);
                           }}
+                          style={{ pointerEvents: 'auto' }}
                         >
-                          <Share2 className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-green-500 transition-colors duration-200" />
+                          <Share2 className="w-4 h-4 text-green-600" />
                         </button>
                       </div>
                       
