@@ -8,14 +8,16 @@ interface StreamContextType {
   setStreamInactive: () => void;
 }
 
-const StreamContext = createContext<StreamContextType | undefined>(undefined);
+const StreamContext = createContext<StreamContextType>({
+  isStreaming: false,
+  streamId: null,
+  streamTitle: '',
+  setStreamActive: () => {},
+  setStreamInactive: () => {}
+});
 
 export function useStreamContext() {
-  const context = useContext(StreamContext);
-  if (!context) {
-    throw new Error('useStreamContext must be used within a StreamProvider');
-  }
-  return context;
+  return useContext(StreamContext);
 }
 
 interface StreamProviderProps {
@@ -29,9 +31,12 @@ export function StreamProvider({ children }: StreamProviderProps) {
 
   // حفظ حالة البث في localStorage
   useEffect(() => {
-    const savedStreamData = localStorage.getItem('activeStream');
-    if (savedStreamData) {
-      try {
+    // Skip localStorage operations on server-side rendering
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const savedStreamData = localStorage.getItem('activeStream');
+      if (savedStreamData) {
         const { id, title, timestamp } = JSON.parse(savedStreamData);
         // تحقق من أن البث ليس قديماً جداً (أكثر من 6 ساعات)
         const sixHoursAgo = Date.now() - (6 * 60 * 60 * 1000);
@@ -42,10 +47,10 @@ export function StreamProvider({ children }: StreamProviderProps) {
         } else {
           localStorage.removeItem('activeStream');
         }
-      } catch (error) {
-        console.error('خطأ في تحميل بيانات البث المحفوظة:', error);
-        localStorage.removeItem('activeStream');
       }
+    } catch (error) {
+      console.error('خطأ في تحميل بيانات البث المحفوظة:', error);
+      localStorage.removeItem('activeStream');
     }
   }, []);
 
@@ -55,11 +60,17 @@ export function StreamProvider({ children }: StreamProviderProps) {
     setStreamTitle(title);
     
     // حفظ في localStorage
-    localStorage.setItem('activeStream', JSON.stringify({
-      id,
-      title,
-      timestamp: Date.now()
-    }));
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('activeStream', JSON.stringify({
+          id,
+          title,
+          timestamp: Date.now()
+        }));
+      } catch (error) {
+        console.error('خطأ في حفظ بيانات البث:', error);
+      }
+    }
   };
 
   const setStreamInactive = () => {
@@ -68,7 +79,13 @@ export function StreamProvider({ children }: StreamProviderProps) {
     setStreamTitle('');
     
     // إزالة من localStorage
-    localStorage.removeItem('activeStream');
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('activeStream');
+      } catch (error) {
+        console.error('خطأ في إزالة بيانات البث:', error);
+      }
+    }
   };
 
   const value = {
