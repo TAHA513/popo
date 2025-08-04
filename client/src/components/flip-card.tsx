@@ -415,12 +415,37 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                 <span className="text-xs">{currentLikeCount}</span>
               </button>
               
-              <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-blue-400 transition-colors">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setLocation(`/comments/${content.id}`);
+                }}
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-blue-400 transition-colors"
+              >
                 <MessageCircle className="w-4 h-4" />
                 <span className="text-xs">{content.commentCount || 0}</span>
               </button>
               
-              <button className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-green-400 transition-colors">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (navigator.share) {
+                    navigator.share({
+                      title: content.title || 'محتوى من LaaBoBo',
+                      text: content.caption || 'شاهد هذا المحتوى الرائع',
+                      url: window.location.href
+                    });
+                  } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(window.location.href);
+                    // Show a toast notification
+                    console.log('تم نسخ الرابط');
+                  }
+                }}
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-green-400 transition-colors"
+              >
                 <Share2 className="w-4 h-4" />
               </button>
               
