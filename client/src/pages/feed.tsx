@@ -373,8 +373,17 @@ export default function Feed() {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('💬 Comments DIV clicked for memory:', memory.id);
-                            alert('Comments clicked!');
-                            window.location.href = `/comments/${memory.id}`;
+                            console.log('💬 Navigating to:', `/comments/${memory.id}`);
+                            
+                            // جرب طرق متعددة للتنقل
+                            try {
+                              // الطريقة الأولى
+                              window.location.assign(`/comments/${memory.id}`);
+                            } catch (error) {
+                              console.error('Navigation error:', error);
+                              // الطريقة الثانية
+                              window.location.href = `/comments/${memory.id}`;
+                            }
                           }}
                           style={{ 
                             pointerEvents: 'auto',
@@ -393,7 +402,6 @@ export default function Feed() {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('Share DIV clicked for memory:', memory.id);
-                            alert('Share clicked!');
                             
                             // Try native mobile share first
                             if (navigator.share) {
@@ -401,14 +409,22 @@ export default function Feed() {
                                 title: `منشور من ${memory.author?.username || 'LaaBoBo'}`,
                                 text: memory.caption || 'شاهد هذا المنشور الرائع!',
                                 url: `${window.location.origin}/memory/${memory.id}`
-                              }).catch(console.error);
+                              }).then(() => {
+                                console.log('Share successful');
+                                handleShare(memory.id);
+                              }).catch((error) => {
+                                console.error('Share failed:', error);
+                                // Fallback to clipboard
+                                navigator.clipboard?.writeText(`${window.location.origin}/memory/${memory.id}`);
+                                alert('تم نسخ الرابط للحافظة!');
+                                handleShare(memory.id);
+                              });
                             } else {
                               // Fallback to clipboard
                               navigator.clipboard?.writeText(`${window.location.origin}/memory/${memory.id}`);
                               alert('تم نسخ الرابط للحافظة!');
+                              handleShare(memory.id);
                             }
-                            
-                            handleShare(memory.id);
                           }}
                           style={{ 
                             pointerEvents: 'auto',
