@@ -364,19 +364,18 @@ export default function Feed() {
                           </span>
                         </button>
                         
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <button 
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('💬 Comments Button clicked for memory:', memory.id);
                             window.location.href = `/comments/${memory.id}`;
                           }}
-                          className="p-1.5 md:p-2 -m-2 text-gray-600 hover:text-blue-500 relative z-50"
                         >
-                          <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
-                        </Button>
+                          <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-blue-500 transition-colors duration-200" />
+                          <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-blue-500">تعليق</span>
+                        </button>
                         
                         <button 
                           className="p-1.5 md:p-2 -m-2 group relative z-10"
