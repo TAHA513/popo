@@ -243,7 +243,7 @@ export default function Feed() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {typedMemories.map((memory) => (
-                <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
+                <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]" style={{ pointerEvents: 'auto' }}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
                       <Link href={`/user/${memory.authorId}`}>
@@ -348,11 +348,15 @@ export default function Feed() {
                     )}
                     
                     {/* Interaction Buttons - Instagram/TikTok Style */}
-                    <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center justify-between py-2" style={{ pointerEvents: 'auto' }}>
                       <div className="flex items-center space-x-3 md:space-x-4 rtl:space-x-reverse">
                         <button 
                           className="flex items-center space-x-1 rtl:space-x-reverse p-1.5 md:p-2 -m-2 group"
-                          onClick={() => handleLike(memory.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleLike(memory.id);
+                          }}
                         >
                           <Heart className="w-5 h-5 md:w-6 md:h-6 text-gray-700 group-hover:text-red-500 group-active:scale-125 transition-all duration-200" />
                           <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-red-500">
@@ -361,8 +365,8 @@ export default function Feed() {
                         </button>
                         
                         <button 
-                          className="flex items-center space-x-1 rtl:space-x-reverse p-3 group relative z-30 bg-transparent hover:bg-blue-50 rounded-md transition-colors"
-                          style={{ minWidth: '60px', minHeight: '40px' }}
+                          className="flex items-center space-x-1 rtl:space-x-reverse p-3 group relative z-50 bg-transparent hover:bg-blue-50 rounded-md transition-colors"
+                          style={{ minWidth: '60px', minHeight: '40px', pointerEvents: 'auto' }}
                           onClick={(e) => {
                             console.log('💬 BUTTON CLICKED!!!');
                             e.preventDefault();
