@@ -1010,7 +1010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .update(memoryFragments)
         .set({ 
           isActive: false,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date()
         })
         .where(eq(memoryFragments.id, memoryId));
       
