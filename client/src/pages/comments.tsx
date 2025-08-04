@@ -214,7 +214,7 @@ export default function CommentsPage() {
                 <button 
                   onClick={() => {
                     console.log('Navigating to profile:', comment.userId);
-                    setLocation(`/profile/${comment.userId}`);
+                    setLocation(`/user/${comment.userId}`);
                   }}
                   className="transition-all hover:scale-105"
                 >
@@ -231,7 +231,7 @@ export default function CommentsPage() {
                       <button
                         onClick={() => {
                           console.log('Navigating to username profile:', comment.userId);
-                          setLocation(`/profile/${comment.userId}`);
+                          setLocation(`/user/${comment.userId}`);
                         }}
                         className="font-semibold text-purple-300 text-sm hover:text-purple-200 transition-colors cursor-pointer"
                       >
