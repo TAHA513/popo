@@ -55,27 +55,42 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
   });
 
   // Fetch gift characters for quick selection
-  const { data: giftCharacters = [] } = useQuery({
+  const { data: giftCharacters = [], isLoading: giftCharactersLoading } = useQuery({
     queryKey: ['/api/gifts/characters'],
     queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
     enabled: showQuickGifts
   });
 
-  // Quick gift icons
-  const giftIcons: { [key: string]: JSX.Element } = {
-    'BoBo Love': <span className="text-2xl">💖</span>,
-    'Rose': <span className="text-2xl">🌹</span>,
-    'Coffee': <span className="text-2xl">☕</span>,
-    'Star': <span className="text-2xl">⭐</span>,
-    'Crown': <span className="text-2xl">👑</span>,
-    'Diamond': <span className="text-2xl">💎</span>,
-    'Fire': <span className="text-2xl">🔥</span>,
-    'Rocket': <span className="text-2xl">🚀</span>,
-    'Trophy': <span className="text-2xl">🏆</span>,
-    'Galaxy': <span className="text-2xl">🌌</span>,
-    'Castle': <span className="text-2xl">🏰</span>,
-    'Dragon': <span className="text-2xl">🐉</span>,
-    'Unicorn': <span className="text-2xl">🦄</span>
+  // Debug log
+  console.log('🎁 Gift characters debug:', { 
+    giftCharacters, 
+    length: giftCharacters?.length, 
+    loading: giftCharactersLoading,
+    showQuickGifts
+  });
+
+  // Quick gift icons - use emojis from database
+  const getGiftIcon = (gift: any) => {
+    if (gift.emoji) {
+      return <span className="text-3xl">{gift.emoji}</span>;
+    }
+    // Fallback icons for known gifts
+    const fallbackIcons: { [key: string]: JSX.Element } = {
+      'BoBo Love': <span className="text-3xl">🐰💕</span>,
+      'BoFire': <span className="text-3xl">🐲🔥</span>,
+      'Nunu Magic': <span className="text-3xl">🦄🌟</span>,
+      'Dodo Splash': <span className="text-3xl">🦆💦</span>,
+      'Meemo Wink': <span className="text-3xl">🐱🌈</span>,
+      'Love Heart': <span className="text-3xl">💝</span>,
+      'قلب': <span className="text-3xl">❤️</span>,
+      'وردة': <span className="text-3xl">🌹</span>,
+      'تاج': <span className="text-3xl">👑</span>,
+      'ألماسة': <span className="text-3xl">💎</span>,
+      'سيارة': <span className="text-3xl">🚗</span>,
+      'طائرة': <span className="text-3xl">✈️</span>,
+      'قلعة': <span className="text-3xl">🏰</span>
+    };
+    return fallbackIcons[gift.name] || <span className="text-3xl">🎁</span>;
   };
 
   // Send gift mutation
@@ -438,32 +453,47 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                       
                       {/* Gifts Grid */}
                       <div className="grid grid-cols-3 gap-3 mb-4">
-                        {giftCharacters
-                          .filter((gift: any) => gift.pointCost <= 500) // Show affordable gifts
-                          .slice(0, 9) // Show 9 gifts in 3x3 grid
-                          .map((gift: any) => (
-                          <button
-                            key={gift.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              handleQuickGiftSend(gift);
-                            }}
-                            disabled={sendGiftMutation.isPending || (currentUser && currentUser.points < gift.pointCost)}
-                            className={`flex flex-col items-center p-3 rounded-xl transition-all duration-200 hover:scale-110 ${
-                              currentUser && currentUser.points < gift.pointCost 
-                                ? 'bg-gray-600/50 cursor-not-allowed opacity-50' 
-                                : sendGiftMutation.isPending 
-                                  ? 'bg-yellow-500/50 cursor-wait'
-                                  : 'bg-white/10 hover:bg-white/20 hover:shadow-lg'
-                            }`}
-                          >
-                            <div className="mb-2 text-3xl">
-                              {giftIcons[gift.name] || <span className="text-3xl">🎁</span>}
+                        {giftCharactersLoading ? (
+                          // Loading state
+                          Array.from({length: 6}).map((_, i) => (
+                            <div key={i} className="flex flex-col items-center p-3 rounded-xl bg-white/5 animate-pulse">
+                              <div className="mb-2 w-8 h-8 bg-white/20 rounded"></div>
+                              <div className="w-8 h-3 bg-white/20 rounded"></div>
                             </div>
-                            <span className="text-white text-xs font-bold">{gift.pointCost}</span>
-                          </button>
-                        ))}
+                          ))
+                        ) : giftCharacters.length > 0 ? (
+                          giftCharacters
+                            .filter((gift: any) => gift.pointCost <= 1000) // Show more gifts including premium ones
+                            .slice(0, 9) // Show 9 gifts in 3x3 grid
+                            .map((gift: any) => (
+                            <button
+                              key={gift.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                handleQuickGiftSend(gift);
+                              }}
+                              disabled={sendGiftMutation.isPending || (currentUser && currentUser.points < gift.pointCost)}
+                              className={`flex flex-col items-center p-3 rounded-xl transition-all duration-200 hover:scale-110 ${
+                                currentUser && currentUser.points < gift.pointCost 
+                                  ? 'bg-gray-600/50 cursor-not-allowed opacity-50' 
+                                  : sendGiftMutation.isPending 
+                                    ? 'bg-yellow-500/50 cursor-wait'
+                                    : 'bg-white/10 hover:bg-white/20 hover:shadow-lg'
+                              }`}
+                            >
+                              <div className="mb-2">
+                                {getGiftIcon(gift)}
+                              </div>
+                              <span className="text-white text-xs font-bold">{gift.pointCost}</span>
+                            </button>
+                          ))
+                        ) : (
+                          // Empty state
+                          <div className="col-span-3 text-center py-4">
+                            <span className="text-white/60 text-sm">لا توجد هدايا متاحة</span>
+                          </div>
+                        )}
                       </div>
                       
                       {/* Loading State */}
