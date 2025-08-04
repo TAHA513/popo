@@ -159,6 +159,19 @@ export default function SimpleNavigation() {
                 <Gift className="w-4 h-4" />
               </Button>
             </Link>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="rounded-full text-white/80 hover:text-red-400 hover:bg-red-500/10"
+              onClick={() => {
+                if (confirm('هل تريد تسجيل الخروج؟')) {
+                  window.location.href = '/api/auth/logout';
+                }
+              }}
+              title="تسجيل الخروج"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>
