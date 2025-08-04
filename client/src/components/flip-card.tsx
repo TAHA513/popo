@@ -98,14 +98,34 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
     return fallbackIcons[gift.name] || <span className="text-3xl">🎁</span>;
   };
 
+  // Fetch gifts for this memory
+  const { data: memoryGifts = [], isLoading: giftsLoading } = useQuery({
+    queryKey: [`/api/memories/${content.id}/gifts`],
+    queryFn: async () => {
+      const response = await fetch(`/api/memories/${content.id}/gifts`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!content.id
+  });
+
   // Send gift mutation
   const sendGiftMutation = useMutation({
     mutationFn: async (giftData: { giftCharacterId: number; pointCost: number }) => {
+      console.log('🎁 Sending gift with data:', {
+        characterId: giftData.giftCharacterId,
+        receiverId: content.author?.id || content.authorId,
+        message: `هدية لمنشورك الرائع!`,
+        memoryId: content.id
+      });
+      
       const response = await apiRequest('POST', '/api/gifts/send', {
         characterId: giftData.giftCharacterId,
         receiverId: content.author?.id || content.authorId,
         message: `هدية لمنشورك الرائع!`,
-        postId: content.id
+        memoryId: content.id
       });
       return response.json();
     },
@@ -116,6 +136,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
       });
       setShowQuickGifts(false);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/memories/${content.id}/gifts`] });
     },
     onError: (error: any) => {
       const errorMessage = error.message || 'فشل إرسال الهدية';
@@ -460,6 +481,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                   className="flex items-center space-x-1 rtl:space-x-reverse text-white/80 hover:text-yellow-400 transition-colors"
                 >
                   <Gift className="w-4 h-4" />
+                  <span className="text-xs">{content.giftCount || 0}</span>
                 </button>
 
                 {/* Quick Gifts Popup - Fixed at center of screen */}
@@ -657,10 +679,40 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
               <div className="text-white/70 text-xs">متابع</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-xl text-white">{author.postsCount || 0}</div>
-              <div className="text-white/70 text-xs">منشور</div>
+              <div className="font-bold text-xl text-white">{memoryGifts.length || 0}</div>
+              <div className="text-white/70 text-xs">هدية</div>
             </div>
           </div>
+
+          {/* Received Gifts Section */}
+          {memoryGifts.length > 0 && (
+            <div className="bg-white/10 rounded-lg p-4 mb-4 backdrop-blur-sm">
+              <h4 className="text-white font-bold text-sm mb-3 flex items-center">
+                <Gift className="w-4 h-4 ml-2 text-yellow-300" />
+                الهدايا المرسلة ({memoryGifts.length})
+              </h4>
+              <div className="max-h-40 overflow-y-auto space-y-2">
+                {memoryGifts.map((gift: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between bg-white/5 rounded-lg p-2">
+                    <div className="flex items-center">
+                      <div className="text-lg ml-2">{gift.giftCharacter?.emoji || '🎁'}</div>
+                      <div>
+                        <div className="text-white text-sm font-medium">
+                          {gift.giftCharacter?.name || 'هدية'}
+                        </div>
+                        <div className="text-white/60 text-xs">
+                          من: {gift.sender?.username || gift.sender?.firstName || 'مستخدم'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-yellow-300 text-xs font-bold">
+                      {gift.pointCost} نقطة
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Content description */}
           <div className="flex-1 mb-4">

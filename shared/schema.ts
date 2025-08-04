@@ -119,6 +119,7 @@ export const gifts = pgTable("gifts", {
   senderId: varchar("sender_id").notNull().references(() => users.id),
   receiverId: varchar("receiver_id").notNull().references(() => users.id),
   streamId: integer("stream_id").references(() => streams.id),
+  memoryId: integer("memory_id").references(() => memoryFragments.id), // Added for memory gifts
   characterId: integer("character_id").notNull().references(() => giftCharacters.id),
   pointCost: integer("point_cost").notNull(),
   message: text("message"),

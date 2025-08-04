@@ -490,6 +490,14 @@ export class DatabaseStorage implements IStorage {
         .where(eq(streams.id, giftData.streamId));
     }
     
+    // Update memory gift count if it's for a memory
+    if (giftData.memoryId) {
+      await db
+        .update(memoryFragments)
+        .set({ giftCount: sql`${memoryFragments.giftCount} + 1` })
+        .where(eq(memoryFragments.id, giftData.memoryId));
+    }
+    
     return gift;
   }
 

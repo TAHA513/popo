@@ -1048,6 +1048,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get gifts for a specific memory
+  app.get('/api/memories/:memoryId/gifts', async (req, res) => {
+    try {
+      const memoryId = parseInt(req.params.memoryId);
+      if (isNaN(memoryId)) {
+        return res.status(400).json({ message: "Invalid memory ID" });
+      }
+      
+      const memoryGifts = await db
+        .select({
+          id: gifts.id,
+          senderId: gifts.senderId,
+          pointCost: gifts.pointCost,
+          message: gifts.message,
+          sentAt: gifts.sentAt,
+          giftCharacter: {
+            id: giftCharacters.id,
+            name: giftCharacters.name,
+            emoji: giftCharacters.emoji,
+            pointCost: giftCharacters.pointCost
+          },
+          sender: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl
+          }
+        })
+        .from(gifts)
+        .leftJoin(giftCharacters, eq(gifts.characterId, giftCharacters.id))
+        .leftJoin(users, eq(gifts.senderId, users.id))
+        .where(eq(gifts.memoryId, memoryId))
+        .orderBy(desc(gifts.sentAt));
+      
+      res.json(memoryGifts);
+    } catch (error) {
+      console.error("Error fetching memory gifts:", error);
+      res.status(500).json({ message: "Failed to fetch memory gifts" });
+    }
+  });
+
   // Search users endpoint
   app.get('/api/users/search', requireAuth, async (req: any, res) => {
     try {
@@ -1976,7 +2017,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         characterId,
         pointCost: giftCharacter.pointCost,
         message: message || null,
-        streamId: streamId || null
+        streamId: streamId || null,
+        memoryId: memoryId || null
       });
 
       // If this gift is for a specific memory, add a comment notification
