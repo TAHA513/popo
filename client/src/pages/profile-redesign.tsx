@@ -33,6 +33,7 @@ import { OnlineStatus } from "@/components/online-status";
 import { Link, useParams, useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import MemoryCard from "@/components/memory-card";
+import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
 
 export default function ProfileRedesign() {
   const { user: currentUser, isAuthenticated } = useAuth();
@@ -755,6 +756,22 @@ export default function ProfileRedesign() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Enhanced Gift Modal */}
+      {profileUser && !isOwnProfile && (
+        <EnhancedGiftModal
+          isOpen={showGiftDialog}
+          onClose={() => setShowGiftDialog(false)}
+          receiverId={profileUserId || ''}
+          receiverName={profileUser.username || profileUser.firstName || 'مستخدم'}
+          onGiftSent={(gift) => {
+            toast({
+              title: "تم إرسال الهدية!",
+              description: `تم إرسال ${gift.name} بنجاح`,
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

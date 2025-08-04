@@ -4,11 +4,13 @@ import { useParams, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, MessageCircle } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, Gift } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ConversationPage() {
   const { user } = useAuth();
@@ -27,8 +29,10 @@ export default function ConversationPage() {
   const params = useParams<{ userId: string }>();
   const userId = params.userId;
   const [newMessage, setNewMessage] = useState("");
+  const [showGiftModal, setShowGiftModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch messages for this conversation
   const { data: messages = [], isLoading } = useQuery({
@@ -149,12 +153,23 @@ export default function ConversationPage() {
             )}
           </div>
           
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg font-semibold text-gray-800">
               {otherUser?.firstName || otherUser?.username}
             </h1>
             <p className="text-sm text-gray-500">@{otherUser?.username}</p>
           </div>
+          
+          {/* Gift button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGiftModal(true)}
+            className="bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200 text-pink-600 hover:from-pink-100 hover:to-purple-100"
+          >
+            <Gift className="w-4 h-4 ml-1" />
+            هدية
+          </Button>
         </div>
       </div>
 
@@ -236,6 +251,22 @@ export default function ConversationPage() {
       </main>
 
       <BottomNavigation />
+
+      {/* Enhanced Gift Modal */}
+      {otherUser && (
+        <EnhancedGiftModal
+          isOpen={showGiftModal}
+          onClose={() => setShowGiftModal(false)}
+          receiverId={userId || ''}
+          receiverName={otherUser.username || otherUser.firstName || 'مستخدم'}
+          onGiftSent={(gift) => {
+            toast({
+              title: "تم إرسال الهدية!",
+              description: `تم إرسال ${gift.name} إلى ${otherUser.username || otherUser.firstName}`,
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

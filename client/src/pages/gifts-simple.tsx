@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Gift, Coins, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'wouter';
-import { GiftShop } from '@/components/gift-shop';
+import { EnhancedGiftModal } from '@/components/enhanced-gift-modal';
 
 interface GiftCharacter {
   id: number;
@@ -19,7 +19,7 @@ interface GiftCharacter {
 }
 
 export default function GiftsSimple() {
-  const [showGiftShop, setShowGiftShop] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
   const [selectedGift, setSelectedGift] = useState<GiftCharacter | null>(null);
   const { user } = useAuth();
 
@@ -36,7 +36,7 @@ export default function GiftsSimple() {
 
   const handleGiftClick = (gift: GiftCharacter) => {
     setSelectedGift(gift);
-    setShowGiftShop(true);
+    setShowGiftModal(true);
   };
 
   if (isLoading) {
@@ -137,6 +137,7 @@ export default function GiftsSimple() {
                   </div>
                   
                   <Button 
+                    onClick={() => handleGiftClick(gift)}
                     className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
                     disabled={(user?.points || 0) < gift.pointCost}
                   >
@@ -152,17 +153,17 @@ export default function GiftsSimple() {
           </div>
         )}
 
-        {/* Gift Shop Modal */}
-        <GiftShop
-          isOpen={showGiftShop}
+        {/* Enhanced Gift Modal */}
+        <EnhancedGiftModal
+          isOpen={showGiftModal}
           onClose={() => {
-            setShowGiftShop(false);
+            setShowGiftModal(false);
             setSelectedGift(null);
           }}
           receiverId="test-user"
           receiverName="مستخدم تجريبي"
           onGiftSent={() => {
-            setShowGiftShop(false);
+            setShowGiftModal(false);
             setSelectedGift(null);
           }}
         />
