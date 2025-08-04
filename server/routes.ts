@@ -1763,6 +1763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const senderId = req.user?.id;
       const { receiverId, characterId, message, streamId, memoryId } = req.body;
+      console.log('🎁 Gift send request data:', { receiverId, characterId, message, streamId, memoryId });
       
       if (!senderId || !receiverId || !characterId) {
         return res.status(400).json({ message: "بيانات الهدية غير مكتملة" });
@@ -1806,14 +1807,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If this gift is for a specific memory, add a comment notification
       if (memoryId) {
+        console.log('🎁 Creating gift notification comment for memory:', memoryId);
         const giftCommentContent = `🎁 ${sender.firstName || sender.username} أرسل ${giftCharacter.emoji} ${giftCharacter.name} (@${sender.username})`;
+        console.log('🎁 Comment content:', giftCommentContent);
         
-        await storage.addComment({
-          content: giftCommentContent,
-          authorId: senderId,
-          postId: memoryId,
-          postType: 'memory'
-        });
+        try {
+          const comment = await storage.addComment({
+            content: giftCommentContent,
+            authorId: senderId,
+            postId: memoryId,
+            postType: 'memory'
+          });
+          console.log('🎁 Comment created successfully:', comment);
+        } catch (commentError) {
+          console.error('❌ Error creating comment:', commentError);
+        }
       }
 
       // Update sender and receiver supporter levels
