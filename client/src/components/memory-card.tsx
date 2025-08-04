@@ -246,7 +246,6 @@ export default function MemoryCard({
                   onMouseEnter={(e) => e.currentTarget.play()}
                   onMouseLeave={(e) => e.currentTarget.pause()}
                   onCanPlay={(e) => {
-                    // عرض الإطار الأول فوراً عند جاهزية الفيديو
                     e.currentTarget.currentTime = 0.01;
                   }}
                 />
