@@ -85,17 +85,32 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
     if (!albumId) return;
     
     try {
-      const response = await fetch(`/api/premium-albums/${albumId}`, {
+      // جلب بيانات الألبوم
+      const albumResponse = await fetch(`/api/premium-albums/${albumId}`, {
         credentials: 'include'
       });
-      if (response.ok) {
-        const data = await response.json();
-        setAlbumData(data);
-        // فقط المشترين والمنشئ لديهم وصول
-        setHasAccess(data.hasAccess);
+      
+      if (albumResponse.ok) {
+        const albumData = await albumResponse.json();
+        setAlbumData(albumData);
+        
+        // إذا كان المرسل هو المنشئ، يمكنه الوصول مجاناً
+        if (message.senderId === currentUserId) {
+          setHasAccess(true);
+          return;
+        }
+        
+        // محاولة الوصول للمحتوى للتحقق من الإذن
+        const mediaResponse = await fetch(`/api/premium-albums/${albumId}/media`, {
+          credentials: 'include'
+        });
+        
+        // إذا نجح الوصول للمحتوى = لديه إذن، إذا فشل = لا يملك إذن
+        setHasAccess(mediaResponse.ok);
       }
     } catch (error) {
       console.error('خطأ في التحقق من الوصول:', error);
+      setHasAccess(false);
     }
   };
 
