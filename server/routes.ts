@@ -416,7 +416,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.purchasePremiumAlbum({
         albumId,
         buyerId: userId,
-        amount: album.requiredGiftAmount
+        price: album.requiredGiftAmount,
+        giftId: album.requiredGiftId || 1, // استخدم gift ID من الألبوم أو قيمة افتراضية
+        giftAmount: album.requiredGiftAmount,
+        purchasedAt: new Date()
       });
 
       // Deduct points from user
