@@ -413,6 +413,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Process purchase
+      console.log('🛒 Processing purchase:', {
+        albumId,
+        buyerId: userId,
+        giftId: album.requiredGiftId || 1,
+        giftAmount: album.requiredGiftAmount,
+        totalCost: album.requiredGiftAmount
+      });
+
       await storage.purchasePremiumAlbum({
         albumId,
         buyerId: userId,

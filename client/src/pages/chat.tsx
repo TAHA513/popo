@@ -119,7 +119,17 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   }, [albumId, currentUserId]);
 
   const handlePayment = async () => {
-    if (!albumId) return;
+    if (!albumId || !albumData) return;
+    
+    // عرض رسالة تأكيد قبل الدفع
+    const confirmed = window.confirm(
+      `💰 ألبوم مدفوع: ${albumTitle}\n` +
+      `السعر: ${albumPrice} نقطة\n\n` +
+      `هل تريد شراء هذا الألبوم؟\n` +
+      `ستذهب النقاط إلى منشئ الألبوم.`
+    );
+
+    if (!confirmed) return;
     
     try {
       const response = await apiRequest('POST', `/api/premium-albums/${albumId}/purchase`, {});
@@ -133,11 +143,16 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
         });
         // إعادة تحميل بيانات الألبوم
         checkAccess();
+        // فتح الألبوم مباشرة بعد الشراء
+        setTimeout(() => {
+          window.location.href = `/premium-albums/${albumId}`;
+        }, 1000);
       }
     } catch (error: any) {
+      const errorMessage = error.message || "فشل في معالجة عملية الدفع";
       toast({
         title: "❌ خطأ في الدفع",
-        description: error.message || "فشل في معالجة عملية الدفع",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -184,9 +199,11 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
               variant="ghost" 
               size="sm"
               onClick={handlePayment}
-              className="text-orange-600 hover:bg-orange-50"
+              className="text-orange-600 hover:bg-orange-50 flex flex-col items-center"
+              title={`ادفع ${albumPrice} نقطة لفتح الألبوم`}
             >
               <Lock className="w-4 h-4" />
+              <span className="text-xs mt-1">ادفع</span>
             </Button>
           )}
         </div>
