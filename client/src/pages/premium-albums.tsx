@@ -82,6 +82,7 @@ export default function PremiumAlbumsPage() {
     mutationFn: async (albumData: any) => {
       const response = await fetch('/api/premium-albums', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -241,7 +242,13 @@ export default function PremiumAlbumsPage() {
         };
 
         console.log('🔄 إضافة إلى الألبوم:', mediaData);
-        await uploadMediaMutation.mutateAsync({ albumId, mediaData });
+        try {
+          const result = await uploadMediaMutation.mutateAsync({ albumId, mediaData });
+          console.log('✅ تمت إضافة المحتوى:', result);
+        } catch (mediaError) {
+          console.error('❌ فشل في إضافة المحتوى للألبوم:', mediaError);
+          throw new Error(`فشل في إضافة المحتوى للألبوم: ${mediaError}`);
+        }
 
         // Update progress
         setUploadProgress(((i + 1) / selectedFiles.length) * 100);
