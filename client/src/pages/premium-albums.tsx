@@ -260,11 +260,13 @@ export default function PremiumAlbumsPage() {
         
         // Add media to album
         const mediaData = {
-          mediaUrl: uploadResult.url,
+          mediaUrl: uploadResult.fileUrl,
           mediaType: file.type.startsWith('image/') ? 'image' : 'video',
           caption: `محتوى من الألبوم`,
           orderIndex: i,
         };
+
+        console.log('📋 بيانات المحتوى المعدة للإرسال:', mediaData);
 
         console.log('🔄 إضافة إلى الألبوم:', mediaData);
         try {

@@ -746,6 +746,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // General file upload endpoint
+  app.post('/api/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "لم يتم رفع أي ملف" });
+      }
+
+      console.log('✅ تم رفع الملف:', {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+      res.json({
+        success: true,
+        fileUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ message: "فشل في رفع الملف" });
+    }
+  });
+
   // Profile image upload endpoint
   app.post('/api/upload/profile-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
