@@ -406,11 +406,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لديك وصول للألبوم بالفعل" });
       }
 
-      // Don't allow creator to purchase their own album
-      if (album.creatorId === userId) {
-        return res.status(400).json({ message: "لا يمكنك شراء ألبومك الخاص" });
-      }
-
       // Check user's points balance
       const user = await storage.getUser(userId);
       if (!user || (user.points || 0) < album.requiredGiftAmount) {
