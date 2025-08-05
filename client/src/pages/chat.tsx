@@ -139,7 +139,7 @@ export default function ChatPage() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { recipientId: string; content: string; messageType?: string }) => {
-      return await apiRequest('/api/messages/send', 'POST', messageData);
+      return await apiRequest('POST', '/api/messages/send', messageData);
     },
     onSuccess: () => {
       setNewMessage("");

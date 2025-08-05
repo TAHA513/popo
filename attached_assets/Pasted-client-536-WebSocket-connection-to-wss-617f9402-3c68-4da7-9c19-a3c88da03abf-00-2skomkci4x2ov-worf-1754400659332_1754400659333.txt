@@ -1,0 +1,157 @@
+client:536 WebSocket connection to 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/?token=mv-iIlc3YORg' failed: 
+setupWebSocket @ client:536
+(anonymous) @ client:531
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=mv-iIlc3YORg' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+setupWebSocket @ client:536
+fallback @ client:509
+(anonymous) @ client:555
+chunk-RPCDYKBN.js?v=fb7eaaca:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:10 SW registered:  ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/', …}
+performance.ts:259 تم تحميل جميع الخطوط بنجاح
+tgEdqzdzvCGHpzO8jp7hS:1 Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)
+performance.ts:272 Near bottom - consider loading more content
+@radix-ui_react-dialog.js?v=fb7eaaca:342 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=fb7eaaca:342
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=fb7eaaca:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=fb7eaaca:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=fb7eaaca:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=fb7eaaca:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=fb7eaaca:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=fb7eaaca:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=fb7eaaca:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=fb7eaaca:19416
+commitRoot @ chunk-RPCDYKBN.js?v=fb7eaaca:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=fb7eaaca:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=fb7eaaca:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=fb7eaaca:18627
+chat.tsx:230 🎁 محاولة إرسال الألبوم: {id: 2, creatorId: 'AY7JfzwUCBdKAVfPJbcS8', title: 'صور', description: '', coverImageUrl: '', …}
+chat.tsx:231 🔧 بيانات المستلم: tgEdqzdzvCGHpzO8jp7hS
+chat.tsx:236 📨 رسالة الألبوم: 🎁 ألبوم مدفوع: صور
+💰 السعر: 1 نقطة
+📱 انقر للوصول: /premium-albums/2
+chat.tsx:237 🔄 إرسال باستخدام mutation...
+chat.tsx:253 ❌ خطأ في إرسال الألبوم: TypeError: Failed to execute 'fetch' on 'Window': '/api/messages/send' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:17:21)
+    at Object.mutationFn (chat.tsx:142:20)
+    at Object.fn (@tanstack_react-query.js?v=fb7eaaca:1189:29)
+    at run (@tanstack_react-query.js?v=fb7eaaca:494:49)
+    at Object.start (@tanstack_react-query.js?v=fb7eaaca:536:9)
+    at _a6.execute (@tanstack_react-query.js?v=fb7eaaca:1225:56)
+    at async handleSendAlbum (chat.tsx:239:22)
+handleSendAlbum @ chat.tsx:253
+await in handleSendAlbum
+onClick @ chat.tsx:766
+callCallback2 @ chunk-RPCDYKBN.js?v=fb7eaaca:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=fb7eaaca:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=fb7eaaca:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=fb7eaaca:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=fb7eaaca:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=fb7eaaca:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=fb7eaaca:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=fb7eaaca:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=fb7eaaca:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=fb7eaaca:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=fb7eaaca:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=fb7eaaca:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=fb7eaaca:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5449
+chat.tsx:230 🎁 محاولة إرسال الألبوم: {id: 2, creatorId: 'AY7JfzwUCBdKAVfPJbcS8', title: 'صور', description: '', coverImageUrl: '', …}
+chat.tsx:231 🔧 بيانات المستلم: tgEdqzdzvCGHpzO8jp7hS
+chat.tsx:236 📨 رسالة الألبوم: 🎁 ألبوم مدفوع: صور
+💰 السعر: 1 نقطة
+📱 انقر للوصول: /premium-albums/2
+chat.tsx:237 🔄 إرسال باستخدام mutation...
+chat.tsx:253 ❌ خطأ في إرسال الألبوم: TypeError: Failed to execute 'fetch' on 'Window': '/api/messages/send' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:17:21)
+    at Object.mutationFn (chat.tsx:142:20)
+    at Object.fn (@tanstack_react-query.js?v=fb7eaaca:1189:29)
+    at run (@tanstack_react-query.js?v=fb7eaaca:494:49)
+    at Object.start (@tanstack_react-query.js?v=fb7eaaca:536:9)
+    at _a6.execute (@tanstack_react-query.js?v=fb7eaaca:1225:56)
+    at async handleSendAlbum (chat.tsx:239:22)
+handleSendAlbum @ chat.tsx:253
+await in handleSendAlbum
+onClick @ chat.tsx:766
+callCallback2 @ chunk-RPCDYKBN.js?v=fb7eaaca:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=fb7eaaca:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=fb7eaaca:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=fb7eaaca:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=fb7eaaca:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=fb7eaaca:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=fb7eaaca:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=fb7eaaca:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=fb7eaaca:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=fb7eaaca:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=fb7eaaca:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=fb7eaaca:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=fb7eaaca:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5449
+chat.tsx:230 🎁 محاولة إرسال الألبوم: {id: 2, creatorId: 'AY7JfzwUCBdKAVfPJbcS8', title: 'صور', description: '', coverImageUrl: '', …}
+chat.tsx:231 🔧 بيانات المستلم: tgEdqzdzvCGHpzO8jp7hS
+chat.tsx:236 📨 رسالة الألبوم: 🎁 ألبوم مدفوع: صور
+💰 السعر: 1 نقطة
+📱 انقر للوصول: /premium-albums/2
+chat.tsx:237 🔄 إرسال باستخدام mutation...
+chat.tsx:253 ❌ خطأ في إرسال الألبوم: TypeError: Failed to execute 'fetch' on 'Window': '/api/messages/send' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:17:21)
+    at Object.mutationFn (chat.tsx:142:20)
+    at Object.fn (@tanstack_react-query.js?v=fb7eaaca:1189:29)
+    at run (@tanstack_react-query.js?v=fb7eaaca:494:49)
+    at Object.start (@tanstack_react-query.js?v=fb7eaaca:536:9)
+    at _a6.execute (@tanstack_react-query.js?v=fb7eaaca:1225:56)
+    at async handleSendAlbum (chat.tsx:239:22)
+handleSendAlbum @ chat.tsx:253
+await in handleSendAlbum
+onClick @ chat.tsx:766
+callCallback2 @ chunk-RPCDYKBN.js?v=fb7eaaca:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=fb7eaaca:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=fb7eaaca:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=fb7eaaca:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=fb7eaaca:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=fb7eaaca:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=fb7eaaca:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=fb7eaaca:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=fb7eaaca:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=fb7eaaca:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=fb7eaaca:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=fb7eaaca:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=fb7eaaca:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5449
+chat.tsx:230 🎁 محاولة إرسال الألبوم: {id: 2, creatorId: 'AY7JfzwUCBdKAVfPJbcS8', title: 'صور', description: '', coverImageUrl: '', …}
+chat.tsx:231 🔧 بيانات المستلم: tgEdqzdzvCGHpzO8jp7hS
+chat.tsx:236 📨 رسالة الألبوم: 🎁 ألبوم مدفوع: صور
+💰 السعر: 1 نقطة
+📱 انقر للوصول: /premium-albums/2
+chat.tsx:237 🔄 إرسال باستخدام mutation...
+chat.tsx:253 ❌ خطأ في إرسال الألبوم: TypeError: Failed to execute 'fetch' on 'Window': '/api/messages/send' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:17:21)
+    at Object.mutationFn (chat.tsx:142:20)
+    at Object.fn (@tanstack_react-query.js?v=fb7eaaca:1189:29)
+    at run (@tanstack_react-query.js?v=fb7eaaca:494:49)
+    at Object.start (@tanstack_react-query.js?v=fb7eaaca:536:9)
+    at _a6.execute (@tanstack_react-query.js?v=fb7eaaca:1225:56)
+    at async handleSendAlbum (chat.tsx:239:22)
+handleSendAlbum @ chat.tsx:253
+await in handleSendAlbum
+onClick @ chat.tsx:766
+callCallback2 @ chunk-RPCDYKBN.js?v=fb7eaaca:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=fb7eaaca:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=fb7eaaca:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=fb7eaaca:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=fb7eaaca:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=fb7eaaca:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=fb7eaaca:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=fb7eaaca:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=fb7eaaca:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=fb7eaaca:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=fb7eaaca:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=fb7eaaca:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=fb7eaaca:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=fb7eaaca:5449
