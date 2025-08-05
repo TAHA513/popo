@@ -134,6 +134,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   isUsernameAvailable(username: string): Promise<boolean>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
+  updateUserPoints(userId: string, newPoints: number): Promise<void>;
   
   // Stream operations
   createStream(stream: InsertStream): Promise<Stream>;
@@ -357,6 +358,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return updatedUser;
+  }
+
+  async updateUserPoints(userId: string, newPoints: number): Promise<void> {
+    await db.update(users)
+      .set({ points: newPoints })
+      .where(eq(users.id, userId));
   }
 
   // Stream operations

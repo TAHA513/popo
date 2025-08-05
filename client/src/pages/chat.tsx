@@ -143,17 +143,14 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
     }
     
     console.log('💰 Starting payment process for album:', albumId);
-    
-    // عرض رسالة تأكيد قبل الدفع
-    const confirmed = window.confirm(
-      `💰 ألبوم مدفوع: ${albumTitle}\n` +
-      `السعر: ${albumPrice} نقطة\n\n` +
-      `هل تريد شراء هذا الألبوم؟\n` +
-      `ستذهب النقاط إلى منشئ الألبوم.`
-    );
+    setShowPaymentDialog(true);
+  };
 
-    if (!confirmed) {
-      console.log('❌ Payment cancelled by user');
+  const confirmPayment = async () => {
+    setShowPaymentDialog(false);
+    
+    if (!albumId || !albumData) {
+      console.log('❌ Missing albumId or albumData:', { albumId, albumData });
       return;
     }
     
@@ -200,6 +197,42 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
 
   return (
     <div className="space-y-3">
+      {/* Payment Confirmation Dialog */}
+      {showPaymentDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ direction: 'rtl' }}>
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FolderOpen className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="font-bold text-lg text-gray-800 mb-2">شراء ألبوم مدفوع</h3>
+              <p className="text-gray-600 mb-1"><strong>{albumTitle}</strong></p>
+              <p className="text-orange-600 font-bold text-xl mb-4">💰 {albumPrice} نقطة</p>
+              
+              <p className="text-sm text-gray-500 mb-6">
+                ستذهب النقاط إلى منشئ الألبوم وستتمكن من الوصول إلى محتوياته
+              </p>
+              
+              <div className="flex space-x-3 space-x-reverse">
+                <Button
+                  onClick={() => setShowPaymentDialog(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  onClick={confirmPayment}
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white"
+                >
+                  شراء الآن
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-center space-x-2 space-x-reverse bg-gradient-to-r from-orange-50 to-pink-50 p-3 rounded-lg border border-orange-200">
         <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-pink-600 rounded-lg flex items-center justify-center">
           <FolderOpen className="w-5 h-5 text-white" />
@@ -238,7 +271,7 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
             <Button
               variant="ghost" 
               size="sm"
-              onClick={handlePayment}
+              onClick={() => setShowPaymentDialog(true)}
               className="text-orange-600 hover:bg-orange-50 flex flex-col items-center"
               title={`ادفع ${albumPrice} نقطة لفتح الألبوم`}
             >
