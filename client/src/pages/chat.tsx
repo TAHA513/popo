@@ -21,7 +21,9 @@ import {
   MessageSquare,
   Info,
   UserX,
-  Shield
+  Shield,
+  FolderOpen,
+  Image
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -38,6 +40,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Message {
   id: number;
@@ -70,6 +79,9 @@ export default function ChatPage() {
   
   // Block status state
   const [isBlocked, setIsBlocked] = useState(false);
+  
+  // Premium albums state
+  const [showAlbumsDialog, setShowAlbumsDialog] = useState(false);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -162,6 +174,19 @@ export default function ChatPage() {
     }
   }, [blockStatus]);
 
+  // Fetch user's premium albums
+  const { data: premiumAlbums = [] } = useQuery({
+    queryKey: ['/api/premium-albums/my-albums'],
+    queryFn: async () => {
+      const response = await fetch('/api/premium-albums/my-albums', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch albums');
+      return response.json();
+    },
+    enabled: !!user,
+  });
+
   // Mark messages as read
   const markAsReadMutation = useMutation({
     mutationFn: async () => {
@@ -199,6 +224,32 @@ export default function ChatPage() {
       });
     }
   });
+
+  // Handle send album
+  const handleSendAlbum = async (album: any) => {
+    try {
+      const albumMessage = `🎁 ألبوم مدفوع: ${album.title}\n💰 السعر: ${album.requiredGiftAmount} نقطة\n📱 انقر للوصول: /premium-albums/${album.id}`;
+      
+      await sendMessageMutation.mutateAsync({
+        recipientId: otherUserId,
+        content: albumMessage,
+        messageType: 'text'
+      });
+
+      setShowAlbumsDialog(false);
+      
+      toast({
+        title: "تم إرسال الألبوم",
+        description: `تم إرسال ألبوم "${album.title}" بنجاح`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "خطأ في الإرسال",
+        description: error.message || "فشل في إرسال الألبوم",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handle send message
   const handleSendMessage = () => {
@@ -664,6 +715,54 @@ export default function ChatPage() {
             <Button onClick={startRecording} variant="ghost" size="sm">
               <Mic className="w-5 h-5" />
             </Button>
+            <Dialog open={showAlbumsDialog} onOpenChange={setShowAlbumsDialog}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" title="إرسال ألبوم مدفوع">
+                  <FolderOpen className="w-5 h-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>اختر ألبوماً لإرساله</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {premiumAlbums.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Image className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                      <p className="text-gray-500">لا توجد ألبومات مدفوعة</p>
+                      <Button
+                        variant="outline"
+                        className="mt-3"
+                        onClick={() => {
+                          setShowAlbumsDialog(false);
+                          setLocation('/premium-albums');
+                        }}
+                      >
+                        إنشاء ألبوم جديد
+                      </Button>
+                    </div>
+                  ) : (
+                    premiumAlbums.map((album: any) => (
+                      <div
+                        key={album.id}
+                        className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleSendAlbum(album)}
+                      >
+                        <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-pink-600 rounded-lg flex items-center justify-center">
+                          <FolderOpen className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1 mr-3">
+                          <h3 className="font-medium text-gray-800">{album.title}</h3>
+                          <p className="text-sm text-gray-500">
+                            {album.totalPhotos || 0} محتوى • {album.requiredGiftAmount} نقطة
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button 
               onClick={handleSendMessage} 
               disabled={!newMessage.trim() || sendMessageMutation.isPending}
