@@ -121,30 +121,26 @@ export default function PremiumAlbumsPage() {
     mutationFn: async ({ albumId, mediaData }: { albumId: number; mediaData: any }) => {
       const response = await fetch(`/api/premium-albums/${albumId}/media`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(mediaData),
       });
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorText = await response.text();
+        console.error('❌ فشل إضافة المحتوى للألبوم:', errorText);
+        throw new Error(`فشل في إضافة المحتوى للألبوم: ${errorText}`);
       }
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "تم رفع المحتوى",
-        description: "تم رفع المحتوى للألبوم بنجاح",
-      });
-      setUploadingMedia(false);
+    onSuccess: (data) => {
+      console.log('✅ تم إضافة المحتوى للألبوم:', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/premium-albums', selectedAlbum?.id, 'media'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/premium-albums/my-albums'] });
     },
     onError: (error: any) => {
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل في رفع المحتوى",
-        variant: "destructive",
-      });
-      setUploadingMedia(false);
+      console.error('❌ خطأ في إضافة المحتوى للألبوم:', error);
     },
   });
 
@@ -207,34 +203,45 @@ export default function PremiumAlbumsPage() {
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error(`الملف ${file.name} كبير جداً (حد أقصى 10 ميجا)`);
+        }
+        
         // Create FormData for file upload
         const formData = new FormData();
         formData.append('file', file);
         formData.append('caption', `محتوى من الألبوم`);
         formData.append('orderIndex', i.toString());
 
+        console.log('🔄 رفع الملف:', file.name, 'الحجم:', (file.size / 1024 / 1024).toFixed(2), 'ميجا');
+
         // Upload file first
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
+          credentials: 'include',
           body: formData,
         });
 
         if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error('❌ فشل رفع الملف:', errorText);
           throw new Error(`فشل في رفع الملف: ${file.name}`);
         }
 
         const uploadResult = await uploadResponse.json();
+        console.log('✅ تم رفع الملف:', uploadResult);
         
         // Add media to album
-        await uploadMediaMutation.mutateAsync({
-          albumId,
-          mediaData: {
-            mediaUrl: uploadResult.url,
-            mediaType: file.type.startsWith('image/') ? 'image' : 'video',
-            caption: `محتوى من الألبوم`,
-            orderIndex: i,
-          },
-        });
+        const mediaData = {
+          mediaUrl: uploadResult.url,
+          mediaType: file.type.startsWith('image/') ? 'image' : 'video',
+          caption: `محتوى من الألبوم`,
+          orderIndex: i,
+        };
+
+        console.log('🔄 إضافة إلى الألبوم:', mediaData);
+        await uploadMediaMutation.mutateAsync({ albumId, mediaData });
 
         // Update progress
         setUploadProgress(((i + 1) / selectedFiles.length) * 100);
@@ -250,6 +257,7 @@ export default function PremiumAlbumsPage() {
       });
 
     } catch (error: any) {
+      console.error('❌ خطأ في الرفع:', error);
       toast({
         title: "خطأ في الرفع",
         description: error.message || "فشل في رفع بعض الملفات",
@@ -486,33 +494,61 @@ export default function PremiumAlbumsPage() {
                           </DialogHeader>
                           
                           {/* File Upload Area */}
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             <div
-                              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                              className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 ${
                                 dragActive 
-                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                                  : 'border-gray-300 hover:border-gray-400'
+                                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 transform scale-105' 
+                                  : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                               }`}
                               onDragEnter={handleDrag}
                               onDragLeave={handleDrag}
                               onDragOver={handleDrag}
                               onDrop={handleDrop}
                             >
-                              <CloudUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                              <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                اسحب الملفات هنا أو انقر للتحديد
-                              </p>
-                              <p className="text-sm text-gray-500 mb-4">
-                                يمكنك رفع حتى 10 صور أو فيديوهات (حد أقصى 10 ميجا لكل ملف)
-                              </p>
-                              <Button 
-                                type="button" 
-                                variant="outline"
-                                onClick={() => fileInputRef.current?.click()}
-                              >
-                                <Upload className="w-4 h-4 ml-2" />
-                                اختر الملفات
-                              </Button>
+                              <div className="space-y-4">
+                                <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center transition-colors ${
+                                  dragActive ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700'
+                                }`}>
+                                  <CloudUpload className={`w-8 h-8 transition-colors ${
+                                    dragActive ? 'text-blue-600' : 'text-gray-500'
+                                  }`} />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                                    {dragActive ? 'اتركها هنا!' : 'رفع الصور والفيديوهات'}
+                                  </h3>
+                                  <p className="text-gray-600 dark:text-gray-400">
+                                    اسحب وأفلت الملفات هنا، أو انقر لتحديدها
+                                  </p>
+                                  <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                                    <div className="flex items-center gap-1">
+                                      <Image className="w-4 h-4" />
+                                      <span>صور</span>
+                                    </div>
+                                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                    <div className="flex items-center gap-1">
+                                      <Video className="w-4 h-4" />
+                                      <span>فيديوهات</span>
+                                    </div>
+                                    <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                    <span>حد أقصى 10 ميجا</span>
+                                  </div>
+                                </div>
+                                
+                                <Button 
+                                  type="button" 
+                                  variant="default"
+                                  size="lg"
+                                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                                  onClick={() => fileInputRef.current?.click()}
+                                >
+                                  <Upload className="w-5 h-5 ml-2" />
+                                  اختيار الملفات
+                                </Button>
+                              </div>
+                              
                               <input
                                 ref={fileInputRef}
                                 type="file"
@@ -525,24 +561,41 @@ export default function PremiumAlbumsPage() {
 
                             {/* Selected Files Preview */}
                             {selectedFiles.length > 0 && (
-                              <div className="space-y-3">
-                                <h4 className="font-medium">الملفات المحددة ({selectedFiles.length}/10):</h4>
-                                <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                    الملفات المحددة
+                                  </h4>
+                                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                                    {selectedFiles.length}/10
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
                                   {selectedFiles.map((file, index) => (
-                                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                      <div className="flex items-center">
-                                        {file.type.startsWith('image/') ? (
-                                          <Image className="w-5 h-5 text-blue-500 ml-2" />
-                                        ) : (
-                                          <Video className="w-5 h-5 text-green-500 ml-2" />
-                                        )}
-                                        <div>
-                                          <p className="text-sm font-medium truncate max-w-[150px]">
+                                    <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all">
+                                      <div className="flex items-center space-x-3 rtl:space-x-reverse flex-1">
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                          file.type.startsWith('image/') 
+                                            ? 'bg-blue-100 dark:bg-blue-900' 
+                                            : 'bg-green-100 dark:bg-green-900'
+                                        }`}>
+                                          {file.type.startsWith('image/') ? (
+                                            <Image className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                          ) : (
+                                            <Video className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                          )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                                             {file.name}
                                           </p>
-                                          <p className="text-xs text-gray-500">
-                                            {(file.size / 1024 / 1024).toFixed(1)} ميجا
-                                          </p>
+                                          <div className="flex items-center space-x-4 rtl:space-x-reverse text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            <span>{(file.size / 1024 / 1024).toFixed(1)} ميجا</span>
+                                            <span>•</span>
+                                            <span className={file.type.startsWith('image/') ? 'text-blue-600' : 'text-green-600'}>
+                                              {file.type.startsWith('image/') ? 'صورة' : 'فيديو'}
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
                                       <Button
@@ -550,6 +603,7 @@ export default function PremiumAlbumsPage() {
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => removeFile(index)}
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full p-2"
                                       >
                                         <X className="w-4 h-4" />
                                       </Button>
@@ -571,16 +625,28 @@ export default function PremiumAlbumsPage() {
                             )}
 
                             {/* Action Buttons */}
-                            <div className="flex gap-3">
+                            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                               <Button
                                 onClick={() => uploadFilesToAlbum(album.id)}
                                 disabled={selectedFiles.length === 0 || uploadingMedia}
-                                className="flex-1"
+                                className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-medium py-3"
+                                size="lg"
                               >
-                                {uploadingMedia ? "جارٍ الرفع..." : `رفع ${selectedFiles.length} ملف`}
+                                {uploadingMedia ? (
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    جارٍ الرفع...
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <CloudUpload className="w-5 h-5" />
+                                    رفع {selectedFiles.length} ملف
+                                  </div>
+                                )}
                               </Button>
                               <Button
                                 variant="outline"
+                                size="lg"
                                 onClick={() => {
                                   setSelectedFiles([]);
                                   setIsAddMediaDialogOpen(false);
