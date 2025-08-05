@@ -91,7 +91,7 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
       if (response.ok) {
         const data = await response.json();
         setAlbumData(data);
-        // المنشئ لديه وصول دائم، والمستلمون يحتاجون للدفع
+        // فقط المشترين والمنشئ لديهم وصول
         setHasAccess(data.hasAccess);
       }
     } catch (error) {

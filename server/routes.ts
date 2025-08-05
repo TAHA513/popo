@@ -355,6 +355,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
 
+      console.log(`🔍 Album access check: User ${userId} requesting album ${albumId}`);
+
       if (isNaN(albumId)) {
         return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
       }
@@ -366,6 +368,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user has access
       const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      
+      console.log(`✅ Access result: User ${userId} has access to album ${albumId}: ${hasAccess}`);
+      console.log(`📊 Album creator: ${album.creatorId}, Current user: ${userId}`);
       
       const albumWithAccess = {
         ...album,
