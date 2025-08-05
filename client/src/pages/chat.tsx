@@ -91,7 +91,8 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
       if (response.ok) {
         const data = await response.json();
         setAlbumData(data);
-        setHasAccess(data.hasAccess || message.senderId === currentUserId);
+        // المنشئ لديه وصول دائم، والمستلمون يحتاجون للدفع
+        setHasAccess(data.hasAccess);
       }
     } catch (error) {
       console.error('خطأ في التحقق من الوصول:', error);
@@ -141,11 +142,16 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
             </Badge>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            {hasAccess ? "يمكنك عرض محتويات الألبوم" : "ادفع لفتح محتويات الألبوم"}
+            {hasAccess 
+              ? "يمكنك عرض محتويات الألبوم" 
+              : message.senderId === currentUserId 
+                ? "أنت منشئ هذا الألبوم - يمكنك عرضه مجاناً"
+                : "ادفع لفتح محتويات الألبوم"
+            }
           </p>
         </div>
         <div className="flex flex-col items-center space-y-1">
-          {hasAccess ? (
+          {hasAccess || message.senderId === currentUserId ? (
             <Button
               variant="ghost"
               size="sm"
@@ -168,8 +174,8 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
       </div>
 
       {/* عرض محتويات الألبوم */}
-      {isExpanded && hasAccess && albumData && (
-        <AlbumContentViewer albumId={albumId} albumData={albumData} onClose={() => setIsExpanded(false)} />
+      {isExpanded && (hasAccess || message.senderId === currentUserId) && albumData && (
+        <AlbumContentViewer albumId={albumId!} albumData={albumData} onClose={() => setIsExpanded(false)} />
       )}
     </div>
   );
@@ -224,33 +230,9 @@ function AlbumContentViewer({ albumId, albumData, onClose }: {
           <p className="text-gray-500">جاري التحميل...</p>
         </div>
       ) : mediaItems.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-3">
           {mediaItems.map((item, index) => (
-            <div key={index} className="relative rounded-lg overflow-hidden bg-white border">
-              {item.mediaType === 'image' ? (
-                <img 
-                  src={item.mediaUrl} 
-                  alt={item.caption || `محتوى ${index + 1}`}
-                  className="w-full h-32 object-cover"
-                />
-              ) : item.mediaType === 'video' ? (
-                <video 
-                  src={item.mediaUrl} 
-                  className="w-full h-32 object-cover"
-                  controls
-                  poster={item.thumbnailUrl}
-                />
-              ) : (
-                <div className="w-full h-32 flex items-center justify-center bg-gray-100">
-                  <Image className="w-8 h-8 text-gray-400" />
-                </div>
-              )}
-              {item.caption && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2">
-                  {item.caption}
-                </div>
-              )}
-            </div>
+            <MediaViewer key={index} item={item} index={index} />
           ))}
         </div>
       ) : (
@@ -260,6 +242,86 @@ function AlbumContentViewer({ albumId, albumData, onClose }: {
         </div>
       )}
     </div>
+  );
+}
+
+// Component لعرض الوسائط بحجم كامل
+function MediaViewer({ item, index }: { item: any; index: number }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  return (
+    <>
+      <div 
+        className="relative rounded-lg overflow-hidden bg-white border cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => setIsFullscreen(true)}
+      >
+        {item.mediaType === 'image' ? (
+          <img 
+            src={item.mediaUrl} 
+            alt={item.caption || `محتوى ${index + 1}`}
+            className="w-full h-48 object-cover"
+          />
+        ) : item.mediaType === 'video' ? (
+          <video 
+            src={item.mediaUrl} 
+            className="w-full h-48 object-cover"
+            poster={item.thumbnailUrl}
+          />
+        ) : (
+          <div className="w-full h-48 flex items-center justify-center bg-gray-100">
+            <Image className="w-8 h-8 text-gray-400" />
+          </div>
+        )}
+        
+        {item.caption && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-sm p-3">
+            {item.caption}
+          </div>
+        )}
+        
+        <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+          انقر للعرض الكامل
+        </div>
+      </div>
+
+      {/* Fullscreen Modal */}
+      {isFullscreen && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="relative max-w-4xl max-h-screen w-full h-full flex items-center justify-center p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen(false)}
+              className="absolute top-4 right-4 bg-black bg-opacity-50 text-white hover:bg-black hover:bg-opacity-70 z-10"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+            
+            {item.mediaType === 'image' ? (
+              <img 
+                src={item.mediaUrl} 
+                alt={item.caption || `محتوى ${index + 1}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : item.mediaType === 'video' ? (
+              <video 
+                src={item.mediaUrl} 
+                className="max-w-full max-h-full object-contain"
+                controls
+                autoPlay
+                poster={item.thumbnailUrl}
+              />
+            ) : null}
+            
+            {item.caption && (
+              <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-70 text-white p-4 rounded">
+                {item.caption}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
