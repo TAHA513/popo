@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Upload, Eye, Lock, Star, Gift, Image, Video, X, DragDrop, CloudUpload } from "lucide-react";
+import { Plus, Upload, Eye, Lock, Star, Gift, Image, Video, X, CloudUpload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -67,8 +67,8 @@ export default function PremiumAlbumsPage() {
   });
 
   // Fetch available gifts
-  const { data: gifts } = useQuery<GiftCharacter[]>({
-    queryKey: ['/api/gifts'],
+  const { data: gifts, isLoading: giftsLoading } = useQuery<GiftCharacter[]>({
+    queryKey: ['/api/gifts/characters'],
   });
 
   // Fetch album media when album is selected
@@ -332,21 +332,49 @@ export default function PremiumAlbumsPage() {
 
               <div>
                 <Label htmlFor="gift">الهدية المطلوبة</Label>
+                {giftsLoading ? (
+                  <div className="text-sm text-gray-500 mb-2">
+                    جارٍ تحميل الهدايا...
+                  </div>
+                ) : !gifts || gifts.length === 0 ? (
+                  <div className="text-sm text-red-500 mb-2">
+                    لا توجد هدايا متاحة
+                  </div>
+                ) : (
+                  <div className="text-sm text-green-600 mb-2">
+                    ✅ متاح: {gifts.length} هدية للاختيار
+                  </div>
+                )}
                 <Select 
                   value={newAlbum.requiredGiftId} 
                   onValueChange={(value) => setNewAlbum({ ...newAlbum, requiredGiftId: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="اختر الهدية المطلوبة" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60">
                     {gifts?.map((gift) => (
                       <SelectItem key={gift.id} value={gift.id.toString()}>
-                        {gift.emoji} {gift.name} ({gift.pointCost} نقطة)
+                        <div className="flex items-center justify-between w-full">
+                          <span className="flex items-center gap-2">
+                            <span className="text-lg">{gift.emoji}</span>
+                            <span className="font-medium">{gift.name}</span>
+                          </span>
+                          <span className="text-sm text-blue-600 font-bold">
+                            {gift.pointCost} نقطة
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {newAlbum.requiredGiftId && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded-md text-sm">
+                    <span className="text-blue-700">
+                      الهدية المختارة: {gifts?.find(g => g.id.toString() === newAlbum.requiredGiftId)?.emoji} {gifts?.find(g => g.id.toString() === newAlbum.requiredGiftId)?.name}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div>
