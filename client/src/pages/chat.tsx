@@ -564,11 +564,7 @@ export default function ChatPage() {
                 )}
               </DropdownMenuItem>
               
-              <DropdownMenuItem onClick={() => setLocation('/premium-messages')}>
-                <Gift className="w-4 h-4 ml-2" />
-                الرسائل المدفوعة
-              </DropdownMenuItem>
-              
+
               <DropdownMenuItem onClick={() => {
                 toast({
                   title: "أرشيف الرسائل",
@@ -717,45 +713,67 @@ export default function ChatPage() {
             </Button>
             <Dialog open={showAlbumsDialog} onOpenChange={setShowAlbumsDialog}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" title="إرسال ألبوم مدفوع">
-                  <FolderOpen className="w-5 h-5" />
+                <Button variant="ghost" size="sm" title="إرسال ألبوم مدفوع" className="relative">
+                  <FolderOpen className="w-5 h-5 text-orange-600" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-white font-bold">💰</span>
+                  </span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>اختر ألبوماً لإرساله</DialogTitle>
+                  <DialogTitle className="text-center">
+                    <div className="flex items-center justify-center space-x-2 space-x-reverse">
+                      <FolderOpen className="w-6 h-6 text-orange-600" />
+                      <span>الألبومات المدفوعة</span>
+                      <span className="text-yellow-500">💰</span>
+                    </div>
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {premiumAlbums.length === 0 ? (
                     <div className="text-center py-8">
-                      <Image className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                      <p className="text-gray-500">لا توجد ألبومات مدفوعة</p>
+                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-r from-orange-400 to-pink-600 rounded-full flex items-center justify-center">
+                        <FolderOpen className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-gray-600 font-medium mb-1">لا توجد ألبومات مدفوعة</p>
+                      <p className="text-sm text-gray-500 mb-4">أنشئ ألبومات مدفوعة لمشاركتها مع أصدقائك</p>
                       <Button
                         variant="outline"
-                        className="mt-3"
+                        className="mt-3 border-orange-500 text-orange-600 hover:bg-orange-50"
                         onClick={() => {
                           setShowAlbumsDialog(false);
                           setLocation('/premium-albums');
                         }}
                       >
-                        إنشاء ألبوم جديد
+                        <span className="ml-2">💰</span>
+                        إنشاء ألبوم مدفوع
                       </Button>
                     </div>
                   ) : (
                     premiumAlbums.map((album: any) => (
                       <div
                         key={album.id}
-                        className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        className="flex items-center p-3 border-2 border-orange-200 rounded-lg hover:bg-orange-50 cursor-pointer transition-colors"
                         onClick={() => handleSendAlbum(album)}
                       >
-                        <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-pink-600 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-pink-600 rounded-lg flex items-center justify-center relative">
                           <FolderOpen className="w-6 h-6 text-white" />
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <span className="text-xs">💰</span>
+                          </span>
                         </div>
                         <div className="flex-1 mr-3">
-                          <h3 className="font-medium text-gray-800">{album.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            {album.totalPhotos || 0} محتوى • {album.requiredGiftAmount} نقطة
+                          <div className="flex items-center space-x-2 space-x-reverse">
+                            <h3 className="font-medium text-gray-800">{album.title}</h3>
+                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">مدفوع</span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            📷 {album.totalPhotos || 0} محتوى • 💰 {album.requiredGiftAmount} نقطة
                           </p>
+                        </div>
+                        <div className="text-orange-600">
+                          <Send className="w-4 h-4" />
                         </div>
                       </div>
                     ))
