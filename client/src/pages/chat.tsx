@@ -51,7 +51,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Message {
   id: number;
@@ -69,7 +68,6 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   const [hasAccess, setHasAccess] = useState(false);
   const [albumData, setAlbumData] = useState<any>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [isPurchasing, setIsPurchasing] = useState(false);
   const { toast } = useToast();
 
   // استخراج معرف الألبوم من النص
@@ -108,15 +106,12 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   const handlePayment = async () => {
     if (!albumId) return;
     
-    setIsPurchasing(true);
     try {
       const response = await apiRequest('POST', `/api/premium-albums/${albumId}/purchase`, {});
       
       if (response.ok) {
         const data = await response.json();
         setHasAccess(true);
-        setShowPaymentDialog(false);
-        setIsExpanded(true); // فتح الألبوم مباشرة
         toast({
           title: "✅ تم الشراء بنجاح",
           description: `تم فتح الألبوم! النقاط المتبقية: ${data.remainingPoints}`,
@@ -130,8 +125,6 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
         description: error.message || "فشل في معالجة عملية الدفع",
         variant: "destructive"
       });
-    } finally {
-      setIsPurchasing(false);
     }
   };
 
@@ -149,16 +142,16 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
             </Badge>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            {message.senderId === currentUserId 
-              ? "أنت منشئ هذا الألبوم - يمكنك عرضه مجاناً"
-              : hasAccess 
-                ? "لديك وصول لهذا الألبوم" 
+            {hasAccess 
+              ? "يمكنك عرض محتويات الألبوم" 
+              : message.senderId === currentUserId 
+                ? "أنت منشئ هذا الألبوم - يمكنك عرضه مجاناً"
                 : "ادفع لفتح محتويات الألبوم"
             }
           </p>
         </div>
         <div className="flex flex-col items-center space-y-1">
-          {message.senderId === currentUserId || hasAccess ? (
+          {hasAccess || message.senderId === currentUserId ? (
             <Button
               variant="ghost"
               size="sm"
@@ -171,7 +164,7 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
             <Button
               variant="ghost" 
               size="sm"
-              onClick={() => setShowPaymentDialog(true)}
+              onClick={handlePayment}
               className="text-orange-600 hover:bg-orange-50"
             >
               <Lock className="w-4 h-4" />
@@ -181,36 +174,9 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
       </div>
 
       {/* عرض محتويات الألبوم */}
-      {isExpanded && (message.senderId === currentUserId || hasAccess) && albumData && (
+      {isExpanded && (hasAccess || message.senderId === currentUserId) && albumData && (
         <AlbumContentViewer albumId={albumId!} albumData={albumData} onClose={() => setIsExpanded(false)} />
       )}
-
-      {/* نافذة تأكيد الدفع */}
-      <AlertDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-center">🎁 تأكيد الشراء</AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              <div className="space-y-2">
-                <p><strong>الألبوم:</strong> {albumTitle}</p>
-                <p><strong>السعر:</strong> {albumPrice} نقطة</p>
-                <p className="text-sm text-gray-600">هل تريد شراء هذا الألبوم؟</p>
-                <p className="text-xs text-red-600">⚠️ سيتم خصم النقاط من رصيدك فوراً</p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-2">
-            <AlertDialogCancel className="flex-1">إلغاء</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handlePayment}
-              disabled={isPurchasing}
-              className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700"
-            >
-              {isPurchasing ? "جاري الشراء..." : "شراء الآن 💰"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
