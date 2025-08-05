@@ -381,18 +381,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add media to album
   app.post('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
+    console.log('🔄 طلب إضافة محتوى للألبوم:', {
+      albumId: req.params.albumId,
+      userId: req.user?.id,
+      body: req.body
+    });
+
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
       const { mediaUrl, mediaType, caption, orderIndex } = req.body;
 
+      console.log('📝 البيانات المستلمة:', { albumId, userId, mediaUrl, mediaType, caption, orderIndex });
+
       if (isNaN(albumId)) {
+        console.log('❌ معرف الألبوم غير صحيح:', req.params.albumId);
         return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
+      }
+
+      if (!mediaUrl || !mediaType) {
+        console.log('❌ بيانات المحتوى مفقودة:', { mediaUrl, mediaType });
+        return res.status(400).json({ message: "رابط المحتوى ونوعه مطلوبان" });
       }
 
       // Check if user is the album creator
       const album = await storage.getPremiumAlbum(albumId);
-      if (!album || album.creatorId !== userId) {
+      console.log('🔍 الألبوم الموجود:', album);
+
+      if (!album) {
+        console.log('❌ الألبوم غير موجود:', albumId);
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+
+      if (album.creatorId !== userId) {
+        console.log('❌ المستخدم ليس منشئ الألبوم:', { creatorId: album.creatorId, userId });
         return res.status(403).json({ message: "غير مصرح لك بإضافة محتوى لهذا الألبوم" });
       }
 
@@ -404,10 +426,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderIndex: orderIndex || 0,
       };
 
+      console.log('📦 بيانات المحتوى المراد إضافتها:', mediaData);
+
       const media = await storage.addAlbumMedia(mediaData);
+      console.log('✅ تمت إضافة المحتوى بنجاح:', media);
+
       res.json(media);
     } catch (error) {
-      console.error("Error adding media to album:", error);
+      console.error("❌ خطأ في إضافة المحتوى للألبوم:", error);
       const errorMessage = error instanceof Error ? error.message : 'خطأ غير معروف';
       res.status(500).json({ message: "فشل في إضافة المحتوى للألبوم: " + errorMessage });
     }

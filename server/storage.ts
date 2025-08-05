@@ -2308,14 +2308,24 @@ export class DatabaseStorage implements IStorage {
 
   // Premium Album Media
   async addAlbumMedia(media: InsertPremiumAlbumMedia): Promise<PremiumAlbumMedia> {
-    const [newMedia] = await db.insert(premiumAlbumMedia).values(media).returning();
+    console.log('💾 إضافة محتوى إلى قاعدة البيانات:', media);
     
-    // Update album's total photos count
-    await db.update(premiumAlbums)
-      .set({ totalPhotos: sql`${premiumAlbums.totalPhotos} + 1` })
-      .where(eq(premiumAlbums.id, media.albumId));
-    
-    return newMedia;
+    try {
+      const [newMedia] = await db.insert(premiumAlbumMedia).values(media).returning();
+      console.log('✅ تم إدراج المحتوى:', newMedia);
+      
+      // Update album's total photos count
+      await db.update(premiumAlbums)
+        .set({ totalPhotos: sql`${premiumAlbums.totalPhotos} + 1` })
+        .where(eq(premiumAlbums.id, media.albumId));
+      
+      console.log('✅ تم تحديث عدد الصور في الألبوم');
+      
+      return newMedia;
+    } catch (error) {
+      console.error('❌ فشل في إضافة المحتوى لقاعدة البيانات:', error);
+      throw error;
+    }
   }
 
   async getAlbumMedia(albumId: number): Promise<PremiumAlbumMedia[]> {

@@ -135,7 +135,20 @@ export default function PremiumAlbumsPage() {
       if (!response.ok) {
         let errorText = '';
         try {
-          errorText = await response.text();
+          const text = await response.text();
+          console.log('🔍 نص الاستجابة الكامل:', text);
+          
+          // Check if it's HTML (error page) or JSON
+          if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+            errorText = `خطأ في الخادم (${response.status}): الصفحة غير موجودة أو خطأ في الخادم`;
+          } else {
+            try {
+              const jsonError = JSON.parse(text);
+              errorText = jsonError.message || text;
+            } catch {
+              errorText = text;
+            }
+          }
         } catch (e) {
           errorText = `HTTP ${response.status}: ${response.statusText}`;
         }
