@@ -82,34 +82,52 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
 
   // التحقق من الوصول للألبوم
   const checkAccess = async () => {
-    if (!albumId) return;
+    if (!albumId) {
+      console.log('❌ No albumId provided');
+      return;
+    }
+    
+    console.log('🔍 Checking access for album:', albumId);
     
     try {
       // جلب بيانات الألبوم
+      console.log('📡 Fetching album data...');
       const albumResponse = await fetch(`/api/premium-albums/${albumId}`, {
         credentials: 'include'
       });
       
+      console.log('📨 Album response:', albumResponse.status, albumResponse.statusText);
+      
       if (albumResponse.ok) {
         const albumData = await albumResponse.json();
+        console.log('📄 Album data received:', albumData);
         setAlbumData(albumData);
         
         // إذا كان المستخدم الحالي هو منشئ الألبوم، يمكنه الوصول مجاناً
         if (albumData.creatorId === currentUserId) {
+          console.log('✅ User is album creator, granting access');
           setHasAccess(true);
           return;
         }
         
         // محاولة الوصول للمحتوى للتحقق من الإذن
+        console.log('🔍 Checking media access...');
         const mediaResponse = await fetch(`/api/premium-albums/${albumId}/media`, {
           credentials: 'include'
         });
         
+        console.log('📨 Media response:', mediaResponse.status, mediaResponse.statusText);
+        
         // إذا نجح الوصول للمحتوى = لديه إذن، إذا فشل = لا يملك إذن
-        setHasAccess(mediaResponse.ok);
+        const hasMediaAccess = mediaResponse.ok;
+        console.log('🎯 Final access result:', hasMediaAccess);
+        setHasAccess(hasMediaAccess);
+      } else {
+        console.error('❌ Failed to fetch album data');
+        setHasAccess(false);
       }
     } catch (error) {
-      console.error('خطأ في التحقق من الوصول:', error);
+      console.error('❌ خطأ في التحقق من الوصول:', error);
       setHasAccess(false);
     }
   };
@@ -119,7 +137,12 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   }, [albumId, currentUserId]);
 
   const handlePayment = async () => {
-    if (!albumId || !albumData) return;
+    if (!albumId || !albumData) {
+      console.log('❌ Missing albumId or albumData:', { albumId, albumData });
+      return;
+    }
+    
+    console.log('💰 Starting payment process for album:', albumId);
     
     // عرض رسالة تأكيد قبل الدفع
     const confirmed = window.confirm(
@@ -129,13 +152,21 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
       `ستذهب النقاط إلى منشئ الألبوم.`
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      console.log('❌ Payment cancelled by user');
+      return;
+    }
+    
+    console.log('🔄 Sending purchase request...');
     
     try {
       const response = await apiRequest('POST', `/api/premium-albums/${albumId}/purchase`, {});
       
+      console.log('📨 Purchase response:', response.status, response.statusText);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Purchase successful:', data);
         setHasAccess(true);
         toast({
           title: "✅ تم الشراء بنجاح",
@@ -147,8 +178,17 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
         setTimeout(() => {
           window.location.href = `/premium-albums/${albumId}`;
         }, 1000);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'خطأ غير معروف' }));
+        console.error('❌ Purchase failed:', response.status, errorData);
+        toast({
+          title: "❌ خطأ في الدفع",
+          description: errorData.message || "فشل في معالجة عملية الدفع",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
+      console.error('❌ Payment error:', error);
       const errorMessage = error.message || "فشل في معالجة عملية الدفع";
       toast({
         title: "❌ خطأ في الدفع",
