@@ -536,7 +536,7 @@ export default function ProfileRedesign() {
                           الإعدادات
                         </Button>
                       </div>
-                      <div className="grid grid-cols-1 gap-2 mt-2">
+                      <div className="grid grid-cols-2 gap-2 mt-2">
                         <Button 
                           variant="outline"
                           onClick={() => setLocation('/private-albums')}
@@ -544,7 +544,16 @@ export default function ProfileRedesign() {
                           className="bg-gradient-to-r from-pink-100 to-purple-100 text-purple-700 border-purple-200 hover:from-pink-200 hover:to-purple-200"
                         >
                           <Camera className="w-4 h-4 ml-1" />
-                          الألبومات المدفوعة
+                          ألبومات خاصة
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setLocation('/premium-albums')}
+                          size="sm"
+                          className="bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700 border-orange-200 hover:from-yellow-200 hover:to-orange-200"
+                        >
+                          <Star className="w-4 h-4 ml-1" />
+                          ألبومات مدفوعة
                         </Button>
                       </div>
                     </>
