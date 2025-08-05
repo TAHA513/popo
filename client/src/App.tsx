@@ -147,13 +147,13 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StreamProvider>
+      {/* <StreamProvider> */}
         <div className={`${language === 'ar' ? 'rtl' : 'ltr'} min-h-screen`}>
           <Router />
-          <LiveStreamIndicator />
+          {/* <LiveStreamIndicator /> */}
           <Toaster />
         </div>
-      </StreamProvider>
+      {/* </StreamProvider> */}
     </QueryClientProvider>
   );
 }
