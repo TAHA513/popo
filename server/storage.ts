@@ -2160,7 +2160,7 @@ export class DatabaseStorage implements IStorage {
 
   async getPremiumAlbums(creatorId: string): Promise<PremiumAlbum[]> {
     return await db.select().from(premiumAlbums)
-      .where(and(eq(premiumAlbums.userId, creatorId), eq(premiumAlbums.isActive, true)))
+      .where(eq(premiumAlbums.creatorId, creatorId))
       .orderBy(desc(premiumAlbums.createdAt));
   }
 

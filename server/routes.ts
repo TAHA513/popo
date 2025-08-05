@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get premium messages for current user
   app.get("/api/premium-messages", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const messages = await storage.getPremiumMessages(userId);
       res.json(messages);
     } catch (error) {
@@ -232,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send premium message
   app.post("/api/premium-messages/send", requireAuth, async (req: any, res) => {
     try {
-      const senderId = req.user.claims.sub;
+      const senderId = req.user.id;
       const { recipientId, albumId, message } = req.body;
 
       // Validate album ownership
