@@ -961,6 +961,93 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
+  // Point Package operations
+  async getPointPackages(): Promise<PointPackage[]> {
+    return await db
+      .select()
+      .from(pointPackages)
+      .where(eq(pointPackages.isActive, true))
+      .orderBy(pointPackages.displayOrder, pointPackages.pointAmount);
+  }
+
+  async createPointPackage(packageData: InsertPointPackage): Promise<PointPackage> {
+    const [pointPackage] = await db
+      .insert(pointPackages)
+      .values(packageData)
+      .returning();
+    return pointPackage;
+  }
+
+  // Point Transaction operations
+  async createPointTransaction(transactionData: InsertPointTransaction): Promise<PointTransaction> {
+    const [transaction] = await db
+      .insert(pointTransactions)
+      .values(transactionData)
+      .returning();
+    return transaction;
+  }
+
+  async getUserPointTransactions(userId: string, limit: number = 20): Promise<PointTransaction[]> {
+    return await db
+      .select()
+      .from(pointTransactions)
+      .where(eq(pointTransactions.userId, userId))
+      .orderBy(desc(pointTransactions.createdAt))
+      .limit(limit);
+  }
+
+  async purchasePoints(userId: string, packageId: number, stripePaymentId?: string): Promise<{ success: boolean; newBalance: number }> {
+    // Get the package details
+    const [pointPackage] = await db
+      .select()
+      .from(pointPackages)
+      .where(and(
+        eq(pointPackages.id, packageId),
+        eq(pointPackages.isActive, true)
+      ));
+
+    if (!pointPackage) {
+      throw new Error('حزمة النقاط غير موجودة أو غير متاحة');
+    }
+
+    const totalPoints = pointPackage.pointAmount + pointPackage.bonusPoints;
+
+    // Start transaction
+    return await db.transaction(async (tx) => {
+      // Update user points
+      await tx
+        .update(users)
+        .set({
+          points: sql`${users.points} + ${totalPoints}`,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      // Create point transaction record
+      await tx
+        .insert(pointTransactions)
+        .values({
+          userId,
+          amount: totalPoints,
+          type: 'payment',
+          description: `شراء ${pointPackage.name} - ${totalPoints} نقطة`,
+          stripePaymentId,
+          paymentStatus: 'completed'
+        });
+
+      // Get updated balance
+      const [updatedUser] = await tx
+        .select({ points: users.points })
+        .from(users)
+        .where(eq(users.id, userId));
+
+      return {
+        success: true,
+        newBalance: updatedUser?.points || 0
+      };
+    });
+  }
+
   // Memory Collection operations
   async createMemoryCollection(collectionData: InsertMemoryCollection): Promise<MemoryCollection> {
     const [collection] = await db

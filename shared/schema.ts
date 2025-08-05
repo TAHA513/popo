@@ -140,9 +140,26 @@ export const pointTransactions = pgTable("point_transactions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id),
   amount: integer("amount").notNull(),
-  type: varchar("type").notNull(), // 'purchase', 'gift_sent', 'gift_received', 'withdrawal'
+  type: varchar("type").notNull(), // 'purchase', 'gift_sent', 'gift_received', 'withdrawal', 'daily_bonus', 'payment'
   description: text("description"),
   relatedGiftId: integer("related_gift_id").references(() => gifts.id),
+  stripePaymentId: varchar("stripe_payment_id"), // For Stripe payments
+  paymentStatus: varchar("payment_status").default("completed"), // 'pending', 'completed', 'failed', 'refunded'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Point purchase packages available for users
+export const pointPackages = pgTable("point_packages", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // e.g., "حزمة صغيرة", "حزمة متوسطة"
+  pointAmount: integer("point_amount").notNull(), // Number of points
+  priceInCents: integer("price_in_cents").notNull(), // Price in cents (for Stripe)
+  priceDisplay: varchar("price_display").notNull(), // e.g., "$4.99", "19.99 ريال"
+  currency: varchar("currency").default("USD").notNull(),
+  bonusPoints: integer("bonus_points").default(0), // Extra points for bulk purchases
+  isPopular: boolean("is_popular").default(false), // Mark as "most popular"
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0), // Sort order
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -971,6 +988,9 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 
 export type InsertPointTransaction = typeof pointTransactions.$inferInsert;
 export type PointTransaction = typeof pointTransactions.$inferSelect;
+
+export type InsertPointPackage = typeof pointPackages.$inferInsert;
+export type PointPackage = typeof pointPackages.$inferSelect;
 
 export type InsertFollower = typeof followers.$inferInsert;
 export type Follower = typeof followers.$inferSelect;
