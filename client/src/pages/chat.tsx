@@ -94,8 +94,8 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
         const albumData = await albumResponse.json();
         setAlbumData(albumData);
         
-        // إذا كان المرسل هو المنشئ، يمكنه الوصول مجاناً
-        if (message.senderId === currentUserId) {
+        // إذا كان المستخدم الحالي هو منشئ الألبوم، يمكنه الوصول مجاناً
+        if (albumData.creatorId === currentUserId) {
           setHasAccess(true);
           return;
         }
@@ -159,18 +159,22 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
           <p className="text-sm text-gray-600 mt-1">
             {hasAccess 
               ? "يمكنك عرض محتويات الألبوم" 
-              : message.senderId === currentUserId 
+              : albumData && albumData.creatorId === currentUserId 
                 ? "أنت منشئ هذا الألبوم - يمكنك عرضه مجاناً"
                 : "ادفع لفتح محتويات الألبوم"
             }
           </p>
         </div>
         <div className="flex flex-col items-center space-y-1">
-          {hasAccess || message.senderId === currentUserId ? (
+          {hasAccess || (albumData && albumData.creatorId === currentUserId) ? (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={() => {
+                if (albumId) {
+                  window.location.href = `/premium-albums/${albumId}`;
+                }
+              }}
               className="text-green-600 hover:bg-green-50"
             >
               <Unlock className="w-4 h-4" />
