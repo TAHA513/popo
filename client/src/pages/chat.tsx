@@ -145,13 +145,13 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
             {hasAccess 
               ? "يمكنك عرض محتويات الألبوم" 
               : message.senderId === currentUserId 
-                ? "أنت منشئ هذا الألبوم - يمكنك عرضه مجاناً"
+                ? "أنت منشئ هذا الألبوم"
                 : "ادفع لفتح محتويات الألبوم"
             }
           </p>
         </div>
         <div className="flex flex-col items-center space-y-1">
-          {hasAccess || message.senderId === currentUserId ? (
+          {hasAccess ? (
             <Button
               variant="ghost"
               size="sm"

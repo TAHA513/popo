@@ -961,22 +961,22 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
-  // Point Package operations
-  async getPointPackages(): Promise<PointPackage[]> {
-    return await db
-      .select()
-      .from(pointPackages)
-      .where(eq(pointPackages.isActive, true))
-      .orderBy(pointPackages.displayOrder, pointPackages.pointAmount);
-  }
+  // Point Package operations - DISABLED
+  // async getPointPackages(): Promise<PointPackage[]> {
+  //   return await db
+  //     .select()
+  //     .from(pointPackages)
+  //     .where(eq(pointPackages.isActive, true))
+  //     .orderBy(pointPackages.displayOrder, pointPackages.pointAmount);
+  // }
 
-  async createPointPackage(packageData: InsertPointPackage): Promise<PointPackage> {
-    const [pointPackage] = await db
-      .insert(pointPackages)
-      .values(packageData)
-      .returning();
-    return pointPackage;
-  }
+  // async createPointPackage(packageData: InsertPointPackage): Promise<PointPackage> {
+  //   const [pointPackage] = await db
+  //     .insert(pointPackages)
+  //     .values(packageData)
+  //     .returning();
+  //   return pointPackage;
+  // }
 
   // Point Transaction operations
   async createPointTransaction(transactionData: InsertPointTransaction): Promise<PointTransaction> {
@@ -985,6 +985,13 @@ export class DatabaseStorage implements IStorage {
       .values(transactionData)
       .returning();
     return transaction;
+  }
+
+  // User point management
+  async updateUserPoints(userId: string, newPoints: number): Promise<void> {
+    await db.update(users)
+      .set({ points: newPoints })
+      .where(eq(users.id, userId));
   }
 
   async getUserPointTransactions(userId: string, limit: number = 20): Promise<PointTransaction[]> {
@@ -1000,11 +1007,12 @@ export class DatabaseStorage implements IStorage {
     // Get the package details
     const [pointPackage] = await db
       .select()
-      .from(pointPackages)
-      .where(and(
-        eq(pointPackages.id, packageId),
-        eq(pointPackages.isActive, true)
-      ));
+      // .from(pointPackages)
+      // .where(and(
+      //   eq(pointPackages.id, packageId),
+      //   eq(pointPackages.isActive, true)
+      // ));
+      return { success: false, newBalance: 0 };
 
     if (!pointPackage) {
       throw new Error('حزمة النقاط غير موجودة أو غير متاحة');
@@ -2382,7 +2390,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkPremiumAlbumAccess(albumId: number, userId: string): Promise<boolean> {
-    // Check if user is the creator
+    // Check if user is the creator (creators have access to manage their albums)
     const [album] = await db.select({ creatorId: premiumAlbums.creatorId })
       .from(premiumAlbums)
       .where(eq(premiumAlbums.id, albumId));
