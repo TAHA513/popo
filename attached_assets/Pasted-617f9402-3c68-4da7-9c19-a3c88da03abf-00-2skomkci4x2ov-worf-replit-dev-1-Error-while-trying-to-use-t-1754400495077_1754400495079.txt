@@ -1,0 +1,17 @@
+617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/:1 Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)Understand this error
+react_jsx-dev-runtime.js?v=fb7eaaca:64 Warning: Each child in a list should have a unique "key" prop.
+
+Check the render method of `MessagesPage`. See https://reactjs.org/link/warning-keys for more information.
+    at https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=fb7eaaca:279:18
+    at MessagesPage (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/pages/messages.tsx:33:20)
+    at Route (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=fb7eaaca:265:16)
+    at Suspense
+    at Switch (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=fb7eaaca:321:17)
+    at Router (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?v=NVWtTTDtZXsoQNaoGR3NE:66:48)
+    at div
+    at StreamProvider (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/contexts/StreamContext.tsx:29:34)
+    at QueryClientProvider (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=fb7eaaca:2805:3)
+    at App (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?v=NVWtTTDtZXsoQNaoGR3NE:341:35)
+printWarning @ react_jsx-dev-runtime.js?v=fb7eaaca:64Understand this error
+4performance.ts:272 Near bottom - consider loading more content
+@radix-ui_react-dialog.js?v=fb7eaaca:342 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.

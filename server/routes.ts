@@ -2547,20 +2547,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/messages/send', requireAuth, async (req: any, res) => {
     try {
-      const { recipientId, content } = req.body;
+      const { recipientId, content, messageType = 'text' } = req.body;
       const senderId = req.user.id;
       
-      // For now, just return success
-      res.json({ 
-        id: Date.now(),
+      console.log('📨 طلب إرسال رسالة:', { senderId, recipientId, content: content.substring(0, 50) + '...', messageType });
+      
+      if (!recipientId || !content) {
+        console.log('❌ بيانات ناقصة:', { recipientId, content });
+        return res.status(400).json({ message: "بيانات الرسالة غير مكتملة" });
+      }
+
+      // Create message object
+      const messageData = {
         senderId,
         recipientId,
         content,
+        messageType,
+        isRead: false,
         createdAt: new Date().toISOString()
-      });
+      };
+
+      console.log('💾 حفظ الرسالة:', messageData);
+      
+      // For now, save to database using direct Drizzle
+      const [message] = await db.insert(chatMessages).values({
+        senderId,
+        recipientId,
+        content,
+        messageType: messageType || 'text',
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      }).returning();
+      
+      console.log('✅ تم حفظ الرسالة بنجاح:', message);
+      
+      res.json(message);
     } catch (error) {
-      console.error("Error sending message:", error);
-      res.status(500).json({ message: "Failed to send message" });
+      console.error("❌ خطأ في إرسال الرسالة:", error);
+      res.status(500).json({ message: "فشل في إرسال الرسالة" });
     }
   });
 

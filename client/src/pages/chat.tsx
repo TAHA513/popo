@@ -227,15 +227,22 @@ export default function ChatPage() {
 
   // Handle send album
   const handleSendAlbum = async (album: any) => {
+    console.log('🎁 محاولة إرسال الألبوم:', album);
+    console.log('🔧 بيانات المستلم:', otherUserId);
+    
     try {
       const albumMessage = `🎁 ألبوم مدفوع: ${album.title}\n💰 السعر: ${album.requiredGiftAmount} نقطة\n📱 انقر للوصول: /premium-albums/${album.id}`;
       
-      await sendMessageMutation.mutateAsync({
+      console.log('📨 رسالة الألبوم:', albumMessage);
+      console.log('🔄 إرسال باستخدام mutation...');
+      
+      const result = await sendMessageMutation.mutateAsync({
         recipientId: otherUserId,
         content: albumMessage,
         messageType: 'text'
       });
 
+      console.log('✅ نتيجة الإرسال:', result);
       setShowAlbumsDialog(false);
       
       toast({
@@ -243,6 +250,7 @@ export default function ChatPage() {
         description: `تم إرسال ألبوم "${album.title}" بنجاح`,
       });
     } catch (error: any) {
+      console.error('❌ خطأ في إرسال الألبوم:', error);
       toast({
         title: "خطأ في الإرسال",
         description: error.message || "فشل في إرسال الألبوم",
