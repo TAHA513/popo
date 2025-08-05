@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import SimpleApp from "./App-simple";
+import TestApp from "./App-test";
 import "./index.css";
 
 // Register service worker for PWA - silent mode
@@ -16,5 +16,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Use simple app for now to test premium albums
-createRoot(document.getElementById("root")!).render(<SimpleApp />);
+createRoot(document.getElementById("root")!).render(<TestApp />);
