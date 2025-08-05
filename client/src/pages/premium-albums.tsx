@@ -120,6 +120,7 @@ export default function PremiumAlbumsPage() {
   // Upload media mutation
   const uploadMediaMutation = useMutation({
     mutationFn: async ({ albumId, mediaData }: { albumId: number; mediaData: any }) => {
+      console.log('🔄 إرسال طلب إضافة المحتوى:', { albumId, mediaData });
       const response = await fetch(`/api/premium-albums/${albumId}/media`, {
         method: 'POST',
         credentials: 'include',
@@ -128,15 +129,26 @@ export default function PremiumAlbumsPage() {
         },
         body: JSON.stringify(mediaData),
       });
+      
+      console.log('📡 استجابة الخادم:', response.status, response.statusText);
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ فشل إضافة المحتوى للألبوم:', errorText);
+        let errorText = '';
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          errorText = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        console.error('❌ فشل إضافة المحتوى للألبوم:', { status: response.status, error: errorText });
         throw new Error(`فشل في إضافة المحتوى للألبوم: ${errorText}`);
       }
-      return response.json();
+      
+      const result = await response.json();
+      console.log('✅ نجح إضافة المحتوى للألبوم:', result);
+      return result;
     },
     onSuccess: (data) => {
-      console.log('✅ تم إضافة المحتوى للألبوم:', data);
+      console.log('✅ تم إضافة المحتوى للألبوم بنجاح:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/premium-albums', selectedAlbum?.id, 'media'] });
       queryClient.invalidateQueries({ queryKey: ['/api/premium-albums/my-albums'] });
     },
@@ -245,9 +257,10 @@ export default function PremiumAlbumsPage() {
         try {
           const result = await uploadMediaMutation.mutateAsync({ albumId, mediaData });
           console.log('✅ تمت إضافة المحتوى:', result);
-        } catch (mediaError) {
+        } catch (mediaError: any) {
           console.error('❌ فشل في إضافة المحتوى للألبوم:', mediaError);
-          throw new Error(`فشل في إضافة المحتوى للألبوم: ${mediaError}`);
+          const errorMsg = mediaError?.message || mediaError?.toString() || 'خطأ غير معروف';
+          throw new Error(`فشل في إضافة المحتوى للألبوم: ${errorMsg}`);
         }
 
         // Update progress
@@ -488,14 +501,14 @@ export default function PremiumAlbumsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1"
+                            className="flex-1 text-xs px-2 py-1"
                             onClick={() => setSelectedAlbum(album)}
                           >
-                            <Upload className="w-4 h-4 ml-1" />
-                            رفع محتوى
+                            <Upload className="w-3 h-3 ml-1" />
+                            رفع
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+                        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>رفع محتوى للألبوم: {album.title}</DialogTitle>
                           </DialogHeader>
@@ -503,7 +516,7 @@ export default function PremiumAlbumsPage() {
                           {/* File Upload Area */}
                           <div className="space-y-6">
                             <div
-                              className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 ${
+                              className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 ${
                                 dragActive 
                                   ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 transform scale-105' 
                                   : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
@@ -514,20 +527,20 @@ export default function PremiumAlbumsPage() {
                               onDrop={handleDrop}
                             >
                               <div className="space-y-4">
-                                <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center transition-colors ${
+                                <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center transition-colors ${
                                   dragActive ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700'
                                 }`}>
-                                  <CloudUpload className={`w-8 h-8 transition-colors ${
+                                  <CloudUpload className={`w-6 h-6 transition-colors ${
                                     dragActive ? 'text-blue-600' : 'text-gray-500'
                                   }`} />
                                 </div>
                                 
                                 <div className="space-y-2">
-                                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                                    {dragActive ? 'اتركها هنا!' : 'رفع الصور والفيديوهات'}
+                                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                    {dragActive ? 'اتركها هنا!' : 'رفع المحتوى'}
                                   </h3>
-                                  <p className="text-gray-600 dark:text-gray-400">
-                                    اسحب وأفلت الملفات هنا، أو انقر لتحديدها
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    اسحب الملفات أو انقر لتحديدها
                                   </p>
                                   <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
                                     <div className="flex items-center gap-1">
