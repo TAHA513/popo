@@ -2422,7 +2422,11 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-
+  async getPremiumMessages(userId: string): Promise<PremiumMessage[]> {
+    return await db.select().from(premiumMessages)
+      .where(eq(premiumMessages.recipientId, userId))
+      .orderBy(desc(premiumMessages.createdAt));
+  }
 }
 
 export const storage = new DatabaseStorage();

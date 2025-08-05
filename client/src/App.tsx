@@ -2,8 +2,8 @@ import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-// import { StreamProvider } from "@/contexts/StreamContext";
-// import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
+import { StreamProvider } from "@/contexts/StreamContext";
+import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -147,13 +147,13 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* <StreamProvider> */}
+      <StreamProvider>
         <div className={`${language === 'ar' ? 'rtl' : 'ltr'} min-h-screen`}>
           <Router />
-          {/* <LiveStreamIndicator /> */}
+          <LiveStreamIndicator />
           <Toaster />
         </div>
-      {/* </StreamProvider> */}
+      </StreamProvider>
     </QueryClientProvider>
   );
 }
