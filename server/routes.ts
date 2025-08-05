@@ -400,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         albumId,
         mediaUrl,
         mediaType,
-        caption,
+        caption: caption || '',
         orderIndex: orderIndex || 0,
       };
 
@@ -408,7 +408,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(media);
     } catch (error) {
       console.error("Error adding media to album:", error);
-      res.status(500).json({ message: "فشل في إضافة المحتوى للألبوم" });
+      const errorMessage = error instanceof Error ? error.message : 'خطأ غير معروف';
+      res.status(500).json({ message: "فشل في إضافة المحتوى للألبوم: " + errorMessage });
     }
   });
 

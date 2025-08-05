@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Upload, Eye, Lock, Star, Gift, Image, Video, X, CloudUpload } from "lucide-react";
+import { Plus, Upload, Eye, Lock, Star, Gift, Image, Video, X, CloudUpload, FileImage, Play, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -531,12 +531,12 @@ export default function PremiumAlbumsPage() {
                                   </p>
                                   <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
                                     <div className="flex items-center gap-1">
-                                      <Image className="w-4 h-4" />
+                                      <Camera className="w-4 h-4" />
                                       <span>صور</span>
                                     </div>
                                     <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
                                     <div className="flex items-center gap-1">
-                                      <Video className="w-4 h-4" />
+                                      <Play className="w-4 h-4" />
                                       <span>فيديوهات</span>
                                     </div>
                                     <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
@@ -587,9 +587,9 @@ export default function PremiumAlbumsPage() {
                                             : 'bg-green-100 dark:bg-green-900'
                                         }`}>
                                           {file.type.startsWith('image/') ? (
-                                            <Image className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                            <FileImage className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                           ) : (
-                                            <Video className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                            <Play className="w-5 h-5 text-green-600 dark:text-green-400" />
                                           )}
                                         </div>
                                         <div className="flex-1 min-w-0">
