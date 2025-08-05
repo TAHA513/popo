@@ -121,7 +121,7 @@ import {
   type InsertMemoryView,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, count, ne, or } from "drizzle-orm";
+import { eq, desc, asc, and, sql, count, ne, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
@@ -1739,6 +1739,19 @@ export class DatabaseStorage implements IStorage {
       return !!purchase;
     } catch (error) {
       console.error("Error checking album purchase:", error);
+      throw error;
+    }
+  }
+
+  // Get premium album media content
+  async getPremiumAlbumMedia(albumId: number): Promise<any[]> {
+    try {
+      return await db.select()
+        .from(premiumAlbumMedia)
+        .where(eq(premiumAlbumMedia.albumId, albumId))
+        .orderBy(asc(premiumAlbumMedia.orderIndex));
+    } catch (error) {
+      console.error("Error fetching premium album media:", error);
       throw error;
     }
   }

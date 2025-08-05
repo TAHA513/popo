@@ -379,6 +379,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Purchase premium album access
+  app.post('/api/premium-albums/:albumId/purchase', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const userId = req.user.id;
+
+      if (isNaN(albumId)) {
+        return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
+      }
+
+      // Get album details
+      const album = await storage.getPremiumAlbum(albumId);
+      if (!album) {
+        return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+
+      // Check if user already has access
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      if (hasAccess) {
+        return res.status(400).json({ message: "لديك وصول للألبوم بالفعل" });
+      }
+
+      // Check user's points balance
+      const user = await storage.getUser(userId);
+      if (!user || (user.points || 0) < album.requiredGiftAmount) {
+        return res.status(400).json({ message: "ليس لديك نقاط كافية" });
+      }
+
+      // Process purchase
+      await storage.purchasePremiumAlbum({
+        albumId,
+        buyerId: userId,
+        amount: album.requiredGiftAmount
+      });
+
+      // Deduct points from user
+      await storage.updateUserPoints(userId, (user.points || 0) - album.requiredGiftAmount);
+
+      // Add points to album creator
+      await storage.updateUserPoints(album.creatorId, album.requiredGiftAmount);
+
+      res.json({ 
+        success: true, 
+        message: "تم شراء الألبوم بنجاح",
+        remainingPoints: (user.points || 0) - album.requiredGiftAmount
+      });
+    } catch (error) {
+      console.error("Error purchasing album:", error);
+      res.status(500).json({ message: "فشل في شراء الألبوم" });
+    }
+  });
+
+  // Get album media content
+  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
+    try {
+      const albumId = parseInt(req.params.albumId);
+      const userId = req.user.id;
+
+      if (isNaN(albumId)) {
+        return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
+      }
+
+      // Check if user has access to this album
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "ليس لديك إذن لعرض محتويات هذا الألبوم" });
+      }
+
+      // Get album media
+      const media = await storage.getPremiumAlbumMedia(albumId);
+      res.json(media);
+    } catch (error) {
+      console.error("Error fetching album media:", error);
+      res.status(500).json({ message: "فشل في جلب محتويات الألبوم" });
+    }
+  });
+
   // Add media to album
   app.post('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     console.log('🔄 طلب إضافة محتوى للألبوم:', {

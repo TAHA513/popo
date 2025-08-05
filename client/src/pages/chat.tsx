@@ -23,7 +23,10 @@ import {
   UserX,
   Shield,
   FolderOpen,
-  Image
+  Image,
+  Eye,
+  Lock,
+  Unlock
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -47,6 +50,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface Message {
   id: number;
@@ -56,6 +60,207 @@ interface Message {
   messageType: 'text' | 'voice';
   isRead: boolean;
   createdAt: string;
+}
+
+// Component لعرض رسائل الألبومات المدفوعة
+function PremiumAlbumMessage({ message, currentUserId }: { message: Message; currentUserId?: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [albumData, setAlbumData] = useState<any>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const { toast } = useToast();
+
+  // استخراج معرف الألبوم من النص
+  const albumId = message.content.match(/\/premium-albums\/(\d+)/)?.[1];
+  
+  // استخراج بيانات الألبوم من النص
+  const titleMatch = message.content.match(/🎁 ألبوم مدفوع: (.+)/);
+  const priceMatch = message.content.match(/💰 السعر: (\d+) نقطة/);
+  
+  const albumTitle = titleMatch?.[1] || 'ألبوم مدفوع';
+  const albumPrice = priceMatch?.[1] || '0';
+
+  // التحقق من الوصول للألبوم
+  const checkAccess = async () => {
+    if (!albumId) return;
+    
+    try {
+      const response = await fetch(`/api/premium-albums/${albumId}`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAlbumData(data);
+        setHasAccess(data.hasAccess || message.senderId === currentUserId);
+      }
+    } catch (error) {
+      console.error('خطأ في التحقق من الوصول:', error);
+    }
+  };
+
+  useEffect(() => {
+    checkAccess();
+  }, [albumId, currentUserId]);
+
+  const handlePayment = async () => {
+    if (!albumId) return;
+    
+    try {
+      const response = await apiRequest('POST', `/api/premium-albums/${albumId}/purchase`, {});
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHasAccess(true);
+        toast({
+          title: "✅ تم الشراء بنجاح",
+          description: `تم فتح الألبوم! النقاط المتبقية: ${data.remainingPoints}`,
+        });
+        // إعادة تحميل بيانات الألبوم
+        checkAccess();
+      }
+    } catch (error: any) {
+      toast({
+        title: "❌ خطأ في الدفع",
+        description: error.message || "فشل في معالجة عملية الدفع",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center space-x-2 space-x-reverse bg-gradient-to-r from-orange-50 to-pink-50 p-3 rounded-lg border border-orange-200">
+        <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-pink-600 rounded-lg flex items-center justify-center">
+          <FolderOpen className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <h4 className="font-medium text-gray-800">{albumTitle}</h4>
+            <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+              💰 {albumPrice} نقطة
+            </Badge>
+          </div>
+          <p className="text-sm text-gray-600 mt-1">
+            {hasAccess ? "يمكنك عرض محتويات الألبوم" : "ادفع لفتح محتويات الألبوم"}
+          </p>
+        </div>
+        <div className="flex flex-col items-center space-y-1">
+          {hasAccess ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-green-600 hover:bg-green-50"
+            >
+              <Unlock className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost" 
+              size="sm"
+              onClick={handlePayment}
+              className="text-orange-600 hover:bg-orange-50"
+            >
+              <Lock className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* عرض محتويات الألبوم */}
+      {isExpanded && hasAccess && albumData && (
+        <AlbumContentViewer albumId={albumId} albumData={albumData} onClose={() => setIsExpanded(false)} />
+      )}
+    </div>
+  );
+}
+
+// Component لعرض محتويات الألبوم
+function AlbumContentViewer({ albumId, albumData, onClose }: { 
+  albumId: string; 
+  albumData: any; 
+  onClose: () => void; 
+}) {
+  const [mediaItems, setMediaItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAlbumMedia = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/premium-albums/${albumId}/media`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMediaItems(data);
+      }
+    } catch (error) {
+      console.error('خطأ في جلب محتويات الألبوم:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAlbumMedia();
+  }, [albumId]);
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-gray-700">محتويات الألبوم</span>
+        <Button variant="ghost" size="sm" onClick={onClose}>
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+      
+      <div className="text-sm text-gray-600">
+        📸 {mediaItems.length} محتوى مرئي
+      </div>
+      
+      {loading ? (
+        <div className="text-center py-4">
+          <div className="animate-spin w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+          <p className="text-gray-500">جاري التحميل...</p>
+        </div>
+      ) : mediaItems.length > 0 ? (
+        <div className="grid grid-cols-2 gap-2">
+          {mediaItems.map((item, index) => (
+            <div key={index} className="relative rounded-lg overflow-hidden bg-white border">
+              {item.mediaType === 'image' ? (
+                <img 
+                  src={item.mediaUrl} 
+                  alt={item.caption || `محتوى ${index + 1}`}
+                  className="w-full h-32 object-cover"
+                />
+              ) : item.mediaType === 'video' ? (
+                <video 
+                  src={item.mediaUrl} 
+                  className="w-full h-32 object-cover"
+                  controls
+                  poster={item.thumbnailUrl}
+                />
+              ) : (
+                <div className="w-full h-32 flex items-center justify-center bg-gray-100">
+                  <Image className="w-8 h-8 text-gray-400" />
+                </div>
+              )}
+              {item.caption && (
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2">
+                  {item.caption}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-4 text-gray-500">
+          <Eye className="w-8 h-8 mx-auto mb-2" />
+          <p>لا توجد محتويات في الألبوم بعد</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ChatPage() {
@@ -640,6 +845,11 @@ export default function ChatPage() {
                       </div>
                     </div>
                   </div>
+                ) : message.content.includes('🎁 ألبوم مدفوع:') ? (
+                  <PremiumAlbumMessage 
+                    message={message} 
+                    currentUserId={user?.id} 
+                  />
                 ) : (
                   <p className="text-sm">{message.content}</p>
                 )}
