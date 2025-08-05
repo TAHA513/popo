@@ -406,40 +406,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لديك وصول للألبوم بالفعل" });
       }
 
+      // Get gift details to calculate actual cost
+      const giftCharacter = await storage.getGiftCharacterById(album.requiredGiftId);
+      if (!giftCharacter) {
+        return res.status(400).json({ message: "الهدية المطلوبة غير موجودة" });
+      }
+
+      const totalCost = giftCharacter.pointCost * album.requiredGiftAmount;
+
       // Check user's points balance
       const user = await storage.getUser(userId);
-      if (!user || (user.points || 0) < album.requiredGiftAmount) {
-        return res.status(400).json({ message: "ليس لديك نقاط كافية" });
+      if (!user || (user.points || 0) < totalCost) {
+        return res.status(400).json({ 
+          message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user.points || 0} نقطة`
+        });
       }
 
       // Process purchase
       console.log('🛒 Processing purchase:', {
         albumId,
         buyerId: userId,
-        giftId: album.requiredGiftId || 1,
+        giftId: album.requiredGiftId,
         giftAmount: album.requiredGiftAmount,
-        totalCost: album.requiredGiftAmount
+        giftPointCost: giftCharacter.pointCost,
+        totalCost: totalCost
       });
 
       await storage.purchasePremiumAlbum({
         albumId,
         buyerId: userId,
-        giftId: album.requiredGiftId || 1,
+        giftId: album.requiredGiftId,
         giftAmount: album.requiredGiftAmount,
-        totalCost: album.requiredGiftAmount,
+        totalCost: totalCost,
         purchasedAt: new Date()
       });
 
       // Deduct points from user
-      await storage.updateUserPoints(userId, (user.points || 0) - album.requiredGiftAmount);
+      await storage.updateUserPoints(userId, (user.points || 0) - totalCost);
 
-      // Add points to album creator
-      await storage.updateUserPoints(album.creatorId, album.requiredGiftAmount);
+      // Add points to album creator (they get the full amount paid)
+      const creator = await storage.getUser(album.creatorId);
+      await storage.updateUserPoints(album.creatorId, (creator?.points || 0) + totalCost);
 
       res.json({ 
         success: true, 
         message: "تم شراء الألبوم بنجاح",
-        remainingPoints: (user.points || 0) - album.requiredGiftAmount
+        giftSent: {
+          name: giftCharacter.name,
+          emoji: giftCharacter.emoji,
+          amount: album.requiredGiftAmount,
+          totalCost: totalCost
+        },
+        remainingPoints: (user.points || 0) - totalCost
       });
     } catch (error) {
       console.error("Error purchasing album:", error);

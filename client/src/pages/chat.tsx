@@ -165,9 +165,14 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
         const data = await response.json();
         console.log('✅ Purchase successful:', data);
         setHasAccess(true);
+        
+        const giftInfo = data.giftSent ? 
+          `${data.giftSent.emoji} ${data.giftSent.name} × ${data.giftSent.amount}` : 
+          'الهدية المطلوبة';
+          
         toast({
           title: "✅ تم الشراء بنجاح",
-          description: `تم فتح الألبوم! النقاط المتبقية: ${data.remainingPoints}`,
+          description: `تم إرسال ${giftInfo} بنجاح! النقاط المتبقية: ${data.remainingPoints}`,
         });
         // إعادة تحميل بيانات الألبوم
         checkAccess();
