@@ -416,9 +416,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.purchasePremiumAlbum({
         albumId,
         buyerId: userId,
-        price: album.requiredGiftAmount,
-        giftId: album.requiredGiftId || 1, // استخدم gift ID من الألبوم أو قيمة افتراضية
+        giftId: album.requiredGiftId || 1,
         giftAmount: album.requiredGiftAmount,
+        totalCost: album.requiredGiftAmount,
         purchasedAt: new Date()
       });
 
