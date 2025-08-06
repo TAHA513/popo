@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,7 +28,8 @@ import {
   ChevronUp,
   ChevronDown,
   Plus,
-  Check
+  Check,
+  X
 } from "lucide-react";
 
 interface VideoData {
@@ -68,6 +70,7 @@ export default function VideoPage() {
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   // Removed showInstructions - single video only
   const [videoError, setVideoError] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch only the specific video by ID - no browsing
@@ -117,6 +120,16 @@ export default function VideoPage() {
       setVideoError(false);
     }
   }, [currentVideo]);
+
+  // Fetch available gift characters
+  const { data: giftCharacters } = useQuery({
+    queryKey: ['/api/gifts/characters'],
+    queryFn: async () => {
+      const response = await fetch('/api/gifts/characters');
+      if (!response.ok) throw new Error('Failed to fetch gift characters');
+      return await response.json();
+    },
+  });
 
   // Check if current user is following the video author
   const { data: followStatus } = useQuery({
@@ -366,6 +379,43 @@ export default function VideoPage() {
     }
   });
 
+  // Gift sending mutation
+  const giftMutation = useMutation({
+    mutationFn: async ({ receiverId, characterId, message, memoryId }: { receiverId: string; characterId: number; message?: string; memoryId?: number }) => {
+      const response = await apiRequest('/api/gifts/send', 'POST', { receiverId, characterId, message, memoryId });
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم إرسال الهدية! 🎁",
+        description: "شكراً لدعمك للمحتوى",
+      });
+      
+      // Close the gift modal
+      setShowGiftModal(false);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories', videoId, 'gifts'] });
+    },
+    onError: (error: any) => {
+      console.error("Gift error:", error);
+      const isAuthError = error.message?.includes("401") || error.message?.includes("يجب تسجيل الدخول");
+      toast({
+        title: "خطأ في إرسال الهدية",
+        description: isAuthError ? "يجب تسجيل الدخول أولاً" : error.message || "حاول مرة أخرى",
+        variant: "destructive",
+      });
+      
+      // If authentication error, redirect to login
+      if (isAuthError) {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      }
+    }
+  });
+
   // Video interaction mutation
   const interactionMutation = useMutation({
     mutationFn: async ({ videoId, type }: { videoId: number; type: string }) => {
@@ -454,9 +504,27 @@ export default function VideoPage() {
 
   const handleGift = () => {
     if (!currentVideo) return;
-    // Simple gift action like in main page
-    console.log('Gift button clicked for video:', currentVideo.id);
-    // You can add gift modal or functionality here
+    
+    if (!user) {
+      toast({
+        title: "يجب تسجيل الدخول",
+        description: "قم بتسجيل الدخول لإرسال الهدايا",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setShowGiftModal(true);
+  };
+
+  const handleGiftSelect = (characterId: number) => {
+    if (!currentVideo?.author?.id) return;
+    
+    giftMutation.mutate({
+      receiverId: currentVideo.author.id,
+      characterId: characterId,
+      memoryId: currentVideo.id
+    });
   };
 
   const getMemoryTypeColor = (type: string) => {
@@ -784,6 +852,56 @@ export default function VideoPage() {
           <div className="w-1 h-8 rounded-full bg-white transition-all duration-300" />
         </div>
       </div>
+
+      {/* Gift Selection Modal */}
+      {showGiftModal && (
+        <Dialog open={showGiftModal} onOpenChange={setShowGiftModal}>
+          <DialogContent className="bg-gray-900 text-white border-purple-500/20 max-w-md mx-auto">
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl font-bold mb-4">
+                اختر هدية 🎁
+              </DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowGiftModal(false)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-3 gap-3 p-2">
+              {giftCharacters?.map((gift: any) => (
+                <button
+                  key={gift.id}
+                  onClick={() => handleGiftSelect(gift.id)}
+                  disabled={giftMutation.isPending}
+                  className="flex flex-col items-center p-4 bg-gray-800/50 hover:bg-purple-600/20 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-500/50 group disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">
+                    {gift.emoji}
+                  </span>
+                  <span className="text-sm font-medium text-center text-white/90 mb-1">
+                    {gift.name}
+                  </span>
+                  <div className="flex items-center text-xs text-purple-400">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    <span>{gift.pointCost}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            
+            {(!giftCharacters || giftCharacters.length === 0) && (
+              <div className="text-center py-8">
+                <Gift className="w-12 h-12 mx-auto text-gray-500 mb-4" />
+                <p className="text-gray-400">لا توجد هدايا متاحة حالياً</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
