@@ -25,7 +25,8 @@ import {
   Trophy,
   TrendingUp,
   Upload,
-  ArrowLeft
+  ArrowLeft,
+  Shield
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -333,6 +334,15 @@ export default function ProfileRedesign() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setLocation('/privacy-policy')}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                  title="سياسات وشروط المنصة"
+                >
+                  <Shield className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setLocation('/account')}
                   className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
                 >
@@ -355,6 +365,15 @@ export default function ProfileRedesign() {
                 
                 {/* Settings Icon */}
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLocation('/privacy-policy')}
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                    title="سياسات وشروط المنصة"
+                  >
+                    <Shield className="h-5 w-5" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
