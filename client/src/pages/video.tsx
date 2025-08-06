@@ -63,7 +63,6 @@ export default function VideoPage() {
   const [, setLocation] = useLocation();
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   // Removed currentVideoIndex - single video only
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const [isVideoLoading, setIsVideoLoading] = useState(true);
@@ -133,7 +132,22 @@ export default function VideoPage() {
     enabled: !!currentVideo?.author?.id && !!user
   });
 
+  // Check if current user has liked this video
+  const { data: likeStatus } = useQuery({
+    queryKey: ['/api/memories', currentVideo?.id, 'like-status'],
+    queryFn: async () => {
+      if (!currentVideo?.id || !user) return { liked: false };
+      const response = await fetch(`/api/memories/${currentVideo.id}/like-status`, {
+        credentials: 'include'
+      });
+      if (!response.ok) return { liked: false };
+      return response.json();
+    },
+    enabled: !!currentVideo?.id && !!user
+  });
+
   const isFollowing = followStatus?.isFollowing || false;
+  const isLiked = likeStatus?.liked || false;
 
   // Simple and reliable video setup
   useEffect(() => {
@@ -237,17 +251,43 @@ export default function VideoPage() {
     }
   };
 
-  // Simple like handler like in simple-home.tsx
+  // Like/Unlike mutation
+  const likeMutation = useMutation({
+    mutationFn: async ({ memoryId }: { memoryId: string }) => {
+      return await apiRequest(`/api/memories/${memoryId}/like`, 'POST');
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: data.liked ? "تم الإعجاب!" : "تم إلغاء الإعجاب",
+        description: data.message,
+      });
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/memories', variables.memoryId, 'like-status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories', variables.memoryId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    },
+    onError: (error: any) => {
+      console.error("Like error:", error);
+      const isAuthError = error.message?.includes("401") || error.message?.includes("يجب تسجيل الدخول");
+      toast({
+        title: "خطأ في الإعجاب",
+        description: isAuthError ? "يجب تسجيل الدخول أولاً" : "حاول مرة أخرى",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleLike = (id: string) => {
-    setLikedVideos(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
+    if (!user) {
+      toast({
+        title: "يجب تسجيل الدخول",
+        description: "قم بتسجيل الدخول لإضافة الإعجاب",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    likeMutation.mutate({ memoryId: id });
   };
 
   // Removed navigation functions - single video only
@@ -636,9 +676,14 @@ export default function VideoPage() {
                 e.stopPropagation();
                 handleLike(currentVideo.id.toString());
               }}
-              className={`flex flex-col items-center ${likedVideos.has(currentVideo.id.toString()) ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent p-2 md:p-3 relative z-60`}
+              disabled={likeMutation.isPending}
+              className={`flex flex-col items-center ${isLiked ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent p-2 md:p-3 relative z-60`}
             >
-              <Heart className={`w-6 h-6 md:w-8 md:h-8 ${likedVideos.has(currentVideo.id.toString()) ? 'fill-current' : ''}`} />
+              {likeMutation.isPending ? (
+                <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Heart className={`w-6 h-6 md:w-8 md:h-8 ${isLiked ? 'fill-current' : ''}`} />
+              )}
               <span className="text-xs md:text-sm mt-1">{currentVideo.likeCount}</span>
             </Button>
             
