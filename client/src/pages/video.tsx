@@ -403,7 +403,9 @@ export default function VideoPage() {
 
   const handleGift = () => {
     if (!currentVideo) return;
-    interactionMutation.mutate({ videoId: currentVideo.id, type: 'gift' });
+    // Simple gift action like in main page
+    console.log('Gift button clicked for video:', currentVideo.id);
+    // You can add gift modal or functionality here
   };
 
   const getMemoryTypeColor = (type: string) => {
@@ -643,7 +645,10 @@ export default function VideoPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={handleComment}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleComment();
+              }}
               className="flex flex-col items-center text-white hover:text-blue-400 bg-transparent p-2 md:p-3"
             >
               <MessageCircle className="w-6 h-6 md:w-8 md:h-8" />
@@ -653,7 +658,10 @@ export default function VideoPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={handleShare}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShare();
+              }}
               className="flex flex-col items-center text-white hover:text-green-400 bg-transparent p-2 md:p-3"
             >
               <Share2 className="w-6 h-6 md:w-8 md:h-8" />
@@ -663,7 +671,10 @@ export default function VideoPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={handleGift}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleGift();
+              }}
               className="flex flex-col items-center text-white hover:text-yellow-400 bg-transparent p-2 md:p-3"
             >
               <Gift className="w-6 h-6 md:w-8 md:h-8" />
