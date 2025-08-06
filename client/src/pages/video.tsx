@@ -369,10 +369,41 @@ export default function VideoPage() {
     setLocation(`/comments/${currentVideo.id}`);
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!currentVideo) return;
-    navigator.clipboard?.writeText(`${window.location.origin}/video/${currentVideo.id}`);
-    interactionMutation.mutate({ videoId: currentVideo.id, type: 'share' });
+    
+    try {
+      const shareUrl = `${window.location.origin}/video/${currentVideo.id}`;
+      
+      // Try to use Web Share API if available (mobile devices)
+      if (navigator.share) {
+        await navigator.share({
+          title: currentVideo.title || 'فيديو من LaaBoBo',
+          text: currentVideo.caption || 'شاهد هذا الفيديو الرائع',
+          url: shareUrl,
+        });
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "تم نسخ الرابط! 🔗",
+          description: "تم نسخ رابط الفيديو إلى الحافظة",
+        });
+      }
+      
+      // Record share interaction
+      interactionMutation.mutate({ videoId: currentVideo.id, type: 'share' });
+    } catch (error) {
+      console.error('Share failed:', error);
+      // Manual fallback
+      const shareUrl = `${window.location.origin}/video/${currentVideo.id}`;
+      prompt('انسخ هذا الرابط للمشاركة:', shareUrl);
+      
+      toast({
+        title: "رابط المشاركة",
+        description: "تم عرض رابط الفيديو للنسخ",
+      });
+    }
   };
 
   const handleGift = () => {
