@@ -186,10 +186,7 @@ export default function PrivacyPolicy() {
                   <span className="text-green-500 ml-2">•</span>
                   نحمي جميع بياناتك الشخصية بتشفير عالي المستوى
                 </li>
-                <li className="flex items-start">
-                  <span className="text-green-500 ml-2">•</span>
-                  لا نشارك معلوماتك مع أطراف ثالثة بدون موافقتك
-                </li>
+
                 <li className="flex items-start">
                   <span className="text-green-500 ml-2">•</span>
                   يمكنك حذف حسابك وجميع بياناتك في أي وقت
