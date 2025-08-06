@@ -42,11 +42,19 @@ export function setupDirectMessageRoutes(app: Express) {
             .limit(1);
 
           if (otherUserInfo.length > 0) {
+            // Calculate unread messages count (messages from other user to current user that are not read)
+            const unreadMessages = allMessages.filter(msg => 
+              msg.senderId === otherUserId && 
+              msg.recipientId === userId &&
+              !msg.isRead
+            );
+            
             conversationsMap.set(otherUserId, {
               otherUser: otherUserInfo[0],
               lastMessage: message.content,
               lastMessageAt: message.createdAt,
-              unreadCount: 0 // Simple implementation
+              unreadCount: unreadMessages.length,
+              hasUnreadMessages: unreadMessages.length > 0
             });
           }
         }
