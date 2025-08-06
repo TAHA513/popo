@@ -254,7 +254,8 @@ export default function VideoPage() {
   // Like/Unlike mutation
   const likeMutation = useMutation({
     mutationFn: async ({ memoryId }: { memoryId: string }) => {
-      return await apiRequest(`/api/memories/${memoryId}/like`, 'POST');
+      const response = await apiRequest('POST', `/api/memories/${memoryId}/like`);
+      return await response.json();
     },
     onSuccess: (data, variables) => {
       toast({
@@ -278,7 +279,10 @@ export default function VideoPage() {
   });
 
   const handleLike = (id: string) => {
+    console.log("🔍 Like button clicked:", { id, user: !!user, isPending: likeMutation.isPending });
+    
     if (!user) {
+      console.log("❌ No user logged in");
       toast({
         title: "يجب تسجيل الدخول",
         description: "قم بتسجيل الدخول لإضافة الإعجاب",
@@ -287,6 +291,12 @@ export default function VideoPage() {
       return;
     }
 
+    if (likeMutation.isPending) {
+      console.log("⏳ Like mutation already pending");
+      return;
+    }
+
+    console.log("✅ Sending like mutation");
     likeMutation.mutate({ memoryId: id });
   };
 
@@ -314,7 +324,8 @@ export default function VideoPage() {
   // Follow/Unfollow mutation
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      return await apiRequest(`/api/users/${userId}/follow`, 'POST');
+      const response = await apiRequest('POST', `/api/users/${userId}/follow`);
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({
