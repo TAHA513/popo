@@ -638,7 +638,7 @@ export default function VideoPage() {
         </div>
 
         {/* Video Info & Actions - TikTok Style Right Sidebar */}
-        <div className="absolute right-2 md:right-4 bottom-20 flex flex-col items-center space-y-4 md:space-y-6 z-10">
+        <div className="absolute right-2 md:right-4 bottom-20 flex flex-col items-center space-y-4 md:space-y-6 z-50">
           {/* Author Profile */}
           <div className="flex flex-col items-center">
             {currentVideo.author?.profileImageUrl ? (
@@ -681,9 +681,12 @@ export default function VideoPage() {
             <Button
               variant="ghost"
               size="lg"
-              onClick={handleLike}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLike();
+              }}
               disabled={likeMutation.isPending}
-              className={`flex flex-col items-center ${isLiked ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent p-2 md:p-3`}
+              className={`flex flex-col items-center ${isLiked ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent p-2 md:p-3 relative z-60`}
             >
               <Heart className={`w-6 h-6 md:w-8 md:h-8 ${isLiked ? 'fill-current' : ''}`} />
               <span className="text-xs md:text-sm mt-1">{currentVideo.likeCount}</span>
