@@ -775,29 +775,50 @@ export default function ProfileRedesign() {
         )}
 
         {activeTab === "stats" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-lg font-bold mb-2">النقاط</h3>
-                <p className="text-2xl font-bold text-purple-600">{profileUser?.points || 0}</p>
-                <p className="text-xs text-gray-500 mt-1">معرف المحفظة: {profileUser?.id}</p>
-              </CardContent>
-            </Card>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold mb-2">النقاط</h3>
+                  <p className="text-2xl font-bold text-purple-600">{profileUser?.points || 0}</p>
+                  <p className="text-xs text-gray-500 mt-1">معرف المحفظة: {profileUser?.id}</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Star className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold mb-2">التقييم</h3>
+                  <p className="text-2xl font-bold text-orange-600">4.5/5</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <TrendingUp className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold mb-2">الأرباح</h3>
+                  <p className="text-2xl font-bold text-green-600">${profileUser?.totalEarnings || '0.00'}</p>
+                </CardContent>
+              </Card>
+            </div>
             
-            <Card>
+            {/* Privacy Policy and Platform Info Section */}
+            <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
               <CardContent className="p-6 text-center">
-                <Star className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-                <h3 className="text-lg font-bold mb-2">التقييم</h3>
-                <p className="text-2xl font-bold text-orange-600">4.5/5</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6 text-center">
-                <TrendingUp className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-bold mb-2">الأرباح</h3>
-                <p className="text-2xl font-bold text-green-600">${profileUser?.totalEarnings || '0.00'}</p>
+                <Shield className="w-16 h-16 text-purple-600 mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-3 text-purple-800">سياسات وشروط المنصة</h3>
+                <p className="text-gray-600 mb-4 leading-relaxed">
+                  تعرف على جميع مميزات المنصة، طرق الربح، والسياسات الخاصة بـ LaaBoBo Garden
+                </p>
+                <Button
+                  onClick={() => setLocation('/privacy-policy')}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg font-semibold"
+                  size="lg"
+                >
+                  <Shield className="w-5 h-5 ml-2" />
+                  عرض السياسات والشروط
+                </Button>
               </CardContent>
             </Card>
           </div>
