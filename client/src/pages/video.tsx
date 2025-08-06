@@ -72,6 +72,7 @@ export default function VideoPage() {
   const [videoError, setVideoError] = useState(false);
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [selectedGiftCategory, setSelectedGiftCategory] = useState('all');
+  const [selectedGift, setSelectedGift] = useState<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch only the specific video by ID - no browsing
@@ -398,7 +399,8 @@ export default function VideoPage() {
         description: "شكراً لدعمك للمحتوى",
       });
       
-      // Close the gift modal
+      // Reset and close the gift modal
+      setSelectedGift(null);
       setShowGiftModal(false);
       
       // Invalidate queries to refresh data
@@ -524,19 +526,24 @@ export default function VideoPage() {
     setShowGiftModal(true);
   };
 
-  const handleGiftSelect = (characterId: number) => {
-    if (!currentVideo?.author?.id) return;
+  const handleGiftSelect = (gift: any) => {
+    setSelectedGift(gift);
+  };
+
+  const handleSendGift = () => {
+    if (!currentVideo?.author?.id || !selectedGift) return;
     
     console.log("🎁 Sending gift:", {
       receiverId: currentVideo.author.id,
-      characterId: characterId,
+      characterId: selectedGift.id,
       memoryId: currentVideo.id,
-      currentVideo: currentVideo
+      currentVideo: currentVideo,
+      selectedGift: selectedGift
     });
     
     giftMutation.mutate({
       receiverId: currentVideo.author.id,
-      characterId: characterId,
+      characterId: selectedGift.id,
       memoryId: currentVideo.id
     });
   };
@@ -945,9 +952,13 @@ export default function VideoPage() {
                   {filteredGifts.map((gift: any) => (
                     <button
                       key={gift.id}
-                      onClick={() => handleGiftSelect(gift.id)}
+                      onClick={() => handleGiftSelect(gift)}
                       disabled={giftMutation.isPending}
-                      className="flex flex-col items-center p-2 bg-gray-800/50 hover:bg-purple-600/20 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-500/50 group disabled:opacity-50 disabled:cursor-not-allowed"
+                      className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 border group disabled:opacity-50 disabled:cursor-not-allowed ${
+                        selectedGift?.id === gift.id
+                          ? 'bg-purple-600/50 border-purple-500 text-white'
+                          : 'bg-gray-800/50 border-transparent hover:border-purple-500/50 hover:bg-purple-600/20'
+                      }`}
                     >
                       <span className="text-xl mb-1 group-hover:scale-110 transition-transform duration-200">
                         {gift.emoji}
@@ -970,6 +981,32 @@ export default function VideoPage() {
                   </div>
                 )}
               </div>
+            </div>
+            
+            {/* Send Gift Button */}
+            <div className="flex items-center justify-between mt-4 p-4 bg-gray-800/30 rounded-lg">
+              {selectedGift ? (
+                <div className="flex items-center">
+                  <span className="text-2xl ml-3">{selectedGift.emoji}</span>
+                  <div>
+                    <p className="text-white font-medium">{selectedGift.name}</p>
+                    <div className="flex items-center text-purple-400 text-sm">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      <span>{selectedGift.pointCost} نقطة</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-400">اختر هدية لإرسالها</p>
+              )}
+              
+              <Button
+                onClick={handleSendGift}
+                disabled={!selectedGift || giftMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {giftMutation.isPending ? "جاري الإرسال..." : "إرسال الهدية 🎁"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
