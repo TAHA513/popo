@@ -92,10 +92,10 @@ export default function SimpleNavigation() {
 
           {/* Right Side - Settings & Logout Buttons */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
-            {/* Admin Panel Button - Only for super admin */}
+            {/* Admin Panel Button - Only for super admin (Hidden Access) */}
             {user?.isAdmin && (
-              <Link href="/admin">
-                <Button variant="ghost" size="sm" className="text-yellow-300 hover:text-yellow-100 hover:bg-yellow-500/20 p-2 rounded-full" title="لوحة التحكم الإدارية">
+              <Link href="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard">
+                <Button variant="ghost" size="sm" className="text-yellow-300 hover:text-yellow-100 hover:bg-yellow-500/20 p-2 rounded-full" title="🔐 Owner Control Panel">
                   <Crown className="w-5 h-5" />
                 </Button>
               </Link>

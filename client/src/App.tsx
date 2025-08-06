@@ -124,7 +124,7 @@ function Router() {
           <Route path="/gift-demo" component={GiftDemoPage} />
           <Route path="/notifications" component={NotificationsPage} />
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
-          <Route path="/admin" component={AdminDashboardPage} />
+          <Route path="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard" component={AdminDashboardPage} />
         </Suspense>
       ) : (
         <>

@@ -67,21 +67,116 @@ export default function AdminDashboard() {
   const [verificationBadge, setVerificationBadge] = useState("LaaBoBo");
   const { toast } = useToast();
 
-  // Check if user is super admin (system owner only)
-  const superAdminEmails = ['fnnm945@gmail.com', 'asaad11asaad90@gmail.com'];
+  // TikTok-style Multi-Layer Security Check
+  const [accessVerified, setAccessVerified] = useState(false);
+  const [securityCode, setSecurityCode] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const maxAttempts = 3;
   
+  const systemOwnerEmails = ['fnnm945@gmail.com', 'asaad11asaad90@gmail.com'];
+  const secretCode = "LaaBoBo2025Owner";
+  
+  // First layer: User authentication and role check
   if (!isAuthenticated || 
       !user?.isAdmin || 
       user?.role !== 'super_admin' || 
-      !superAdminEmails.includes(user?.email)) {
+      !systemOwnerEmails.includes(user?.email)) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4">
-          <CardContent className="p-6 text-center">
-            <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-4 text-red-600">وصول محظور</h2>
-            <p className="text-gray-600 mb-4">هذه اللوحة مخصصة لمالك النظام فقط</p>
-            <p className="text-xs text-gray-400">LaaBoBo Admin Panel - Restricted Access</p>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4 bg-gray-900 border-red-600 border-2">
+          <CardContent className="p-8 text-center">
+            <div className="mb-6">
+              <div className="text-6xl mb-4">🚫</div>
+              <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4 text-red-400">ACCESS DENIED</h2>
+            <p className="text-gray-300 mb-4">Unauthorized Access Attempt Detected</p>
+            <p className="text-xs text-gray-500">LaaBoBo Security System - Owner Only</p>
+            <div className="mt-6 p-3 bg-red-900/30 rounded-lg border border-red-600">
+              <p className="text-red-300 text-sm">This incident has been logged</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Second layer: Secret code verification (TikTok style)
+  if (!accessVerified) {
+    const handleSecurityVerification = () => {
+      if (securityCode === secretCode) {
+        setAccessVerified(true);
+        toast({
+          title: "🔓 تم منح الوصول",
+          description: "مرحباً بك في لوحة التحكم الرئيسية"
+        });
+      } else {
+        setAttempts(prev => prev + 1);
+        setSecurityCode("");
+        
+        if (attempts >= maxAttempts - 1) {
+          toast({
+            title: "🚨 تم حظر الوصول",
+            description: "تم تجاوز عدد المحاولات المسموحة",
+            variant: "destructive"
+          });
+          // Redirect to home after failed attempts
+          setTimeout(() => window.location.href = "/", 2000);
+        } else {
+          toast({
+            title: "❌ رمز خاطئ",
+            description: `المحاولات المتبقية: ${maxAttempts - attempts - 1}`,
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-black flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4 bg-gray-900/90 border-purple-500 border-2 shadow-2xl backdrop-blur-sm">
+          <CardContent className="p-8 text-center">
+            <div className="mb-8">
+              <div className="text-6xl mb-4">🔐</div>
+              <Crown className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-white mb-2">LaaBoBo Owner Panel</h2>
+              <p className="text-purple-300">Security Verification Required</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-white text-sm font-medium mb-2">
+                  Master Access Code
+                </label>
+                <Input
+                  type="password"
+                  value={securityCode}
+                  onChange={(e) => setSecurityCode(e.target.value)}
+                  placeholder="Enter owner security code..."
+                  className="bg-black/50 border-purple-500 text-white placeholder-gray-400"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSecurityVerification()}
+                />
+              </div>
+              
+              <Button 
+                onClick={handleSecurityVerification}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3"
+                disabled={!securityCode || attempts >= maxAttempts}
+              >
+                {attempts >= maxAttempts ? "🚫 Access Blocked" : "🔓 Verify Access"}
+              </Button>
+              
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Attempts: {attempts}/{maxAttempts}</span>
+                <span>TikTok-Style Security</span>
+              </div>
+            </div>
+            
+            {attempts > 0 && (
+              <div className="mt-4 p-3 bg-red-900/30 rounded-lg border border-red-600">
+                <p className="text-red-300 text-sm">⚠️ Invalid access attempt detected</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
