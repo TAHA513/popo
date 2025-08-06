@@ -93,13 +93,6 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   const giftDisplayInfo = giftDetails && albumData ? 
     `${giftDetails.emoji} ${giftDetails.name} × ${albumData.requiredGiftAmount}` : 
     `💰 ${albumPrice} نقطة`;
-    
-  console.log('🔍 Debug display info:', {
-    giftDetails,
-    albumData,
-    giftDisplayInfo,
-    albumPrice
-  });
 
   // التحقق من الوصول للألبوم
   const checkAccess = async () => {
@@ -209,16 +202,10 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
           description: `تم إرسال ${giftInfo} بنجاح! النقاط المتبقية: ${data.remainingPoints}`,
         });
 
-        // فتح الألبوم تلقائياً بعد الشراء الناجح
+        // فتح الألبوم مباشرة بعد الشراء الناجح
         setTimeout(() => {
           setIsExpanded(true);
-        }, 1000);
-        // إعادة تحميل بيانات الألبوم
-        checkAccess();
-        // فتح الألبوم مباشرة بعد الشراء
-        setTimeout(() => {
-          window.location.href = `/premium-albums/${albumId}`;
-        }, 1000);
+        }, 500);
       } else {
         const errorData = await response.json().catch(() => ({ message: 'خطأ غير معروف' }));
         console.error('❌ Purchase failed:', response.status, errorData);
@@ -254,8 +241,18 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
               <p className="text-gray-600 mb-1"><strong>{albumTitle}</strong></p>
               <div className="text-center mb-4">
                 <p className="text-gray-700 font-medium mb-2">الهدية المطلوبة:</p>
-                <p className="text-orange-600 font-bold text-xl">{giftDisplayInfo}</p>
-                <p className="text-gray-500 text-sm mt-1">التكلفة: {realPrice} نقطة</p>
+                {giftDetails && albumData ? (
+                  <div>
+                    <p className="text-orange-600 font-bold text-xl">
+                      {giftDetails.emoji} {giftDetails.name} × {albumData.requiredGiftAmount}
+                    </p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      التكلفة: {giftDetails.pointCost * albumData.requiredGiftAmount} نقطة
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-orange-600 font-bold text-xl">💰 {albumPrice} نقطة</p>
+                )}
               </div>
               
               <p className="text-sm text-gray-500 mb-6">
@@ -289,7 +286,10 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
           <div className="flex items-center space-x-2 space-x-reverse">
             <h4 className="font-medium text-gray-800">{albumTitle}</h4>
             <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-              {giftDisplayInfo}
+              {giftDetails && albumData ? 
+                `${giftDetails.emoji} ${giftDetails.name} × ${albumData.requiredGiftAmount}` : 
+                `💰 ${albumPrice} نقطة`
+              }
             </Badge>
           </div>
           <p className="text-sm text-gray-600 mt-1">
@@ -321,7 +321,9 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
               size="sm"
               onClick={() => setShowPaymentDialog(true)}
               className="text-orange-600 hover:bg-orange-50 flex flex-col items-center"
-              title={`ادفع ${giftDisplayInfo} لفتح الألبوم`}
+              title={`ادفع ${giftDetails && albumData ? 
+                `${giftDetails.emoji} ${giftDetails.name} × ${albumData.requiredGiftAmount}` : 
+                `💰 ${albumPrice} نقطة`} لفتح الألبوم`}
             >
               <Lock className="w-4 h-4" />
               <span className="text-xs mt-1">ادفع</span>
