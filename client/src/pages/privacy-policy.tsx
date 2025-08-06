@@ -85,11 +85,11 @@ export default function PrivacyPolicy() {
                   </div>
                   
                   <div className="flex items-start">
-                    <Video className="w-5 h-5 text-purple-500 ml-3 mt-1 flex-shrink-0" />
+                    <MessageCircle className="w-5 h-5 text-purple-500 ml-3 mt-1 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">البث المباشر</h4>
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">البث المباشر للدردشة</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        بث فيديو مباشر بتقنية WebRTC للتفاعل المباشر مع المتابعين
+                        دردشة مباشرة في الوقت الفعلي للتفاعل المباشر مع المتابعين
                       </p>
                     </div>
                   </div>
