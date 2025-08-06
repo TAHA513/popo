@@ -215,6 +215,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup wallet routes
   setupWalletRoutes(app);
 
+  // Wallet API endpoints
+  // Get user transactions
+  app.get('/api/users/:userId/transactions', requireAuth, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const requestingUserId = req.user.id;
+      
+      // Users can only view their own transactions
+      if (userId !== requestingUserId) {
+        return res.status(403).json({ message: "ليس لديك إذن لعرض هذه المعاملات" });
+      }
+      
+      // For now, return an empty array since we don't have a transactions table yet
+      // In future, this would fetch from a transactions table
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ message: "فشل في جلب المعاملات" });
+    }
+  });
+
+  // Get sent gifts for user
+  app.get('/api/gifts/sent/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const requestingUserId = req.user.id;
+      
+      // Users can only view their own sent gifts
+      if (userId !== requestingUserId) {
+        return res.status(403).json({ message: "ليس لديك إذن لعرض هذه الهدايا" });
+      }
+      
+      const sentGifts = await db.select({
+        id: gifts.id,
+        senderId: gifts.senderId,
+        receiverId: gifts.receiverId,
+        giftCharacterId: gifts.giftCharacterId,
+        amount: gifts.amount,
+        message: gifts.message,
+        createdAt: gifts.createdAt,
+        giftCharacter: {
+          id: giftCharacters.id,
+          name: giftCharacters.name,
+          emoji: giftCharacters.emoji,
+          pointCost: giftCharacters.pointCost
+        },
+        receiverUser: {
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName
+        }
+      })
+      .from(gifts)
+      .leftJoin(giftCharacters, eq(gifts.giftCharacterId, giftCharacters.id))
+      .leftJoin(users, eq(gifts.receiverId, users.id))
+      .where(eq(gifts.senderId, userId))
+      .orderBy(desc(gifts.createdAt));
+      
+      res.json(sentGifts);
+    } catch (error) {
+      console.error("Error fetching sent gifts:", error);
+      res.status(500).json({ message: "فشل في جلب الهدايا المرسلة" });
+    }
+  });
+
+  // Get received gifts for user
+  app.get('/api/gifts/received/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const requestingUserId = req.user.id;
+      
+      // Users can only view their own received gifts
+      if (userId !== requestingUserId) {
+        return res.status(403).json({ message: "ليس لديك إذن لعرض هذه الهدايا" });
+      }
+      
+      const receivedGifts = await db.select({
+        id: gifts.id,
+        senderId: gifts.senderId,
+        receiverId: gifts.receiverId,
+        giftCharacterId: gifts.giftCharacterId,
+        amount: gifts.amount,
+        message: gifts.message,
+        createdAt: gifts.createdAt,
+        giftCharacter: {
+          id: giftCharacters.id,
+          name: giftCharacters.name,
+          emoji: giftCharacters.emoji,
+          pointCost: giftCharacters.pointCost
+        },
+        senderUser: {
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName
+        }
+      })
+      .from(gifts)
+      .leftJoin(giftCharacters, eq(gifts.giftCharacterId, giftCharacters.id))
+      .leftJoin(users, eq(gifts.senderId, users.id))
+      .where(eq(gifts.receiverId, userId))
+      .orderBy(desc(gifts.createdAt));
+      
+      res.json(receivedGifts);
+    } catch (error) {
+      console.error("Error fetching received gifts:", error);
+      res.status(500).json({ message: "فشل في جلب الهدايا المستلمة" });
+    }
+  });
+
   // Premium Messages API
   
   // Get premium messages for current user

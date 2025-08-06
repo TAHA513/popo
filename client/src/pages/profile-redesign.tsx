@@ -762,6 +762,7 @@ export default function ProfileRedesign() {
                 <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
                 <h3 className="text-lg font-bold mb-2">النقاط</h3>
                 <p className="text-2xl font-bold text-purple-600">{profileUser?.points || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">معرف المحفظة: {profileUser?.id}</p>
               </CardContent>
             </Card>
             
