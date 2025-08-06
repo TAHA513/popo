@@ -310,25 +310,7 @@ export default function PrivacyPolicy() {
           </CardContent>
         </Card>
 
-        {/* Contact Info */}
-        <Card className="border-purple-200 dark:border-purple-800">
-          <CardContent className="text-center py-8">
-            <h3 className="font-bold text-xl mb-4 text-purple-800 dark:text-purple-200">
-              تواصل معنا
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              لأي استفسارات أو مساعدة، يمكنك التواصل معنا
-            </p>
-            <div className="flex justify-center space-x-4 rtl:space-x-reverse">
-              <Badge variant="outline" className="px-4 py-2">
-                📧 support@laabobogarden.com
-              </Badge>
-              <Badge variant="outline" className="px-4 py-2">
-                📱 واتساب: +1234567890
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );
