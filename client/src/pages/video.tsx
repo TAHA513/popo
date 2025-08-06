@@ -339,10 +339,14 @@ export default function VideoPage() {
   // Follow/Unfollow mutation
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
+      console.log("🔄 Follow mutation starting for userId:", userId);
       const response = await apiRequest('POST', `/api/users/${userId}/follow`);
-      return await response.json();
+      const data = await response.json();
+      console.log("📱 Follow API response:", data);
+      return data;
     },
     onSuccess: (data) => {
+      console.log("✅ Follow mutation success:", data);
       toast({
         title: data.isFollowing ? "تمت المتابعة!" : "تم إلغاء المتابعة",
         description: data.isFollowing ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
@@ -364,7 +368,7 @@ export default function VideoPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/users', currentVideo?.author?.id, 'is-following'] });
     },
     onError: (error: any) => {
-      console.error("Follow error:", error);
+      console.error("❌ Follow error:", error);
       const isAuthError = error.message?.includes("401") || error.message?.includes("يجب تسجيل الدخول");
       toast({
         title: "خطأ في المتابعة",
@@ -464,7 +468,29 @@ export default function VideoPage() {
   });
 
   const handleFollow = () => {
-    if (!currentVideo || !currentVideo.author) return;
+    console.log("🔄 Follow button clicked", { 
+      currentVideo: currentVideo?.id, 
+      author: currentVideo?.author?.id,
+      user: user?.id,
+      isFollowing 
+    });
+    
+    if (!currentVideo || !currentVideo.author) {
+      console.log("❌ Missing video or author data");
+      return;
+    }
+    
+    if (!user) {
+      console.log("❌ User not logged in");
+      toast({
+        title: "خطأ",
+        description: "يجب تسجيل الدخول أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("✅ Calling follow mutation for user:", currentVideo.author.id);
     followMutation.mutate({ userId: currentVideo.author.id });
   };
 
