@@ -93,6 +93,13 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   const giftDisplayInfo = giftDetails && albumData ? 
     `${giftDetails.emoji} ${giftDetails.name} × ${albumData.requiredGiftAmount}` : 
     `💰 ${albumPrice} نقطة`;
+    
+  console.log('🔍 Debug display info:', {
+    giftDetails,
+    albumData,
+    giftDisplayInfo,
+    albumPrice
+  });
 
   // التحقق من الوصول للألبوم
   const checkAccess = async () => {
@@ -117,14 +124,7 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
         console.log('📄 Album data received:', albumData);
         setAlbumData(albumData);
         
-        // جلب تفاصيل الهدية المطلوبة
-        if (gifts && Array.isArray(gifts) && albumData.requiredGiftId) {
-          const gift = gifts.find((g: any) => g.id === albumData.requiredGiftId);
-          if (gift) {
-            setGiftDetails(gift);
-            console.log('🎁 Gift details:', gift);
-          }
-        }
+        // سيتم تحديث تفاصيل الهدية في useEffect منفصل
         
         // إذا كان المستخدم الحالي هو منشئ الألبوم، يمكنه الوصول مجاناً
         if (albumData.creatorId === currentUserId) {
@@ -155,9 +155,20 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
     }
   };
 
+  // Effect منفصل لتحديث تفاصيل الهدية عند تغير البيانات
+  useEffect(() => {
+    if (gifts && Array.isArray(gifts) && albumData?.requiredGiftId) {
+      const gift = gifts.find((g: any) => g.id === albumData.requiredGiftId);
+      if (gift) {
+        setGiftDetails(gift);
+        console.log('🎁 Gift details updated:', gift);
+      }
+    }
+  }, [gifts, albumData]);
+
   useEffect(() => {
     checkAccess();
-  }, [albumId, currentUserId, gifts]);
+  }, [albumId, currentUserId]);
 
   const handlePayment = async () => {
     if (!albumId || !albumData) {
