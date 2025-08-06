@@ -807,13 +807,19 @@ export default function VideoPage() {
             {currentVideo.author?.id !== user?.id && (
               <Button 
                 size="sm"
-                className={`w-6 h-6 md:w-8 md:h-8 p-0 rounded-full border-2 border-white transition-colors ${
+                className={`w-6 h-6 md:w-8 md:h-8 p-0 rounded-full border-2 border-white transition-colors relative z-50 cursor-pointer ${
                   isFollowing 
                     ? 'bg-green-600 text-white hover:bg-green-700' 
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}
-                onClick={handleFollow}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("🔘 Follow button click event triggered");
+                  handleFollow();
+                }}
                 disabled={followMutation.isPending}
+                style={{ pointerEvents: 'auto' }}
               >
                 {followMutation.isPending ? (
                   <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
