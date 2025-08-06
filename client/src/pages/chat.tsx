@@ -68,7 +68,13 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   const [hasAccess, setHasAccess] = useState(false);
   const [albumData, setAlbumData] = useState<any>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [giftDetails, setGiftDetails] = useState<any>(null);
   const { toast } = useToast();
+
+  // جلب بيانات الهدايا
+  const { data: gifts } = useQuery({
+    queryKey: ['/api/gifts/characters'],
+  });
 
   // استخراج معرف الألبوم من النص
   const albumId = message.content.match(/\/premium-albums\/(\d+)/)?.[1];
@@ -79,6 +85,14 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
   
   const albumTitle = titleMatch?.[1] || 'ألبوم مدفوع';
   const albumPrice = priceMatch?.[1] || '0';
+  
+  // احسب السعر الحقيقي بناءً على تفاصيل الهدية
+  const realPrice = giftDetails && albumData ? 
+    (giftDetails.pointCost * albumData.requiredGiftAmount) : parseInt(albumPrice);
+  
+  const giftDisplayInfo = giftDetails && albumData ? 
+    `${giftDetails.emoji} ${giftDetails.name} × ${albumData.requiredGiftAmount}` : 
+    `💰 ${albumPrice} نقطة`;
 
   // التحقق من الوصول للألبوم
   const checkAccess = async () => {
@@ -102,6 +116,15 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
         const albumData = await albumResponse.json();
         console.log('📄 Album data received:', albumData);
         setAlbumData(albumData);
+        
+        // جلب تفاصيل الهدية المطلوبة
+        if (gifts && Array.isArray(gifts) && albumData.requiredGiftId) {
+          const gift = gifts.find((g: any) => g.id === albumData.requiredGiftId);
+          if (gift) {
+            setGiftDetails(gift);
+            console.log('🎁 Gift details:', gift);
+          }
+        }
         
         // إذا كان المستخدم الحالي هو منشئ الألبوم، يمكنه الوصول مجاناً
         if (albumData.creatorId === currentUserId) {
@@ -134,7 +157,7 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
 
   useEffect(() => {
     checkAccess();
-  }, [albumId, currentUserId]);
+  }, [albumId, currentUserId, gifts]);
 
   const handlePayment = async () => {
     if (!albumId || !albumData) {
@@ -174,6 +197,11 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
           title: "✅ تم الشراء بنجاح",
           description: `تم إرسال ${giftInfo} بنجاح! النقاط المتبقية: ${data.remainingPoints}`,
         });
+
+        // فتح الألبوم تلقائياً بعد الشراء الناجح
+        setTimeout(() => {
+          setIsExpanded(true);
+        }, 1000);
         // إعادة تحميل بيانات الألبوم
         checkAccess();
         // فتح الألبوم مباشرة بعد الشراء
@@ -213,7 +241,11 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
               
               <h3 className="font-bold text-lg text-gray-800 mb-2">شراء ألبوم مدفوع</h3>
               <p className="text-gray-600 mb-1"><strong>{albumTitle}</strong></p>
-              <p className="text-orange-600 font-bold text-xl mb-4">💰 {albumPrice} نقطة</p>
+              <div className="text-center mb-4">
+                <p className="text-gray-700 font-medium mb-2">الهدية المطلوبة:</p>
+                <p className="text-orange-600 font-bold text-xl">{giftDisplayInfo}</p>
+                <p className="text-gray-500 text-sm mt-1">التكلفة: {realPrice} نقطة</p>
+              </div>
               
               <p className="text-sm text-gray-500 mb-6">
                 ستذهب النقاط إلى منشئ الألبوم وستتمكن من الوصول إلى محتوياته
@@ -246,7 +278,7 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
           <div className="flex items-center space-x-2 space-x-reverse">
             <h4 className="font-medium text-gray-800">{albumTitle}</h4>
             <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-              💰 {albumPrice} نقطة
+              {giftDisplayInfo}
             </Badge>
           </div>
           <p className="text-sm text-gray-600 mt-1">
@@ -278,7 +310,7 @@ function PremiumAlbumMessage({ message, currentUserId }: { message: Message; cur
               size="sm"
               onClick={() => setShowPaymentDialog(true)}
               className="text-orange-600 hover:bg-orange-50 flex flex-col items-center"
-              title={`ادفع ${albumPrice} نقطة لفتح الألبوم`}
+              title={`ادفع ${giftDisplayInfo} لفتح الألبوم`}
             >
               <Lock className="w-4 h-4" />
               <span className="text-xs mt-1">ادفع</span>
