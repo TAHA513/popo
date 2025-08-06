@@ -51,6 +51,11 @@ export const users = pgTable("users", {
   isStreamer: boolean("is_streamer").default(false),
   isAdmin: boolean("is_admin").default(false),
   role: varchar("role").default("user").notNull(), // 'user' | 'admin' | 'super_admin'
+  // Verification fields
+  isVerified: boolean("is_verified").default(false), // Verification status
+  verifiedEmail: varchar("verified_email"), // Email used for verification
+  verificationBadge: varchar("verification_badge").default("LaaBoBo"), // Verification badge text
+  verifiedAt: timestamp("verified_at"), // When account was verified
   // Account privacy settings
   isPrivateAccount: boolean("is_private_account").default(false),
   allowDirectMessages: boolean("allow_direct_messages").default(true),

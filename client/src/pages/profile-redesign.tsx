@@ -26,7 +26,8 @@ import {
   TrendingUp,
   Upload,
   ArrowLeft,
-  Shield
+  Shield,
+  CheckCircle
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -324,9 +325,14 @@ export default function ProfileRedesign() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {profileUser?.username || 'الملف الشخصي'}
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-gray-900">
+                    {profileUser?.username || 'الملف الشخصي'}
+                  </h1>
+                  {profileUser?.isVerified && (
+                    <CheckCircle className="h-5 w-5 text-blue-500 fill-current" />
+                  )}
+                </div>
               </div>
               
               {/* Settings Icon */}
@@ -497,7 +503,17 @@ export default function ProfileRedesign() {
                   <h1 className="text-2xl font-bold text-gray-800 mb-1">
                     {profileUser?.firstName || profileUser?.username || 'مستخدم'}
                   </h1>
-                  <p className="text-purple-600 font-medium mb-2">@{profileUser?.username}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-purple-600 font-medium">@{profileUser?.username}</p>
+                    {profileUser?.isVerified && (
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-4 w-4 text-blue-500 fill-current" />
+                        <span className="text-xs text-blue-600 font-medium">
+                          {profileUser?.verificationBadge || 'LaaBoBo'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-gray-600 text-sm mb-4 max-w-md">
                     {profileUser?.bio || 'مرحباً بكم في ملفي الشخصي'}
                   </p>

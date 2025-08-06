@@ -1506,6 +1506,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin route to verify a user
+  app.post('/api/admin/verify-user', requireAuth, checkSuperAdmin, async (req: any, res) => {
+    try {
+      const { userId, verifiedEmail, verificationBadge } = req.body;
+      
+      if (!userId || !verifiedEmail) {
+        return res.status(400).json({ message: "معرف المستخدم والايميل مطلوبان" });
+      }
+
+      await db.update(users)
+        .set({
+          isVerified: true,
+          verifiedEmail,
+          verificationBadge: verificationBadge || 'LaaBoBo',
+          verifiedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      res.json({ message: "تم توثيق المستخدم بنجاح" });
+    } catch (error) {
+      console.error("Error verifying user:", error);
+      res.status(500).json({ message: "فشل في توثيق المستخدم" });
+    }
+  });
+
+  // Admin route to unverify a user
+  app.post('/api/admin/unverify-user', requireAuth, checkSuperAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "معرف المستخدم مطلوب" });
+      }
+
+      await db.update(users)
+        .set({
+          isVerified: false,
+          verifiedEmail: null,
+          verificationBadge: null,
+          verifiedAt: null
+        })
+        .where(eq(users.id, userId));
+
+      res.json({ message: "تم إلغاء توثيق المستخدم بنجاح" });
+    } catch (error) {
+      console.error("Error unverifying user:", error);
+      res.status(500).json({ message: "فشل في إلغاء توثيق المستخدم" });
+    }
+  });
+
   // Get user by ID
   app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
     try {

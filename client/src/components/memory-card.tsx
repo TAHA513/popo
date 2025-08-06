@@ -15,7 +15,8 @@ import {
   MoreHorizontal,
   Zap,
   Clock,
-  Settings
+  Settings,
+  CheckCircle
 } from "lucide-react";
 import { 
   DropdownMenu,
@@ -52,6 +53,8 @@ interface MemoryCardProps {
       username: string;
       profileImageUrl?: string;
       firstName?: string;
+      isVerified?: boolean;
+      verificationBadge?: string;
     };
   };
   isOwner?: boolean;
@@ -141,9 +144,14 @@ export default function MemoryCard({
               <div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   <Link href={`/user/${memory.author.id}`} className="hover:text-purple-600 transition-colors">
-                    <h3 className="font-semibold text-sm cursor-pointer">
-                      {memory.author.firstName || memory.author.username}
-                    </h3>
+                    <div className="flex items-center gap-1">
+                      <h3 className="font-semibold text-sm cursor-pointer">
+                        {memory.author.firstName || memory.author.username}
+                      </h3>
+                      {memory.author.isVerified && (
+                        <CheckCircle className="h-3 w-3 text-blue-500 fill-current" />
+                      )}
+                    </div>
                   </Link>
                   {getVisibilityIcon(memory.visibilityLevel)}
                 </div>
