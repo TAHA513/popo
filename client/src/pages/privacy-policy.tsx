@@ -148,7 +148,7 @@ export default function PrivacyPolicy() {
                     <div>
                       <h4 className="font-semibold text-gray-800 dark:text-gray-200">الرسائل المميزة</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        نظام مراسلة مميز لمشاركة الألبومات المدفوعة
+                        نظام مراسلة مميز لمشاركة الألبومات المميزة
                       </p>
                     </div>
                   </div>
@@ -168,78 +168,7 @@ export default function PrivacyPolicy() {
           </CardContent>
         </Card>
 
-        {/* Monetization & Earnings */}
-        <Card className="mb-8 border-green-200 dark:border-green-800">
-          <CardHeader>
-            <CardTitle className="flex items-center text-xl text-green-800 dark:text-green-200">
-              <DollarSign className="w-6 h-6 ml-3" />
-              كيفية الربح من المنصة
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* For Content Creators */}
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200 border-b pb-2">
-                  للمبدعين والمؤثرين
-                </h3>
-                
-                <div className="space-y-3">
-                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">🎁 الهدايا الافتراضية</h4>
-                    <p className="text-sm text-green-700 dark:text-green-300">
-                      اكسب النقاط من خلال تلقي الهدايا من المتابعين أثناء البث المباشر أو على المحتوى
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">👑 المحتوى المميز</h4>
-                    <p className="text-sm text-purple-700 dark:text-purple-300">
-                      بيع الألبومات المميزة والمحتوى الحصري للمشتركين
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">📈 برنامج الشراكة</h4>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      انضم لبرنامج شراكة المبدعين واحصل على عمولة من المبيعات
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              {/* For Regular Users */}
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200 border-b pb-2">
-                  للمستخدمين العاديين
-                </h3>
-                
-                <div className="space-y-3">
-                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">⭐ النشاط اليومي</h4>
-                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                      احصل على نقاط مجانية من خلال التفاعل اليومي والمشاركة في المجتمع
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
-                    <h4 className="font-semibold text-pink-800 dark:text-pink-200 mb-2">🔄 نظام الإحالة</h4>
-                    <p className="text-sm text-pink-700 dark:text-pink-300">
-                      ادع الأصدقاء واحصل على مكافآت عن كل شخص ينضم عبر رابطك
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                    <h4 className="font-semibold text-indigo-800 dark:text-indigo-200 mb-2">🎮 المسابقات والألعاب</h4>
-                    <p className="text-sm text-indigo-700 dark:text-indigo-300">
-                      شارك في المسابقات والفعاليات الخاصة لكسب جوائز نقدية
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Privacy & Terms */}
         <Card className="mb-8 border-gray-200 dark:border-gray-700">
@@ -273,7 +202,7 @@ export default function PrivacyPolicy() {
               <ul className="space-y-2 text-gray-700 dark:text-gray-300">
                 <li className="flex items-start">
                   <span className="text-blue-500 ml-2">•</span>
-                  يجب أن تكون 13 سنة أو أكثر لاستخدام المنصة
+                  يجب أن تكون 18 سنة أو أكثر لاستخدام المنصة
                 </li>
                 <li className="flex items-start">
                   <span className="text-blue-500 ml-2">•</span>
@@ -290,23 +219,7 @@ export default function PrivacyPolicy() {
               </ul>
             </div>
 
-            <div>
-              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">💰 السياسات المالية</h3>
-              <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                <li className="flex items-start">
-                  <span className="text-purple-500 ml-2">•</span>
-                  جميع المعاملات آمنة ومشفرة
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-500 ml-2">•</span>
-                  يمكن استرداد الأموال خلال 7 أيام من الشراء
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-500 ml-2">•</span>
-                  النقاط المكتسبة لا تنتهي صلاحيتها
-                </li>
-              </ul>
-            </div>
+
           </CardContent>
         </Card>
 
