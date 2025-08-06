@@ -804,31 +804,39 @@ export default function VideoPage() {
               </div>
             )}
             
-            {currentVideo.author?.id !== user?.id && (
-              <Button 
-                size="sm"
-                className={`w-6 h-6 md:w-8 md:h-8 p-0 rounded-full border-2 border-white transition-colors relative z-50 cursor-pointer ${
-                  isFollowing 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'bg-red-600 text-white hover:bg-red-700'
-                }`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("🔘 Follow button click event triggered");
-                  handleFollow();
-                }}
-                disabled={followMutation.isPending}
-                style={{ pointerEvents: 'auto' }}
-              >
-                {followMutation.isPending ? (
-                  <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : isFollowing ? (
-                  <Check className="w-3 h-3 md:w-4 md:h-4" />
-                ) : (
-                  <Plus className="w-3 h-3 md:w-4 md:h-4" />
-                )}
-              </Button>
+            {currentVideo?.author?.id && user?.id && currentVideo.author.id !== user.id && (
+              <div className="relative">
+                <button
+                  type="button"
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white flex items-center justify-center transition-all duration-200 ${
+                    isFollowing 
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : 'bg-red-600 text-white hover:bg-red-700'
+                  } ${followMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}`}
+                  onClick={() => {
+                    console.log("🔘 Native button clicked", { 
+                      currentVideo: currentVideo?.id, 
+                      author: currentVideo?.author?.id,
+                      user: user?.id,
+                      isFollowing,
+                      isPending: followMutation.isPending 
+                    });
+                    if (!followMutation.isPending) {
+                      handleFollow();
+                    }
+                  }}
+                  disabled={followMutation.isPending}
+                  style={{ zIndex: 100 }}
+                >
+                  {followMutation.isPending ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : isFollowing ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             )}
           </div>
 
