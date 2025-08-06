@@ -74,7 +74,7 @@ export default function SimpleHome() {
             <div className="flex items-center gap-2">
               {/* Notifications Button */}
               <button 
-                onClick={() => setLocation('/profile')}
+                onClick={() => setLocation('/notifications')}
                 className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
               >
                 <Bell className="w-6 h-6" />

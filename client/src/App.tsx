@@ -50,6 +50,7 @@ import GiftsSimplePage from "@/pages/gifts-simple";
 import SimpleGiftsPage from "@/pages/simple-gifts";
 import GiftsTestPage from "@/pages/gifts-test";
 import GiftDemoPage from "@/pages/gift-demo";
+import NotificationsPage from "@/pages/notifications";
 
 import { LanguageOption } from "@/types";
 
@@ -119,6 +120,7 @@ function Router() {
           <Route path="/simple-gifts" component={SimpleGiftsPage} />
           <Route path="/gifts-test" component={GiftsTestPage} />
           <Route path="/gift-demo" component={GiftDemoPage} />
+          <Route path="/notifications" component={NotificationsPage} />
         </Suspense>
       ) : (
         <>
