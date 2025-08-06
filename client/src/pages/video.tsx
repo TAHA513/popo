@@ -871,22 +871,22 @@ export default function VideoPage() {
               </Button>
             </DialogHeader>
             
-            <div className="grid grid-cols-3 gap-3 p-2">
+            <div className="grid grid-cols-4 gap-2 p-2">
               {giftCharacters?.map((gift: any) => (
                 <button
                   key={gift.id}
                   onClick={() => handleGiftSelect(gift.id)}
                   disabled={giftMutation.isPending}
-                  className="flex flex-col items-center p-4 bg-gray-800/50 hover:bg-purple-600/20 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-500/50 group disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex flex-col items-center p-2 bg-gray-800/50 hover:bg-purple-600/20 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-500/50 group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">
+                  <span className="text-xl mb-1 group-hover:scale-110 transition-transform duration-200">
                     {gift.emoji}
                   </span>
-                  <span className="text-sm font-medium text-center text-white/90 mb-1">
+                  <span className="text-xs font-medium text-center text-white/90 mb-1 leading-tight">
                     {gift.name}
                   </span>
                   <div className="flex items-center text-xs text-purple-400">
-                    <Sparkles className="w-3 h-3 mr-1" />
+                    <Sparkles className="w-2 h-2 mr-1" />
                     <span>{gift.pointCost}</span>
                   </div>
                 </button>
