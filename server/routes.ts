@@ -255,17 +255,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: gifts.amount,
         message: gifts.message,
         createdAt: gifts.createdAt,
-        giftCharacter: {
-          id: giftCharacters.id,
-          name: giftCharacters.name,
-          emoji: giftCharacters.emoji,
-          pointCost: giftCharacters.pointCost
-        },
-        receiverUser: {
-          id: users.id,
-          username: users.username,
-          firstName: users.firstName
-        }
+        giftCharacterName: giftCharacters.name,
+        giftCharacterEmoji: giftCharacters.emoji,
+        giftCharacterPointCost: giftCharacters.pointCost,
+        receiverUsername: users.username,
+        receiverFirstName: users.firstName
       })
       .from(gifts)
       .leftJoin(giftCharacters, eq(gifts.giftCharacterId, giftCharacters.id))
@@ -299,17 +293,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: gifts.amount,
         message: gifts.message,
         createdAt: gifts.createdAt,
-        giftCharacter: {
-          id: giftCharacters.id,
-          name: giftCharacters.name,
-          emoji: giftCharacters.emoji,
-          pointCost: giftCharacters.pointCost
-        },
-        senderUser: {
-          id: users.id,
-          username: users.username,
-          firstName: users.firstName
-        }
+        giftCharacterName: giftCharacters.name,
+        giftCharacterEmoji: giftCharacters.emoji,
+        giftCharacterPointCost: giftCharacters.pointCost,
+        senderUsername: users.username,
+        senderFirstName: users.firstName
       })
       .from(gifts)
       .leftJoin(giftCharacters, eq(gifts.giftCharacterId, giftCharacters.id))

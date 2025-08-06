@@ -92,8 +92,8 @@ export default function WalletPage() {
   // حساب إحصائيات سريعة
   const totalSentGifts = sentGifts?.length || 0;
   const totalReceivedGifts = receivedGifts?.length || 0;
-  const totalGiftsSent = sentGifts?.reduce((sum: number, gift: any) => sum + (gift.giftCharacter?.pointCost || 0), 0) || 0;
-  const totalGiftsReceived = receivedGifts?.reduce((sum: number, gift: any) => sum + (gift.giftCharacter?.pointCost || 0), 0) || 0;
+  const totalGiftsSent = sentGifts?.reduce((sum: number, gift: any) => sum + (gift.giftCharacterPointCost || 0), 0) || 0;
+  const totalGiftsReceived = receivedGifts?.reduce((sum: number, gift: any) => sum + (gift.giftCharacterPointCost || 0), 0) || 0;
 
   // Transfer points mutation
   const transferMutation = useMutation({
@@ -384,14 +384,14 @@ export default function WalletPage() {
                     {sentGifts.slice(0, 5).map((gift: any) => (
                       <div key={gift.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                         <div className="flex items-center space-x-2 space-x-reverse">
-                          <span className="text-2xl">{gift.giftCharacter?.emoji}</span>
+                          <span className="text-2xl">{gift.giftCharacterEmoji}</span>
                           <div>
-                            <p className="font-medium">{gift.giftCharacter?.name}</p>
-                            <p className="text-sm text-gray-500">إلى {gift.receiverUser?.firstName || gift.receiverUser?.username}</p>
+                            <p className="font-medium">{gift.giftCharacterName}</p>
+                            <p className="text-sm text-gray-500">إلى {gift.receiverFirstName || gift.receiverUsername}</p>
                           </div>
                         </div>
                         <Badge variant="outline" className="text-orange-600">
-                          -{gift.giftCharacter?.pointCost}
+                          -{gift.giftCharacterPointCost}
                         </Badge>
                       </div>
                     ))}
@@ -419,14 +419,14 @@ export default function WalletPage() {
                     {receivedGifts.slice(0, 5).map((gift: any) => (
                       <div key={gift.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                         <div className="flex items-center space-x-2 space-x-reverse">
-                          <span className="text-2xl">{gift.giftCharacter?.emoji}</span>
+                          <span className="text-2xl">{gift.giftCharacterEmoji}</span>
                           <div>
-                            <p className="font-medium">{gift.giftCharacter?.name}</p>
-                            <p className="text-sm text-gray-500">من {gift.senderUser?.firstName || gift.senderUser?.username}</p>
+                            <p className="font-medium">{gift.giftCharacterName}</p>
+                            <p className="text-sm text-gray-500">من {gift.senderFirstName || gift.senderUsername}</p>
                           </div>
                         </div>
                         <Badge variant="outline" className="text-green-600">
-                          +{gift.giftCharacter?.pointCost}
+                          +{gift.giftCharacterPointCost}
                         </Badge>
                       </div>
                     ))}

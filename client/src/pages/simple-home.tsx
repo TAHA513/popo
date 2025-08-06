@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { Bell, Mail } from "lucide-react";
 
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
@@ -23,6 +24,23 @@ export default function SimpleHome() {
     refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
     refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
   });
+
+  // Get unread notifications count
+  const { data: unreadCount = { count: 0 } } = useQuery({
+    queryKey: ['/api/notifications/unread-count'],
+    refetchInterval: 30000, // Check every 30 seconds
+    staleTime: 15000,
+  });
+
+  // Get conversations to check for unread messages
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['/api/messages/conversations'],
+    refetchInterval: 30000,
+    staleTime: 15000,
+  });
+
+  // Calculate unread messages count
+  const unreadMessagesCount = conversations.filter((conv: any) => conv.hasUnreadMessages).length;
 
 
 
@@ -52,6 +70,32 @@ export default function SimpleHome() {
             
             {/* Action Buttons - Right Side */}
             <div className="flex items-center gap-2">
+              {/* Notifications Button */}
+              <button 
+                onClick={() => setLocation('/profile')}
+                className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+              >
+                <Bell className="w-6 h-6" />
+                {unreadCount.count > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount.count > 9 ? '9+' : unreadCount.count}
+                  </span>
+                )}
+              </button>
+
+              {/* Messages Button */}
+              <button 
+                onClick={() => setLocation('/messages')}
+                className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+              >
+                <Mail className="w-6 h-6" />
+                {unreadMessagesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+                  </span>
+                )}
+              </button>
+
               {/* Create Memory Button */}
               <button 
                 onClick={() => setLocation('/create-memory')}
