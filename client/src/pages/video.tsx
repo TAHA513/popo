@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,7 @@ export default function VideoPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
@@ -364,7 +365,8 @@ export default function VideoPage() {
 
   const handleComment = () => {
     if (!currentVideo) return;
-    interactionMutation.mutate({ videoId: currentVideo.id, type: 'comment' });
+    // Navigate to comments page instead of just sending interaction
+    setLocation(`/comments/${currentVideo.id}`);
   };
 
   const handleShare = () => {
