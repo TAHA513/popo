@@ -335,18 +335,20 @@ export default function ProfileRedesign() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation('/privacy-policy')}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
                   title="سياسات وشروط المنصة"
                 >
-                  <Shield className="h-5 w-5" />
+                  <Shield className="h-4 w-4" />
+                  <span className="text-sm font-medium">السياسات</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation('/account')}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
                 >
-                  <Settings className="h-5 w-5" />
+                  <Settings className="h-4 w-4" />
+                  <span className="text-sm font-medium">الإعدادات</span>
                 </Button>
               </div>
             </div>
@@ -369,18 +371,20 @@ export default function ProfileRedesign() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setLocation('/privacy-policy')}
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
                     title="سياسات وشروط المنصة"
                   >
-                    <Shield className="h-5 w-5" />
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm font-medium">السياسات</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setLocation('/account')}
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
                   >
-                    <Settings className="h-5 w-5" />
+                    <Settings className="h-4 w-4" />
+                    <span className="text-sm font-medium">الإعدادات</span>
                   </Button>
                 </div>
               </div>
