@@ -133,22 +133,7 @@ export default function VideoPage() {
     enabled: !!currentVideo?.author?.id && !!user
   });
 
-  // Check if current user liked this video
-  const { data: likeStatus } = useQuery({
-    queryKey: ['/api/memories', currentVideo?.id, 'like-status'],
-    queryFn: async () => {
-      if (!currentVideo?.id || !user) return { liked: false };
-      const response = await fetch(`/api/memories/${currentVideo.id}/like-status`, {
-        credentials: 'include'
-      });
-      if (!response.ok) return { liked: false };
-      return response.json();
-    },
-    enabled: !!currentVideo?.id && !!user
-  });
-
   const isFollowing = followStatus?.isFollowing || false;
-  const isLiked = likeStatus?.liked || false;
 
   // Simple and reliable video setup
   useEffect(() => {
@@ -252,53 +237,17 @@ export default function VideoPage() {
     }
   };
 
-  // Like mutation with proper API call
-  const likeMutation = useMutation({
-    mutationFn: async ({ videoId }: { videoId: number }) => {
-      return await apiRequest(`/api/memories/${videoId}/like`, 'POST');
-    },
-    onSuccess: (data) => {
-      const videoKey = `video-${currentVideo?.id}`;
-      setLikedVideos(prev => {
-        const newSet = new Set(prev);
-        if (data.liked) {
-          newSet.add(videoKey);
-        } else {
-          newSet.delete(videoKey);
-        }
-        return newSet;
-      });
-      
-      toast({
-        title: data.liked ? "تم الإعجاب! ❤️" : "تم إلغاء الإعجاب",
-        description: data.liked ? "أضيف للمفضلة" : "تم إزالته من المفضلة",
-      });
-
-      // Refresh data to update like count and status
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/memories', currentVideo?.id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/memories', currentVideo?.id, 'like-status'] });
-    },
-    onError: (error: any) => {
-      console.error("Like error:", error);
-      const isAuthError = error.message?.includes("401") || error.message?.includes("يجب تسجيل الدخول");
-      toast({
-        title: "خطأ في الإعجاب",
-        description: isAuthError ? "يجب تسجيل الدخول أولاً" : "حاول مرة أخرى",
-        variant: "destructive",
-      });
-      
-      if (isAuthError) {
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
+  // Simple like handler like in simple-home.tsx
+  const handleLike = (id: string) => {
+    setLikedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
       }
-    }
-  });
-
-  const handleLike = () => {
-    if (!currentVideo) return;
-    likeMutation.mutate({ videoId: currentVideo.id });
+      return newSet;
+    });
   };
 
   // Removed navigation functions - single video only
@@ -683,12 +632,11 @@ export default function VideoPage() {
               size="lg"
               onClick={(e) => {
                 e.stopPropagation();
-                handleLike();
+                handleLike(currentVideo.id.toString());
               }}
-              disabled={likeMutation.isPending}
-              className={`flex flex-col items-center ${isLiked ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent p-2 md:p-3 relative z-60`}
+              className={`flex flex-col items-center ${likedVideos.has(currentVideo.id.toString()) ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-transparent p-2 md:p-3 relative z-60`}
             >
-              <Heart className={`w-6 h-6 md:w-8 md:h-8 ${isLiked ? 'fill-current' : ''}`} />
+              <Heart className={`w-6 h-6 md:w-8 md:h-8 ${likedVideos.has(currentVideo.id.toString()) ? 'fill-current' : ''}`} />
               <span className="text-xs md:text-sm mt-1">{currentVideo.likeCount}</span>
             </Button>
             
