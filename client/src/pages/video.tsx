@@ -340,7 +340,7 @@ export default function VideoPage() {
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
       console.log("🔄 Follow mutation starting for userId:", userId);
-      const response = await apiRequest('POST', `/api/users/${userId}/follow`);
+      const response = await apiRequest(`/api/users/${userId}/follow`, 'POST');
       const data = await response.json();
       console.log("📱 Follow API response:", data);
       return data;
