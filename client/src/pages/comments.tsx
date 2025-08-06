@@ -178,18 +178,35 @@ export default function CommentsPage() {
               </p>
               {memory.mediaUrls?.[0] && (
                 <div className="mt-2 rounded-lg overflow-hidden max-w-xs">
-                  {memory.mediaUrls[0].includes('video') ? (
+                  {memory.type === 'video' || 
+                   memory.mediaUrls[0]?.includes('.mp4') || 
+                   memory.mediaUrls[0]?.includes('.webm') || 
+                   memory.mediaUrls[0]?.includes('.mov') || 
+                   memory.mediaUrls[0]?.includes('video') ? (
                     <video
                       src={memory.mediaUrls[0]}
                       className="w-full h-32 object-cover"
                       muted
                       playsInline
+                      controls
                     />
                   ) : (
                     <img
                       src={memory.mediaUrls[0]}
                       alt="منشور"
                       className="w-full h-32 object-cover"
+                      onError={(e) => {
+                        console.log('Image failed to load, trying as video:', memory.mediaUrls[0]);
+                        // If image fails to load, replace with video element
+                        const target = e.target as HTMLImageElement;
+                        const videoElement = document.createElement('video');
+                        videoElement.src = memory.mediaUrls[0];
+                        videoElement.className = "w-full h-32 object-cover";
+                        videoElement.muted = true;
+                        videoElement.playsInline = true;
+                        videoElement.controls = true;
+                        target.parentNode?.replaceChild(videoElement, target);
+                      }}
                     />
                   )}
                 </div>
