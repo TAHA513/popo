@@ -165,19 +165,31 @@ export default function CommentsPage() {
       {/* Memory Preview */}
       {memory && (
         <div className="p-4 border-b border-purple-500/20">
-          <div className="flex items-start gap-3">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src={memory.author?.profileImageUrl} />
-              <AvatarFallback className="bg-purple-500">
-                {memory.author?.username?.[0]?.toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
+          <div className="space-y-3">
+            {/* Author Info */}
+            <div className="flex items-center gap-3">
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={memory.author?.profileImageUrl} />
+                <AvatarFallback className="bg-purple-500">
+                  {memory.author?.username?.[0]?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-white font-semibold">@{memory.author?.username || 'مستخدم'}</p>
+                <p className="text-purple-300 text-sm">
+                  {new Date(memory.createdAt).toLocaleDateString('ar')}
+                </p>
+              </div>
+            </div>
+            
+            {/* Caption */}
+            {memory.caption && (
               <p className="text-white/90 text-sm leading-relaxed">
-                {memory.caption || "منشور بدون وصف"}
+                {memory.caption}
               </p>
+            )}
               {memory.mediaUrls?.[0] && (
-                <div className="mt-2 rounded-lg overflow-hidden max-w-xs">
+                <div className="mt-3 rounded-lg overflow-hidden w-full max-w-sm">
                   {memory.type === 'video' || 
                    memory.mediaUrls[0]?.includes('.mp4') || 
                    memory.mediaUrls[0]?.includes('.webm') || 
@@ -185,26 +197,30 @@ export default function CommentsPage() {
                    memory.mediaUrls[0]?.includes('video') ? (
                     <video
                       src={memory.mediaUrls[0]}
-                      className="w-full h-32 object-cover"
-                      muted
-                      playsInline
+                      className="w-full h-64 object-cover rounded-lg"
                       controls
+                      playsInline
+                      preload="metadata"
+                      poster={memory.thumbnailUrl || undefined}
                     />
                   ) : (
                     <img
                       src={memory.mediaUrls[0]}
                       alt="منشور"
-                      className="w-full h-32 object-cover"
+                      className="w-full h-64 object-cover rounded-lg"
                       onError={(e) => {
                         console.log('Image failed to load, trying as video:', memory.mediaUrls[0]);
                         // If image fails to load, replace with video element
                         const target = e.target as HTMLImageElement;
                         const videoElement = document.createElement('video');
                         videoElement.src = memory.mediaUrls[0];
-                        videoElement.className = "w-full h-32 object-cover";
-                        videoElement.muted = true;
-                        videoElement.playsInline = true;
+                        videoElement.className = "w-full h-64 object-cover rounded-lg";
                         videoElement.controls = true;
+                        videoElement.playsInline = true;
+                        videoElement.preload = "metadata";
+                        if (memory.thumbnailUrl) {
+                          videoElement.poster = memory.thumbnailUrl;
+                        }
                         target.parentNode?.replaceChild(videoElement, target);
                       }}
                     />
