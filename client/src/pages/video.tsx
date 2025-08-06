@@ -344,14 +344,14 @@ export default function VideoPage() {
     },
     onSuccess: (data) => {
       toast({
-        title: data.following ? "تمت المتابعة!" : "تم إلغاء المتابعة",
-        description: data.following ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
+        title: data.isFollowing ? "تمت المتابعة!" : "تم إلغاء المتابعة",
+        description: data.isFollowing ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
       });
       // Update local state immediately
       if (currentVideo?.author?.id) {
         setFollowingUsers(prev => {
           const newSet = new Set(prev);
-          if (data.following) {
+          if (data.isFollowing) {
             newSet.add(currentVideo.author.id);
           } else {
             newSet.delete(currentVideo.author.id);
