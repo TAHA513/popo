@@ -74,7 +74,7 @@ export default function AdminDashboard() {
   const [attempts, setAttempts] = useState(0);
   const maxAttempts = 3;
   
-  const systemOwnerEmails = ['fnnm945@gmail.com', 'asaad11asaad90@gmail.com'];
+  const systemOwnerEmails: string[] = []; // سيتم إضافة الحساب الجديد هنا فقط
   const secretCode = "LaaBoBo2025Owner";
 
   // Auto-verify access for system owner on direct navigation
