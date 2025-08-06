@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,12 +69,21 @@ export default function AdminDashboard() {
 
   // TikTok-style Multi-Layer Security Check
   const [accessVerified, setAccessVerified] = useState(false);
+  
   const [securityCode, setSecurityCode] = useState("");
   const [attempts, setAttempts] = useState(0);
   const maxAttempts = 3;
   
   const systemOwnerEmails = ['fnnm945@gmail.com', 'asaad11asaad90@gmail.com'];
   const secretCode = "LaaBoBo2025Owner";
+
+  // Auto-verify access for system owner on direct navigation
+  useEffect(() => {
+    if (user && systemOwnerEmails.includes(user?.email)) {
+      // Auto-verify if user is system owner
+      setAccessVerified(true);
+    }
+  }, [user, systemOwnerEmails]);
   
   // First layer: User authentication and role check
   if (!isAuthenticated || 

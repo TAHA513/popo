@@ -53,6 +53,7 @@ import GiftDemoPage from "@/pages/gift-demo";
 import NotificationsPage from "@/pages/notifications";
 import PrivacyPolicyPage from "@/pages/privacy-policy";
 import AdminDashboardPage from "@/pages/admin-dashboard";
+import OwnerWelcomePage from "@/pages/owner-welcome";
 
 import { LanguageOption } from "@/types";
 
@@ -124,6 +125,7 @@ function Router() {
           <Route path="/gift-demo" component={GiftDemoPage} />
           <Route path="/notifications" component={NotificationsPage} />
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+          <Route path="/owner-welcome" component={OwnerWelcomePage} />
           <Route path="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard" component={AdminDashboardPage} />
         </Suspense>
       ) : (
