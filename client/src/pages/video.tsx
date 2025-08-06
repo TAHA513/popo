@@ -71,6 +71,7 @@ export default function VideoPage() {
   // Removed showInstructions - single video only
   const [videoError, setVideoError] = useState(false);
   const [showGiftModal, setShowGiftModal] = useState(false);
+  const [selectedGiftCategory, setSelectedGiftCategory] = useState('all');
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch only the specific video by ID - no browsing
@@ -527,6 +528,39 @@ export default function VideoPage() {
     });
   };
 
+  // Gift categories for navigation
+  const giftCategories = [
+    { id: 'all', name: 'الكل', icon: '🎁' },
+    { id: 'animals', name: 'حيوانات', icon: '🐰' },
+    { id: 'hearts', name: 'قلوب', icon: '❤️' },
+    { id: 'nature', name: 'طبيعة', icon: '🌹' },
+    { id: 'luxury', name: 'فخامة', icon: '👑' },
+    { id: 'vehicles', name: 'مركبات', icon: '🚗' },
+    { id: 'space', name: 'فضاء', icon: '🚀' }
+  ];
+
+  // Filter gifts by category
+  const getFilteredGifts = (gifts: any[], category: string) => {
+    if (category === 'all') return gifts;
+    
+    const categoryMap: Record<string, string[]> = {
+      animals: ['BoBo Love', 'BoFire', 'Nunu Magic', 'Dodo Splash', 'Meemo Wink'],
+      hearts: ['Love Heart', 'قلب'],
+      nature: ['وردة', 'شمس', 'قمر', 'نجمة'],
+      luxury: ['تاج', 'ألماسة', 'يخت', 'قلعة'],
+      vehicles: ['سيارة', 'طائرة'],
+      space: ['صاروخ', 'نجمة', 'قمر', 'شمس']
+    };
+
+    return gifts?.filter(gift => 
+      categoryMap[category]?.some(name => 
+        gift.name.includes(name)
+      )
+    ) || [];
+  };
+
+  const filteredGifts = getFilteredGifts(giftCharacters || [], selectedGiftCategory);
+
   const getMemoryTypeColor = (type: string) => {
     switch(type) {
       case 'fleeting': return 'bg-gradient-to-r from-blue-500 to-cyan-500';
@@ -856,7 +890,7 @@ export default function VideoPage() {
       {/* Gift Selection Modal */}
       {showGiftModal && (
         <Dialog open={showGiftModal} onOpenChange={setShowGiftModal}>
-          <DialogContent className="bg-gray-900 text-white border-purple-500/20 max-w-md mx-auto">
+          <DialogContent className="bg-gray-900 text-white border-purple-500/20 max-w-2xl mx-auto max-h-[80vh]">
             <DialogHeader>
               <DialogTitle className="text-center text-xl font-bold mb-4">
                 اختر هدية 🎁
@@ -871,34 +905,59 @@ export default function VideoPage() {
               </Button>
             </DialogHeader>
             
-            <div className="grid grid-cols-4 gap-2 p-2">
-              {giftCharacters?.map((gift: any) => (
-                <button
-                  key={gift.id}
-                  onClick={() => handleGiftSelect(gift.id)}
-                  disabled={giftMutation.isPending}
-                  className="flex flex-col items-center p-2 bg-gray-800/50 hover:bg-purple-600/20 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-500/50 group disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="text-xl mb-1 group-hover:scale-110 transition-transform duration-200">
-                    {gift.emoji}
-                  </span>
-                  <span className="text-xs font-medium text-center text-white/90 mb-1 leading-tight">
-                    {gift.name}
-                  </span>
-                  <div className="flex items-center text-xs text-purple-400">
-                    <Sparkles className="w-2 h-2 mr-1" />
-                    <span>{gift.pointCost}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            
-            {(!giftCharacters || giftCharacters.length === 0) && (
-              <div className="text-center py-8">
-                <Gift className="w-12 h-12 mx-auto text-gray-500 mb-4" />
-                <p className="text-gray-400">لا توجد هدايا متاحة حالياً</p>
+            <div className="flex gap-4 h-96">
+              {/* Vertical Navigation Bar */}
+              <div className="flex flex-col w-20 bg-gray-800/30 rounded-lg p-2">
+                {giftCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedGiftCategory(category.id)}
+                    className={`flex flex-col items-center p-3 rounded-lg mb-2 transition-all duration-200 ${
+                      selectedGiftCategory === category.id
+                        ? 'bg-purple-600/50 text-white border border-purple-500/50'
+                        : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50'
+                    }`}
+                  >
+                    <span className="text-lg mb-1">{category.icon}</span>
+                    <span className="text-xs font-medium text-center leading-tight">
+                      {category.name}
+                    </span>
+                  </button>
+                ))}
               </div>
-            )}
+              
+              {/* Gift Grid */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="grid grid-cols-4 gap-2 p-2">
+                  {filteredGifts.map((gift: any) => (
+                    <button
+                      key={gift.id}
+                      onClick={() => handleGiftSelect(gift.id)}
+                      disabled={giftMutation.isPending}
+                      className="flex flex-col items-center p-2 bg-gray-800/50 hover:bg-purple-600/20 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-500/50 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="text-xl mb-1 group-hover:scale-110 transition-transform duration-200">
+                        {gift.emoji}
+                      </span>
+                      <span className="text-xs font-medium text-center text-white/90 mb-1 leading-tight">
+                        {gift.name}
+                      </span>
+                      <div className="flex items-center text-xs text-purple-400">
+                        <Sparkles className="w-2 h-2 mr-1" />
+                        <span>{gift.pointCost}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                
+                {filteredGifts.length === 0 && (
+                  <div className="text-center py-8">
+                    <Gift className="w-12 h-12 mx-auto text-gray-500 mb-4" />
+                    <p className="text-gray-400">لا توجد هدايا في هذه الفئة</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       )}
