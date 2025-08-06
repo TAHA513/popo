@@ -383,10 +383,16 @@ export default function VideoPage() {
   // Gift sending mutation
   const giftMutation = useMutation({
     mutationFn: async ({ receiverId, characterId, message, memoryId }: { receiverId: string; characterId: number; message?: string; memoryId?: number }) => {
+      console.log("🎁 Gift mutation starting with data:", { receiverId, characterId, message, memoryId });
+      
       const response = await apiRequest('/api/gifts/send', 'POST', { receiverId, characterId, message, memoryId });
-      return await response.json();
+      const result = await response.json();
+      
+      console.log("🎁 Gift mutation response:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("🎁 Gift sent successfully:", data);
       toast({
         title: "تم إرسال الهدية! 🎁",
         description: "شكراً لدعمك للمحتوى",
@@ -400,7 +406,7 @@ export default function VideoPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/memories', videoId, 'gifts'] });
     },
     onError: (error: any) => {
-      console.error("Gift error:", error);
+      console.error("🎁 Gift error:", error);
       const isAuthError = error.message?.includes("401") || error.message?.includes("يجب تسجيل الدخول");
       toast({
         title: "خطأ في إرسال الهدية",
@@ -520,6 +526,13 @@ export default function VideoPage() {
 
   const handleGiftSelect = (characterId: number) => {
     if (!currentVideo?.author?.id) return;
+    
+    console.log("🎁 Sending gift:", {
+      receiverId: currentVideo.author.id,
+      characterId: characterId,
+      memoryId: currentVideo.id,
+      currentVideo: currentVideo
+    });
     
     giftMutation.mutate({
       receiverId: currentVideo.author.id,
