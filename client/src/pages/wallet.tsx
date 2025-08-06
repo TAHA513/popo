@@ -3,6 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Wallet, 
   ArrowUpRight, 
@@ -14,11 +18,13 @@ import {
   Star,
   Trophy,
   Crown,
-  Gem
+  Gem,
+  Send,
+  RefreshCw
 } from "lucide-react";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Transaction {
@@ -36,7 +42,12 @@ interface Transaction {
 
 export default function WalletPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'gifts'>('overview');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'gifts' | 'transfer'>('overview');
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [transferAmount, setTransferAmount] = useState('');
+  const [recipientWalletId, setRecipientWalletId] = useState('');
 
   // جلب بيانات المستخدم مع النقاط
   const { data: userProfile } = useQuery({
@@ -83,6 +94,62 @@ export default function WalletPage() {
   const totalReceivedGifts = receivedGifts?.length || 0;
   const totalGiftsSent = sentGifts?.reduce((sum: number, gift: any) => sum + (gift.giftCharacter?.pointCost || 0), 0) || 0;
   const totalGiftsReceived = receivedGifts?.reduce((sum: number, gift: any) => sum + (gift.giftCharacter?.pointCost || 0), 0) || 0;
+
+  // Transfer points mutation
+  const transferMutation = useMutation({
+    mutationFn: async ({ recipientId, amount }: { recipientId: string; amount: number }) => {
+      const response = await apiRequest('POST', '/api/wallet/transfer', {
+        recipientId,
+        amount
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'فشل في تحويل النقاط');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "✅ تم التحويل بنجاح",
+        description: `تم تحويل ${transferAmount} نقطة إلى المحفظة ${recipientWalletId}`,
+      });
+      setShowTransferDialog(false);
+      setTransferAmount('');
+      setRecipientWalletId('');
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "❌ فشل في التحويل",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleTransfer = () => {
+    const amount = parseInt(transferAmount);
+    if (!recipientWalletId || !amount || amount <= 0) {
+      toast({
+        title: "❌ بيانات غير صحيحة",
+        description: "يرجى إدخال معرف المحفظة والمبلغ بشكل صحيح",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (amount > currentPoints) {
+      toast({
+        title: "❌ رصيد غير كافي",
+        description: `ليس لديك نقاط كافية. رصيدك الحالي: ${currentPoints} نقطة`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    transferMutation.mutate({ recipientId: recipientWalletId, amount });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
@@ -131,6 +198,17 @@ export default function WalletPage() {
                   <p className="font-bold text-lg">{totalSentGifts + totalReceivedGifts}</p>
                 </div>
               </div>
+              
+              {/* Transfer Button */}
+              <div className="mt-6 pt-6 border-t border-purple-400">
+                <Button 
+                  onClick={() => setShowTransferDialog(true)}
+                  className="w-full bg-white text-purple-600 hover:bg-purple-50 border-0"
+                >
+                  <Send className="w-5 h-5 ml-2" />
+                  تحويل نقاط
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -161,6 +239,14 @@ export default function WalletPage() {
             >
               <Gift className="w-4 h-4 ml-2" />
               الهدايا
+            </Button>
+            <Button
+              variant={activeTab === "transfer" ? "default" : "ghost"}
+              onClick={() => setActiveTab("transfer")}
+              className={activeTab === "transfer" ? "bg-purple-500 text-white" : ""}
+            >
+              <Send className="w-4 h-4 ml-2" />
+              التحويل
             </Button>
           </div>
         </div>
@@ -350,9 +436,136 @@ export default function WalletPage() {
             </Card>
           </div>
         )}
+
+        {activeTab === "transfer" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Send className="w-5 h-5 ml-2" />
+                تحويل النقاط
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-bold text-blue-900 mb-2">معلومات مهمة:</h3>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• يمكنك تحويل النقاط إلى أي محفظة باستخدام معرف المحفظة</li>
+                  <li>• معرف المحفظة هو نفسه معرف المستخدم</li>
+                  <li>• التحويل فوري ولا يمكن التراجع عنه</li>
+                  <li>• رصيدك الحالي: {currentPoints} نقطة</li>
+                </ul>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="recipientId">معرف المحفظة المستلمة</Label>
+                  <Input
+                    id="recipientId"
+                    placeholder="أدخل معرف المحفظة (مثال: AY7JfzwUCBdKAVfPJbcS8)"
+                    value={recipientWalletId}
+                    onChange={(e) => setRecipientWalletId(e.target.value)}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="amount">المبلغ المراد تحويله</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    min="1"
+                    max={currentPoints}
+                    placeholder="أدخل عدد النقاط"
+                    value={transferAmount}
+                    onChange={(e) => setTransferAmount(e.target.value)}
+                  />
+                </div>
+
+                {transferAmount && recipientWalletId && (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="font-bold text-green-900 mb-2">ملخص التحويل:</h4>
+                    <div className="text-sm text-green-800 space-y-1">
+                      <div>من: {walletId}</div>
+                      <div>إلى: {recipientWalletId}</div>
+                      <div>المبلغ: {transferAmount} نقطة</div>
+                      <div>رصيدك بعد التحويل: {currentPoints - parseInt(transferAmount || '0')} نقطة</div>
+                    </div>
+                  </div>
+                )}
+
+                <Button 
+                  onClick={handleTransfer}
+                  disabled={transferMutation.isPending || !transferAmount || !recipientWalletId}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                >
+                  {transferMutation.isPending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 ml-2 animate-spin" />
+                      جاري التحويل...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 ml-2" />
+                      تحويل النقاط
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <BottomNavigation />
+
+      {/* Transfer Dialog */}
+      <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Send className="w-5 h-5 ml-2" />
+              تحويل سريع
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="quick-recipient">معرف المحفظة المستلمة</Label>
+              <Input
+                id="quick-recipient"
+                placeholder="معرف المحفظة"
+                value={recipientWalletId}
+                onChange={(e) => setRecipientWalletId(e.target.value)}
+                className="font-mono text-sm"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="quick-amount">المبلغ</Label>
+              <Input
+                id="quick-amount"
+                type="number"
+                min="1"
+                max={currentPoints}
+                placeholder="عدد النقاط"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowTransferDialog(false)}>
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleTransfer}
+                disabled={transferMutation.isPending || !transferAmount || !recipientWalletId}
+              >
+                {transferMutation.isPending ? "جاري التحويل..." : "تحويل"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

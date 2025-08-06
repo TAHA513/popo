@@ -324,6 +324,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Transfer points between wallets
+  app.post('/api/wallet/transfer', requireAuth, async (req: any, res) => {
+    try {
+      const senderId = req.user.id;
+      const { recipientId, amount } = req.body;
+
+      if (!recipientId || !amount || amount <= 0) {
+        return res.status(400).json({ message: "بيانات التحويل غير صحيحة" });
+      }
+
+      // Get sender's current points
+      const sender = await storage.getUser(senderId);
+      if (!sender || (sender.points || 0) < amount) {
+        return res.status(400).json({ 
+          message: `ليس لديك نقاط كافية. رصيدك الحالي: ${sender?.points || 0} نقطة`
+        });
+      }
+
+      // Check if recipient exists
+      const recipient = await storage.getUser(recipientId);
+      if (!recipient) {
+        return res.status(404).json({ message: "المحفظة المستلمة غير موجودة" });
+      }
+
+      // Prevent self-transfer
+      if (senderId === recipientId) {
+        return res.status(400).json({ message: "لا يمكنك تحويل النقاط لنفسك" });
+      }
+
+      // Perform the transfer
+      const senderNewBalance = (sender.points || 0) - amount;
+      const recipientNewBalance = (recipient.points || 0) + amount;
+
+      await storage.updateUserPoints(senderId, senderNewBalance);
+      await storage.updateUserPoints(recipientId, recipientNewBalance);
+
+      console.log('💰 Points transfer successful:', {
+        from: senderId,
+        to: recipientId,
+        amount,
+        senderNewBalance,
+        recipientNewBalance
+      });
+
+      // Create notification for recipient
+      await createNotification({
+        userId: recipientId,
+        fromUserId: senderId,
+        type: 'gift',
+        title: "تحويل نقاط",
+        message: `تم استلام ${amount} نقطة من ${sender.username || sender.firstName}`,
+      });
+
+      res.json({
+        success: true,
+        message: "تم التحويل بنجاح",
+        transfer: {
+          from: senderId,
+          to: recipientId,
+          amount,
+          senderNewBalance,
+          recipientNewBalance
+        }
+      });
+
+    } catch (error) {
+      console.error("Error transferring points:", error);
+      res.status(500).json({ message: "فشل في تحويل النقاط" });
+    }
+  });
+
   // Premium Messages API
   
   // Get premium messages for current user
