@@ -58,6 +58,8 @@ export default function Notifications() {
   };
 
   const handleNotificationClick = (notification: any) => {
+    console.log('Notification clicked:', notification); // Debug log
+    
     // Mark as read if not already read
     if (!notification.isRead) {
       markAsReadMutation.mutate(notification.id);
@@ -68,13 +70,19 @@ export default function Notifications() {
       case 'gift':
       case 'like':
       case 'comment':
-        if (notification.relatedMemoryId) {
-          setLocation(`/memory/${notification.relatedMemoryId}`);
+        // For likes and comments, go to the person's profile who sent it
+        console.log('fromUser data:', notification.fromUser); // Debug log
+        if (notification.fromUser?.id) {
+          console.log('Navigating to user profile:', notification.fromUser.id);
+          setLocation(`/user/${notification.fromUser.id}`);
+        } else if (notification.relatedId) {
+          console.log('Navigating to memory:', notification.relatedId);
+          setLocation(`/memory/${notification.relatedId}`);
         }
         break;
       case 'follow':
-        if (notification.fromUserId) {
-          setLocation(`/user/${notification.fromUserId}`);
+        if (notification.fromUser?.id) {
+          setLocation(`/user/${notification.fromUser.id}`);
         }
         break;
       case 'message':
