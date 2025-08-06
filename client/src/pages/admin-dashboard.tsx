@@ -67,15 +67,21 @@ export default function AdminDashboard() {
   const [verificationBadge, setVerificationBadge] = useState("LaaBoBo");
   const { toast } = useToast();
 
-  // Check if user is admin
-  if (!isAuthenticated || !user?.isAdmin) {
+  // Check if user is super admin (system owner only)
+  const superAdminEmails = ['fnnm945@gmail.com', 'asaad11asaad90@gmail.com'];
+  
+  if (!isAuthenticated || 
+      !user?.isAdmin || 
+      user?.role !== 'super_admin' || 
+      !superAdminEmails.includes(user?.email)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
           <CardContent className="p-6 text-center">
             <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-4 text-red-600">غير مصرح لك بالوصول</h2>
-            <p className="text-gray-600 mb-4">هذه الصفحة مخصصة للمدراء فقط</p>
+            <h2 className="text-xl font-bold mb-4 text-red-600">وصول محظور</h2>
+            <p className="text-gray-600 mb-4">هذه اللوحة مخصصة لمالك النظام فقط</p>
+            <p className="text-xs text-gray-400">LaaBoBo Admin Panel - Restricted Access</p>
           </CardContent>
         </Card>
       </div>

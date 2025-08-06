@@ -1556,6 +1556,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin stats endpoint
+  app.get('/api/admin/stats', requireAuth, checkSuperAdmin, async (req: any, res) => {
+    try {
+      // Get total users count
+      const totalUsersResult = await db.select({ count: sql`count(*)` }).from(users);
+      const totalUsers = parseInt(totalUsersResult[0]?.count || '0');
+
+      // Get verified users count
+      const verifiedUsersResult = await db.select({ count: sql`count(*)` })
+        .from(users)
+        .where(eq(users.isVerified, true));
+      const verifiedUsers = parseInt(verifiedUsersResult[0]?.count || '0');
+
+      // Get online users count
+      const onlineUsersResult = await db.select({ count: sql`count(*)` })
+        .from(users)
+        .where(eq(users.isOnline, true));
+      const onlineUsers = parseInt(onlineUsersResult[0]?.count || '0');
+
+      // Get total memories count
+      const totalMemoriesResult = await db.select({ count: sql`count(*)` }).from(memoryFragments);
+      const totalMemories = parseInt(totalMemoriesResult[0]?.count || '0');
+
+      // Get total gifts count
+      const totalGiftsResult = await db.select({ count: sql`count(*)` }).from(gifts);
+      const totalGifts = parseInt(totalGiftsResult[0]?.count || '0');
+
+      // Get total points in system
+      const totalPointsResult = await db.select({ sum: sql`sum(points)` }).from(users);
+      const totalPoints = parseInt(totalPointsResult[0]?.sum || '0');
+
+      const stats = {
+        totalUsers,
+        verifiedUsers,
+        onlineUsers,
+        totalMemories,
+        totalGifts,
+        totalPoints
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "فشل في جلب الإحصائيات" });
+    }
+  });
+
+  // Admin users list endpoint
+  app.get('/api/admin/users', requireAuth, checkSuperAdmin, async (req: any, res) => {
+    try {
+      const allUsers = await db.select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        isVerified: users.isVerified,
+        isAdmin: users.isAdmin,
+        role: users.role,
+        points: users.points,
+        createdAt: users.createdAt,
+        lastSeenAt: users.lastSeenAt,
+        isOnline: users.isOnline,
+        verifiedEmail: users.verifiedEmail,
+        verificationBadge: users.verificationBadge,
+        verifiedAt: users.verifiedAt
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt));
+
+      res.json(allUsers);
+    } catch (error) {
+      console.error("Error fetching users for admin:", error);
+      res.status(500).json({ message: "فشل في جلب المستخدمين" });
+    }
+  });
+
   // Get user by ID
   app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
     try {
