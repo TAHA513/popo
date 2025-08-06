@@ -251,10 +251,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: gifts.id,
         senderId: gifts.senderId,
         receiverId: gifts.receiverId,
-        giftCharacterId: gifts.giftCharacterId,
-        amount: gifts.amount,
+        characterId: gifts.characterId,
+        pointCost: gifts.pointCost,
         message: gifts.message,
-        createdAt: gifts.createdAt,
+        sentAt: gifts.sentAt,
         giftCharacterName: giftCharacters.name,
         giftCharacterEmoji: giftCharacters.emoji,
         giftCharacterPointCost: giftCharacters.pointCost,
@@ -262,10 +262,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         receiverFirstName: users.firstName
       })
       .from(gifts)
-      .leftJoin(giftCharacters, eq(gifts.giftCharacterId, giftCharacters.id))
+      .leftJoin(giftCharacters, eq(gifts.characterId, giftCharacters.id))
       .leftJoin(users, eq(gifts.receiverId, users.id))
       .where(eq(gifts.senderId, userId))
-      .orderBy(desc(gifts.createdAt));
+      .orderBy(desc(gifts.sentAt));
       
       res.json(sentGifts);
     } catch (error) {
@@ -289,10 +289,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: gifts.id,
         senderId: gifts.senderId,
         receiverId: gifts.receiverId,
-        giftCharacterId: gifts.giftCharacterId,
-        amount: gifts.amount,
+        characterId: gifts.characterId,
+        pointCost: gifts.pointCost,
         message: gifts.message,
-        createdAt: gifts.createdAt,
+        sentAt: gifts.sentAt,
         giftCharacterName: giftCharacters.name,
         giftCharacterEmoji: giftCharacters.emoji,
         giftCharacterPointCost: giftCharacters.pointCost,
@@ -300,10 +300,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         senderFirstName: users.firstName
       })
       .from(gifts)
-      .leftJoin(giftCharacters, eq(gifts.giftCharacterId, giftCharacters.id))
+      .leftJoin(giftCharacters, eq(gifts.characterId, giftCharacters.id))
       .leftJoin(users, eq(gifts.senderId, users.id))
       .where(eq(gifts.receiverId, userId))
-      .orderBy(desc(gifts.createdAt));
+      .orderBy(desc(gifts.sentAt));
       
       res.json(receivedGifts);
     } catch (error) {

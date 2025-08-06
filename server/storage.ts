@@ -459,6 +459,86 @@ export class DatabaseStorage implements IStorage {
     return character;
   }
 
+  async getGiftCharacter(id: number): Promise<GiftCharacter | undefined> {
+    const [character] = await db
+      .select()
+      .from(giftCharacters)
+      .where(eq(giftCharacters.id, id));
+    return character;
+  }
+
+  async getUserBalance(userId: string): Promise<number> {
+    const [user] = await db
+      .select({ points: users.points })
+      .from(users)
+      .where(eq(users.id, userId));
+    return user?.points || 0;
+  }
+
+  async getStreams(): Promise<Stream[]> {
+    return await db.select().from(streams);
+  }
+
+  async updateUserPoints(userId: string, newPoints: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ points: newPoints })
+      .where(eq(users.id, userId));
+  }
+
+  async getPremiumAlbum(albumId: number): Promise<PremiumAlbum | undefined> {
+    const [album] = await db
+      .select()
+      .from(premiumAlbums)
+      .where(eq(premiumAlbums.id, albumId));
+    return album;
+  }
+
+  async checkPremiumAlbumAccess(albumId: number, userId: string): Promise<boolean> {
+    const [access] = await db
+      .select()
+      .from(premiumAlbumPurchases)
+      .where(
+        and(
+          eq(premiumAlbumPurchases.albumId, albumId),
+          eq(premiumAlbumPurchases.buyerId, userId)
+        )
+      );
+    return !!access;
+  }
+
+  async purchasePremiumAlbum(purchaseData: any): Promise<void> {
+    await db.insert(premiumAlbumPurchases).values(purchaseData);
+  }
+
+  async getPremiumMessage(messageId: number): Promise<PremiumMessage | undefined> {
+    const [message] = await db
+      .select()
+      .from(premiumMessages)
+      .where(eq(premiumMessages.id, messageId));
+    return message;
+  }
+
+  async processAlbumUnlock(userId: string, creatorId: string, messageId: number, cost: number): Promise<void> {
+    // Update message as unlocked
+    await db
+      .update(premiumMessages)
+      .set({ unlockedAt: new Date() })
+      .where(eq(premiumMessages.id, messageId));
+    
+    // Deduct points from user
+    await db
+      .update(users)
+      .set({ points: sql`${users.points} - ${cost}` })
+      .where(eq(users.id, userId));
+    
+    // Add points to creator
+    await db
+      .update(users)
+      .set({ points: sql`${users.points} + ${cost}` })
+      .where(eq(users.id, creatorId));
+  }
+
   async getReceivedGifts(userId: string): Promise<Gift[]> {
     return await db
       .select()
