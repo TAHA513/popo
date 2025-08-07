@@ -74,12 +74,12 @@ export default function AdminDashboard() {
   const [attempts, setAttempts] = useState(0);
   const maxAttempts = 3;
   
-  const systemOwnerEmails: string[] = []; // سيتم إضافة الحساب الجديد هنا فقط
+  const systemOwnerEmails = ['fnnm945@gmail.com']; // مالك النظام الوحيد
   const secretCode = "LaaBoBo2025Owner";
 
   // Auto-verify access for system owner on direct navigation
   useEffect(() => {
-    if (user && systemOwnerEmails.includes(user?.email)) {
+    if (user && user.email && systemOwnerEmails.includes(user.email)) {
       // Auto-verify if user is system owner
       setAccessVerified(true);
     }
@@ -89,7 +89,8 @@ export default function AdminDashboard() {
   if (!isAuthenticated || 
       !user?.isAdmin || 
       user?.role !== 'super_admin' || 
-      !systemOwnerEmails.includes(user?.email)) {
+      !user?.email ||
+      !systemOwnerEmails.includes(user.email)) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <Card className="w-full max-w-md mx-4 bg-gray-900 border-red-600 border-2">
