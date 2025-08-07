@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 const loginSchema = z.object({
@@ -173,6 +173,24 @@ export default function Login() {
                   نسيت كلمة المرور؟
                 </Button>
               </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-white/20"></div>
+                <span className="text-gray-300 text-sm">أو</span>
+                <div className="flex-1 h-px bg-white/20"></div>
+              </div>
+
+              {/* Logto Sign In Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-14 bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-semibold rounded-2xl text-lg shadow-xl transition-all backdrop-blur-sm"
+                onClick={() => window.location.href = '/logto/sign-in'}
+              >
+                <Shield className="w-5 h-5 ml-2" />
+                تسجيل الدخول الآمن مع Logto
+              </Button>
             </form>
           </div>
 

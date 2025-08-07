@@ -58,6 +58,9 @@ import MFALoginPage from "@/pages/mfa-login";
 import OwnerWelcomePage from "@/pages/owner-welcome";
 import ForgotPasswordPage from "@/pages/forgot-password";
 import ResetPasswordPage from "@/pages/reset-password";
+import LogtoLoginPage from "@/pages/logto-login";
+import LogtoCallbackPage from "@/pages/logto-callback";
+import LogtoForgotPasswordPage from "@/pages/logto-forgot-password";
 
 import { LanguageOption } from "@/types";
 
@@ -144,14 +147,17 @@ function Router() {
         </Suspense>
       ) : (
         <>
-          <Route path="/" component={LoginPage} />
+          <Route path="/" component={LogtoLoginPage} />
           <Route path="/landing" component={Landing} />
           <Route path="/login" component={LoginPage} />
+          <Route path="/logto-login" component={LogtoLoginPage} />
           <Route path="/register" component={RegisterPage} />
           <Route path="/mfa-login" component={MFALoginPage} />
           <Route path="/forgot-password" component={ForgotPasswordPage} />
           <Route path="/reset-password" component={ResetPasswordPage} />
-          <Route component={LoginPage} />
+          <Route path="/logto-callback" component={LogtoCallbackPage} />
+          <Route path="/logto-forgot-password" component={LogtoForgotPasswordPage} />
+          <Route component={LogtoLoginPage} />
         </>
       )}
     </Switch>
