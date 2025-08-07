@@ -77,25 +77,20 @@ export function verifyTOTPCode(secret: string, token: string) {
   });
 }
 
-// Send password reset email
+// Send password reset email using Auth0 Management API  
 export async function sendPasswordResetEmail(email: string) {
   try {
-    // First, find the user to get their proper user_id
-    const users = await managementClient.users.getByEmail(email);
+    console.log('🔍 إنشاء تذكرة إعادة التعيين لـ:', email);
     
-    if (!users || users.length === 0) {
-      throw new Error('User not found in Auth0');
-    }
-    
-    const userId = users[0].user_id;
-    
+    // Use the tickets manager to create password change ticket
     const ticket = await managementClient.tickets.createPasswordChange({
-      user_id: userId,
-      result_url: `${process.env.REPL_SLUG || 'http://localhost:5000'}/reset-password-complete`,
-      ttl_sec: 3600 // 1 hour expiry
+      email: email,
+      result_url: `${process.env.REPL_SLUG || 'http://localhost:5000'}/login?reset=success`,
+      ttl_sec: 3600, // 1 hour expiry
+      mark_email_as_verified: false
     });
     
-    console.log('✅ رسالة إعادة التعيين تم إرسالها عبر Auth0:', ticket.ticket);
+    console.log('✅ تم إرسال رسالة إعادة التعيين عبر Auth0!');
     return ticket;
   } catch (error) {
     console.error('❌ خطأ في إرسال رسالة Auth0:', error);
@@ -107,7 +102,10 @@ export async function sendPasswordResetEmail(email: string) {
 export async function getOrCreateAuth0User(email: string) {
   try {
     // Search for existing user
-    const users = await managementClient.users.getByEmail(email);
+    const users = await managementClient.getUsers({
+      q: `email:"${email}"`,
+      search_engine: 'v3'
+    });
     
     if (users && users.length > 0) {
       return users[0];

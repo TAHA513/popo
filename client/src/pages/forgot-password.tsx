@@ -20,7 +20,7 @@ export default function ForgotPassword() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [resetSent, setResetSent] = useState(false);
-  const [resetLink, setResetLink] = useState<string>("");
+
 
   const {
     register,
@@ -50,12 +50,9 @@ export default function ForgotPassword() {
     },
     onSuccess: (data) => {
       setResetSent(true);
-      if (data.resetUrl) {
-        setResetLink(data.resetUrl);
-      }
       toast({
         title: "تم بنجاح",
-        description: data.message,
+        description: "تم إرسال رسالة إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
       });
     },
     onError: (error: Error) => {
@@ -137,23 +134,7 @@ export default function ForgotPassword() {
                   تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور
                 </p>
 
-                {resetLink && (
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left">
-                    <p className="text-xs text-gray-400 mb-2">رابط إعادة التعيين (للاختبار فقط):</p>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(resetLink);
-                        toast({
-                          title: "تم النسخ",
-                          description: "تم نسخ الرابط إلى الحافظة",
-                        });
-                      }}
-                      className="text-pink-400 text-xs break-all hover:text-pink-300 transition-colors"
-                    >
-                      {resetLink}
-                    </button>
-                  </div>
-                )}
+
               </div>
             )}
           </div>
