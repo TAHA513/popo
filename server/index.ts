@@ -24,52 +24,65 @@ app.post('/api/forgot-password', async (req, res) => {
 
     console.log('🔐 طلب إعادة تعيين كلمة المرور للإيميل:', email);
 
-    // Always return success message for security
-    const successMessage = "تم إرسال رسالة إعادة تعيين كلمة المرور إلى بريدك الإلكتروني";
-
-    // Check if user exists in database first
+    // Import required modules
     const { db } = await import("./db");
     const { users } = await import("../shared/schema");
     const { eq } = await import("drizzle-orm");
+    const { emailService } = await import("./email-service");
+    const { nanoid } = await import("nanoid");
     
+    // Always return success message for security
+    const successMessage = "إذا كان هذا البريد الإلكتروني مسجلاً في النظام، ستتلقى رسالة إعادة تعيين كلمة المرور";
+
+    // Check if user exists in database
     const localUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
     
     if (localUser && localUser.length > 0) {
       console.log('✅ المستخدم موجود في قاعدة البيانات المحلية');
+      const userData = localUser[0];
       
-      // Try both approaches: Real email service and Auth0
       try {
-        // 1. Try real email service first
-        const { realEmailService } = await import("./real-email-service");
-        const emailResult = await realEmailService.sendPasswordResetEmail(email);
+        // Generate reset token (valid for 24 hours)
+        const resetToken = nanoid(32);
+        const resetExpiry = new Date();
+        resetExpiry.setHours(resetExpiry.getHours() + 24); // 24 hours from now
         
-        if (emailResult.success) {
-          console.log('📧 ✅ تم إرسال رسالة إعادة تعيين كلمة المرور عبر خدمة البريد الحقيقية!');
-        } else {
-          console.log('⚠️ فشل في إرسال البريد عبر الخدمة الحقيقية، محاولة Auth0...');
+        // Update user with reset token
+        await db.update(users)
+          .set({ 
+            passwordResetToken: resetToken,
+            passwordResetExpiry: resetExpiry.toISOString()
+          })
+          .where(eq(users.email, email));
           
-          // 2. Fallback to Auth0 if real email fails
-          const { createUserInAuth0 } = await import("./auth0-config");
-          const result = await createUserInAuth0(email, localUser[0].passwordHash || 'TempPass123!');
+        console.log('🔐 تم إنشاء رمز إعادة التعيين:', resetToken);
+        
+        // Create reset URL
+        const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+        const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+        
+        // Try to send password reset email
+        try {
+          const emailSent = await emailService.sendPasswordReset(email, resetToken, resetUrl);
           
-          if (result.emailSent) {
-            console.log('📧 ✅ تم إرسال رسالة إعادة تعيين كلمة المرور عبر Auth0!');
+          if (emailSent) {
+            console.log('📧 ✅ تم إرسال رسالة إعادة تعيين كلمة المرور بنجاح!');
+          } else {
+            console.log('❌ فشل في إرسال رسالة البريد الإلكتروني');
           }
+        } catch (emailError: any) {
+          console.log('⚠️ إعدادات البريد الإلكتروني غير متاحة - رابط إعادة التعيين:');
+          console.log('🔗 رابط إعادة تعيين كلمة المرور:', resetUrl);
+          console.log('📧 البريد الإلكتروني:', email);
+          console.log('🔐 الرمز:', resetToken);
+          console.log('⏰ صالح حتى:', resetExpiry.toLocaleString('ar-EG'));
         }
         
       } catch (error) {
-        console.error('❌ خطأ في إرسال رسالة إعادة تعيين كلمة المرور:', error);
+        console.error('❌ خطأ في إنشاء رمز الإعادة وإرسال البريد:', error);
       }
     } else {
       console.log('⚠️ المستخدم غير موجود في قاعدة البيانات المحلية');
-      
-      // For security, still attempt to send reset (but it won't work for non-existent users)
-      try {
-        const realEmailModule = await import("./real-email-service");
-        await realEmailModule.realEmailService.sendPasswordResetEmail(email);
-      } catch (error) {
-        console.error('❌ خطأ في محاولة إرسال البريد للمستخدم غير الموجود:', error);
-      }
     }
 
     // Always return success for security (don't reveal if email exists)
@@ -84,235 +97,141 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 });
 
-// Password reset completion route (before the middleware)
-app.get('/reset-password', async (req, res) => {
-  const { token } = req.query;
-  
-  if (!token || typeof token !== 'string') {
-    return res.status(400).send(`
-      <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px;">
-        <h2>رابط غير صالح</h2>
-        <p>رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية.</p>
-        <a href="/" style="color: #007bff;">العودة إلى الصفحة الرئيسية</a>
-      </div>
-    `);
-  }
-  
-  try {
-    const { realEmailService } = await import("./real-email-service");
-    const verification = realEmailService.verifyResetToken(token);
-    
-    if (!verification.valid) {
-      return res.status(400).send(`
-        <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px;">
-          <h2>رابط منتهي الصلاحية</h2>
-          <p>رابط إعادة تعيين كلمة المرور منتهي الصلاحية. يرجى طلب رابط جديد.</p>
-          <a href="/forgot-password" style="color: #007bff;">طلب رابط جديد</a>
-        </div>
-      `);
-    }
-    
-    // Render password reset form
-    res.send(`
-      <!DOCTYPE html>
-      <html dir="rtl">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>إعادة تعيين كلمة المرور - LaaBoBo</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-            direction: rtl;
-          }
-          .container {
-            max-width: 400px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-          }
-          h2 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-          }
-          .form-group {
-            margin-bottom: 20px;
-          }
-          label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-          }
-          input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
-          }
-          .btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-          }
-          .btn:hover {
-            background-color: #0056b3;
-          }
-          .error {
-            color: #dc3545;
-            margin-top: 10px;
-          }
-          .success {
-            color: #28a745;
-            margin-top: 10px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h2>إعادة تعيين كلمة المرور</h2>
-          <form id="resetForm">
-            <div class="form-group">
-              <label for="password">كلمة المرور الجديدة:</label>
-              <input type="password" id="password" name="password" required minlength="6">
-            </div>
-            <div class="form-group">
-              <label for="confirmPassword">تأكيد كلمة المرور:</label>
-              <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
-            </div>
-            <button type="submit" class="btn">تحديث كلمة المرور</button>
-            <div id="message"></div>
-          </form>
-        </div>
-        
-        <script>
-          document.getElementById('resetForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const messageDiv = document.getElementById('message');
-            
-            if (password !== confirmPassword) {
-              messageDiv.innerHTML = '<div class="error">كلمات المرور غير متطابقة</div>';
-              return;
-            }
-            
-            if (password.length < 6) {
-              messageDiv.innerHTML = '<div class="error">كلمة المرور يجب أن تكون 6 أحرف على الأقل</div>';
-              return;
-            }
-            
-            try {
-              const response = await fetch('/api/reset-password', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  token: '${token}',
-                  password: password
-                })
-              });
-              
-              const result = await response.json();
-              
-              if (result.success) {
-                messageDiv.innerHTML = '<div class="success">تم تحديث كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول.</div>';
-                setTimeout(() => {
-                  window.location.href = '/';
-                }, 3000);
-              } else {
-                messageDiv.innerHTML = '<div class="error">' + result.message + '</div>';
-              }
-            } catch (error) {
-              messageDiv.innerHTML = '<div class="error">حدث خطأ أثناء تحديث كلمة المرور</div>';
-            }
-          });
-        </script>
-      </body>
-      </html>
-    `);
-    
-  } catch (error) {
-    console.error('❌ خطأ في صفحة إعادة تعيين كلمة المرور:', error);
-    res.status(500).send(`
-      <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px;">
-        <h2>خطأ في الخادم</h2>
-        <p>حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.</p>
-        <a href="/" style="color: #007bff;">العودة إلى الصفحة الرئيسية</a>
-      </div>
-    `);
-  }
-});
-
-// Handle password reset form submission
+// Password reset verification and completion route
 app.post('/api/reset-password', async (req, res) => {
   try {
-    const { token, password } = req.body;
+    const { token, email, newPassword } = req.body;
     
-    if (!token || !password) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "الرمز المميز وكلمة المرور مطلوبان" 
-      });
+    if (!token || !email || !newPassword) {
+      return res.status(400).json({ message: "جميع الحقول مطلوبة" });
     }
-    
-    const { realEmailService } = await import("./real-email-service");
-    const verification = realEmailService.verifyResetToken(token);
-    
-    if (!verification.valid || !verification.email) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "رمز إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية" 
-      });
-    }
-    
-    // Update password in database
+
+    console.log('🔄 طلب إعادة تعيين كلمة المرور:', email);
+
+    // Import required modules
     const { db } = await import("./db");
     const { users } = await import("../shared/schema");
-    const { eq } = await import("drizzle-orm");
+    const { eq, and } = await import("drizzle-orm");
     const bcrypt = await import("bcryptjs");
     
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Find user with valid reset token
+    const user = await db.select().from(users)
+      .where(and(
+        eq(users.email, email),
+        eq(users.passwordResetToken, token)
+      ))
+      .limit(1);
     
+    if (!user || user.length === 0) {
+      return res.status(400).json({ message: "رمز إعادة التعيين غير صحيح أو منتهي الصلاحية" });
+    }
+    
+    const userData = user[0];
+    
+    // Check if token is expired
+    if (userData.passwordResetExpiry) {
+      const expiryDate = new Date(userData.passwordResetExpiry);
+      const now = new Date();
+      
+      if (now > expiryDate) {
+        console.log('⏰ رمز إعادة التعيين منتهي الصلاحية');
+        
+        // Clear expired token
+        await db.update(users)
+          .set({ 
+            passwordResetToken: null,
+            passwordResetExpiry: null
+          })
+          .where(eq(users.email, email));
+          
+        return res.status(400).json({ message: "رمز إعادة التعيين منتهي الصلاحية" });
+      }
+    }
+    
+    // Hash new password
+    const saltRounds = 12;
+    const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update password and clear reset token
     await db.update(users)
-      .set({ passwordHash: hashedPassword })
-      .where(eq(users.email, verification.email));
-    
-    // Invalidate the token
-    const { resetTokens } = await import("./real-email-service");
-    resetTokens.delete(token);
-    
-    console.log('✅ تم تحديث كلمة المرور للمستخدم:', verification.email);
+      .set({ 
+        passwordHash: newPasswordHash,
+        passwordResetToken: null,
+        passwordResetExpiry: null
+      })
+      .where(eq(users.email, email));
+      
+    console.log('✅ تم تحديث كلمة المرور بنجاح للمستخدم:', email);
     
     res.json({ 
       success: true, 
-      message: "تم تحديث كلمة المرور بنجاح" 
+      message: "تم تحديث كلمة المرور بنجاح. يمكنك تسجيل الدخول الآن بكلمة المرور الجديدة."
     });
-    
+
   } catch (error) {
-    console.error('❌ خطأ في تحديث كلمة المرور:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: "حدث خطأ أثناء تحديث كلمة المرور" 
-    });
+    console.error('❌ خطأ في إعادة تعيين كلمة المرور:', error);
+    res.status(500).json({ message: "حدث خطأ أثناء تحديث كلمة المرور" });
   }
 });
 
-// Password reset completion handled by real email service and Auth0 as fallback
+// Validate reset token route  
+app.get('/api/validate-reset-token', async (req, res) => {
+  try {
+    const { token, email } = req.query;
+    
+    if (!token || !email) {
+      return res.status(400).json({ message: "الرمز والبريد الإلكتروني مطلوبان" });
+    }
+
+    // Import required modules
+    const { db } = await import("./db");
+    const { users } = await import("../shared/schema");
+    const { eq, and } = await import("drizzle-orm");
+    
+    // Find user with valid reset token
+    const user = await db.select().from(users)
+      .where(and(
+        eq(users.email, email as string),
+        eq(users.passwordResetToken, token as string)
+      ))
+      .limit(1);
+    
+    if (!user || user.length === 0) {
+      return res.status(400).json({ valid: false, message: "رمز إعادة التعيين غير صحيح" });
+    }
+    
+    const userData = user[0];
+    
+    // Check if token is expired
+    if (userData.passwordResetExpiry) {
+      const expiryDate = new Date(userData.passwordResetExpiry);
+      const now = new Date();
+      
+      if (now > expiryDate) {
+        // Clear expired token
+        await db.update(users)
+          .set({ 
+            passwordResetToken: null,
+            passwordResetExpiry: null
+          })
+          .where(eq(users.email, email as string));
+          
+        return res.status(400).json({ valid: false, message: "رمز إعادة التعيين منتهي الصلاحية" });
+      }
+    }
+    
+    res.json({ 
+      valid: true, 
+      message: "الرمز صحيح"
+    });
+
+  } catch (error) {
+    console.error('❌ خطأ في التحقق من الرمز:', error);
+    res.status(500).json({ valid: false, message: "حدث خطأ أثناء التحقق من الرمز" });
+  }
+});
+
+// Password reset completion handled locally instead of Auth0
 
 // Setup session and passport
 app.use(getSession());

@@ -3,10 +3,6 @@ import { ManagementClient, AuthenticationClient } from 'auth0';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 
-// Rate limiting cache for password reset requests
-const resetRequestCache = new Map<string, number>();
-const RESET_COOLDOWN_MS = 60000; // 1 minute cooldown between requests
-
 // Auth0 configuration - these will need to be set in environment variables
 const auth0Config = {
   domain: process.env.AUTH0_DOMAIN || '',
@@ -19,7 +15,7 @@ const auth0Config = {
 export const managementClient = new ManagementClient({
   domain: auth0Config.domain,
   clientId: auth0Config.clientId,
-  clientSecret: auth0Config.clientSecret
+  clientSecret: auth0Config.clientSecret,
 });
 
 // Authentication API client for login/MFA operations
@@ -114,44 +110,18 @@ export async function createUserInAuth0(email: string, password: string = 'TempP
         console.log('✅ المستخدم موجود مسبقاً في Auth0:', email);
         signupSuccess = true;
       } else {
-        console.log('⚠️ فشل في إنشاء المستخدم في Auth0 عبر Database Connection:', errorData);
-        // Try to force create the user using Management API
-        try {
-          console.log('🔄 محاولة إنشاء المستخدم باستخدام Management API...');
-          const managementResult = await managementClient.users.create({
-            email: email,
-            password: password,
-            connection: 'Username-Password-Authentication',
-            email_verified: false,
-            verify_email: true  // This will trigger a verification email
-          });
-          console.log('✅ تم إنشاء المستخدم باستخدام Management API:', managementResult.data?.email);
-          signupSuccess = true;
-        } catch (mgmtError: any) {
-          if (mgmtError.statusCode === 409 || mgmtError.message?.includes('already exists')) {
-            console.log('✅ المستخدم موجود مسبقاً (تأكيد عبر Management API)');
-            signupSuccess = true;
-          } else {
-            console.log('❌ فشل في إنشاء المستخدم عبر Management API:', mgmtError.message);
-            // As fallback, try a simpler approach - just mark as success to send reset email
-            console.log('🔄 محاولة إرسال رسالة إعادة التعيين مباشرة...');
-            signupSuccess = true; // Force success to try password reset
-          }
-        }
+        console.log('⚠️ فشل في إنشاء المستخدم في Auth0:', errorData);
       }
     }
     
-    // Only try to send password reset if user exists/created successfully
-    if (signupSuccess) {
+    // Now try to send password reset regardless of signup result
+    if (signupSuccess || true) {  // Always try password reset
       console.log('🔍 محاولة إرسال رسالة إعادة تعيين كلمة المرور...');
       const resetResult = await sendPasswordResetEmail(email);
       
       if (resetResult && resetResult.success) {
         console.log('📧 ✅ تم إرسال رسالة إعادة تعيين كلمة المرور بنجاح!');
         return { success: true, emailSent: true };
-      } else {
-        console.log('⚠️ فشل في إرسال رسالة إعادة التعيين');
-        return { success: true, emailSent: false };
       }
     }
     
@@ -163,20 +133,8 @@ export async function createUserInAuth0(email: string, password: string = 'TempP
 }
 
 // Send password reset email using Auth0 Database Connection API
-export async function sendPasswordResetEmail(email: string, retryAttempt: boolean = false) {
+export async function sendPasswordResetEmail(email: string) {
   try {
-    // Check rate limiting
-    const lastRequest = resetRequestCache.get(email);
-    const now = Date.now();
-    
-    if (lastRequest && (now - lastRequest) < RESET_COOLDOWN_MS) {
-      console.log('⚠️ طلب إعادة تعيين سابق حديث، تجاهل الطلب الجديد');
-      return { success: true, message: 'Password reset email sent (rate limited locally)' };
-    }
-    
-    // Update cache
-    resetRequestCache.set(email, now);
-    
     console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0 لـ:', email);
     
     // Use Auth0 Database Connection API directly 
@@ -202,31 +160,10 @@ export async function sendPasswordResetEmail(email: string, retryAttempt: boolea
         console.log('📊 Auth0 Response Status:', response.status, response.statusText);
       }
       
-      // Handle rate limiting
-      if (response.status === 429 || errorMessage.includes('too_many_requests')) {
-        console.log('⚠️ تم تجاوز حد الطلبات، إرجاع نجاح للأمان');
-        return { success: true, message: 'Password reset email sent (rate limited)' };
-      }
-      
-      // If user not found and this is not a retry, try to create the user first
-      if ((response.status === 404 || errorMessage.includes('not found') || errorMessage.includes('Not Found')) && !retryAttempt) {
-        console.log('⚠️ المستخدم غير موجود في Auth0، محاولة إنشاؤه أولاً...');
-        try {
-          const createResult = await createUserInAuth0(email);
-          if (createResult.success) {
-            console.log('✅ تم إنشاء المستخدم، محاولة إرسال رسالة إعادة التعيين مرة أخرى...');
-            // Wait a bit before retry to avoid rate limiting
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            // Retry sending reset email (mark as retry to avoid infinite loop)
-            return await sendPasswordResetEmail(email, true);
-          }
-        } catch (createError) {
-          console.log('❌ فشل في إنشاء المستخدم:', createError);
-        }
-        return { success: true, message: 'Password reset email sent (user creation attempted)' };
-      } else if (retryAttempt) {
-        console.log('⚠️ فشل إرسال رسالة إعادة التعيين حتى بعد إنشاء المستخدم، إرجاع نجاح للأمان');
-        return { success: true, message: 'Password reset email sent (retry attempted)' };
+      // If user not found, don't throw error - return success for security
+      if (response.status === 404 || errorMessage.includes('not found') || errorMessage.includes('Not Found')) {
+        console.log('⚠️ المستخدم غير موجود في Auth0، إرجاع نجاح للأمان');
+        return { success: true, message: 'Password reset email sent (user not in Auth0)' };
       }
       
       throw new Error(`Auth0 API Error: ${errorMessage}`);
