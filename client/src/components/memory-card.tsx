@@ -18,6 +18,7 @@ import {
   Settings,
   CheckCircle
 } from "lucide-react";
+import VerificationBadge from "@/components/ui/verification-badge";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -149,7 +150,13 @@ export default function MemoryCard({
                         {memory.author.firstName || memory.author.username}
                       </h3>
                       {memory.author.isVerified && (
-                        <CheckCircle className="h-3 w-3 text-blue-500 fill-current" />
+                        <div className="group">
+                          <VerificationBadge 
+                            size="sm" 
+                            badge={memory.author.verificationBadge || 'LaaBoBo'} 
+                            className="w-3 h-3"
+                          />
+                        </div>
                       )}
                     </div>
                   </Link>

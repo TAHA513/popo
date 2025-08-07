@@ -29,6 +29,7 @@ import {
   Shield,
   CheckCircle
 } from "lucide-react";
+import VerificationBadge from "@/components/ui/verification-badge";
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { OnlineStatus } from "@/components/online-status";
@@ -330,7 +331,12 @@ export default function ProfileRedesign() {
                     {profileUser?.username || 'الملف الشخصي'}
                   </h1>
                   {profileUser?.isVerified && (
-                    <CheckCircle className="h-5 w-5 text-blue-500 fill-current" />
+                    <div className="group">
+                      <VerificationBadge 
+                        size="md" 
+                        badge={profileUser.verificationBadge || 'LaaBoBo'} 
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -506,8 +512,11 @@ export default function ProfileRedesign() {
                   <div className="flex items-center gap-2 mb-2">
                     <p className="text-purple-600 font-medium">@{profileUser?.username}</p>
                     {profileUser?.isVerified && (
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4 text-blue-500 fill-current" />
+                      <div className="flex items-center gap-1 group">
+                        <VerificationBadge 
+                          size="sm" 
+                          badge={profileUser.verificationBadge || 'LaaBoBo'} 
+                        />
                         <span className="text-xs text-blue-600 font-medium">
                           {profileUser?.verificationBadge || 'LaaBoBo'}
                         </span>
