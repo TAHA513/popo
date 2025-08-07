@@ -168,6 +168,7 @@ export default function Login() {
                   variant="link"
                   className="text-[#e019ca] hover:text-white text-sm p-0 h-auto"
                   type="button"
+                  onClick={() => navigate("/forgot-password")}
                 >
                   نسيت كلمة المرور؟
                 </Button>

@@ -56,6 +56,8 @@ import AdminDashboardPage from "@/pages/admin-dashboard";
 import MFASetupPage from "@/pages/mfa-setup";
 import MFALoginPage from "@/pages/mfa-login";
 import OwnerWelcomePage from "@/pages/owner-welcome";
+import ForgotPasswordPage from "@/pages/forgot-password";
+import ResetPasswordPage from "@/pages/reset-password";
 
 import { LanguageOption } from "@/types";
 
@@ -147,6 +149,8 @@ function Router() {
           <Route path="/login" component={LoginPage} />
           <Route path="/register" component={RegisterPage} />
           <Route path="/mfa-login" component={MFALoginPage} />
+          <Route path="/forgot-password" component={ForgotPasswordPage} />
+          <Route path="/reset-password" component={ResetPasswordPage} />
           <Route component={LoginPage} />
         </>
       )}

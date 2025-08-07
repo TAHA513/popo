@@ -61,6 +61,9 @@ export const users = pgTable("users", {
   mfaEnabled: boolean("mfa_enabled").default(false), // Whether MFA is enabled
   mfaBackupCodes: text("mfa_backup_codes").array(), // JSON array of backup codes
   mfaEnabledAt: timestamp("mfa_enabled_at"), // When MFA was enabled
+  // Password Reset fields
+  passwordResetToken: varchar("password_reset_token"), // Token for password reset
+  passwordResetExpiry: varchar("password_reset_expiry"), // Token expiry date/time as ISO string
   // Account privacy settings
   isPrivateAccount: boolean("is_private_account").default(false),
   allowDirectMessages: boolean("allow_direct_messages").default(true),

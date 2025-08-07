@@ -77,4 +77,53 @@ export function verifyTOTPCode(secret: string, token: string) {
   });
 }
 
+// Send password reset email
+export async function sendPasswordResetEmail(email: string) {
+  try {
+    const ticket = await managementClient.tickets.createPasswordChange({
+      user_id: `email|${email}`,
+      result_url: `${process.env.REPL_SLUG || 'http://localhost:5000'}/reset-password-complete`,
+      ttl_sec: 3600 // 1 hour expiry
+    });
+    
+    console.log('✅ Password reset email sent via Auth0:', ticket.ticket);
+    return ticket;
+  } catch (error) {
+    console.error('❌ Error sending password reset email:', error);
+    throw error;
+  }
+}
+
+// Get or create Auth0 user by email
+export async function getOrCreateAuth0User(email: string) {
+  try {
+    // Search for existing user
+    const users = await managementClient.users.getByEmail(email);
+    
+    if (users && users.length > 0) {
+      return users[0];
+    }
+    
+    // If user doesn't exist, return null (don't create automatically)
+    return null;
+  } catch (error) {
+    console.error('Error searching for Auth0 user:', error);
+    throw error;
+  }
+}
+
+// Update Auth0 user password
+export async function updateAuth0UserPassword(userId: string, newPassword: string) {
+  try {
+    const result = await managementClient.users.update(
+      { id: userId },
+      { password: newPassword }
+    );
+    return result;
+  } catch (error) {
+    console.error('Error updating Auth0 user password:', error);
+    throw error;
+  }
+}
+
 export { auth0Config };

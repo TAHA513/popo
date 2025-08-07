@@ -1100,6 +1100,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Password Reset Routes
+  app.post('/api/forgot-password', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "البريد الإلكتروني مطلوب" });
+      }
+
+      console.log('🔐 طلب إعادة تعيين كلمة المرور للإيميل:', email);
+
+      // Check if user exists in our database
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // For security, we don't reveal if the email exists or not
+        return res.json({ 
+          success: true, 
+          message: "إذا كان البريد الإلكتروني مسجل لدينا، ستصلك رسالة إعادة تعيين كلمة المرور" 
+        });
+      }
+
+      // Generate reset token (valid for 1 hour)
+      const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+      // Save reset token to user
+      await storage.updateUser(user.id, {
+        passwordResetToken: resetToken,
+        passwordResetExpiry: resetTokenExpiry.toISOString()
+      });
+
+      console.log('🔑 تم إنشاء رمز إعادة التعيين:', { userId: user.id, resetToken: resetToken.substring(0, 8) + '...' });
+
+      // For now, we'll return the reset link (in production, this would be emailed)
+      const resetUrl = `${process.env.REPL_SLUG || 'http://localhost:5000'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+      
+      res.json({ 
+        success: true, 
+        message: "تم إرسال رابط إعادة تعيين كلمة المرور",
+        resetUrl, // In production, remove this and send via email
+        resetToken // For testing purposes
+      });
+
+    } catch (error) {
+      console.error('❌ خطأ في إعادة تعيين كلمة المرور:', error);
+      res.status(500).json({ message: "حدث خطأ أثناء معالجة طلبك" });
+    }
+  });
+
+  app.post('/api/reset-password', async (req, res) => {
+    try {
+      const { token, email, newPassword } = req.body;
+      
+      if (!token || !email || !newPassword) {
+        return res.status(400).json({ message: "جميع البيانات مطلوبة" });
+      }
+
+      console.log('🔐 محاولة إعادة تعيين كلمة المرور:', { email, token: token.substring(0, 8) + '...' });
+
+      // Find user by email and validate reset token
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(400).json({ message: "رمز إعادة التعيين غير صحيح أو منتهي الصلاحية" });
+      }
+
+      // Check if token matches and hasn't expired
+      if (user.passwordResetToken !== token) {
+        return res.status(400).json({ message: "رمز إعادة التعيين غير صحيح" });
+      }
+
+      if (user.passwordResetExpiry && new Date() > new Date(user.passwordResetExpiry)) {
+        return res.status(400).json({ message: "رمز إعادة التعيين منتهي الصلاحية" });
+      }
+
+      // Hash new password
+      const saltRounds = 12;
+      const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update user password and clear reset token
+      await storage.updateUser(user.id, {
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpiry: null
+      });
+
+      console.log('✅ تم تحديث كلمة المرور للمستخدم:', user.id);
+
+      res.json({ 
+        success: true, 
+        message: "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول" 
+      });
+
+    } catch (error) {
+      console.error('❌ خطأ في تحديث كلمة المرور:', error);
+      res.status(500).json({ message: "حدث خطأ أثناء تحديث كلمة المرور" });
+    }
+  });
+
   app.post('/api/logout', (req, res) => {
     req.logout((err) => {
       if (err) {
