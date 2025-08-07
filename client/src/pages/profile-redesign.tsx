@@ -584,7 +584,16 @@ export default function ProfileRedesign() {
                           الإعدادات
                         </Button>
                       </div>
-                      <div className="grid grid-cols-1 gap-2 mt-2">
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <Button 
+                          variant="outline"
+                          onClick={() => setLocation('/point-packages')}
+                          size="sm"
+                          className="bg-gradient-to-r from-green-100 to-emerald-100 text-emerald-700 border-emerald-200 hover:from-green-200 hover:to-emerald-200"
+                        >
+                          <Gift className="w-4 h-4 ml-1" />
+                          شراء نقاط
+                        </Button>
                         <Button 
                           variant="outline"
                           onClick={() => setLocation('/premium-albums')}
@@ -593,6 +602,17 @@ export default function ProfileRedesign() {
                         >
                           <Star className="w-4 h-4 ml-1" />
                           ألبومات مدفوعة
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 mt-2">
+                        <Button 
+                          variant="outline"
+                          onClick={() => setLocation('/payment-history')}
+                          size="sm"
+                          className="bg-gradient-to-r from-blue-100 to-indigo-100 text-indigo-700 border-indigo-200 hover:from-blue-200 hover:to-indigo-200"
+                        >
+                          <Trophy className="w-4 h-4 ml-1" />
+                          سجل المدفوعات
                         </Button>
                       </div>
                     </>

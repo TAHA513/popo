@@ -1064,6 +1064,22 @@ export class DatabaseStorage implements IStorage {
       .orderBy(pointPackages.displayOrder, pointPackages.pointAmount);
   }
 
+  async getActivePointPackages(): Promise<PointPackage[]> {
+    return await db
+      .select()
+      .from(pointPackages)
+      .where(eq(pointPackages.isActive, true))
+      .orderBy(pointPackages.displayOrder, pointPackages.pointAmount);
+  }
+
+  async getPointPackageById(id: number): Promise<PointPackage | undefined> {
+    const [pointPackage] = await db
+      .select()
+      .from(pointPackages)
+      .where(eq(pointPackages.id, id));
+    return pointPackage;
+  }
+
   async createPointPackage(packageData: InsertPointPackage): Promise<PointPackage> {
     const [pointPackage] = await db
       .insert(pointPackages)
@@ -1088,6 +1104,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(pointTransactions.userId, userId))
       .orderBy(desc(pointTransactions.createdAt))
       .limit(limit);
+  }
+
+  async getPointTransactionByStripeId(stripePaymentId: string): Promise<PointTransaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(pointTransactions)
+      .where(eq(pointTransactions.stripePaymentId, stripePaymentId));
+    return transaction;
   }
 
   async purchasePoints(userId: string, packageId: number, stripePaymentId?: string): Promise<{ success: boolean; newBalance: number }> {

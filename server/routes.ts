@@ -22,7 +22,9 @@ import { setupDirectMessageRoutes } from './routes/direct-messages';
 import { setupPrivateRoomRoutes } from './routes/private-rooms';
 import { setupGroupRoomRoutes } from './routes/group-rooms';
 import { setupWalletRoutes } from './routes/wallet';
+import { registerStripeRoutes } from './routes/stripe';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
+import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -196,6 +198,9 @@ const connectedClients = new Map<string, ConnectedClient>();
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize gift characters
   await initializeGiftCharacters();
+
+  // Initialize point packages
+  await initializePointPackages();
   
   // Setup activity tracking for all authenticated routes
   app.use('/api', trackUserActivity);
@@ -214,6 +219,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup wallet routes
   setupWalletRoutes(app);
+
+  // Setup Stripe payment routes
+  registerStripeRoutes(app);
 
   // Wallet API endpoints
   // Get user transactions
