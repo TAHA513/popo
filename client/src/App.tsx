@@ -147,7 +147,7 @@ function Router() {
         </Suspense>
       ) : (
         <>
-          <Route path="/" component={LogtoLoginPage} />
+          <Route path="/" component={LoginPage} />
           <Route path="/landing" component={Landing} />
           <Route path="/login" component={LoginPage} />
           <Route path="/logto-login" component={LogtoLoginPage} />
@@ -157,7 +157,7 @@ function Router() {
           <Route path="/reset-password" component={ResetPasswordPage} />
           <Route path="/logto-callback" component={LogtoCallbackPage} />
           <Route path="/logto-forgot-password" component={LogtoForgotPasswordPage} />
-          <Route component={LogtoLoginPage} />
+          <Route component={LoginPage} />
         </>
       )}
     </Switch>

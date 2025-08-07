@@ -326,7 +326,7 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
-// Logto authentication routes
+// Logto authentication routes - integrated but not default
 app.use(handleAuthRoutes(logtoConfig));
 
 // Password reset with Logto integration
