@@ -1130,8 +1130,14 @@ export class DatabaseStorage implements IStorage {
 
     const totalPoints = pointPackage.pointAmount + (pointPackage.bonusPoints || 0);
 
-    // Add points to wallet
-    await this.addPointsToWallet(userId, totalPoints, `شراء ${pointPackage.name}`);
+    // Add points to user balance
+    await db
+      .update(users)
+      .set({
+        points: sql`${users.points} + ${totalPoints}`,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
 
     // Record transaction
     await this.createPointTransaction({
@@ -1142,7 +1148,13 @@ export class DatabaseStorage implements IStorage {
       stripePaymentId: stripePaymentId || null
     });
 
-    const newBalance = await this.getWalletBalance(userId);
+    // Get updated balance
+    const [updatedUser] = await db
+      .select({ points: users.points })
+      .from(users)
+      .where(eq(users.id, userId));
+    
+    const newBalance = updatedUser?.points || 0;
     return { success: true, newBalance };
   }
 
