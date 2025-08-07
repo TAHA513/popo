@@ -11,20 +11,7 @@ export function useAuth() {
 
   const [location, setLocation] = useLocation();
 
-  // Auto-redirect system owner to admin panel
-  useEffect(() => {
-    if (user && user.isAdmin && user.role === 'super_admin') {
-      const systemOwnerEmails = ['fnnm945@gmail.com'];
-      
-      // System owner should only see admin panel - no regular interface
-      if (user.email && systemOwnerEmails.includes(user.email)) {
-        // Force redirect to admin panel for any non-admin path
-        if (!location.includes('tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard')) {
-          setLocation('/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard');
-        }
-      }
-    }
-  }, [user, location, setLocation]);
+  // Note: System owner redirect is handled in App.tsx Router component
 
   return {
     user,
