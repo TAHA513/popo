@@ -32,6 +32,28 @@ export default function ForgotPassword() {
 
   const forgotPasswordMutation = useMutation({
     mutationFn: async (data: ForgotPasswordForm) => {
+      // Try Logto reset first
+      try {
+        const logtoResponse = await fetch("/api/logto-forgot-password", {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (logtoResponse.ok) {
+          const logtoData = await logtoResponse.json();
+          if (logtoData.success) {
+            return { ...logtoData, method: 'logto' };
+          }
+        }
+      } catch (logtoError) {
+        console.log('Logto reset failed, trying local method');
+      }
+
+      // Fallback to local reset
       const response = await fetch("/api/forgot-password", {
         method: "POST",
         body: JSON.stringify(data),
@@ -46,14 +68,21 @@ export default function ForgotPassword() {
         throw new Error(error.message || "حدث خطأ أثناء إرسال رابط إعادة التعيين");
       }
 
-      return response.json();
+      return { ...await response.json(), method: 'local' };
     },
     onSuccess: (data) => {
       setResetSent(true);
       toast({
         title: "تم بنجاح",
-        description: "تم إرسال رسالة إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
+        description: data.message || "تم إرسال رسالة إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
       });
+
+      // If Logto provided redirect, use it after delay
+      if (data.method === 'logto' && data.redirect) {
+        setTimeout(() => {
+          window.location.href = data.redirect;
+        }, 3000);
+      }
     },
     onError: (error: Error) => {
       toast({

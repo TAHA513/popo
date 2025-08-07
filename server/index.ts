@@ -326,8 +326,19 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
-// Logto authentication routes - integrated but not default
+// Logto authentication routes with error handling
 app.use(handleAuthRoutes(logtoConfig));
+
+// Handle Logto sign-in errors
+app.get('/logto/sign-in-callback', withLogto(logtoConfig), (req: any, res) => {
+  if (req.user && req.user.isAuthenticated) {
+    // Success - redirect to home
+    res.redirect('/');
+  } else {
+    // Failed - redirect to login with flag
+    res.redirect('/login?source=logto-failed');
+  }
+});
 
 // Password reset with Logto integration
 app.post('/api/logto-forgot-password', async (req, res) => {
@@ -391,14 +402,14 @@ app.get('/api/logto/user', withLogto(logtoConfig), (req: any, res) => {
   }
 });
 
-// Combined authentication routes for backward compatibility
+// Enhanced authentication route with Logto integration
 app.get('/api/auth/user', withLogto(logtoConfig), async (req: any, res) => {
   try {
-    // Check Logto authentication first
+    // Check Logto authentication first (priority)
     if (req.user && req.user.isAuthenticated) {
       const logtoUser = req.user.claims;
       
-      // Sync with local database if needed
+      // Sync with local database
       const { db } = await import("./db");
       const { users } = await import("../shared/schema");
       const { eq } = await import("drizzle-orm");
@@ -406,21 +417,23 @@ app.get('/api/auth/user', withLogto(logtoConfig), async (req: any, res) => {
       let localUser = await db.select().from(users).where(eq(users.email, logtoUser?.email || '')).limit(1);
       
       if (!localUser || localUser.length === 0) {
-        // Create local user from Logto data
+        // Auto-create user from Logto
         const newUser = await db.insert(users).values({
           id: nanoid(),
           email: logtoUser?.email || '',
-          username: logtoUser?.name || logtoUser?.email?.split('@')[0] || 'user',
+          username: logtoUser?.name || logtoUser?.email?.split('@')[0] || `user_${Date.now()}`,
           firstName: logtoUser?.given_name || '',
           lastName: logtoUser?.family_name || '',
           profileImageUrl: logtoUser?.picture || null,
           role: 'user',
-          points: 0, // Start with 0 points as per paid model
-          isVerified: false,
-          passwordHash: 'logto-user' // Placeholder for Logto users
+          points: 0,
+          isVerified: true, // Logto users are pre-verified
+          passwordHash: 'logto-authenticated',
+          bio: 'مسجل عبر Logto'
         }).returning();
         
         localUser = newUser;
+        console.log('✅ تم إنشاء مستخدم جديد من Logto:', logtoUser?.email);
       }
       
       return res.json({
@@ -429,17 +442,26 @@ app.get('/api/auth/user', withLogto(logtoConfig), async (req: any, res) => {
         username: localUser[0].username,
         firstName: localUser[0].firstName,
         lastName: localUser[0].lastName,
-        profilePicture: localUser[0].profileImageUrl,
+        profileImageUrl: localUser[0].profileImageUrl,
         role: localUser[0].role,
         points: localUser[0].points,
         isVerified: localUser[0].isVerified,
+        bio: localUser[0].bio,
+        isStreamer: localUser[0].isStreamer,
+        totalEarnings: localUser[0].totalEarnings,
+        isPrivateAccount: localUser[0].isPrivateAccount,
+        allowDirectMessages: localUser[0].allowDirectMessages,
+        allowGiftsFromStrangers: localUser[0].allowGiftsFromStrangers,
         provider: 'logto'
       });
     }
     
-    // Fallback to existing auth systems
+    // Fallback to existing local auth
     if (req.session?.user) {
-      return res.json(req.session.user);
+      return res.json({
+        ...req.session.user,
+        provider: 'local'
+      });
     }
     
     res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useEffect } from "react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "اسم المستخدم مطلوب"),
@@ -22,9 +23,23 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showLogtoOption, setShowLogtoOption] = useState(true);
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check if user is coming back from Logto
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('source') === 'logto-failed') {
+      setShowLogtoOption(false);
+      toast({
+        title: "تسجيل دخول بديل",
+        description: "يمكنك استخدام النظام المحلي",
+        variant: "default",
+      });
+    }
+  }, [toast]);
 
   const {
     register,
@@ -100,6 +115,26 @@ export default function Login() {
 
           {/* Login Form */}
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 shadow-2xl">
+            {/* Logto Quick Login Option */}
+            {showLogtoOption && (
+              <div className="mb-6">
+                <Button
+                  type="button"
+                  onClick={() => window.location.href = '/logto/sign-in'}
+                  className="w-full h-14 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-2xl text-lg shadow-xl transform transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Shield className="w-5 h-5 ml-2" />
+                  تسجيل دخول آمن وسريع
+                </Button>
+                
+                <div className="flex items-center gap-4 my-4">
+                  <div className="flex-1 h-px bg-white/20"></div>
+                  <span className="text-gray-300 text-sm">أو استخدم النظام المحلي</span>
+                  <div className="flex-1 h-px bg-white/20"></div>
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Username Field */}
               <div className="space-y-2">
@@ -173,25 +208,21 @@ export default function Login() {
                   نسيت كلمة المرور؟
                 </Button>
               </div>
-
-              {/* Divider */}
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-px bg-white/20"></div>
-                <span className="text-gray-300 text-sm">أو</span>
-                <div className="flex-1 h-px bg-white/20"></div>
-              </div>
-
-              {/* Logto Sign In Button */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-14 bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-semibold rounded-2xl text-lg shadow-xl transition-all backdrop-blur-sm"
-                onClick={() => window.location.href = '/logto/sign-in'}
-              >
-                <Shield className="w-5 h-5 ml-2" />
-                تسجيل الدخول الآمن مع Logto
-              </Button>
             </form>
+
+            {/* Toggle Local Login Option */}
+            {showLogtoOption && (
+              <div className="text-center mt-4">
+                <Button
+                  variant="link"
+                  className="text-gray-400 hover:text-white text-xs p-0 h-auto"
+                  type="button"
+                  onClick={() => setShowLogtoOption(false)}
+                >
+                  أفضل النظام المحلي فقط
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Sign Up Link */}
