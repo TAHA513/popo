@@ -77,21 +77,73 @@ export function verifyTOTPCode(secret: string, token: string) {
   });
 }
 
-// Send password reset email using Auth0 Management API  
+// Get Management API token
+async function getManagementToken() {
+  try {
+    const response = await fetch(`https://${auth0Config.domain}/oauth/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: auth0Config.clientId,
+        client_secret: auth0Config.clientSecret,
+        audience: `https://${auth0Config.domain}/api/v2/`,
+        grant_type: 'client_credentials'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error) {
+    console.error('❌ خطأ في الحصول على token:', error);
+    throw error;
+  }
+}
+
+// Send password reset email using Auth0 Database Connection API
 export async function sendPasswordResetEmail(email: string) {
   try {
-    console.log('🔍 إنشاء تذكرة إعادة التعيين لـ:', email);
+    console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0 لـ:', email);
     
-    // Use the tickets manager to create password change ticket
-    const ticket = await managementClient.tickets.createPasswordChange({
-      email: email,
-      result_url: `${process.env.REPL_SLUG || 'http://localhost:5000'}/login?reset=success`,
-      ttl_sec: 3600, // 1 hour expiry
-      mark_email_as_verified: false
+    // Use Auth0 Database Connection API directly 
+    const response = await fetch(`https://${auth0Config.domain}/dbconnections/change_password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        client_id: auth0Config.clientId,
+        email: email,
+        connection: 'Username-Password-Authentication'
+      })
     });
-    
-    console.log('✅ تم إرسال رسالة إعادة التعيين عبر Auth0!');
-    return ticket;
+
+    if (!response.ok) {
+      let errorMessage = response.statusText;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.description || errorData.message || errorMessage;
+        console.log('📊 تفاصيل خطأ Auth0:', JSON.stringify(errorData, null, 2));
+      } catch (e) {
+        console.log('📊 Auth0 Response Status:', response.status, response.statusText);
+      }
+      
+      // If user not found, don't throw error - return success for security
+      if (response.status === 404 || errorMessage.includes('not found') || errorMessage.includes('Not Found')) {
+        console.log('⚠️ المستخدم غير موجود في Auth0، إرجاع نجاح للأمان');
+        return { success: true, message: 'Password reset email sent (user not in Auth0)' };
+      }
+      
+      throw new Error(`Auth0 API Error: ${errorMessage}`);
+    }
+
+    // Auth0 change_password endpoint returns a simple message
+    const result = await response.text();
+    console.log('✅ تم إرسال رسالة إعادة التعيين عبر Auth0 بنجاح!');
+    return { success: true, message: result };
   } catch (error) {
     console.error('❌ خطأ في إرسال رسالة Auth0:', error);
     throw error;
