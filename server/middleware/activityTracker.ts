@@ -4,25 +4,30 @@ import { eq, sql } from "drizzle-orm";
 
 // Middleware to track user activity
 export function trackUserActivity(req: any, res: any, next: any) {
-  if (req.user && req.user.id) {
-    // Update user's last activity timestamp asynchronously
-    setImmediate(async () => {
-      try {
-        await db
-          .update(users)
-          .set({
-            lastActivityAt: new Date(),
-            lastSeenAt: new Date(),
-            isOnline: true,
-            onlineStatusUpdatedAt: new Date()
-          })
-          .where(eq(users.id, req.user.id));
-      } catch (error) {
-        console.error("Error updating user activity:", error);
-      }
-    });
+  try {
+    if (req.user && req.user.id) {
+      // Update user's last activity timestamp asynchronously
+      setImmediate(async () => {
+        try {
+          await db
+            .update(users)
+            .set({
+              lastActivityAt: new Date(),
+              lastSeenAt: new Date(),
+              isOnline: true,
+              onlineStatusUpdatedAt: new Date()
+            })
+            .where(eq(users.id, req.user.id));
+        } catch (error) {
+          console.error("Error updating user activity:", error);
+        }
+      });
+    }
+    next();
+  } catch (error) {
+    console.error("Error in trackUserActivity middleware:", error);
+    next(); // Continue even if tracking fails
   }
-  next();
 }
 
 // Function to mark user as offline
