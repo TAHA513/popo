@@ -78,8 +78,14 @@ export default function AdminDashboard() {
 
   // Auto-verify access for system owner
   useEffect(() => {
+    console.log('Admin Dashboard - User:', user);
+    console.log('System Owner Emails:', systemOwnerEmails);
+    
     if (user && user.email && systemOwnerEmails.includes(user.email)) {
+      console.log('System owner verified, granting access');
       setAccessVerified(true);
+    } else {
+      console.log('Not system owner or user not loaded');
     }
   }, [user]);
 
@@ -300,9 +306,19 @@ export default function AdminDashboard() {
     user.firstName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Debug logging before render
+  console.log('Rendering AdminDashboard:', { 
+    user: user?.email, 
+    accessVerified, 
+    isAuthenticated 
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNavigation />
+      {/* Temporary header for debugging */}
+      <div className="bg-green-500 text-white p-2 text-center">
+        DEBUG: Admin Panel Loaded - User: {user?.email} - Access: {accessVerified ? 'Yes' : 'No'}
+      </div>
       
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
@@ -330,7 +346,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي المستخدمين</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers || 'Loading...'}</p>
                     </div>
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
