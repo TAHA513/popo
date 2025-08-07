@@ -16,16 +16,12 @@ export function useAuth() {
     if (user && user.isAdmin && user.role === 'super_admin') {
       const systemOwnerEmails = ['fnnm945@gmail.com'];
       
-      // Check if user is system owner and on home page
-      if (user.email && systemOwnerEmails.includes(user.email) && 
-          location === '/' &&
-          !location.includes('admin') &&
-          !location.includes('owner-welcome')) {
-        
-        // Auto-redirect to welcome page first
-        setTimeout(() => {
-          setLocation('/owner-welcome');
-        }, 1000);
+      // System owner should only see admin panel - no regular interface
+      if (user.email && systemOwnerEmails.includes(user.email)) {
+        // Force redirect to admin panel for any non-admin path
+        if (!location.includes('tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard')) {
+          setLocation('/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard');
+        }
       }
     }
   }, [user, location, setLocation]);
