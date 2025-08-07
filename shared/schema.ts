@@ -37,7 +37,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   coverImageUrl: varchar("cover_image_url"),
   username: varchar("username").unique().notNull(), // Required and unique
-  passwordHash: varchar("password_hash").notNull(), // Required for local auth
+  passwordHash: varchar("password_hash").notNull(), // Required for local auth - temporary: LaaBoBo2025
   bio: text("bio"),
   countryCode: varchar("country_code", { length: 2 }), // ISO country code (e.g., "US", "SA")
   countryName: varchar("country_name", { length: 100 }), // Country name in English
