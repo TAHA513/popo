@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { Suspense } from "react";
 import { initPerformanceOptimizations } from "@/lib/performance";
@@ -58,19 +58,16 @@ import MFALoginPage from "@/pages/mfa-login";
 import OwnerWelcomePage from "@/pages/owner-welcome";
 import ForgotPasswordPage from "@/pages/forgot-password";
 import ResetPasswordPage from "@/pages/reset-password";
-import ClerkLoginPage from "@/pages/clerk-login";
-import ClerkRegisterPage from "@/pages/clerk-register";
-import ClerkDashboard from "@/pages/clerk-dashboard";
 
 import { LanguageOption } from "@/types";
 
 type Language = 'en' | 'ar';
 
 function Router() {
-  const { isSignedIn, isLoaded, user } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   // Always show loading screen while checking auth
-  if (!isLoaded) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
         <div className="text-white text-lg">جاري التحميل...</div>
@@ -82,28 +79,27 @@ function Router() {
   return (
     <Switch>
       <Route path="/login">
-        {isSignedIn ? <SimpleHome /> : <ClerkLoginPage />}
+        {isAuthenticated ? <SimpleHome /> : <LoginPage />}
       </Route>
       <Route path="/register">
-        {isSignedIn ? <SimpleHome /> : <ClerkRegisterPage />}
+        {isAuthenticated ? <SimpleHome /> : <RegisterPage />}
       </Route>
-      <Route path="/clerk-dashboard" component={ClerkDashboard} />
-      {isSignedIn ? (
+      {isAuthenticated ? (
         <Suspense fallback={
           <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
             <div className="text-white text-lg">جاري التحميل...</div>
           </div>
         }>
           {/* System owner gets admin panel only - no other pages */}
-          {user?.primaryEmailAddress?.emailAddress === 'fnnm945@gmail.com' ? (
+          {user?.email === 'fnnm945@gmail.com' ? (
             <>
               <Route path="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard" component={AdminDashboardPage} />
               <Route component={AdminDashboardPage} />
             </>
           ) : (
             <>
-              <Route path="/" component={ClerkDashboard} />
-              <Route path="/home" component={ClerkDashboard} />
+              <Route path="/" component={SimpleHome} />
+              <Route path="/home" component={SimpleHome} />
               <Route path="/explore" component={LiveStreams} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />
@@ -148,16 +144,14 @@ function Router() {
         </Suspense>
       ) : (
         <>
-          <Route path="/" component={ClerkLoginPage} />
+          <Route path="/" component={LoginPage} />
           <Route path="/landing" component={Landing} />
-          <Route path="/login" component={ClerkLoginPage} />
-          <Route path="/register" component={ClerkRegisterPage} />
-          <Route path="/clerk-login" component={ClerkLoginPage} />
-          <Route path="/clerk-register" component={ClerkRegisterPage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/register" component={RegisterPage} />
           <Route path="/mfa-login" component={MFALoginPage} />
           <Route path="/forgot-password" component={ForgotPasswordPage} />
           <Route path="/reset-password" component={ResetPasswordPage} />
-          <Route component={ClerkLoginPage} />
+          <Route component={LoginPage} />
         </>
       )}
     </Switch>

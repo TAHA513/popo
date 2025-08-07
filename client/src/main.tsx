@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { ClerkProvider } from "./components/ClerkProvider";
 
 // Register service worker for PWA - silent mode
 if ('serviceWorker' in navigator) {
@@ -16,8 +15,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(
-  <ClerkProvider>
-    <App />
-  </ClerkProvider>
-);
+createRoot(document.getElementById("root")!).render(<App />);
