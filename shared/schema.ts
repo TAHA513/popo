@@ -42,7 +42,7 @@ export const users = pgTable("users", {
   countryCode: varchar("country_code", { length: 2 }), // ISO country code (e.g., "US", "SA")
   countryName: varchar("country_name", { length: 100 }), // Country name in English
   countryFlag: varchar("country_flag", { length: 10 }), // Country flag emoji
-  points: integer("points").default(100), // Start with 100 points
+  points: integer("points").default(0), // Start with 0 points - paid system only
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0"),
   totalGiftsReceived: decimal("total_gifts_received", { precision: 10, scale: 2 }).default("0"), // Track gifts received
   totalGiftsSent: decimal("total_gifts_sent", { precision: 10, scale: 2 }).default("0"), // Track gifts sent
