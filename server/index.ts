@@ -14,58 +14,6 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use('/uploads', express.static('uploads'));
 
 // Password reset routes (before middleware)
-app.get('/api/validate-reset-token/:token', async (req, res) => {
-  try {
-    const { validateResetToken } = await import("./email-service");
-    const { token } = req.params;
-    
-    const email = validateResetToken(token);
-    
-    if (email) {
-      res.json({ valid: true, email });
-    } else {
-      res.status(400).json({ valid: false, message: "رابط غير صالح أو منتهي الصلاحية" });
-    }
-  } catch (error) {
-    console.error('Error validating token:', error);
-    res.status(500).json({ valid: false, message: "خطأ في التحقق من الرابط" });
-  }
-});
-
-app.post('/api/reset-password', async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-    
-    if (!token || !newPassword) {
-      return res.status(400).json({ message: "التوكن وكلمة المرور الجديدة مطلوبان" });
-    }
-    
-    const { validateResetToken, deleteResetToken } = await import("./email-service");
-    const { storage } = await import("./storage");
-    
-    const email = validateResetToken(token);
-    
-    if (!email) {
-      return res.status(400).json({ message: "رابط غير صالح أو منتهي الصلاحية" });
-    }
-    
-    // تحديث كلمة المرور في قاعدة البيانات
-    const success = await storage.updateUserPassword(email, newPassword);
-    
-    if (success) {
-      deleteResetToken(token);
-      console.log('✅ تم تحديث كلمة المرور بنجاح للمستخدم:', email);
-      res.json({ success: true, message: "تم تحديث كلمة المرور بنجاح" });
-    } else {
-      res.status(400).json({ message: "فشل في تحديث كلمة المرور" });
-    }
-  } catch (error) {
-    console.error('Error resetting password:', error);
-    res.status(500).json({ message: "خطأ في إعادة تعيين كلمة المرور" });
-  }
-});
-
-// Password reset routes (before middleware)
 app.post('/api/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -76,8 +24,8 @@ app.post('/api/forgot-password', async (req, res) => {
 
     console.log('🔐 طلب إعادة تعيين كلمة المرور للإيميل:', email);
 
-    // Import email service and storage
-    const { emailService, generateResetToken } = await import("./email-service");
+    // Import Auth0 functions and storage
+    const { createUserInAuth0 } = await import("./auth0-config");
     const { storage } = await import("./storage");
     
     // Always return success message for security
@@ -92,35 +40,33 @@ app.post('/api/forgot-password', async (req, res) => {
     
     if (localUser && localUser.length > 0) {
       console.log('✅ المستخدم موجود في قاعدة البيانات المحلية');
+      const userData = localUser[0];
       
       try {
-        // إنشاء توكن إعادة التعيين
-        const token = generateResetToken(email);
-        const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${token}`;
+        // Create user in Auth0 and send password reset email
+        const result = await createUserInAuth0(email, userData.hashedPassword || 'TempPass123!');
         
-        console.log('🔗 رابط إعادة التعيين:', resetLink);
-        
-        // محاولة إرسال البريد الإلكتروني إذا كان معداً
-        if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
-          emailService.configure({
-            from: process.env.GMAIL_USER,
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_PASS
-          });
-          
-          const result = await emailService.sendPasswordReset(email, resetLink);
+        if (result.emailSent) {
           console.log('📧 ✅ تم إرسال رسالة إعادة تعيين كلمة المرور بنجاح!');
+        } else if (result.success) {
+          console.log('✅ تم إنشاء/العثور على المستخدم في Auth0 لكن قد لا تكون رسالة البريد قد وصلت');
         } else {
-          console.log('⚠️ إعدادات Gmail غير موجودة - الرابط جاهز للاستخدام اليدوي');
-          console.log('🔗 استخدم هذا الرابط لإعادة التعيين:', resetLink);
+          console.log('⚠️ فشل في إنشاء المستخدم في Auth0');
         }
         
       } catch (error) {
-        console.error('❌ خطأ في إرسال رسالة البريد:', error);
-        console.log('📋 يمكن إعداد Gmail SMTP للحصول على رسائل فعلية');
+        console.error('❌ خطأ في إنشاء المستخدم وإرسال رسالة Auth0:', error);
       }
     } else {
       console.log('⚠️ المستخدم غير موجود في قاعدة البيانات المحلية');
+      
+      // Still try Auth0 for security (don't reveal if user exists locally)
+      try {
+        const result = await createUserInAuth0(email);
+        console.log('📋 محاولة Auth0 للمستخدم غير المحلي');
+      } catch (error) {
+        console.error('❌ خطأ في Auth0:', error);
+      }
     }
 
     // Always return success for security (don't reveal if email exists or if Auth0 failed)
