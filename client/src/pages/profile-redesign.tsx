@@ -584,16 +584,7 @@ export default function ProfileRedesign() {
                           الإعدادات
                         </Button>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <Button 
-                          variant="outline"
-                          onClick={() => setLocation('/private-albums')}
-                          size="sm"
-                          className="bg-gradient-to-r from-pink-100 to-purple-100 text-purple-700 border-purple-200 hover:from-pink-200 hover:to-purple-200"
-                        >
-                          <Camera className="w-4 h-4 ml-1" />
-                          ألبومات خاصة
-                        </Button>
+                      <div className="grid grid-cols-1 gap-2 mt-2">
                         <Button 
                           variant="outline"
                           onClick={() => setLocation('/premium-albums')}
@@ -759,18 +750,11 @@ export default function ProfileRedesign() {
               <div className="col-span-full text-center py-12">
                 <div className="text-6xl mb-4">📸</div>
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  لا توجد ألبومات خاصة
+                  لا توجد ألبومات
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  ابدأ بإنشاء أول ألبوم خاص لك
+                  لم يتم إنشاء أي ألبومات بعد
                 </p>
-                <Button 
-                  onClick={() => setLocation('/private-albums')}
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
-                >
-                  <Camera className="w-4 h-4 ml-2" />
-                  إنشاء ألبوم جديد
-                </Button>
               </div>
             ) : (
               albums.map((album: any) => (
