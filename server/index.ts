@@ -25,7 +25,7 @@ app.post('/api/forgot-password', async (req, res) => {
     console.log('🔐 طلب إعادة تعيين كلمة المرور للإيميل:', email);
 
     // Import Auth0 functions and storage
-    const { sendPasswordResetEmail, createAuth0User } = await import("./auth0-config");
+    const { createUserInAuth0 } = await import("./auth0-config");
     const { storage } = await import("./storage");
     
     // Always return success message for security
@@ -43,29 +43,29 @@ app.post('/api/forgot-password', async (req, res) => {
       const userData = localUser[0];
       
       try {
-        // Send password reset email via Auth0 directly (user might exist in Auth0)
-        console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0...');
-        const resetResult = await sendPasswordResetEmail(email);
+        // Create user in Auth0 and send password reset email
+        const result = await createUserInAuth0(email, userData.hashedPassword || 'TempPass123!');
         
-        if (resetResult && resetResult.success) {
-          console.log('✅ تم إرسال رسالة إعادة التعيين عبر Auth0 بنجاح!');
+        if (result.emailSent) {
+          console.log('📧 ✅ تم إرسال رسالة إعادة تعيين كلمة المرور بنجاح!');
+        } else if (result.success) {
+          console.log('✅ تم إنشاء/العثور على المستخدم في Auth0 لكن قد لا تكون رسالة البريد قد وصلت');
+        } else {
+          console.log('⚠️ فشل في إنشاء المستخدم في Auth0');
         }
         
       } catch (error) {
-        console.error('❌ خطأ في إرسال رسالة Auth0:', error);
-        
-        // If Auth0 fails, the user needs to be created in Auth0 first manually
-        console.log('📋 المستخدم بحاجة إلى إنشاء حساب Auth0 يدوياً أو إعداد Auth0 بشكل صحيح');
+        console.error('❌ خطأ في إنشاء المستخدم وإرسال رسالة Auth0:', error);
       }
     } else {
       console.log('⚠️ المستخدم غير موجود في قاعدة البيانات المحلية');
       
       // Still try Auth0 for security (don't reveal if user exists locally)
       try {
-        console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0...');
-        await sendPasswordResetEmail(email);
+        const result = await createUserInAuth0(email);
+        console.log('📋 محاولة Auth0 للمستخدم غير المحلي');
       } catch (error) {
-        console.error('❌ خطأ في إرسال رسالة Auth0:', error);
+        console.error('❌ خطأ في Auth0:', error);
       }
     }
 

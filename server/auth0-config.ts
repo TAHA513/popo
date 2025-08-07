@@ -77,29 +77,58 @@ export function verifyTOTPCode(secret: string, token: string) {
   });
 }
 
-// Get Management API token
-async function getManagementToken() {
+// Create user directly in Auth0 Database Connection (simpler approach)
+export async function createUserInAuth0(email: string, password: string = 'TempPass123!') {
   try {
-    const response = await fetch(`https://${auth0Config.domain}/oauth/token`, {
+    console.log('🔄 محاولة إنشاء مستخدم في Auth0:', email);
+    
+    // Use Auth0 Database Connection signup endpoint
+    const signupResponse = await fetch(`https://${auth0Config.domain}/dbconnections/signup`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         client_id: auth0Config.clientId,
-        client_secret: auth0Config.clientSecret,
-        audience: auth0Config.audience || `https://${auth0Config.domain}/api/v2/`,
-        grant_type: 'client_credentials'
+        connection: 'Username-Password-Authentication',
+        email: email,
+        password: password
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let signupSuccess = false;
+    
+    if (signupResponse.ok) {
+      const result = await signupResponse.json();
+      console.log('✅ تم إنشاء المستخدم في Auth0 بنجاح:', email);
+      signupSuccess = true;
+    } else {
+      const errorData = await signupResponse.json().catch(() => ({}));
+      if (errorData.code === 'user_exists' || 
+          errorData.description?.includes('already exists') ||
+          signupResponse.status === 409) {
+        console.log('✅ المستخدم موجود مسبقاً في Auth0:', email);
+        signupSuccess = true;
+      } else {
+        console.log('⚠️ فشل في إنشاء المستخدم في Auth0:', errorData);
+      }
     }
-
-    const data = await response.json();
-    return data.access_token;
+    
+    // Now try to send password reset regardless of signup result
+    if (signupSuccess || true) {  // Always try password reset
+      console.log('🔍 محاولة إرسال رسالة إعادة تعيين كلمة المرور...');
+      const resetResult = await sendPasswordResetEmail(email);
+      
+      if (resetResult && resetResult.success) {
+        console.log('📧 ✅ تم إرسال رسالة إعادة تعيين كلمة المرور بنجاح!');
+        return { success: true, emailSent: true };
+      }
+    }
+    
+    return { success: signupSuccess, emailSent: false };
   } catch (error) {
-    console.error('❌ خطأ في الحصول على token:', error);
-    throw error;
+    console.error('❌ خطأ في إنشاء المستخدم في Auth0:', error);
+    return { success: false, emailSent: false };
   }
 }
 
