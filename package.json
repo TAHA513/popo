@@ -51,8 +51,6 @@
     "@types/howler": "^2.2.12",
     "@types/memoizee": "^0.4.12",
     "@types/multer": "^2.0.0",
-    "@types/qrcode": "^1.5.5",
-    "@types/speakeasy": "^2.0.10",
     "@types/three": "^0.178.1",
     "@uppy/aws-s3": "^4.3.2",
     "@uppy/core": "^4.5.2",
