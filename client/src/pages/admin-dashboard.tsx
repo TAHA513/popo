@@ -18,6 +18,14 @@ import {
   ShieldCheck, 
   Activity, 
   Coins,
+  Lock,
+  Eye,
+  TrendingUp,
+  BarChart3,
+  AlertTriangle,
+  Ban,
+  Trash2,
+  Edit
 } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 
@@ -255,10 +263,14 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-7 text-xs">
             <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="users">إدارة المستخدمين</TabsTrigger>
-            <TabsTrigger value="verification">التوثيق</TabsTrigger>
+            <TabsTrigger value="users">المستخدمين</TabsTrigger>
+            <TabsTrigger value="content">المحتوى</TabsTrigger>
+            <TabsTrigger value="financial">المالي</TabsTrigger>
+            <TabsTrigger value="moderation">الإشراف</TabsTrigger>
+            <TabsTrigger value="analytics">التحليلات</TabsTrigger>
+            <TabsTrigger value="system">النظام</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -407,6 +419,30 @@ export default function AdminDashboard() {
                                 إلغاء
                               </Button>
                             )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-xs text-blue-600"
+                              onClick={() => {
+                                // Edit user functionality
+                                console.log("Editing user:", user.id);
+                              }}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              تحرير
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => {
+                                // Ban user functionality
+                                console.log("Banning user:", user.id);
+                              }}
+                            >
+                              <Ban className="h-3 w-3 mr-1" />
+                              حظر
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -415,6 +451,396 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Content Management Tab */}
+          <TabsContent value="content" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Eye className="h-5 w-5" />
+                    إحصائيات المحتوى
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-600">إجمالي الذكريات</p>
+                      <p className="text-2xl font-bold text-blue-800">{stats?.totalMemories || 0}</p>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <p className="text-sm text-green-600">البث المباشر النشط</p>
+                      <p className="text-2xl font-bold text-green-800">0</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Button className="w-full" variant="outline" onClick={() => window.open('/memories', '_blank')}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      عرض جميع الذكريات
+                    </Button>
+                    <Button className="w-full" variant="outline" onClick={() => window.open('/live', '_blank')}>
+                      <Activity className="h-4 w-4 mr-2" />
+                      إدارة البث المباشر
+                    </Button>
+                    <Button className="w-full" variant="destructive">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      حذف المحتوى المحظور
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>أدوات الإشراف السريع</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button className="w-full" variant="destructive">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    حذف المحتوى المبلغ عنه
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    <Eye className="h-4 w-4 mr-2" />
+                    مراجعة التقارير الجديدة
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    <Settings className="h-4 w-4 mr-2" />
+                    إعدادات الفلترة التلقائية
+                  </Button>
+                  <div className="pt-4 border-t">
+                    <h4 className="font-medium mb-2">إجراءات سريعة</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button size="sm" variant="outline">إخفاء المحتوى</Button>
+                      <Button size="sm" variant="outline">تحذير المستخدم</Button>
+                      <Button size="sm" variant="destructive">حظر مؤقت</Button>
+                      <Button size="sm" variant="destructive">حظر دائم</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Financial Management Tab */}
+          <TabsContent value="financial" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Coins className="h-5 w-5" />
+                    إدارة النقاط
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-orange-50 rounded-lg">
+                    <p className="text-sm text-orange-600">إجمالي النقاط في النظام</p>
+                    <p className="text-2xl font-bold text-orange-800">{stats?.totalPoints || 0}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Input placeholder="معرف المستخدم أو البريد الإلكتروني" />
+                    <Input placeholder="عدد النقاط" type="number" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline">
+                        <Coins className="h-3 w-3 mr-1" />
+                        إضافة نقاط
+                      </Button>
+                      <Button variant="destructive">
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        خصم نقاط
+                      </Button>
+                    </div>
+                    <Button className="w-full" variant="outline" size="sm">
+                      عرض سجل المعاملات
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>إدارة الهدايا</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <p className="text-sm text-purple-600">إجمالي الهدايا المرسلة</p>
+                    <p className="text-2xl font-bold text-purple-800">{stats?.totalGifts || 0}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Button className="w-full" variant="outline">
+                      <Coins className="h-4 w-4 mr-2" />
+                      إضافة هدية جديدة
+                    </Button>
+                    <Button className="w-full" variant="outline">
+                      <Edit className="h-4 w-4 mr-2" />
+                      تحرير الهدايا الموجودة
+                    </Button>
+                    <Button className="w-full" variant="outline" size="sm">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      إحصائيات الهدايا
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>الإعدادات المالية</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">سعر النقطة الواحدة (دولار)</label>
+                      <Input placeholder="0.01" type="number" step="0.001" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">نقاط البداية للمستخدمين الجدد</label>
+                      <Input placeholder="0" type="number" />
+                    </div>
+                    <Button className="w-full">حفظ الإعدادات</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Moderation Tab */}
+          <TabsContent value="moderation" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    أدوات الإشراف
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="destructive">حظر مستخدم</Button>
+                    <Button variant="outline">إلغاء الحظر</Button>
+                    <Button variant="destructive">حذف المحتوى</Button>
+                    <Button variant="outline">استعادة المحتوى</Button>
+                  </div>
+                  <div className="space-y-2">
+                    <Input placeholder="معرف المستخدم أو البريد الإلكتروني" />
+                    <Input placeholder="سبب الإجراء" />
+                    <Button className="w-full">تنفيذ الإجراء</Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>التقارير والشكاوى</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg">
+                      <p className="font-medium">التقارير المعلقة: 0</p>
+                      <p className="text-sm text-gray-600">لا توجد تقارير جديدة</p>
+                    </div>
+                    <Button className="w-full" variant="outline">
+                      عرض جميع التقارير
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    إحصائيات الاستخدام
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-3 bg-blue-50 rounded-lg text-center">
+                      <p className="text-sm text-blue-600">الزيارات اليومية</p>
+                      <p className="text-lg font-bold text-blue-800">1,234</p>
+                    </div>
+                    <div className="p-3 bg-green-50 rounded-lg text-center">
+                      <p className="text-sm text-green-600">مشاهدات المحتوى</p>
+                      <p className="text-lg font-bold text-green-800">5,678</p>
+                    </div>
+                    <div className="p-3 bg-purple-50 rounded-lg text-center">
+                      <p className="text-sm text-purple-600">تفاعلات الهدايا</p>
+                      <p className="text-lg font-bold text-purple-800">890</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Button className="w-full" variant="outline">
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      تقرير مفصل
+                    </Button>
+                    <Button className="w-full" variant="outline">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      إحصائيات شهرية
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    أكثر المستخدمين نشاطاً
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {users.slice(0, 5).map((user: any, index: number) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 bg-purple-100 text-purple-800 rounded-full flex items-center justify-center text-xs font-bold">
+                            {index + 1}
+                          </span>
+                          <span className="font-medium">{user.username}</span>
+                        </div>
+                        <span className="text-sm text-gray-600">{user.points} نقطة</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>أدوات المراقبة المتقدمة</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button variant="outline" className="h-20 flex-col">
+                  <Eye className="h-6 w-6 mb-2" />
+                  <span>مراقبة الجلسات المباشرة</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col">
+                  <Activity className="h-6 w-6 mb-2" />
+                  <span>تتبع النشاط الحقيقي</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex-col">
+                  <BarChart3 className="h-6 w-6 mb-2" />
+                  <span>تحليل سلوك المستخدمين</span>
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* System Settings Tab */}
+          <TabsContent value="system" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    إعدادات النظام العامة
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">وضع الصيانة</h4>
+                      <p className="text-sm text-gray-600">تعطيل الموقع مؤقتاً</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Lock className="h-4 w-4 mr-1" />
+                      تفعيل
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">التسجيل الجديد</h4>
+                      <p className="text-sm text-gray-600">السماح بتسجيل مستخدمين جدد</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      تعطيل
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">البث المباشر</h4>
+                      <p className="text-sm text-gray-600">السماح بالبث المباشر</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      مفعل
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>إحصائيات النظام</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600">استخدام الخادم</p>
+                      <p className="text-lg font-bold">85%</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600">استخدام قاعدة البيانات</p>
+                      <p className="text-lg font-bold">62%</p>
+                    </div>
+                  </div>
+                  <Button className="w-full" variant="outline">
+                    عرض تفاصيل الأداء
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>أدوات التحكم المتقدمة</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm">
+                      <Lock className="h-3 w-3 mr-1" />
+                      تجميد النظام
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Activity className="h-3 w-3 mr-1" />
+                      مراقبة مباشرة
+                    </Button>
+                    <Button variant="destructive" size="sm">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      إيقاف طارئ
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-3 w-3 mr-1" />
+                      نسخ احتياطي
+                    </Button>
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <h4 className="font-medium mb-2">إعدادات الأمان</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">تسجيل العمليات</span>
+                        <Button size="sm" variant="outline">مفعل</Button>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">حماية من DDOS</span>
+                        <Button size="sm" variant="outline">مفعل</Button>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">تشفير البيانات</span>
+                        <Button size="sm" variant="outline">مفعل</Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Verification Tab */}
