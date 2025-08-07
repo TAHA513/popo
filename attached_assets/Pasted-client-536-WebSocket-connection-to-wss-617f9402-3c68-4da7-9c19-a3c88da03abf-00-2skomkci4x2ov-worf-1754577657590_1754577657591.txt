@@ -1,0 +1,41 @@
+client:536 WebSocket connection to 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/?token=aOXD3oAW0gAo' failed: 
+setupWebSocket @ client:536
+(anonymous) @ client:531Understand this error
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=aOXD3oAW0gAo' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+setupWebSocket @ client:536
+fallback @ client:509
+(anonymous) @ client:555Understand this error
+chunk-RPCDYKBN.js?v=a1bf4260:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+performance.ts:259 تم تحميل جميع الخطوط بنجاح
+main.tsx:10 SW registered:  ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/', …}
+queryClient.ts:34  GET https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/auth/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:34
+fetchFn @ @tanstack_react-query.js?v=a1bf4260:840
+run @ @tanstack_react-query.js?v=a1bf4260:494
+start @ @tanstack_react-query.js?v=a1bf4260:536
+fetch @ @tanstack_react-query.js?v=a1bf4260:926
+executeFetch_fn @ @tanstack_react-query.js?v=a1bf4260:2211
+onSubscribe @ @tanstack_react-query.js?v=a1bf4260:1898
+subscribe @ @tanstack_react-query.js?v=a1bf4260:24
+(anonymous) @ @tanstack_react-query.js?v=a1bf4260:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=a1bf4260:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=a1bf4260:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=a1bf4260:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=a1bf4260:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=a1bf4260:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=a1bf4260:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=a1bf4260:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=a1bf4260:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a1bf4260:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a1bf4260:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=a1bf4260:19432
+commitRoot @ chunk-RPCDYKBN.js?v=a1bf4260:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=a1bf4260:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=a1bf4260:18718
+workLoop @ chunk-RPCDYKBN.js?v=a1bf4260:197
+flushWork @ chunk-RPCDYKBN.js?v=a1bf4260:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=a1bf4260:384Understand this error
+forgot-password:1 Error while trying to use the following icon from the Manifest: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/icon-192x192.png (Download error or resource isn't a valid image)
