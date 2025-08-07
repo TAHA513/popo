@@ -151,22 +151,32 @@ export async function sendPasswordResetEmail(email: string) {
 }
 
 // Get or create Auth0 user by email
-export async function getOrCreateAuth0User(email: string) {
+export async function getOrCreateAuth0User(email: string, password?: string) {
   try {
-    // Search for existing user
-    const users = await managementClient.getUsers({
-      q: `email:"${email}"`,
-      search_engine: 'v3'
-    });
+    // Search for existing user using getUsersByEmail
+    const users = await managementClient.getUsersByEmail(email);
     
     if (users && users.length > 0) {
       return users[0];
     }
     
-    // If user doesn't exist, return null (don't create automatically)
+    // If user doesn't exist and password provided, create user
+    if (password) {
+      console.log('🔄 إنشاء مستخدم جديد في Auth0:', email);
+      const newUser = await managementClient.users.create({
+        email: email,
+        password: password,
+        connection: 'Username-Password-Authentication',
+        email_verified: false
+      });
+      console.log('✅ تم إنشاء مستخدم جديد في Auth0:', newUser.user_id);
+      return newUser;
+    }
+    
+    // If user doesn't exist and no password, return null
     return null;
   } catch (error) {
-    console.error('Error searching for Auth0 user:', error);
+    console.error('Error searching/creating Auth0 user:', error);
     throw error;
   }
 }

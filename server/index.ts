@@ -24,29 +24,45 @@ app.post('/api/forgot-password', async (req, res) => {
 
     console.log('🔐 طلب إعادة تعيين كلمة المرور للإيميل:', email);
 
-    // Import Auth0 functions only
+    // Import Auth0 functions and storage
     const { sendPasswordResetEmail } = await import("./auth0-config");
+    const { storage } = await import("./storage");
     
     // Always return success message for security
     const successMessage = "تم إرسال رسالة إعادة تعيين كلمة المرور إلى بريدك الإلكتروني";
 
-    try {
-      // Send password reset email via Auth0
-      console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0...');
+    // Check if user exists in database first
+    const { db } = await import("./db");
+    const { users } = await import("../shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    const localUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    
+    if (localUser && localUser.length > 0) {
+      console.log('✅ المستخدم موجود في قاعدة البيانات المحلية');
       
-      const resetTicket = await sendPasswordResetEmail(email);
-      
-      if (resetTicket && resetTicket.ticket) {
-        console.log('✅ تم إرسال رسالة إعادة التعيين عبر Auth0 بنجاح!');
+      try {
+        // Send password reset email via Auth0 directly
+        console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0...');
+        const resetResult = await sendPasswordResetEmail(email);
         
-        return res.json({ 
-          success: true, 
-          message: successMessage
-        });
+        if (resetResult && resetResult.success) {
+          console.log('✅ تم إرسال رسالة إعادة التعيين عبر Auth0 بنجاح!');
+        }
+        
+      } catch (error) {
+        console.error('❌ خطأ في إرسال رسالة Auth0:', error);
       }
+    } else {
+      console.log('⚠️ المستخدم غير موجود في قاعدة البيانات المحلية');
       
-    } catch (error) {
-      console.error('❌ خطأ في إرسال رسالة Auth0:', error);
+      // Still try Auth0 for security (don't reveal if user exists locally)
+      try {
+        console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0...');
+        await sendPasswordResetEmail(email);
+      } catch (error) {
+        console.error('❌ خطأ في إرسال رسالة Auth0:', error);
+      }
     }
 
     // Always return success for security (don't reveal if email exists or if Auth0 failed)
