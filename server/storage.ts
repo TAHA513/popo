@@ -25,6 +25,7 @@ import {
   albumPhotos,
   albumAccess,
   walletTransactions,
+  pointPackages,
   type User,
   type UpsertUser,
   type Stream,
@@ -73,6 +74,7 @@ import {
   type AlbumAccess,
   type InsertAlbumAccess,
   type WalletTransaction,
+  type PointPackage,
   type InsertWalletTransaction,
   gameRooms,
   gameParticipants,
@@ -1057,11 +1059,16 @@ export class DatabaseStorage implements IStorage {
 
   // Point Package operations
   async getPointPackages(): Promise<PointPackage[]> {
-    return await db
-      .select()
-      .from(pointPackages)
-      .where(eq(pointPackages.isActive, true))
-      .orderBy(pointPackages.displayOrder, pointPackages.pointAmount);
+    try {
+      return await db
+        .select()
+        .from(pointPackages)
+        .where(eq(pointPackages.isActive, true))
+        .orderBy(pointPackages.displayOrder);
+    } catch (error) {
+      console.error("❌ Error fetching point packages:", error);
+      throw error;
+    }
   }
 
   async getActivePointPackages(): Promise<PointPackage[]> {

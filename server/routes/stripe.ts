@@ -13,9 +13,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 export function registerStripeRoutes(app: Express) {
   // Get all point packages
-  app.get('/api/point-packages', requireAuth, async (req: any, res) => {
+  app.get('/api/point-packages', async (req: any, res) => {
     try {
-      const packages = await storage.getActivePointPackages();
+      console.log("🔍 Fetching point packages...");
+      const packages = await storage.getPointPackages();
+      console.log("✅ Found packages:", packages.length);
       res.json(packages);
     } catch (error) {
       console.error("❌ Error fetching point packages:", error);
