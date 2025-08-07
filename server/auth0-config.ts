@@ -16,7 +16,6 @@ export const managementClient = new ManagementClient({
   domain: auth0Config.domain,
   clientId: auth0Config.clientId,
   clientSecret: auth0Config.clientSecret,
-  scope: 'read:users update:users create:users'
 });
 
 // Authentication API client for login/MFA operations
@@ -28,7 +27,7 @@ export const authenticationClient = new AuthenticationClient({
 // Enable MFA for a user
 export async function enableMFAForUser(userId: string) {
   try {
-    const result = await managementClient.updateUser(
+    const result = await managementClient.users.update(
       { id: userId },
       { 
         app_metadata: { 
@@ -43,34 +42,39 @@ export async function enableMFAForUser(userId: string) {
   }
 }
 
-// Get MFA enrollment ticket
-export async function getMFAEnrollmentTicket(userId: string) {
+// Get user profile from Auth0
+export async function getAuth0User(userId: string) {
   try {
-    const ticket = await managementClient.createEmailVerificationTicket({
-      user_id: userId,
-      result_url: `${process.env.BASE_URL}/mfa-setup-complete`
-    });
-    return ticket;
+    const user = await managementClient.users.get({ id: userId });
+    return user;
   } catch (error) {
-    console.error('Error creating MFA enrollment ticket:', error);
+    console.error('Error getting Auth0 user:', error);
     throw error;
   }
 }
 
-// Verify MFA code
-export async function verifyMFACode(accessToken: string, mfaToken: string, otp: string) {
-  try {
-    const result = await authenticationClient.oauth.passwordGrant({
-      username: '', // Will be handled by MFA flow
-      password: '',
-      mfa_token: mfaToken,
-      otp: otp
-    });
-    return result;
-  } catch (error) {
-    console.error('Error verifying MFA code:', error);
-    throw error;
-  }
+// Generate TOTP secret for MFA
+export function generateTOTPSecret(email: string) {
+  const secret = speakeasy.generateSecret({
+    name: `LaaBoBo (${email})`,
+    issuer: 'LaaBoBo',
+    length: 32
+  });
+  
+  return {
+    secret: secret.base32,
+    qrCode: secret.otpauth_url
+  };
+}
+
+// Verify TOTP code
+export function verifyTOTPCode(secret: string, token: string) {
+  return speakeasy.totp.verify({
+    secret: secret,
+    encoding: 'base32',
+    token: token,
+    window: 2
+  });
 }
 
 export { auth0Config };
