@@ -130,7 +130,6 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserById(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByEmailAddress(email: string): Promise<User | undefined>;
   createUser(user: Omit<UpsertUser, 'id'> & { passwordHash: string }): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   isUsernameAvailable(username: string): Promise<boolean>;
@@ -309,11 +308,6 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByEmailAddress(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
-  }
-
   async createUser(userData: Omit<UpsertUser, 'id'> & { passwordHash: string }): Promise<User> {
     const id = nanoid();
     const [user] = await db
@@ -376,32 +370,6 @@ export class DatabaseStorage implements IStorage {
   async updateUserPoints(userId: string, newPoints: number): Promise<void> {
     await db.update(users)
       .set({ points: newPoints })
-      .where(eq(users.id, userId));
-  }
-
-  // MFA Methods
-  async enableMFAForUser(userId: string, secret: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ 
-        mfaSecret: secret,
-        mfaEnabled: true,
-        mfaEnabledAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId));
-  }
-
-  async disableMFAForUser(userId: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ 
-        mfaSecret: null,
-        mfaEnabled: false,
-        mfaBackupCodes: null,
-        mfaEnabledAt: null,
-        updatedAt: new Date()
-      })
       .where(eq(users.id, userId));
   }
 

@@ -2,8 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import * as speakeasy from 'speakeasy';
-import * as QRCode from 'qrcode';
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
 import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema } from "@shared/schema";
@@ -195,139 +193,6 @@ interface ConnectedClient {
 
 const connectedClients = new Map<string, ConnectedClient>();
 
-// MFA Setup and Management Functions
-function setupMFARoutes(app: Express) {
-  // Generate MFA secret and QR code
-  app.post('/api/mfa/generate-secret', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const username = req.user.username;
-      
-      // Generate secret
-      const secret = speakeasy.generateSecret({
-        name: `LaaBoBo (${username})`,
-        issuer: 'LaaBoBo',
-        length: 32
-      });
-
-      // Generate QR code URL
-      const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url || '');
-
-      // Store secret temporarily (you might want to save this to database)
-      req.session.mfaSecret = secret.base32;
-
-      res.json({
-        secret: secret.base32,
-        qrCodeUrl,
-        manualEntryKey: secret.base32
-      });
-    } catch (error) {
-      console.error('Error generating MFA secret:', error);
-      res.status(500).json({ message: 'فشل في إنشاء كود الحماية' });
-    }
-  });
-
-  // Verify and enable MFA
-  app.post('/api/mfa/verify-and-enable', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const { secret, token } = req.body;
-      
-      if (!secret || !token) {
-        return res.status(400).json({ message: 'Secret and token are required' });
-      }
-
-      // Verify the token
-      const verified = speakeasy.totp.verify({
-        secret,
-        encoding: 'base32',
-        token,
-        window: 2
-      });
-
-      if (!verified) {
-        return res.status(400).json({ message: 'رمز التحقق غير صحيح' });
-      }
-
-      // Enable MFA for user in database
-      await storage.enableMFAForUser(userId, secret);
-
-      res.json({ message: 'تم تفعيل التحقق بخطوتين بنجاح' });
-    } catch (error) {
-      console.error('Error enabling MFA:', error);
-      res.status(500).json({ message: 'فشل في تفعيل التحقق بخطوتين' });
-    }
-  });
-
-  // Verify MFA during login
-  app.post('/api/mfa/verify-login', async (req, res) => {
-    try {
-      const { token } = req.body;
-      
-      if (!(req.session as any).pendingMFAUserId) {
-        return res.status(400).json({ message: 'لا توجد عملية تسجيل دخول معلقة' });
-      }
-
-      const user = await storage.getUserById((req.session as any).pendingMFAUserId);
-      if (!user || !user.mfaSecret) {
-        return res.status(400).json({ message: 'المستخدم غير موجود أو لم يفعل التحقق بخطوتين' });
-      }
-
-      // Verify the token
-      const verified = speakeasy.totp.verify({
-        secret: user.mfaSecret,
-        encoding: 'base32',
-        token,
-        window: 2
-      });
-
-      if (!verified) {
-        return res.status(400).json({ message: 'رمز التحقق غير صحيح' });
-      }
-
-      // Complete login
-      req.login(user, (err) => {
-        if (err) {
-          return res.status(500).json({ message: 'فشل في تسجيل الدخول' });
-        }
-        
-        delete (req.session as any).pendingMFAUserId;
-        res.json({ message: 'تم تسجيل الدخول بنجاح', user });
-      });
-    } catch (error) {
-      console.error('Error verifying MFA login:', error);
-      res.status(500).json({ message: 'فشل في التحقق من الرمز' });
-    }
-  });
-
-  // Disable MFA
-  app.post('/api/mfa/disable', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      await storage.disableMFAForUser(userId);
-      res.json({ message: 'تم إلغاء تفعيل التحقق بخطوتين' });
-    } catch (error) {
-      console.error('Error disabling MFA:', error);
-      res.status(500).json({ message: 'فشل في إلغاء تفعيل التحقق بخطوتين' });
-    }
-  });
-
-  // Check MFA status
-  app.get('/api/mfa/status', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUserById(userId);
-      res.json({ 
-        mfaEnabled: !!user?.mfaSecret,
-        hasMFASecret: !!user?.mfaSecret
-      });
-    } catch (error) {
-      console.error('Error checking MFA status:', error);
-      res.status(500).json({ message: 'فشل في فحص حالة التحقق بخطوتين' });
-    }
-  });
-}
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize gift characters
   await initializeGiftCharacters();
@@ -349,9 +214,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup wallet routes
   setupWalletRoutes(app);
-  
-  // Setup MFA routes
-  setupMFARoutes(app);
 
   // Wallet API endpoints
   // Get user transactions
@@ -543,7 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate album ownership
       const album = await storage.getPremiumAlbum(albumId);
-      if (!album || album.creatorId !== senderId) {
+      if (!album || album.userId !== senderId) {
         return res.status(403).json({ error: "Album not found or not owned by user" });
       }
 
@@ -604,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Process the transaction
-      await storage.processAlbumUnlock(userId, album.creatorId, messageId, totalCost);
+      await storage.processAlbumUnlock(userId, album.userId, messageId, totalCost);
 
       const updatedMessage = await storage.getPremiumMessage(messageId);
       res.json(updatedMessage);
@@ -724,7 +586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       if (!user || (user.points || 0) < totalCost) {
         return res.status(400).json({ 
-          message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user?.points || 0} نقطة`
+          message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user.points || 0} نقطة`
         });
       }
 
@@ -1033,6 +895,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
         email: validatedData.email,
+        countryCode: validatedData.countryCode,
+        countryName: validatedData.countryName,
+        countryFlag: validatedData.countryFlag,
         passwordHash,
       });
 
@@ -1099,8 +964,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
     }
   });
-
-
 
   app.post('/api/logout', (req, res) => {
     req.logout((err) => {
@@ -1698,31 +1561,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get total users count
       const totalUsersResult = await db.select({ count: sql`count(*)` }).from(users);
-      const totalUsers = parseInt(String(totalUsersResult[0]?.count || '0'));
+      const totalUsers = parseInt(totalUsersResult[0]?.count || '0');
 
       // Get verified users count
       const verifiedUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isVerified, true));
-      const verifiedUsers = parseInt(String(verifiedUsersResult[0]?.count || '0'));
+      const verifiedUsers = parseInt(verifiedUsersResult[0]?.count || '0');
 
       // Get online users count
       const onlineUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isOnline, true));
-      const onlineUsers = parseInt(String(onlineUsersResult[0]?.count || '0'));
+      const onlineUsers = parseInt(onlineUsersResult[0]?.count || '0');
 
       // Get total memories count
       const totalMemoriesResult = await db.select({ count: sql`count(*)` }).from(memoryFragments);
-      const totalMemories = parseInt(String(totalMemoriesResult[0]?.count || '0'));
+      const totalMemories = parseInt(totalMemoriesResult[0]?.count || '0');
 
       // Get total gifts count
       const totalGiftsResult = await db.select({ count: sql`count(*)` }).from(gifts);
-      const totalGifts = parseInt(String(totalGiftsResult[0]?.count || '0'));
+      const totalGifts = parseInt(totalGiftsResult[0]?.count || '0');
 
       // Get total points in system
       const totalPointsResult = await db.select({ sum: sql`sum(points)` }).from(users);
-      const totalPoints = parseInt(String(totalPointsResult[0]?.sum || '0'));
+      const totalPoints = parseInt(totalPointsResult[0]?.sum || '0');
 
       const stats = {
         totalUsers,
@@ -1898,7 +1761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'follow',
           title: 'متابع جديد',
           message: `بدأ ${req.user.firstName || req.user.username} في متابعتك`,
-          relatedId: undefined,
+          relatedId: null,
           relatedType: 'follow'
         });
         
@@ -2273,7 +2136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
-      if (!user || (user.points || 0) < (album.accessPrice || 0)) {
+      if (!user || user.points < album.accessPrice) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
       
@@ -2284,21 +2147,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: album.userId,
         accessType: 'full_album',
         giftPaid,
-        amountPaid: album.accessPrice || 0,
+        amountPaid: album.accessPrice,
       });
       
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
-        points: (user.points || 0) - (album.accessPrice || 0)
+        points: user.points - album.accessPrice
       });
       
       // Add earnings to seller (40% profit)
-      const sellerEarnings = Math.floor((album.accessPrice || 0) * 0.4);
+      const sellerEarnings = Math.floor(album.accessPrice * 0.4);
       const seller = await storage.getUser(album.userId);
       if (seller) {
         await storage.updateUser(album.userId, {
-          points: (seller.points || 0) + sellerEarnings,
-          totalEarnings: String(Number(seller.totalEarnings || 0) + sellerEarnings)
+          points: seller.points + sellerEarnings,
+          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
         });
       }
       
@@ -2306,7 +2169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: currentUserId,
         type: 'album_purchase',
-        amount: (album.accessPrice || 0),
+        amount: album.accessPrice.toString(),
         description: `شراء ألبوم: ${album.title}`,
         relatedUserId: album.userId,
         relatedAlbumId: albumId,
@@ -2315,7 +2178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: album.userId,
         type: 'album_sale',
-        amount: sellerEarnings,
+        amount: sellerEarnings.toString(),
         description: `بيع ألبوم: ${album.title}`,
         relatedUserId: currentUserId,
         relatedAlbumId: albumId,
@@ -2353,7 +2216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
-      if (!user || (user.points || 0) < (photo.accessPrice || 0)) {
+      if (!user || user.points < photo.accessPrice) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
       
@@ -2365,21 +2228,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: album.userId,
         accessType: 'single_photo',
         giftPaid,
-        amountPaid: photo.accessPrice || 0,
+        amountPaid: photo.accessPrice,
       });
       
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
-        points: (user.points || 0) - (photo.accessPrice || 0)
+        points: user.points - photo.accessPrice
       });
       
       // Add earnings to seller (40% profit)
-      const sellerEarnings = Math.floor((photo.accessPrice || 0) * 0.4);
+      const sellerEarnings = Math.floor(photo.accessPrice * 0.4);
       const seller = await storage.getUser(album.userId);
       if (seller) {
         await storage.updateUser(album.userId, {
-          points: (seller.points || 0) + sellerEarnings,
-          totalEarnings: String(Number(seller.totalEarnings || 0) + sellerEarnings)
+          points: seller.points + sellerEarnings,
+          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
         });
       }
       
@@ -2387,7 +2250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: currentUserId,
         type: 'photo_purchase',
-        amount: (photo.accessPrice || 0),
+        amount: photo.accessPrice.toString(),
         description: `شراء صورة من ألبوم: ${album.title}`,
         relatedUserId: album.userId,
         relatedPhotoId: photoId,
@@ -2396,7 +2259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: album.userId,
         type: 'photo_sale',
-        amount: sellerEarnings,
+        amount: sellerEarnings.toString(),
         description: `بيع صورة من ألبوم: ${album.title}`,
         relatedUserId: currentUserId,
         relatedPhotoId: photoId,
@@ -2934,8 +2797,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedStream = await storage.updateStream(streamId, req.body);
       console.log('📝 Stream updated:', { 
         id: streamId, 
-        title: updatedStream.title,
-        isLive: updatedStream.isLive 
+        zegoRoomId: updatedStream.zegoRoomId,
+        zegoStreamId: updatedStream.zegoStreamId 
       });
       res.json(updatedStream);
     } catch (error) {
@@ -3114,7 +2977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For now, save to database using direct Drizzle
       const [message] = await db.insert(chatMessages).values({
-        userId: senderId,
+        senderId,
         recipientId,
         content,
         messageType: messageType || 'text',

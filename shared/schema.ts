@@ -56,14 +56,6 @@ export const users = pgTable("users", {
   verifiedEmail: varchar("verified_email"), // Email used for verification
   verificationBadge: varchar("verification_badge").default("LaaBoBo"), // Verification badge text
   verifiedAt: timestamp("verified_at"), // When account was verified
-  // MFA fields
-  mfaSecret: varchar("mfa_secret"), // Base32 encoded secret for TOTP
-  mfaEnabled: boolean("mfa_enabled").default(false), // Whether MFA is enabled
-  mfaBackupCodes: text("mfa_backup_codes").array(), // JSON array of backup codes
-  mfaEnabledAt: timestamp("mfa_enabled_at"), // When MFA was enabled
-  // Password Reset fields
-  passwordResetToken: varchar("password_reset_token"), // Token for password reset
-  passwordResetExpiry: varchar("password_reset_expiry"), // Token expiry date/time as ISO string
   // Account privacy settings
   isPrivateAccount: boolean("is_private_account").default(false),
   allowDirectMessages: boolean("allow_direct_messages").default(true),

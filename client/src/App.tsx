@@ -53,12 +53,7 @@ import GiftDemoPage from "@/pages/gift-demo";
 import NotificationsPage from "@/pages/notifications";
 import PrivacyPolicyPage from "@/pages/privacy-policy";
 import AdminDashboardPage from "@/pages/admin-dashboard";
-import MFASetupPage from "@/pages/mfa-setup";
-import MFALoginPage from "@/pages/mfa-login";
 import OwnerWelcomePage from "@/pages/owner-welcome";
-import ForgotPasswordPage from "@/pages/forgot-password";
-import ResetPasswordPage from "@/pages/reset-password";
-
 
 import { LanguageOption } from "@/types";
 
@@ -138,7 +133,6 @@ function Router() {
           <Route path="/gift-demo" component={GiftDemoPage} />
           <Route path="/notifications" component={NotificationsPage} />
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
-          <Route path="/mfa-setup" component={MFASetupPage} />
           <Route path="/owner-welcome" component={OwnerWelcomePage} />
             </>
           )}
@@ -149,9 +143,6 @@ function Router() {
           <Route path="/landing" component={Landing} />
           <Route path="/login" component={LoginPage} />
           <Route path="/register" component={RegisterPage} />
-          <Route path="/mfa-login" component={MFALoginPage} />
-          <Route path="/forgot-password" component={ForgotPasswordPage} />
-          <Route path="/reset-password" component={ResetPasswordPage} />
           <Route component={LoginPage} />
         </>
       )}

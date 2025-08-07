@@ -13,7 +13,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
-
 const loginSchema = z.object({
   username: z.string().min(1, "اسم المستخدم مطلوب"),
   password: z.string().min(1, "كلمة المرور مطلوبة"),
@@ -169,7 +168,6 @@ export default function Login() {
                   variant="link"
                   className="text-[#e019ca] hover:text-white text-sm p-0 h-auto"
                   type="button"
-                  onClick={() => navigate("/forgot-password")}
                 >
                   نسيت كلمة المرور؟
                 </Button>
