@@ -196,28 +196,40 @@ export default function AdminDashboard() {
     );
   }
 
-  // Fetch admin statistics
+  // Fetch admin statistics - only if access is verified
   const { data: stats } = useQuery({
     queryKey: ['/api/admin/stats'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/stats', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      return response.json();
-    }
+      try {
+        const response = await fetch('/api/admin/stats', {
+          credentials: 'include'
+        });
+        if (!response.ok) return null;
+        return response.json();
+      } catch (error) {
+        console.log('Stats fetch error:', error);
+        return null;
+      }
+    },
+    enabled: accessVerified
   });
 
-  // Fetch all users
+  // Fetch all users - only if access is verified
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['/api/admin/users'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/users', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch users');
-      return response.json();
-    }
+      try {
+        const response = await fetch('/api/admin/users', {
+          credentials: 'include'
+        });
+        if (!response.ok) return [];
+        return response.json();
+      } catch (error) {
+        console.log('Users fetch error:', error);
+        return [];
+      }
+    },
+    enabled: accessVerified
   });
 
   // Verify user mutation
@@ -282,7 +294,7 @@ export default function AdminDashboard() {
     }
   });
 
-  const filteredUsers = users.filter((user: User) =>
+  const filteredUsers = (users || []).filter((user: User) =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.firstName?.toLowerCase().includes(searchQuery.toLowerCase())

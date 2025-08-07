@@ -3421,13 +3421,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get('/api/admin/stats', requireAuth, async (req: any, res) => {
+  app.get('/api/admin/stats', requireAuth, checkSuperAdmin, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.id);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-      
       const stats = await storage.getStreamingStats();
       res.json(stats);
     } catch (error) {
