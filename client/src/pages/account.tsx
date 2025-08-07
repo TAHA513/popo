@@ -11,6 +11,7 @@ import { User, Mail, Phone, Calendar, CreditCard, UserPlus, Camera, Upload, Shie
 import { toast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { MFAStatus } from "@/components/MFAStatus";
 
 export default function AccountPage() {
   const { user } = useAuth();
@@ -293,26 +294,7 @@ export default function AccountPage() {
                 <hr className="my-6" />
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                        <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div>
-                        <Label className="text-base font-semibold">التحقق بخطوتين</Label>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">أضف طبقة حماية إضافية لحسابك</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.href = '/mfa-setup'}
-                      className="flex items-center gap-2"
-                    >
-                      <Key className="w-4 h-4" />
-                      تفعيل
-                    </Button>
-                  </div>
+                  <MFAStatus />
                   
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-start gap-3">
