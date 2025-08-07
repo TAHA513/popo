@@ -4,7 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
-import { requireAuth, requireAdmin } from "./localAuth";
+import { requireAuth, optionalAuth, getUserId, getUser } from "./middleware/clerkAuth.js";
+import { ClerkStorageAdapter } from "./clerk-storage-adapter.js";
 import { sql } from "drizzle-orm";
 import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
@@ -329,6 +330,9 @@ function setupMFARoutes(app: Express) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize Clerk storage adapter
+  const clerkAdapter = new ClerkStorageAdapter(storage);
+  
   // Initialize gift characters
   await initializeGiftCharacters();
   
