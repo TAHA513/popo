@@ -148,26 +148,14 @@ export default function AdminDashboard() {
     }
   }, [user]);
 
-  // Loading state
-  if (!user) {
+  // Loading and authentication check combined
+  if (!user || !isAuthenticated || !systemOwnerEmails.includes(user.email || '')) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-black flex items-center justify-center">
-        <div className="text-white text-lg">جاري التحميل...</div>
-      </div>
-    );
-  }
-  
-  // Authentication check
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4 bg-gray-900 border-red-600 border-2">
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-black to-red-900 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4 bg-gray-900/90 border-red-500 border-2 shadow-2xl backdrop-blur-sm">
           <CardContent className="p-8 text-center">
-            <div className="mb-6">
-              <div className="text-6xl mb-4">🚫</div>
-              <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            </div>
-            <h2 className="text-2xl font-bold mb-4 text-red-400">ACCESS DENIED</h2>
+            <div className="text-6xl mb-4">🚫</div>
+            <h2 className="text-2xl font-bold text-red-400 mb-4">Access Denied</h2>
             <p className="text-gray-300 mb-4">Unauthorized Access Attempt Detected</p>
             <p className="text-xs text-gray-500">LaaBoBo Security System - Owner Only</p>
             <div className="mt-6 p-3 bg-red-900/30 rounded-lg border border-red-600">
@@ -178,6 +166,8 @@ export default function AdminDashboard() {
       </div>
     );
   }
+  
+
 
   // Security verification check
   if (!accessVerified) {
