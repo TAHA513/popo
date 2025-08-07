@@ -69,7 +69,7 @@ export default function PointPackages() {
 
         {/* Package Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {packages.map((pkg: PointPackage) => (
+          {(packages as PointPackage[]).map((pkg: PointPackage) => (
             <Card key={pkg.id} className={`relative overflow-hidden transition-all duration-300 hover:scale-105 ${pkg.isPopular ? 'border-2 border-yellow-400 shadow-xl shadow-yellow-400/20' : 'border-white/20'} bg-white/10 backdrop-blur-sm text-white`}>
               {pkg.isPopular && (
                 <div className="absolute top-4 left-4">
@@ -131,8 +131,19 @@ export default function PointPackages() {
           ))}
         </div>
 
+        {/* Pricing Info */}
+        <div className="mt-8 bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-sm rounded-xl p-6 border border-green-400/30">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white mb-2">💎 تسعير النقاط</h2>
+            <div className="text-green-300 text-lg font-semibold">
+              كل 100 نقطة = 1.30 دولار أمريكي
+            </div>
+            <p className="text-green-200 mt-2">احصل على نقاط إضافية مجانية مع الباقات الأكبر!</p>
+          </div>
+        </div>
+
         {/* Info Section */}
-        <div className="mt-12 bg-white/10 backdrop-blur-sm rounded-xl p-6">
+        <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl p-6">
           <h2 className="text-xl font-bold text-white mb-4">كيفية استخدام النقاط</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-pink-200">
             <div className="text-center">
@@ -140,7 +151,7 @@ export default function PointPackages() {
                 <Zap className="h-6 w-6 text-white" />
               </div>
               <h3 className="font-medium mb-1">إرسال الهدايا</h3>
-              <p className="text-sm">أرسل هدايا للمبدعين في البث المباشر</p>
+              <p className="text-sm">أرسل هدايا رقمية للأصدقاء والمبدعين</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-2">

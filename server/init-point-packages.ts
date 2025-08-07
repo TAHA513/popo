@@ -2,65 +2,65 @@ import { db } from "./db";
 import { pointPackages } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-// Point packages data
+// Point packages data - سعر النقطة: كل 100 نقطة = 1.30 دولار
 const packages = [
   {
-    name: "حزمة صغيرة",
-    pointAmount: 100,
-    priceInCents: 499, // $4.99
-    priceDisplay: "$4.99",
+    name: "باقة البداية", // ~384 نقطة مقابل 5 دولار
+    pointAmount: 400,
+    priceInCents: 500, // $5.00
+    priceDisplay: "$5.00",
     currency: "USD",
-    bonusPoints: 10,
+    bonusPoints: 16, // مكافأة إضافية 4%
     isPopular: false,
     displayOrder: 1,
   },
   {
-    name: "حزمة متوسطة",
-    pointAmount: 250,
-    priceInCents: 999, // $9.99
-    priceDisplay: "$9.99",
+    name: "باقة شائعة", // ~769 نقطة مقابل 10 دولار
+    pointAmount: 800,
+    priceInCents: 1000, // $10.00
+    priceDisplay: "$10.00",
     currency: "USD",
-    bonusPoints: 50,
+    bonusPoints: 50, // مكافأة إضافية 6.25%
     isPopular: true,
     displayOrder: 2,
   },
   {
-    name: "حزمة كبيرة",
-    pointAmount: 500,
-    priceInCents: 1999, // $19.99
-    priceDisplay: "$19.99",
+    name: "باقة رائعة", // ~1538 نقطة مقابل 20 دولار
+    pointAmount: 1600,
+    priceInCents: 2000, // $20.00
+    priceDisplay: "$20.00",
     currency: "USD",
-    bonusPoints: 150,
+    bonusPoints: 140, // مكافأة إضافية 8.75%
     isPopular: false,
     displayOrder: 3,
   },
   {
-    name: "حزمة ضخمة",
-    pointAmount: 1000,
-    priceInCents: 3499, // $34.99
-    priceDisplay: "$34.99",
+    name: "باقة متميزة", // ~3846 نقطة مقابل 50 دولار
+    pointAmount: 4000,
+    priceInCents: 5000, // $50.00
+    priceDisplay: "$50.00",
     currency: "USD",
-    bonusPoints: 400,
+    bonusPoints: 400, // مكافأة إضافية 10%
     isPopular: false,
     displayOrder: 4,
   },
   {
-    name: "حزمة ممتازة",
-    pointAmount: 2500,
-    priceInCents: 7999, // $79.99
-    priceDisplay: "$79.99",
+    name: "باقة ملكية", // ~7692 نقطة مقابل 100 دولار
+    pointAmount: 8000,
+    priceInCents: 10000, // $100.00
+    priceDisplay: "$100.00",
     currency: "USD",
-    bonusPoints: 1250,
+    bonusPoints: 1000, // مكافأة إضافية 12.5%
     isPopular: false,
     displayOrder: 5,
   },
   {
-    name: "حزمة الملك",
-    pointAmount: 5000,
-    priceInCents: 14999, // $149.99
-    priceDisplay: "$149.99",
+    name: "باقة الأسطورة", // ~15384 نقطة مقابل 200 دولار
+    pointAmount: 16000,
+    priceInCents: 20000, // $200.00
+    priceDisplay: "$200.00",
     currency: "USD",
-    bonusPoints: 3000,
+    bonusPoints: 2500, // مكافأة إضافية 15.6%
     isPopular: false,
     displayOrder: 6,
   },
