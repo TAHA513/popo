@@ -1049,7 +1049,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
-// Reserved usernames validation
+// Reserved usernames validation with advanced protection
 const isUsernameReserved = (username: string): boolean => {
   const reservedUsernames = [
     'LaaBoBo', 'laabobe', 'LAABOBE', 'Laabobe', 'laaBoBo', 'laaboBo', 'lAaBoBo',
@@ -1058,13 +1058,46 @@ const isUsernameReserved = (username: string): boolean => {
     'test', 'demo', 'guest', 'user', 'public', 'private',
     'moderator', 'mod', 'staff', 'team', 'service', 'security'
   ];
-  return reservedUsernames.includes(username.toLowerCase());
+  
+  // Clean the username by removing spaces, special characters, and normalizing
+  const cleanedUsername = username
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '') // Remove all spaces
+    .replace(/[._-]/g, '') // Remove dots, underscores, dashes
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width spaces
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove diacritics
+  
+  // Check against all reserved usernames with same cleaning
+  return reservedUsernames.some(reserved => {
+    const cleanedReserved = reserved
+      .toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/[._-]/g, '')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    return cleanedUsername === cleanedReserved || 
+           cleanedUsername.includes(cleanedReserved) ||
+           cleanedReserved.includes(cleanedUsername);
+  });
 };
 
 export const registerSchema = z.object({
   username: z.string()
     .min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل")
     .max(20, "اسم المستخدم لا يمكن أن يزيد عن 20 حرف")
+    .refine((username) => {
+      // No leading or trailing spaces
+      if (username !== username.trim()) {
+        return false;
+      }
+      // No multiple consecutive spaces
+      if (/\s{2,}/.test(username)) {
+        return false;
+      }
+      return true;
+    }, "اسم المستخدم لا يمكن أن يحتوي على مسافات في البداية أو النهاية أو مسافات متتالية")
     .refine((username) => !isUsernameReserved(username), "هذا الاسم محجوز ولا يمكن استخدامه - يرجى اختيار اسم مستخدم آخر"),
   firstName: z.string().min(2, "الاسم الأول مطلوب"),
   lastName: z.string().min(2, "الاسم الأخير مطلوب"),

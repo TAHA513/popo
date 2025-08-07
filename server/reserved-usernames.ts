@@ -20,7 +20,28 @@ export const reservedUsernames = [
 ];
 
 export function isUsernameReserved(username: string): boolean {
-  return reservedUsernames.includes(username.toLowerCase());
+  // Clean the username by removing spaces, special characters, and normalizing
+  const cleanedUsername = username
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '') // Remove all spaces
+    .replace(/[._-]/g, '') // Remove dots, underscores, dashes
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width spaces and similar
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove diacritics
+  
+  // Check against all reserved usernames with same cleaning
+  return reservedUsernames.some(reserved => {
+    const cleanedReserved = reserved
+      .toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/[._-]/g, '')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    return cleanedUsername === cleanedReserved || 
+           cleanedUsername.includes(cleanedReserved) ||
+           cleanedReserved.includes(cleanedUsername);
+  });
 }
 
 export function getReservedUsernameError(): string {
