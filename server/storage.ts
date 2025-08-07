@@ -373,6 +373,32 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  // MFA Methods
+  async enableMFAForUser(userId: string, secret: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        mfaSecret: secret,
+        mfaEnabled: true,
+        mfaEnabledAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async disableMFAForUser(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        mfaSecret: null,
+        mfaEnabled: false,
+        mfaBackupCodes: null,
+        mfaEnabledAt: null,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+  }
+
   // Stream operations
   async createStream(streamData: InsertStream): Promise<Stream> {
     const [stream] = await db.insert(streams).values(streamData).returning();

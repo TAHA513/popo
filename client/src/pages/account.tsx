@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Calendar, CreditCard, UserPlus, Camera, Upload } from "lucide-react";
+import { User, Mail, Phone, Calendar, CreditCard, UserPlus, Camera, Upload, Shield, Key } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -289,6 +289,47 @@ export default function AccountPage() {
                 <Button className="gradient-bg text-white">
                   تحديث كلمة المرور
                 </Button>
+                
+                <hr className="my-6" />
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                        <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <Label className="text-base font-semibold">التحقق بخطوتين</Label>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">أضف طبقة حماية إضافية لحسابك</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.href = '/mfa-setup'}
+                      className="flex items-center gap-2"
+                    >
+                      <Key className="w-4 h-4" />
+                      تفعيل
+                    </Button>
+                  </div>
+                  
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <div className="p-1 bg-blue-100 dark:bg-blue-900 rounded-full mt-1">
+                        <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="text-sm">
+                        <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                          ماذا يعني التحقق بخطوتين؟
+                        </p>
+                        <p className="text-blue-700 dark:text-blue-300">
+                          يتطلب رمز أمان من تطبيق المصادقة في هاتفك عند تسجيل الدخول. هذا يحمي حسابك حتى لو تم اختراق كلمة المرور.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

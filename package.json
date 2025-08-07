@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@auth0/nextjs-auth0": "^4.9.0",
     "@google-cloud/storage": "^7.16.0",
     "@headlessui/react": "^2.2.4",
     "@hookform/resolvers": "^3.10.0",
@@ -58,6 +59,7 @@
     "@uppy/file-input": "^4.2.2",
     "@uppy/progress-bar": "^4.3.2",
     "@uppy/react": "^4.5.2",
+    "auth0": "^4.28.0",
     "bcryptjs": "^3.0.2",
     "cannon-es": "^0.20.0",
     "class-variance-authority": "^0.7.1",
@@ -84,6 +86,7 @@
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "phaser": "^3.90.0",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -93,6 +96,7 @@
     "recharts": "^2.15.2",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "speakeasy": "^2.0.0",
     "stats.js": "^0.17.0",
     "stripe": "^18.4.0",
     "tailwind-merge": "^2.6.0",
