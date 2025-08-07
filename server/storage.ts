@@ -341,6 +341,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async isUsernameAvailable(username: string): Promise<boolean> {
+    const { isUsernameReserved } = await import('./reserved-usernames.js');
+    
+    // Check if username is reserved
+    if (isUsernameReserved(username)) {
+      return false;
+    }
+    
     const [existingUser] = await db
       .select({ id: users.id })
       .from(users)

@@ -1049,8 +1049,23 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+// Reserved usernames validation
+const isUsernameReserved = (username: string): boolean => {
+  const reservedUsernames = [
+    'LaaBoBo', 'laabobe', 'LAABOBE', 'Laabobe', 'laaBoBo', 'laaboBo', 'lAaBoBo',
+    'admin', 'administrator', 'root', 'owner', 'official',
+    'support', 'help', 'system', 'api', 'www', 'mail',
+    'test', 'demo', 'guest', 'user', 'public', 'private',
+    'moderator', 'mod', 'staff', 'team', 'service', 'security'
+  ];
+  return reservedUsernames.includes(username.toLowerCase());
+};
+
 export const registerSchema = z.object({
-  username: z.string().min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل").max(20, "اسم المستخدم لا يمكن أن يزيد عن 20 حرف"),
+  username: z.string()
+    .min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل")
+    .max(20, "اسم المستخدم لا يمكن أن يزيد عن 20 حرف")
+    .refine((username) => !isUsernameReserved(username), "هذا الاسم محجوز ولا يمكن استخدامه - يرجى اختيار اسم مستخدم آخر"),
   firstName: z.string().min(2, "الاسم الأول مطلوب"),
   lastName: z.string().min(2, "الاسم الأخير مطلوب"),
   email: z.string().email("البريد الإلكتروني غير صالح"),
