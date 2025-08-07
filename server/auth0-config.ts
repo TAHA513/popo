@@ -80,16 +80,25 @@ export function verifyTOTPCode(secret: string, token: string) {
 // Send password reset email
 export async function sendPasswordResetEmail(email: string) {
   try {
+    // First, find the user to get their proper user_id
+    const users = await managementClient.users.getByEmail(email);
+    
+    if (!users || users.length === 0) {
+      throw new Error('User not found in Auth0');
+    }
+    
+    const userId = users[0].user_id;
+    
     const ticket = await managementClient.tickets.createPasswordChange({
-      user_id: `email|${email}`,
+      user_id: userId,
       result_url: `${process.env.REPL_SLUG || 'http://localhost:5000'}/reset-password-complete`,
       ttl_sec: 3600 // 1 hour expiry
     });
     
-    console.log('✅ Password reset email sent via Auth0:', ticket.ticket);
+    console.log('✅ رسالة إعادة التعيين تم إرسالها عبر Auth0:', ticket.ticket);
     return ticket;
   } catch (error) {
-    console.error('❌ Error sending password reset email:', error);
+    console.error('❌ خطأ في إرسال رسالة Auth0:', error);
     throw error;
   }
 }

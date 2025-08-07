@@ -24,8 +24,9 @@ app.post('/api/forgot-password', async (req, res) => {
 
     console.log('🔐 طلب إعادة تعيين كلمة المرور للإيميل:', email);
 
-    // Import storage here to avoid circular dependency
+    // Import storage and email service
     const { storage } = await import("./storage");
+    const { emailService } = await import("./email-service");
     
     // Check if user exists in our database
     const user = await storage.getUserByEmailAddress(email);
@@ -37,8 +38,7 @@ app.post('/api/forgot-password', async (req, res) => {
       console.log('⚠️ البريد الإلكتروني غير مسجل:', email);
       return res.json({ 
         success: true, 
-        message: successMessage,
-        userExists: false // For testing only
+        message: successMessage
       });
     }
 
@@ -57,13 +57,29 @@ app.post('/api/forgot-password', async (req, res) => {
     // Generate reset URL
     const resetUrl = `${req.get('host') ? `http://${req.get('host')}` : 'http://localhost:5000'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
     
-    res.json({ 
-      success: true, 
-      message: "تم إرسال رابط إعادة تعيين كلمة المرور بنجاح",
-      resetUrl, // In production, remove this and send via email
-      resetToken, // For testing purposes
-      userExists: true // For testing only
-    });
+    // Try to send email if email service is configured
+    let emailSent = false;
+    if (emailService.isConfigured()) {
+      try {
+        emailSent = await emailService.sendPasswordResetEmail(email, resetToken, resetUrl);
+      } catch (error) {
+        console.error('❌ فشل في إرسال البريد الإلكتروني:', error);
+      }
+    }
+
+    if (emailSent) {
+      res.json({ 
+        success: true, 
+        message: "تم إرسال رسالة إعادة تعيين كلمة المرور إلى بريدك الإلكتروني"
+      });
+    } else {
+      res.json({ 
+        success: true, 
+        message: "تم إنشاء رابط إعادة تعيين كلمة المرور",
+        resetUrl, // Remove in production when email service is working
+        resetToken // For testing purposes
+      });
+    }
 
   } catch (error) {
     console.error('❌ خطأ في إعادة تعيين كلمة المرور:', error);
