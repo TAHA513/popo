@@ -25,7 +25,7 @@ app.post('/api/forgot-password', async (req, res) => {
     console.log('🔐 طلب إعادة تعيين كلمة المرور للإيميل:', email);
 
     // Import Auth0 functions and storage
-    const { sendPasswordResetEmail } = await import("./auth0-config");
+    const { sendPasswordResetEmail, createAuth0User } = await import("./auth0-config");
     const { storage } = await import("./storage");
     
     // Always return success message for security
@@ -40,9 +40,10 @@ app.post('/api/forgot-password', async (req, res) => {
     
     if (localUser && localUser.length > 0) {
       console.log('✅ المستخدم موجود في قاعدة البيانات المحلية');
+      const userData = localUser[0];
       
       try {
-        // Send password reset email via Auth0 directly
+        // Send password reset email via Auth0 directly (user might exist in Auth0)
         console.log('🔍 إرسال رسالة إعادة التعيين عبر Auth0...');
         const resetResult = await sendPasswordResetEmail(email);
         
@@ -52,6 +53,9 @@ app.post('/api/forgot-password', async (req, res) => {
         
       } catch (error) {
         console.error('❌ خطأ في إرسال رسالة Auth0:', error);
+        
+        // If Auth0 fails, the user needs to be created in Auth0 first manually
+        console.log('📋 المستخدم بحاجة إلى إنشاء حساب Auth0 يدوياً أو إعداد Auth0 بشكل صحيح');
       }
     } else {
       console.log('⚠️ المستخدم غير موجود في قاعدة البيانات المحلية');

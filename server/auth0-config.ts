@@ -86,7 +86,7 @@ async function getManagementToken() {
       body: JSON.stringify({
         client_id: auth0Config.clientId,
         client_secret: auth0Config.clientSecret,
-        audience: `https://${auth0Config.domain}/api/v2/`,
+        audience: auth0Config.audience || `https://${auth0Config.domain}/api/v2/`,
         grant_type: 'client_credentials'
       })
     });
@@ -150,33 +150,48 @@ export async function sendPasswordResetEmail(email: string) {
   }
 }
 
-// Get or create Auth0 user by email
-export async function getOrCreateAuth0User(email: string, password?: string) {
+// Create Auth0 user using Database Connection signup
+export async function createAuth0User(email: string, password: string) {
   try {
-    // Search for existing user using getUsersByEmail
-    const users = await managementClient.getUsersByEmail(email);
+    console.log('🔄 إنشاء مستخدم جديد في Auth0 عبر Database Connection:', email);
     
-    if (users && users.length > 0) {
-      return users[0];
-    }
-    
-    // If user doesn't exist and password provided, create user
-    if (password) {
-      console.log('🔄 إنشاء مستخدم جديد في Auth0:', email);
-      const newUser = await managementClient.users.create({
-        email: email,
-        password: password,
+    const response = await fetch(`https://${auth0Config.domain}/dbconnections/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        client_id: auth0Config.clientId,
         connection: 'Username-Password-Authentication',
-        email_verified: false
-      });
-      console.log('✅ تم إنشاء مستخدم جديد في Auth0:', newUser.user_id);
-      return newUser;
+        email: email,
+        password: password
+      })
+    });
+
+    if (!response.ok) {
+      let errorMessage = response.statusText;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.description || errorData.message || errorMessage;
+        console.log('📊 تفاصيل خطأ إنشاء المستخدم:', JSON.stringify(errorData, null, 2));
+        
+        // If user already exists, that's fine
+        if (errorData.code === 'user_exists' || errorMessage.includes('already exists')) {
+          console.log('✅ المستخدم موجود مسبقاً في Auth0');
+          return { success: true, message: 'User already exists' };
+        }
+      } catch (e) {
+        console.log('📊 Auth0 Signup Response Status:', response.status, response.statusText);
+      }
+      
+      throw new Error(`Auth0 Signup Error: ${errorMessage}`);
     }
-    
-    // If user doesn't exist and no password, return null
-    return null;
+
+    const result = await response.json();
+    console.log('✅ تم إنشاء مستخدم جديد في Auth0:', result.email || email);
+    return { success: true, user: result };
   } catch (error) {
-    console.error('Error searching/creating Auth0 user:', error);
+    console.error('❌ خطأ في إنشاء مستخدم Auth0:', error);
     throw error;
   }
 }
