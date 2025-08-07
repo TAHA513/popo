@@ -1,0 +1,76 @@
+{id: 'OWNER-20272f7e3fcd03f5aa22', username: 'LaaBoBo_Owner', firstName: 'System', lastName: 'Owner', email: 'fnnm945@gmail.com', …}
+admin-dashboard.tsx:82 System Owner Emails: 
+['fnnm945@gmail.com']
+admin-dashboard.tsx:85 System owner verified, granting access
+admin-dashboard.tsx:81 Admin Dashboard - User: 
+{id: 'OWNER-20272f7e3fcd03f5aa22', username: 'LaaBoBo_Owner', firstName: 'System', lastName: 'Owner', email: 'fnnm945@gmail.com', …}
+admin-dashboard.tsx:82 System Owner Emails: 
+['fnnm945@gmail.com']
+admin-dashboard.tsx:85 System owner verified, granting access
+admin-dashboard.tsx:206 
+ Warning: React has detected a change in the order of Hooks called by AdminDashboard. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useContext                 useContext
+2. useContext                 useContext
+3. useContext                 useContext
+4. useEffect                  useEffect
+5. useState                   useState
+6. useCallback                useCallback
+7. useSyncExternalStore       useSyncExternalStore
+8. useEffect                  useEffect
+9. useContext                 useContext
+10. useSyncExternalStore      useSyncExternalStore
+11. useRef                    useRef
+12. useInsertionEffect        useInsertionEffect
+13. useState                  useState
+14. useState                  useState
+15. useState                  useState
+16. useState                  useState
+17. useState                  useState
+18. useState                  useState
+19. useState                  useState
+20. useState                  useState
+21. useState                  useState
+22. useEffect                 useEffect
+23. useEffect                 useEffect
+24. undefined                 useContext
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    at AdminDashboard (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/pages/admin-dashboard.tsx?t=1754559945888:46:37)
+    at Route (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=504ca7ba:265:16)
+    at Suspense
+    at Switch (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=504ca7ba:321:17)
+    at Router (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?t=1754559945888&v=br99MUDlzzxREs0GUIRid:70:48)
+    at div
+    at StreamProvider (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/contexts/StreamContext.tsx:29:34)
+    at QueryClientProvider (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=504ca7ba:2805:3)
+    at App (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?t=1754559945888&v=br99MUDlzzxREs0GUIRid:393:35)
+2
+react-dom.development.js:15688 
+ Uncaught Error: Rendered more hooks than during the previous render.
+    at AdminDashboard (admin-dashboard.tsx:206:27)
+2
+react-dom.development.js:15688 
+ Uncaught Error: Rendered more hooks than during the previous render.
+    at AdminDashboard (admin-dashboard.tsx:206:27)
+2
+react-dom.development.js:18704 
+ The above error occurred in the <AdminDashboard> component:
+
+    at AdminDashboard (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/pages/admin-dashboard.tsx?t=1754559945888:46:37)
+    at Route (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=504ca7ba:265:16)
+    at Suspense
+    at Switch (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=504ca7ba:321:17)
+    at Router (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?t=1754559945888&v=br99MUDlzzxREs0GUIRid:70:48)
+    at div
+    at StreamProvider (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/contexts/StreamContext.tsx:29:34)
+    at QueryClientProvider (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=504ca7ba:2805:3)
+    at App (https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/src/App.tsx?t=1754559945888&v=br99MUDlzzxREs0GUIRid:393:35)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+react-dom.development.js:15688 
+ Uncaught Error: Rendered more hooks than during the previous render.
+    at AdminDashboard (admin-dashboard.tsx:206:27)
