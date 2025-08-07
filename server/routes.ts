@@ -2,8 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import * as speakeasy from 'speakeasy';
-import * as QRCode from 'qrcode';
+import { generateMFASecret, generateQRCode, verifyTOTP, generateBackupCodes } from './auth0-config.js';
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
 import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema } from "@shared/schema";
@@ -203,23 +202,19 @@ function setupMFARoutes(app: Express) {
       const userId = req.user.id;
       const username = req.user.username;
       
-      // Generate secret
-      const secret = speakeasy.generateSecret({
-        name: `LaaBoBo (${username})`,
-        issuer: 'LaaBoBo',
-        length: 32
-      });
-
+      // Generate secret using our config
+      const secretData = generateMFASecret(username);
+      
       // Generate QR code URL
-      const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+      const qrCodeUrl = await generateQRCode(secretData.otpauth_url);
 
-      // Store secret temporarily (you might want to save this to database)
-      req.session.mfaSecret = secret.base32;
+      // Store secret temporarily
+      req.session.mfaSecret = secretData.secret;
 
       res.json({
-        secret: secret.base32,
+        secret: secretData.secret,
         qrCodeUrl,
-        manualEntryKey: secret.base32
+        manualEntryKey: secretData.secret
       });
     } catch (error) {
       console.error('Error generating MFA secret:', error);
@@ -237,13 +232,8 @@ function setupMFARoutes(app: Express) {
         return res.status(400).json({ message: 'Secret and token are required' });
       }
 
-      // Verify the token
-      const verified = speakeasy.totp.verify({
-        secret,
-        encoding: 'base32',
-        token,
-        window: 2
-      });
+      // Verify the token using our function
+      const verified = verifyTOTP(secret, token, 2);
 
       if (!verified) {
         return res.status(400).json({ message: 'رمز التحقق غير صحيح' });
@@ -273,13 +263,8 @@ function setupMFARoutes(app: Express) {
         return res.status(400).json({ message: 'المستخدم غير موجود أو لم يفعل التحقق بخطوتين' });
       }
 
-      // Verify the token
-      const verified = speakeasy.totp.verify({
-        secret: user.mfaSecret,
-        encoding: 'base32',
-        token,
-        window: 2
-      });
+      // Verify the token using our function
+      const verified = verifyTOTP(user.mfaSecret, token, 2);
 
       if (!verified) {
         return res.status(400).json({ message: 'رمز التحقق غير صحيح' });
