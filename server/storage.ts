@@ -136,6 +136,7 @@ export interface IStorage {
   isUsernameAvailable(username: string): Promise<boolean>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
   updateUserPoints(userId: string, newPoints: number): Promise<void>;
+  updateUserPassword(email: string, newPassword: string): Promise<boolean>;
   
   // Stream operations
   createStream(stream: InsertStream): Promise<Stream>;
@@ -403,6 +404,27 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(users.id, userId));
+  }
+
+  async updateUserPassword(email: string, newPassword: string): Promise<boolean> {
+    try {
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      const result = await db
+        .update(users)
+        .set({ 
+          hashedPassword: hashedPassword,
+          updatedAt: new Date()
+        })
+        .where(eq(users.email, email))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error updating user password:', error);
+      return false;
+    }
   }
 
   // Stream operations
