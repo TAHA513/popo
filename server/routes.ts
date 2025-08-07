@@ -254,11 +254,11 @@ function setupMFARoutes(app: Express) {
     try {
       const { token } = req.body;
       
-      if (!req.session.pendingMFAUserId) {
+      if (!(req.session as any).pendingMFAUserId) {
         return res.status(400).json({ message: 'لا توجد عملية تسجيل دخول معلقة' });
       }
 
-      const user = await storage.getUserById(req.session.pendingMFAUserId);
+      const user = await storage.getUserById((req.session as any).pendingMFAUserId);
       if (!user || !user.mfaSecret) {
         return res.status(400).json({ message: 'المستخدم غير موجود أو لم يفعل التحقق بخطوتين' });
       }
@@ -276,7 +276,7 @@ function setupMFARoutes(app: Express) {
           return res.status(500).json({ message: 'فشل في تسجيل الدخول' });
         }
         
-        delete req.session.pendingMFAUserId;
+        delete (req.session as any).pendingMFAUserId;
         res.json({ message: 'تم تسجيل الدخول بنجاح', user });
       });
     } catch (error) {
