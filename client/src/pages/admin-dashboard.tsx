@@ -60,34 +60,39 @@ interface AdminStats {
 
 export default function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
+  
+  // All hooks must be called before any conditional returns
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationBadge, setVerificationBadge] = useState("LaaBoBo");
-  const { toast } = useToast();
-
-  // TikTok-style Multi-Layer Security Check
   const [accessVerified, setAccessVerified] = useState(false);
-  
   const [securityCode, setSecurityCode] = useState("");
   const [attempts, setAttempts] = useState(0);
-  const maxAttempts = 3;
+  const { toast } = useToast();
   
-  const systemOwnerEmails = ['fnnm945@gmail.com']; // مالك النظام الوحيد
+  const maxAttempts = 3;
+  const systemOwnerEmails = ['fnnm945@gmail.com'];
   const secretCode = "LaaBoBo2025Owner";
 
-  // Auto-verify access for system owner on direct navigation
+  // Auto-verify access for system owner
   useEffect(() => {
-    console.log('User data:', user);
-    console.log('System owner emails:', systemOwnerEmails);
     if (user && user.email && systemOwnerEmails.includes(user.email)) {
-      console.log('System owner detected - auto-verifying access');
       setAccessVerified(true);
     }
   }, [user]);
+
+  // Loading state
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-black flex items-center justify-center">
+        <div className="text-white text-lg">جاري التحميل...</div>
+      </div>
+    );
+  }
   
-  // First layer: User authentication and role check (DISABLED for system owner)
+  // Authentication check
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -294,7 +299,7 @@ export default function AdminDashboard() {
             <Crown className="h-8 w-8 text-yellow-500" />
             <h1 className="text-3xl font-bold text-gray-900">لوحة التحكم الإدارية</h1>
           </div>
-          <p className="text-gray-600">مرحباً {user.firstName || user.username}، إليك نظرة شاملة على المنصة</p>
+          <p className="text-gray-600">مرحباً {user?.firstName || user?.username}، إليك نظرة شاملة على المنصة</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
