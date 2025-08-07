@@ -89,12 +89,8 @@ function Router() {
           {/* System owner gets admin panel only - no other pages */}
           {user?.email === 'fnnm945@gmail.com' ? (
             <>
-              <Route path="/" component={AdminDashboardPage} />
               <Route path="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard" component={AdminDashboardPage} />
-              {/* Block all other routes for system owner */}
-              <Route>
-                <AdminDashboardPage />
-              </Route>
+              <Route component={AdminDashboardPage} />
             </>
           ) : (
             <>
@@ -138,7 +134,6 @@ function Router() {
           <Route path="/notifications" component={NotificationsPage} />
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
           <Route path="/owner-welcome" component={OwnerWelcomePage} />
-          <Route path="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard" component={AdminDashboardPage} />
             </>
           )}
         </Suspense>
