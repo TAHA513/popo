@@ -13,7 +13,7 @@ import {
 
 export default function Landing() {
   const { theme, toggleTheme } = useTheme();
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('ar');
   
   const handleLogin = () => {
     window.location.href = "/login";

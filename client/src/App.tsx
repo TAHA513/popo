@@ -155,7 +155,7 @@ function Router() {
 }
 
 function App() {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar');
 
   useEffect(() => {
     // Set document direction and language
