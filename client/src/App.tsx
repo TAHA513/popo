@@ -127,6 +127,7 @@ function Router() {
           <Route path="/wallet" component={WalletPage} />
           <Route path="/point-packages" component={PointPackages} />
           <Route path="/checkout" component={Checkout} />
+          <Route path="/back-to-packages" component={lazy(() => import('./pages/BackToPackages'))} />
           <Route path="/payment-history" component={PaymentHistory} />
           <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
           <Route path="/comments/:id" component={CommentsPage} />

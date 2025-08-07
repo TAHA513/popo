@@ -57,7 +57,7 @@ const CheckoutForm = ({ selectedPackage }: { selectedPackage: PointPackage | nul
         });
       } else if (paymentIntent.status === 'succeeded') {
         // Confirm payment with backend
-        const response = await apiRequest('POST', '/api/confirm-payment', {
+        const response = await apiRequest('/api/confirm-payment', 'POST', {
           paymentIntentId: paymentIntent.id
         });
 
@@ -147,7 +147,7 @@ export default function Checkout() {
     // Create payment intent
     const createPaymentIntent = async () => {
       try {
-        const response = await apiRequest('POST', '/api/create-payment-intent', { 
+        const response = await apiRequest('/api/create-payment-intent', 'POST', { 
           packageId: parseInt(packageId) 
         });
 
