@@ -54,7 +54,7 @@ export function registerStripeRoutes(app: Express) {
           packageId: packageId.toString(),
           packageName: pointPackage.name,
           pointAmount: pointPackage.pointAmount.toString(),
-          bonusPoints: pointPackage.bonusPoints.toString()
+          bonusPoints: (pointPackage.bonusPoints || 0).toString()
         }
       });
 

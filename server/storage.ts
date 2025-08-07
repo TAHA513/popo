@@ -75,6 +75,7 @@ import {
   type InsertAlbumAccess,
   type WalletTransaction,
   type PointPackage,
+  type InsertPointPackage,
   type InsertWalletTransaction,
   gameRooms,
   gameParticipants,
@@ -1122,55 +1123,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async purchasePoints(userId: string, packageId: number, stripePaymentId?: string): Promise<{ success: boolean; newBalance: number }> {
-    // Get the package details
-    const [pointPackage] = await db
-      .select()
-      .from(pointPackages)
-      .where(and(
-        eq(pointPackages.id, packageId),
-        eq(pointPackages.isActive, true)
-      ));
-
+    const pointPackage = await this.getPointPackageById(packageId);
     if (!pointPackage) {
-      throw new Error('حزمة النقاط غير موجودة أو غير متاحة');
+      throw new Error("حزمة النقاط غير موجودة");
     }
 
-    const totalPoints = pointPackage.pointAmount + pointPackage.bonusPoints;
+    const totalPoints = pointPackage.pointAmount + (pointPackage.bonusPoints || 0);
 
-    // Start transaction
-    return await db.transaction(async (tx) => {
-      // Update user points
-      await tx
-        .update(users)
-        .set({
-          points: sql`${users.points} + ${totalPoints}`,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, userId));
+    // Add points to wallet
+    await this.addPointsToWallet(userId, totalPoints, `شراء ${pointPackage.name}`);
 
-      // Create point transaction record
-      await tx
-        .insert(pointTransactions)
-        .values({
-          userId,
-          amount: totalPoints,
-          type: 'payment',
-          description: `شراء ${pointPackage.name} - ${totalPoints} نقطة`,
-          stripePaymentId,
-          paymentStatus: 'completed'
-        });
-
-      // Get updated balance
-      const [updatedUser] = await tx
-        .select({ points: users.points })
-        .from(users)
-        .where(eq(users.id, userId));
-
-      return {
-        success: true,
-        newBalance: updatedUser?.points || 0
-      };
+    // Record transaction
+    await this.createPointTransaction({
+      userId,
+      type: 'payment',
+      amount: totalPoints,
+      description: `شراء ${pointPackage.name}`,
+      stripePaymentId: stripePaymentId || null
     });
+
+    const newBalance = await this.getWalletBalance(userId);
+    return { success: true, newBalance };
   }
 
   // Memory Collection operations
