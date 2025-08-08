@@ -59,6 +59,7 @@ import NotificationsPage from "@/pages/notifications";
 import PrivacyPolicyPage from "@/pages/privacy-policy";
 import AdminDashboardPage from "@/pages/admin-dashboard";
 import OwnerWelcomePage from "@/pages/owner-welcome";
+import SearchPage from "@/pages/search";
 
 import { LanguageOption } from "@/types";
 
@@ -138,6 +139,7 @@ function Router() {
           <Route path="/gifts-test" component={GiftsTestPage} />
           <Route path="/gift-demo" component={GiftDemoPage} />
           <Route path="/notifications" component={NotificationsPage} />
+          <Route path="/search" component={SearchPage} />
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
           <Route path="/owner-welcome" component={OwnerWelcomePage} />
             </>

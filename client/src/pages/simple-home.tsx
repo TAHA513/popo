@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Bell, Mail } from "lucide-react";
+import { Bell, Mail, Search } from "lucide-react";
 
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
@@ -72,6 +72,15 @@ export default function SimpleHome() {
             
             {/* Action Buttons - Right Side */}
             <div className="flex items-center gap-2">
+              {/* Search Button */}
+              <button 
+                onClick={() => setLocation('/simple-explore')}
+                className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+                title="البحث عن فيديوهات وأشخاص"
+              >
+                <Search className="w-6 h-6" />
+              </button>
+
               {/* Notifications Button */}
               <button 
                 onClick={() => setLocation('/notifications')}
