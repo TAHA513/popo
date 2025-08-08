@@ -91,7 +91,7 @@ export default function ForgotPassword() {
               className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all px-2 py-1 h-8"
             >
               <Globe className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
-              <span className="text-sm">Language</span>
+              <span className="text-sm">{currentLanguage.flag}</span>
               <ChevronDown className={`w-2 h-2 ${isRTL ? 'mr-1' : 'ml-1'}`} />
             </Button>
           </DropdownMenuTrigger>
