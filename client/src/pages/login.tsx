@@ -96,7 +96,7 @@ export default function Login() {
       </div>
       
       {/* Language Switcher - Top Right */}
-      <div className="absolute top-4 right-4 z-50">
+      <div className="absolute top-4 right-4 z-50 flex flex-col items-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -122,6 +122,7 @@ export default function Login() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+        <span className="text-white/70 text-xs mt-1">Language</span>
       </div>
       
       <div className="relative min-h-screen flex items-center justify-center p-4">
