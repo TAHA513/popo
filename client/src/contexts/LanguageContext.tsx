@@ -335,6 +335,45 @@ const translations = {
     'auth.reset_error': 'حدث خطأ أثناء إرسال رابط الاستعادة',
     'auth.success_title': 'تم بنجاح',
     'auth.error_title': 'خطأ',
+    'auth.reset_password_error': 'حدث خطأ أثناء تعيين كلمة المرور',
+    'auth.create_new_account': 'إنشاء حساب جديد',
+    'auth.join_community': 'انضم إلى مجتمع LaaBoBo Live',
+    
+    // Account & Profile
+    'account.image_updated': 'تم تحديث الصورة',
+    'account.image_updated_success': 'تم تحديث صورتك الشخصية بنجاح',
+    'account.upload_failed': 'فشل رفع الصورة. حاول مرة أخرى.',
+    
+    // Upload
+    'upload.file_too_large': 'الملف كبير جداً',
+    'upload.image_size_limit': 'الحد الأقصى لحجم الصورة هو 5 ميجابايت',
+
+    // Navigation Additional
+    'nav.start_stream': 'ابدأ البث',
+    'nav.back': 'العودة',
+
+    // Stream/Chat
+    'stream.create_new_chat': 'إنشاء دردشة جديدة',
+    'stream.quick_chat': 'دردشة سريعة جديدة',
+    'stream.text_only': 'دردشة مباشرة نصية',
+    'stream.quick_category': 'دردشة سريعة',
+    'stream.creation_failed': 'فشل في إنشاء الدردشة',
+    'stream.login_required': 'يجب تسجيل الدخول أولاً',
+    'stream.no_permission': 'ليس لديك صلاحية لإنشاء دردشة',
+    'stream.title_placeholder': 'أدخل عنوان الدردشة',
+    'stream.description_placeholder': 'وصف مختصر للدردشة',
+    'stream.creating': 'جاري الإنشاء...',
+    'stream.create_button': 'إنشاء الدردشة',
+    'stream.text_only_desc': 'دردشة نصية فقط',
+    'stream.participants_can_join': 'يمكن للمستخدمين الانضمام وإرسال الرسائل النصية',
+
+    // Validation
+    'validation.title_required': 'يرجى إدخال عنوان للدردشة',
+
+    // Additional Stream/Chat Fields
+    'stream.chat_details': 'تفاصيل الدردشة',
+    'stream.chat_title': 'عنوان الدردشة',
+    'stream.chat_description': 'وصف الدردشة',
   },
   en: {
     // Login Page
@@ -635,6 +674,43 @@ const translations = {
     'auth.reset_error': 'An error occurred while sending reset link',
     'auth.success_title': 'Success',
     'auth.error_title': 'Error',
+    'auth.reset_password_error': 'An error occurred while setting the password',
+    'auth.create_new_account': 'Create New Account',
+    'auth.join_community': 'Join the LaaBoBo Live community',
+    
+    // Account & Profile Additional
+    'account.image_updated': 'Image Updated',
+    'account.image_updated_success': 'Your profile picture has been updated successfully',
+    'account.upload_failed': 'Failed to upload image. Please try again.',
+    
+    // Upload
+    'upload.file_too_large': 'File Too Large',
+    'upload.image_size_limit': 'Maximum image size is 5MB',
+
+    // Navigation Additional
+    'nav.start_stream': 'Start Stream',
+    'nav.back': 'Back',
+
+    // Stream/Chat Additional
+    'stream.create_new_chat': 'Create New Chat',
+    'stream.quick_chat': 'New Quick Chat',
+    'stream.text_only': 'Live Text Chat',
+    'stream.quick_category': 'Quick Chat',
+    'stream.creation_failed': 'Failed to create chat',
+    'stream.login_required': 'You must log in first',
+    'stream.no_permission': 'You do not have permission to create a chat',
+    'stream.title_placeholder': 'Enter chat title',
+    'stream.description_placeholder': 'Brief description of the chat',
+    'stream.creating': 'Creating...',
+    'stream.create_button': 'Create Chat',
+    'stream.text_only_desc': 'Text chat only',
+    'stream.participants_can_join': 'Users can join and send text messages',
+    'stream.chat_details': 'Chat Details',
+    'stream.chat_title': 'Chat Title',
+    'stream.chat_description': 'Chat Description',
+
+    // Validation
+    'validation.title_required': 'Please enter a chat title',
   }
 };
 

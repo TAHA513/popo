@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft, Eye, EyeOff, Key } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Use the centralized schema from shared folder
 import { resetPasswordSchema } from "@/../../shared/schema";
@@ -22,6 +23,7 @@ export default function ResetPassword() {
   const searchParams = new URLSearchParams(useSearch());
   const token = searchParams.get("token");
   const { toast } = useToast();
+  const { t, isRTL } = useLanguage();
 
   const {
     register,
@@ -46,14 +48,14 @@ export default function ResetPassword() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "حدث خطأ أثناء تعيين كلمة المرور");
+        throw new Error(error.message || t('auth.reset_password_error'));
       }
 
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "تم بنجاح",
+        title: t('auth.success_title'),
         description: data.message,
       });
       
@@ -64,7 +66,7 @@ export default function ResetPassword() {
     },
     onError: (error: Error) => {
       toast({
-        title: "خطأ",
+        title: t('auth.error_title'),
         description: error.message,
         variant: "destructive",
       });

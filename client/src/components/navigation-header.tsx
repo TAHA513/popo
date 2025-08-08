@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuthFixed";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Home, 
   User, 
@@ -19,6 +20,7 @@ import {
 
 export default function NavigationHeader() {
   const { user, logout } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [location] = useLocation();
 
   return (
@@ -46,7 +48,7 @@ export default function NavigationHeader() {
                 className="flex items-center space-x-1 rtl:space-x-reverse"
               >
                 <Home className="w-4 h-4" />
-                <span>الرئيسية</span>
+                <span>{t('nav.home')}</span>
               </Button>
             </Link>
             
@@ -57,7 +59,7 @@ export default function NavigationHeader() {
                 className="flex items-center space-x-1 rtl:space-x-reverse"
               >
                 <User className="w-4 h-4" />
-                <span>الملف الشخصي</span>
+                <span>{t('nav.profile')}</span>
               </Button>
             </Link>
 
@@ -68,7 +70,7 @@ export default function NavigationHeader() {
                 className="flex items-center space-x-1 rtl:space-x-reverse"
               >
                 <Search className="w-4 h-4" />
-                <span>استكشف</span>
+                <span>{t('explore.title')}</span>
               </Button>
             </Link>
 
@@ -79,7 +81,7 @@ export default function NavigationHeader() {
                 className="flex items-center space-x-1 rtl:space-x-reverse"
               >
                 <Gift className="w-4 h-4" />
-                <span>الهدايا</span>
+                <span>{t('nav.gifts')}</span>
               </Button>
             </Link>
 

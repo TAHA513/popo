@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,20 +11,21 @@ import { useLocation } from "wouter";
 
 export default function StartChatPage() {
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [, setLocation] = useLocation();
-  const [chatTitle, setChatTitle] = useState("دردشة سريعة جديدة");
-  const [chatDescription, setChatDescription] = useState("دردشة مباشرة نصية");
+  const [chatTitle, setChatTitle] = useState(t('stream.quick_chat'));
+  const [chatDescription, setChatDescription] = useState(t('stream.text_only'));
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
 
   const createChat = async () => {
     if (!chatTitle.trim()) {
-      setError("يرجى إدخال عنوان للدردشة");
+      setError(t('validation.title_required'));
       return;
     }
 
     if (!user) {
-      alert("يجب تسجيل الدخول لبدء الدردشة");
+      alert(t('stream.login_required'));
       setLocation("/login");
       return;
     }
@@ -37,7 +39,7 @@ export default function StartChatPage() {
       const streamData = {
         title: chatTitle,
         description: chatDescription,
-        category: "دردشة سريعة"
+        category: t('stream.quick_category')
       };
 
       console.log("📨 Sending chat creation request:", streamData);
@@ -53,20 +55,20 @@ export default function StartChatPage() {
         // التوجه مباشرة للدردشة
         setLocation(`/stream/${chatId}`);
       } else {
-        throw new Error('فشل في إنشاء الدردشة');
+        throw new Error(t('stream.creation_failed'));
       }
       
     } catch (error: any) {
       console.error("❌ Chat creation failed:", error);
       
-      let errorMessage = "فشل في إنشاء الدردشة";
+      let errorMessage = t('stream.creation_failed');
       
       if (error.status === 401) {
-        errorMessage = "يجب تسجيل الدخول أولاً";
+        errorMessage = t('stream.login_required');
         setLocation("/login");
         return;
       } else if (error.status === 403) {
-        errorMessage = "ليس لديك صلاحية لإنشاء دردشة";
+        errorMessage = t('stream.no_permission');
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -90,7 +92,7 @@ export default function StartChatPage() {
         className="absolute top-4 left-4 z-50 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm"
       >
         <ArrowLeft className="w-5 h-5 ml-2" />
-        عودة
+        {t('nav.back')}
       </Button>
 
       <div className="relative z-10 p-6 pt-20">
@@ -101,35 +103,35 @@ export default function StartChatPage() {
             <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl">
               <MessageCircle className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">💬 إنشاء دردشة جديدة</h1>
-            <p className="text-gray-300">ابدأ دردشة نصية مع الأصدقاء</p>
+            <h1 className="text-3xl font-bold mb-2">💬 {t('stream.create_new_chat')}</h1>
+            <p className="text-gray-300">{t('stream.text_only_desc')}</p>
           </div>
 
           {/* Chat Creation Form */}
           <Card className="bg-black/40 backdrop-blur-lg border-white/20 shadow-2xl">
             <CardHeader>
-              <CardTitle className="text-white text-xl">تفاصيل الدردشة</CardTitle>
+              <CardTitle className="text-white text-xl">{t('stream.chat_details')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               
               {/* Chat Title */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">عنوان الدردشة</label>
+                <label className="text-sm font-medium text-gray-300">{t('stream.chat_title')}</label>
                 <Input
                   value={chatTitle}
                   onChange={(e) => setChatTitle(e.target.value)}
-                  placeholder="أدخل عنوان الدردشة"
+                  placeholder={t('stream.title_placeholder')}
                   className="bg-white/10 border-white/30 text-white placeholder:text-gray-400 focus:border-green-400"
                 />
               </div>
 
               {/* Chat Description */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">وصف الدردشة</label>
+                <label className="text-sm font-medium text-gray-300">{t('stream.chat_description')}</label>
                 <Textarea
                   value={chatDescription}
                   onChange={(e) => setChatDescription(e.target.value)}
-                  placeholder="وصف مختصر للدردشة"
+                  placeholder={t('stream.description_placeholder')}
                   className="bg-white/10 border-white/30 text-white placeholder:text-gray-400 focus:border-green-400"
                   rows={3}
                 />
@@ -151,12 +153,12 @@ export default function StartChatPage() {
                 {isCreating ? (
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    <span>جاري الإنشاء...</span>
+                    <span>{t('stream.creating')}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-6 h-6" />
-                    <span>إنشاء الدردشة</span>
+                    <span>{t('stream.create_button')}</span>
                   </div>
                 )}
               </Button>
@@ -165,12 +167,9 @@ export default function StartChatPage() {
               <div className="text-center text-sm text-gray-400 bg-white/5 rounded-lg p-3">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Users className="w-4 h-4" />
-                  <span className="font-medium">دردشة نصية فقط</span>
+                  <span className="font-medium">{t('stream.text_only_desc')}</span>
                 </div>
-                <p>
-                  ستكون هذه دردشة نصية مباشرة بدون فيديو أو صوت. 
-                  يمكن للمستخدمين الانضمام وإرسال الرسائل النصية.
-                </p>
+                <p>{t('stream.participants_can_join')}</p>
               </div>
             </CardContent>
           </Card>

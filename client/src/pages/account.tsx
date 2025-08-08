@@ -36,15 +36,15 @@ export default function AccountPage() {
     },
     onSuccess: () => {
       toast({
-        title: "تم تحديث الصورة",
-        description: "تم تحديث صورتك الشخصية بنجاح",
+        title: t('account.image_updated'),
+        description: t('account.image_updated_success'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: () => {
       toast({
-        title: "خطأ",
-        description: "فشل رفع الصورة. حاول مرة أخرى.",
+        title: t('auth.error_title'),
+        description: t('account.upload_failed'),
         variant: "destructive",
       });
     },
@@ -55,8 +55,8 @@ export default function AccountPage() {
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
-          title: "الملف كبير جداً",
-          description: "الحد الأقصى لحجم الصورة هو 5 ميجابايت",
+          title: t('upload.file_too_large'),
+          description: t('upload.image_size_limit'),
           variant: "destructive",
         });
         return;
@@ -74,16 +74,16 @@ export default function AccountPage() {
             <div className="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-white text-2xl">🐰</span>
             </div>
-            <CardTitle className="text-2xl">إنشاء حساب جديد</CardTitle>
-            <CardDescription>انضم إلى مجتمع LaaBoBo Live</CardDescription>
+            <CardTitle className="text-2xl">{t('auth.create_new_account')}</CardTitle>
+            <CardDescription>{t('auth.join_community')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input id="email" type="email" placeholder="your@email.com" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="username">اسم المستخدم</Label>
+              <Label htmlFor="username">{t('auth.username')}</Label>
               <Input id="username" placeholder="username" />
             </div>
             <div className="space-y-2">

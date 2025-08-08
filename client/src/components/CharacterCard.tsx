@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Crown, Star, Trophy, Sparkles, Lock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Character {
   id: string;
@@ -69,6 +70,7 @@ export default function CharacterCard({
   isPurchasing = false,
   userPoints = 0
 }: CharacterCardProps) {
+  const { t, isRTL } = useLanguage();
   const canAfford = userPoints >= character.price;
   const rarityColor = getRarityColor(character.rarity);
   const rarityIcon = getRarityIcon(character.rarity);
@@ -80,7 +82,7 @@ export default function CharacterCard({
       {character.isPremium && (
         <div className="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
           <Crown className="w-3 h-3" />
-          <span>مميز</span>
+          <span>{isRTL ? 'مميز' : 'Premium'}</span>
         </div>
       )}
 
