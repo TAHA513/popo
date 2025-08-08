@@ -127,6 +127,16 @@ export default function SimpleNavigation() {
                 size="sm"
                 className={`rounded-full ${location === "/" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
               >
+                <Home className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link href="/search">
+              <Button 
+                variant={location === "/search" ? "secondary" : "ghost"} 
+                size="sm"
+                className={`rounded-full ${location === "/search" ? 'bg-white text-purple-600' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                title="البحث"
+              >
                 <Search className="w-4 h-4" />
               </Button>
             </Link>

@@ -75,10 +75,10 @@ export default function SimpleHome() {
               {/* Search Button */}
               <button 
                 onClick={() => setLocation('/search')}
-                className="relative p-2 text-gray-600 hover:text-purple-600 transition-colors bg-gray-100 hover:bg-purple-100 rounded-full"
+                className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
                 title="البحث"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-6 h-6" />
               </button>
 
               {/* Notifications Button */}
