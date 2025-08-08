@@ -8,11 +8,14 @@ import { Bell, Mail, Search } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
+import { LanguageToggle } from "@/components/language-toggle";
+import { useTranslation } from "@/lib/i18n";
 
 export default function SimpleHome() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
+  const { t } = useTranslation();
   
   // المنشورات العامة فقط (بدون البثوث) - محسّن للسرعة
   const { data: memories = [], isLoading, isError } = useQuery<any[]>({
@@ -72,11 +75,14 @@ export default function SimpleHome() {
             
             {/* Action Buttons - Right Side */}
             <div className="flex items-center gap-2">
+              {/* Language Toggle */}
+              <LanguageToggle />
+              
               {/* Search Button */}
               <button 
                 onClick={() => setLocation('/search')}
                 className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
-                title="البحث"
+                title={t('common.search')}
               >
                 <Search className="w-6 h-6" />
               </button>
@@ -111,12 +117,14 @@ export default function SimpleHome() {
               <button 
                 onClick={() => setLocation('/create-memory')}
                 className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
-                title="إنشاء ذكرى"
+                title={t('memory.createMemory')}
               >
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span className="text-white font-medium text-xs">ذكرى</span>
+                <span className="text-white font-medium text-xs">
+                  {t('memory.createMemory').split(' ')[1] || t('common.create')}
+                </span>
               </button>
             </div>
           </div>

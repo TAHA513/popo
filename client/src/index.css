@@ -4,6 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Language-specific styles */
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
+/* Set font families based on language */
+.rtl {
+  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.ltr {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 /* منع السحب الأفقي والتمرير الأفقي غير المرغوب فيه */
 body, html {
   overflow-x: hidden;
