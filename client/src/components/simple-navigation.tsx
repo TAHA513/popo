@@ -90,9 +90,14 @@ export default function SimpleNavigation() {
             </Link>
           </div>
 
-          {/* Right Side - Settings & Logout Buttons */}
+          {/* Right Side - Search, Settings & Logout Buttons */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
-            {/* No navigation for system owner - direct admin panel only */}
+            {/* Search Button */}
+            <Link href="/search">
+              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full" title="البحث">
+                <Search className="w-5 h-5" />
+              </Button>
+            </Link>
             
             <Link href="/account">
               <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full">

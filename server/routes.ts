@@ -4355,6 +4355,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search endpoints
+  app.get('/api/memories/search', requireAuth, async (req: any, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.trim().length === 0) {
+        return res.json([]);
+      }
+
+      const searchTerm = `%${query.trim()}%`;
+      const memories = await db
+        .select({
+          id: memoryFragments.id,
+          title: memoryFragments.title,
+          description: memoryFragments.description,
+          mediaType: memoryFragments.mediaType,
+          mediaUrl: memoryFragments.mediaUrl,
+          thumbnailUrl: memoryFragments.thumbnailUrl,
+          createdAt: memoryFragments.createdAt,
+          expiresAt: memoryFragments.expiresAt,
+          memoryType: memoryFragments.memoryType,
+          userId: memoryFragments.userId,
+          viewCount: memoryFragments.viewCount,
+          username: users.username,
+          firstName: users.firstName,
+          profileImageUrl: users.profileImageUrl,
+          isVerified: users.isVerified,
+          verificationBadge: users.verificationBadge
+        })
+        .from(memoryFragments)
+        .leftJoin(users, eq(memoryFragments.userId, users.id))
+        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.description} ILIKE ${searchTerm}`)
+        .orderBy(desc(memoryFragments.createdAt))
+        .limit(50);
+
+      res.json(memories);
+    } catch (error) {
+      console.error('Search memories error:', error);
+      res.status(500).json({ message: 'فشل في البحث عن الذكريات' });
+    }
+  });
+
+  app.get('/api/users/search', requireAuth, async (req: any, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.trim().length === 0) {
+        return res.json([]);
+      }
+
+      const searchTerm = `%${query.trim()}%`;
+      const searchResults = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          bio: users.bio,
+          isVerified: users.isVerified,
+          verificationBadge: users.verificationBadge,
+          followersCount: users.followersCount
+        })
+        .from(users)
+        .where(sql`${users.username} ILIKE ${searchTerm} OR ${users.firstName} ILIKE ${searchTerm} OR ${users.lastName} ILIKE ${searchTerm}`)
+        .orderBy(desc(users.followersCount))
+        .limit(30);
+
+      res.json(searchResults);
+    } catch (error) {
+      console.error('Search users error:', error);
+      res.status(500).json({ message: 'فشل في البحث عن المستخدمين' });
+    }
+  });
+
+  app.get('/api/streams/search', requireAuth, async (req: any, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.trim().length === 0) {
+        return res.json([]);
+      }
+
+      const searchTerm = `%${query.trim()}%`;
+      const streamResults = await db
+        .select({
+          id: streams.id,
+          title: streams.title,
+          description: streams.description,
+          streamType: streams.streamType,
+          userId: streams.userId,
+          username: users.username,
+          viewerCount: streams.viewerCount,
+          createdAt: streams.createdAt
+        })
+        .from(streams)
+        .leftJoin(users, eq(streams.userId, users.id))
+        .where(
+          and(
+            sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`,
+            eq(streams.isActive, true)
+          )
+        )
+        .orderBy(desc(streams.viewerCount))
+        .limit(20);
+
+      res.json(streamResults);
+    } catch (error) {
+      console.error('Search streams error:', error);
+      res.status(500).json({ message: 'فشل في البحث عن البثوث' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket setup
