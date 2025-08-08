@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OnlineStatusProps {
   userId: string;
@@ -7,6 +8,7 @@ interface OnlineStatusProps {
 }
 
 export function OnlineStatus({ userId, showText = true, className = "" }: OnlineStatusProps) {
+  const { isRTL } = useLanguage();
   const { data: userStatus } = useQuery({
     queryKey: ['/api/users', userId, 'status'],
     queryFn: async () => {
@@ -21,7 +23,7 @@ export function OnlineStatus({ userId, showText = true, className = "" }: Online
 
   if (!userStatus) {
     return showText ? (
-      <span className={`text-sm text-gray-500 ${className}`}>جاري التحقق...</span>
+      <span className={`text-sm text-gray-500 ${className}`}>{isRTL ? 'جاري التحقق...' : 'Checking...'}</span>
     ) : (
       <div className={`w-3 h-3 bg-gray-400 rounded-full ${className}`}></div>
     );
@@ -31,7 +33,7 @@ export function OnlineStatus({ userId, showText = true, className = "" }: Online
     return showText ? (
       <div className={`flex items-center text-sm text-green-600 ${className}`}>
         <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-        متصل الآن
+{isRTL ? 'متصل الآن' : 'Online now'}
       </div>
     ) : (
       <div className={`w-3 h-3 bg-green-500 rounded-full animate-pulse ${className}`}></div>
@@ -40,7 +42,7 @@ export function OnlineStatus({ userId, showText = true, className = "" }: Online
 
   if (!userStatus.showLastSeen) {
     return showText ? (
-      <span className={`text-sm text-gray-500 ${className}`}>غير متاح</span>
+      <span className={`text-sm text-gray-500 ${className}`}>{isRTL ? 'غير متاح' : 'Unavailable'}</span>
     ) : (
       <div className={`w-3 h-3 bg-gray-400 rounded-full ${className}`}></div>
     );

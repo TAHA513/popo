@@ -1,3 +1,5 @@
+import { useLanguage } from '@/contexts/LanguageContext';
+
 interface LoadingSkeletonProps {
   className?: string;
   type?: 'image' | 'video' | 'text';
@@ -9,6 +11,7 @@ export default function LoadingSkeleton({
   type = 'image', 
   aspectRatio = '16/9' 
 }: LoadingSkeletonProps) {
+  const { isRTL } = useLanguage();
   const baseClasses = "loading-skeleton rounded-lg";
   
   if (type === 'video' || type === 'image') {
@@ -25,7 +28,7 @@ export default function LoadingSkeleton({
               <div className="w-10 h-10 bg-gray-300 rounded animate-pulse"></div>
             )}
             <span className="text-sm text-gray-500">
-              {type === 'video' ? 'جاري تحميل الفيديو...' : 'جاري تحميل الصورة...'}
+{type === 'video' ? (isRTL ? 'جاري تحميل الفيديو...' : 'Loading video...') : (isRTL ? 'جاري تحميل الصورة...' : 'Loading image...')}
             </span>
           </div>
         </div>

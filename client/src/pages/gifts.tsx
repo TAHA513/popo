@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,14 +50,14 @@ const getRarityColor = (rarity: string) => {
   }
 };
 
-const getRarityText = (rarity: string) => {
-  switch (rarity) {
-    case 'common': return 'عادي';
-    case 'rare': return 'نادر';
-    case 'epic': return 'أسطوري';
-    case 'legendary': return 'خرافي';
-    default: return 'عادي';
-  }
+const getRarityText = (rarity: string, isRTL: boolean) => {
+  const texts = {
+    'common': isRTL ? 'عادي' : 'Common',
+    'rare': isRTL ? 'نادر' : 'Rare', 
+    'epic': isRTL ? 'أسطوري' : 'Epic',
+    'legendary': isRTL ? 'خرافي' : 'Legendary'
+  };
+  return texts[rarity as keyof typeof texts] || (isRTL ? 'عادي' : 'Common');
 };
 
 export default function GiftsPage() {
@@ -64,6 +65,7 @@ export default function GiftsPage() {
   const [selectedGift, setSelectedGift] = useState<GiftCharacter | null>(null);
   const [showGiftShop, setShowGiftShop] = useState(false);
   const { user } = useAuth();
+  const { isRTL, t } = useLanguage();
   
   console.log('🎁 Current user:', user);
 
@@ -140,7 +142,7 @@ export default function GiftsPage() {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-              <p className="text-lg text-gray-600">جاري تحميل الهدايا...</p>
+              <p className="text-lg text-gray-600">{t('gifts.loading')}</p>
             </div>
           </div>
         </div>
@@ -156,13 +158,13 @@ export default function GiftsPage() {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <Gift className="w-16 h-16 text-red-400 mx-auto mb-4" />
-              <p className="text-lg text-red-600">خطأ في تحميل الهدايا</p>
+              <p className="text-lg text-red-600">{t('gifts.error_loading')}</p>
               <p className="text-gray-500 mt-2">{error.toString()}</p>
               <button 
                 onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
               >
-                إعادة المحاولة
+                {t('gifts.retry')}
               </button>
             </div>
           </div>
@@ -184,16 +186,16 @@ export default function GiftsPage() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Gift className="w-10 h-10 text-pink-500" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-              متجر الهدايا
+              {t('gifts.title')}
             </h1>
           </div>
           <p className="text-gray-600 text-lg">
-            اختر من مجموعة واسعة من الهدايا الرائعة لإرسالها لأصدقائك
+            {isRTL ? 'اختر من مجموعة واسعة من الهدايا الرائعة لإرسالها لأصدقائك' : 'Choose from a wide range of amazing gifts to send to your friends'}
           </p>
           <div className="flex items-center justify-center gap-2 mt-2">
             <Coins className="w-5 h-5 text-yellow-500" />
             <span className="text-lg font-semibold text-gray-700">
-              نقاطك: {user?.points || 0}
+              {isRTL ? `نقاطك: ${user?.points || 0}` : `Your Points: ${user?.points || 0}`}
             </span>
           </div>
         </div>
@@ -202,15 +204,15 @@ export default function GiftsPage() {
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="browse" className="flex items-center gap-2">
               <Gift className="w-4 h-4" />
-              تصفح الهدايا
+              {t('gifts.characters')}
             </TabsTrigger>
             <TabsTrigger value="sent" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              الهدايا المرسلة
+              {t('gifts.sent')}
             </TabsTrigger>
             <TabsTrigger value="received" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
-              الهدايا المستقبلة
+              {t('gifts.received')}
             </TabsTrigger>
           </TabsList>
 
@@ -239,7 +241,7 @@ export default function GiftsPage() {
                     </CardTitle>
                     {gift.rarity && (
                       <Badge className={`${getRarityColor(gift.rarity)} text-white text-xs`}>
-                        {getRarityText(gift.rarity)}
+                        {getRarityText(gift.rarity, isRTL)}
                       </Badge>
                     )}
                   </CardHeader>
@@ -249,7 +251,7 @@ export default function GiftsPage() {
                       <span className="text-xl font-bold text-gray-700">
                         {gift.pointCost}
                       </span>
-                      <span className="text-sm text-gray-500">نقطة</span>
+                      <span className="text-sm text-gray-500">{isRTL ? 'نقطة' : 'Points'}</span>
                     </div>
                     <Button 
                       onClick={() => handleGiftSelect(gift)}
@@ -257,9 +259,9 @@ export default function GiftsPage() {
                       disabled={(user?.points || 0) < gift.pointCost}
                     >
                       {(user?.points || 0) < gift.pointCost ? (
-                        "نقاط غير كافية"
+                        t('gifts.insufficient_points')
                       ) : (
-                        "إرسال هدية"
+                        t('gifts.send_gift')
                       )}
                     </Button>
                   </CardContent>
@@ -268,8 +270,8 @@ export default function GiftsPage() {
               ) : (
                 <div className="col-span-full text-center py-12">
                   <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-xl text-gray-500 mb-2">لا توجد هدايا متاحة حالياً</p>
-                  <p className="text-gray-400">يرجى المحاولة لاحقاً</p>
+                  <p className="text-xl text-gray-500 mb-2">{t('gifts.no_gifts')}</p>
+                  <p className="text-gray-400">{t('gifts.try_later')}</p>
                 </div>
               )}
             </div>

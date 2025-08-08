@@ -201,6 +201,111 @@ const translations = {
     'account.admin': 'مدير',
     'account.super_admin': 'مدير عام',
     'account.verified': 'موثق',
+    
+    // Profile Tabs
+    'profile.tabs.memories': 'الذكريات',
+    'profile.tabs.followers': 'المتابعون',
+    'profile.tabs.following': 'يتابع',
+    'profile.tabs.albums': 'الألبومات',
+    'profile.back': 'العودة',
+    
+    // Gift Rarities
+    'gifts.rarity.common': 'عادي',
+    'gifts.rarity.rare': 'نادر',
+    'gifts.rarity.epic': 'أسطوري',
+    'gifts.rarity.legendary': 'خرافي',
+    
+    // Memory Types
+    'memory.flash': 'برق',
+    'memory.trending': 'ترند',
+    'memory.star': 'نجمة',
+    'memory.legend': 'أسطورة',
+    'memory.permanent': 'دائم',
+    'memory.create': 'إنشاء ذكرى',
+    'memory.upload': 'رفع',
+    'memory.camera': 'كاميرا',
+    'memory.gallery': 'المعرض',
+    'memory.no_content': 'لا يوجد محتوى',
+    'memory.expired': 'انتهت صلاحيتها',
+    
+    // Chat & Communication
+    'chat.online': 'متصل',
+    'chat.offline': 'غير متصل',
+    'chat.typing': 'يكتب...',
+    'chat.send_message': 'إرسال رسالة',
+    'chat.message_sent': 'تم إرسال الرسالة',
+    'chat.no_messages': 'لا توجد رسائل',
+    'chat.start_conversation': 'بدء محادثة',
+    'chat.private_room': 'غرفة خاصة',
+    'chat.group_room': 'غرفة جماعية',
+    
+    // Buttons & Actions
+    'buttons.follow': 'متابعة',
+    'buttons.unfollow': 'إلغاء المتابعة',
+    'buttons.message': 'راسل',
+    'buttons.call': 'اتصل',
+    'buttons.video_call': 'مكالمة فيديو',
+    'buttons.share': 'مشاركة',
+    'buttons.like': 'إعجاب',
+    'buttons.comment': 'تعليق',
+    'buttons.report': 'إبلاغ',
+    'buttons.block': 'حظر',
+    'buttons.add_friend': 'إضافة صديق',
+    'buttons.remove_friend': 'إزالة صديق',
+    
+    // Status & States
+    'status.online': 'متصل',
+    'status.offline': 'غير متصل',
+    'status.away': 'غائب',
+    'status.busy': 'مشغول',
+    'status.invisible': 'غير مرئي',
+    'status.last_seen': 'آخر ظهور',
+    'status.active_now': 'نشط الآن',
+    
+    // Time & Dates
+    'time.now': 'الآن',
+    'time.minute_ago': 'منذ دقيقة',
+    'time.minutes_ago': 'منذ دقائق',
+    'time.hour_ago': 'منذ ساعة',
+    'time.hours_ago': 'منذ ساعات',
+    'time.day_ago': 'منذ يوم',
+    'time.days_ago': 'منذ أيام',
+    'time.week_ago': 'منذ أسبوع',
+    'time.weeks_ago': 'منذ أسابيع',
+    'time.month_ago': 'منذ شهر',
+    'time.months_ago': 'منذ شهور',
+    
+    // Error Messages
+    'error.network': 'خطأ في الشبكة',
+    'error.server': 'خطأ في الخادم',
+    'error.not_found': 'غير موجود',
+    'error.unauthorized': 'غير مخول',
+    'error.forbidden': 'ممنوع',
+    'error.invalid_data': 'بيانات غير صحيحة',
+    'error.file_too_large': 'الملف كبير جداً',
+    'error.unsupported_format': 'تنسيق غير مدعوم',
+    
+    // Success Messages
+    'success.saved': 'تم الحفظ',
+    'success.updated': 'تم التحديث',
+    'success.deleted': 'تم الحذف',
+    'success.uploaded': 'تم الرفع',
+    'success.sent': 'تم الإرسال',
+    'success.received': 'تم الاستلام',
+    
+    // Loading States
+    'loading.please_wait': 'يرجى الانتظار...',
+    'loading.uploading': 'جاري الرفع...',
+    'loading.downloading': 'جاري التحميل...',
+    'loading.processing': 'جاري المعالجة...',
+    'loading.connecting': 'جاري الاتصال...',
+    
+    // Gift Actions (Additional)
+    'gifts.no_gifts': 'لا توجد هدايا متاحة حالياً',
+    'gifts.try_later': 'يرجى المحاولة لاحقاً',
+    'gifts.loading': 'جاري تحميل الهدايا...',
+    'gifts.error_loading': 'خطأ في تحميل الهدايا',
+    'gifts.retry': 'إعادة المحاولة',
   },
   en: {
     // Login Page
@@ -367,6 +472,111 @@ const translations = {
     'account.admin': 'Admin',
     'account.super_admin': 'Super Admin',
     'account.verified': 'Verified',
+    
+    // Profile Tabs
+    'profile.tabs.memories': 'Memories',
+    'profile.tabs.followers': 'Followers',
+    'profile.tabs.following': 'Following',
+    'profile.tabs.albums': 'Albums',
+    'profile.back': 'Back',
+    
+    // Gift Rarities
+    'gifts.rarity.common': 'Common',
+    'gifts.rarity.rare': 'Rare',
+    'gifts.rarity.epic': 'Epic',
+    'gifts.rarity.legendary': 'Legendary',
+    
+    // Memory Types
+    'memory.flash': 'Flash',
+    'memory.trending': 'Trending',
+    'memory.star': 'Star',
+    'memory.legend': 'Legend',
+    'memory.permanent': 'Permanent',
+    'memory.create': 'Create Memory',
+    'memory.upload': 'Upload',
+    'memory.camera': 'Camera',
+    'memory.gallery': 'Gallery',
+    'memory.no_content': 'No Content',
+    'memory.expired': 'Expired',
+    
+    // Chat & Communication
+    'chat.online': 'Online',
+    'chat.offline': 'Offline',
+    'chat.typing': 'Typing...',
+    'chat.send_message': 'Send Message',
+    'chat.message_sent': 'Message Sent',
+    'chat.no_messages': 'No Messages',
+    'chat.start_conversation': 'Start Conversation',
+    'chat.private_room': 'Private Room',
+    'chat.group_room': 'Group Room',
+    
+    // Buttons & Actions
+    'buttons.follow': 'Follow',
+    'buttons.unfollow': 'Unfollow',
+    'buttons.message': 'Message',
+    'buttons.call': 'Call',
+    'buttons.video_call': 'Video Call',
+    'buttons.share': 'Share',
+    'buttons.like': 'Like',
+    'buttons.comment': 'Comment',
+    'buttons.report': 'Report',
+    'buttons.block': 'Block',
+    'buttons.add_friend': 'Add Friend',
+    'buttons.remove_friend': 'Remove Friend',
+    
+    // Status & States
+    'status.online': 'Online',
+    'status.offline': 'Offline',
+    'status.away': 'Away',
+    'status.busy': 'Busy',
+    'status.invisible': 'Invisible',
+    'status.last_seen': 'Last Seen',
+    'status.active_now': 'Active Now',
+    
+    // Time & Dates
+    'time.now': 'Now',
+    'time.minute_ago': '1 minute ago',
+    'time.minutes_ago': 'minutes ago',
+    'time.hour_ago': '1 hour ago',
+    'time.hours_ago': 'hours ago',
+    'time.day_ago': '1 day ago',
+    'time.days_ago': 'days ago',
+    'time.week_ago': '1 week ago',
+    'time.weeks_ago': 'weeks ago',
+    'time.month_ago': '1 month ago',
+    'time.months_ago': 'months ago',
+    
+    // Error Messages
+    'error.network': 'Network Error',
+    'error.server': 'Server Error',
+    'error.not_found': 'Not Found',
+    'error.unauthorized': 'Unauthorized',
+    'error.forbidden': 'Forbidden',
+    'error.invalid_data': 'Invalid Data',
+    'error.file_too_large': 'File Too Large',
+    'error.unsupported_format': 'Unsupported Format',
+    
+    // Success Messages
+    'success.saved': 'Saved',
+    'success.updated': 'Updated',
+    'success.deleted': 'Deleted',
+    'success.uploaded': 'Uploaded',
+    'success.sent': 'Sent',
+    'success.received': 'Received',
+    
+    // Loading States
+    'loading.please_wait': 'Please wait...',
+    'loading.uploading': 'Uploading...',
+    'loading.downloading': 'Downloading...',
+    'loading.processing': 'Processing...',
+    'loading.connecting': 'Connecting...',
+    
+    // Gift Actions (Additional)
+    'gifts.no_gifts': 'No gifts available right now',
+    'gifts.try_later': 'Please try again later',
+    'gifts.loading': 'Loading gifts...',
+    'gifts.error_loading': 'Error loading gifts',
+    'gifts.retry': 'Try Again',
   }
 };
 

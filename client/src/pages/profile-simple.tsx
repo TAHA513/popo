@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import { queryClient } from "@/lib/queryClient";
 
 export default function ProfileSimplePage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isRTL, t } = useLanguage();
   const params = useParams();
   const userId = params.userId;
   const profileUserId = userId || currentUser?.id;
@@ -52,14 +54,14 @@ export default function ProfileSimplePage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
-  // دالة للعودة للصفحة السابقة
+  // Function to go back to previous page
   const handleGoBack = () => {
     const previousPage = localStorage.getItem('previousPage');
     if (previousPage) {
-      localStorage.removeItem('previousPage'); // إزالة الرابط المحفوظ
+      localStorage.removeItem('previousPage'); // Remove saved link
       setLocation(previousPage);
     } else {
-      setLocation('/'); // العودة للصفحة الرئيسية كخيار افتراضي
+      setLocation('/'); // Return to home page as default option
     }
   };
   
@@ -78,7 +80,7 @@ export default function ProfileSimplePage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">جاري التحقق من حالة تسجيل الدخول...</p>
+            <p className="text-gray-600">{isRTL ? 'جاري التحقق من حالة تسجيل الدخول...' : 'Checking login status...'}</p>
           </div>
         </div>
       </div>
@@ -94,11 +96,11 @@ export default function ProfileSimplePage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">معرف المستخدم مفقود</h2>
-            <p className="text-gray-600 mb-4">لم يتم تحديد معرف المستخدم المطلوب عرضه</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{isRTL ? 'معرف المستخدم مفقود' : 'User ID Missing'}</h2>
+            <p className="text-gray-600 mb-4">{isRTL ? 'لم يتم تحديد معرف المستخدم المطلوب عرضه' : 'The requested user ID could not be determined'}</p>
             <Link href="/home">
               <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                العودة للصفحة الرئيسية
+{isRTL ? 'العودة للصفحة الرئيسية' : 'Back to Home'}
               </Button>
             </Link>
           </div>
