@@ -318,7 +318,7 @@ export class DatabaseStorage implements IStorage {
       .values({
         id,
         ...userData,
-        points: 100,
+        points: 0, // Start with 0 points - paid system only
         role: 'user',
         isPrivateAccount: false,
         allowDirectMessages: true,

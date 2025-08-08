@@ -50,6 +50,8 @@ Gift System: Fully activated across all platform components with real working tr
 - ✅ Verified user account (fnnm945@gmail.com) with LaaBoBo badge
 - ✅ FIXED DUPLICATE VIEW COUNTING: Added unique constraint to prevent same user from counting multiple views on same memory
 - ✅ CORRECTED MEMORY EXPIRATION PERIODS: Fixed time periods to match UI display (flash: 3h, trending: 12h, star: 24h, legend: 1 week, permanent: never expires)
+- ✅ PAYMENT UNAVAILABLE NOTICES: Added clear warnings on payment pages that purchases are temporarily unavailable in user's country
+- ✅ ZERO POINTS FOR NEW USERS: Fixed all user creation methods to start with 0 points (paid system only), updated existing test accounts
 - ✅ Created TikTok-style secure admin panel with multi-layer protection
 - ✅ Added hidden access URL and secret code verification system
 - ✅ Implemented attempt-based blocking and security logging
