@@ -4286,7 +4286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUserByEmail(email);
       if (!user) {
         // Don't reveal if email exists or not for security
-        return res.json({ message: "إذا كان بريدك الإلكتروني موجود لدينا، ستتلقى رابط إعادة تعيين كلمة المرور" });
+        return res.json({ message: "تم إرسال رابط إعادة تعيين كلمة المرور" });
       }
 
       // Generate reset token
@@ -4304,7 +4304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Password reset link for ${email}: ${resetLink}`);
       
       res.json({ 
-        message: "إذا كان بريدك الإلكتروني موجود لدينا، ستتلقى رابط إعادة تعيين كلمة المرور",
+        message: "تم إرسال رابط إعادة تعيين كلمة المرور",
         resetLink // Remove this in production
       });
     } catch (error) {
