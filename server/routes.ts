@@ -1482,7 +1482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search
       });
       
-      // Get users excluding the current user
+      // Get users excluding the current user and owner account
       const usersResult = await db
         .select({
           id: users.id,
@@ -1492,7 +1492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isOnline: users.isOnline
         })
         .from(users)
-        .where(ne(users.id, req.user.id))
+        .where(and(ne(users.id, req.user.id), ne(users.username, 'fnnm945@gmail.com')))
         .limit(limit);
       
       console.log('👥 Found users:', usersResult.length);
@@ -2340,8 +2340,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const users = await storage.searchUsers(query.trim());
-      // Remove current user from results
-      const filteredUsers = users.filter((user: any) => user.id !== req.user?.id);
+      // Remove current user and owner account from results
+      const filteredUsers = users.filter((user: any) => 
+        user.id !== req.user?.id && user.username !== 'fnnm945@gmail.com'
+      );
+      console.log(`🛡️ Owner protection: Chat search filtered from ${users.length} to ${filteredUsers.length}`);
       res.json(filteredUsers);
     } catch (error) {
       console.error("Error searching users:", error);
@@ -4421,7 +4424,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(desc(users.followersCount))
         .limit(30);
 
-      res.json(searchResults);
+      // Filter out owner account from search results
+      const filteredResults = searchResults.filter(user => user.username !== 'fnnm945@gmail.com');
+      console.log(`🛡️ Owner protection: Filtered search results from ${searchResults.length} to ${filteredResults.length}`);
+
+      res.json(filteredResults);
     } catch (error) {
       console.error('Search users error:', error);
       res.status(500).json({ message: 'فشل في البحث عن المستخدمين' });

@@ -407,7 +407,10 @@ export class DatabaseStorage implements IStorage {
       })
       .from(streams)
       .innerJoin(users, eq(streams.hostId, users.id))
-      .where(eq(streams.isLive, true))
+      .where(and(
+        eq(streams.isLive, true),
+        ne(users.username, 'fnnm945@gmail.com')
+      ))
       .orderBy(desc(streams.viewerCount));
     
     // Flatten the data structure
@@ -770,7 +773,10 @@ export class DatabaseStorage implements IStorage {
       })
       .from(memoryFragments)
       .innerJoin(users, eq(memoryFragments.authorId, users.id))
-      .where(eq(memoryFragments.visibilityLevel, 'public'))
+      .where(and(
+        eq(memoryFragments.visibilityLevel, 'public'),
+        ne(users.username, 'fnnm945@gmail.com')
+      ))
       .orderBy(desc(memoryFragments.createdAt))
       .limit(50);
     
@@ -782,7 +788,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSuggestedUsers(): Promise<any[]> {
-    // Get users with most memories and recent activity
+    // Get users with most memories and recent activity, excluding owner account
     return await db
       .select({
         id: users.id,
@@ -794,6 +800,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(users)
       .leftJoin(memoryFragments, eq(users.id, memoryFragments.authorId))
+      .where(ne(users.username, 'fnnm945@gmail.com'))
       .groupBy(users.id, users.firstName, users.profileImageUrl)
       .orderBy(desc(sql`COUNT(${memoryFragments.id})`))
       .limit(20);
@@ -2006,7 +2013,7 @@ export class DatabaseStorage implements IStorage {
         isOnline: users.isOnline,
       })
       .from(users)
-      .where(sql`${users.username} ILIKE ${searchPattern}`)
+      .where(sql`${users.username} ILIKE ${searchPattern} AND ${users.username} != 'fnnm945@gmail.com'`)
       .limit(20);
   }
 
