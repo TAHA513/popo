@@ -24,13 +24,13 @@ export default function ProfilePage() {
   const { t, isRTL } = useLanguage();
   const [, setLocation] = useLocation();
 
-  // جلب بيانات المستخدم
+  // Fetch user data
   const { data: userProfile } = useQuery({
     queryKey: ['/api/auth/user'],
     enabled: !!user
   });
 
-  // جلب الألبومات المحمية للمستخدم
+  // Fetch user's protected albums
   const { data: lockedAlbums = [] } = useQuery<any[]>({
     queryKey: ['/api/locked-albums/my-albums'],
     enabled: !!user
@@ -196,8 +196,16 @@ export default function ProfilePage() {
               className="w-full justify-start"
               onClick={() => setLocation('/account')}
             >
-              <User className="w-4 h-4 mr-2" />
-{t('account.settings')}
+              <Settings className="w-4 h-4 mr-2" />
+              {t('profile.account_settings')}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => setLocation('/privacy')}
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              {t('profile.platform_policies')}
             </Button>
             <Button 
               variant="outline" 
@@ -205,7 +213,7 @@ export default function ProfilePage() {
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2" />
-{t('profile.logout_action')}
+              {t('profile.logout_action')}
             </Button>
           </CardContent>
         </Card>
