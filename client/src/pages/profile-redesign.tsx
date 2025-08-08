@@ -27,7 +27,8 @@ import {
   Upload,
   ArrowLeft,
   Shield,
-  CheckCircle
+  CheckCircle,
+  LogOut
 } from "lucide-react";
 import VerificationBadge from "@/components/ui/verification-badge";
 import SimpleNavigation from "@/components/simple-navigation";
@@ -282,6 +283,31 @@ export default function ProfileRedesign() {
     deleteMemoryMutation.mutate(memoryId);
     setShowDeleteModal(false);
     setMemoryToDelete(null);
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "تم تسجيل الخروج",
+          description: "جاري إعادة التوجيه..."
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('خطأ في تسجيل الخروج:', error);
+      // Force redirect even if there's an error
+      window.location.href = '/login';
+    }
   };
 
   if (!isAuthenticated) {
@@ -613,6 +639,17 @@ export default function ProfileRedesign() {
                         >
                           <Trophy className="w-4 h-4 ml-1" />
                           سجل المدفوعات
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 mt-2">
+                        <Button 
+                          variant="outline"
+                          onClick={handleLogout}
+                          size="sm"
+                          className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700 border-red-200 hover:from-red-200 hover:to-pink-200"
+                        >
+                          <LogOut className="w-4 h-4 ml-1" />
+                          تسجيل الخروج
                         </Button>
                       </div>
                     </>
