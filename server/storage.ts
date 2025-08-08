@@ -838,14 +838,20 @@ export class DatabaseStorage implements IStorage {
     if (fragmentData.memoryType !== 'permanent') {
       expiresAt = new Date();
       switch (fragmentData.memoryType) {
+        case 'flash':
         case 'fleeting':
-          expiresAt.setHours(expiresAt.getHours() + 24); // 1 day
+          expiresAt.setHours(expiresAt.getHours() + 3); // 3 hours as shown in UI
           break;
+        case 'trending':
         case 'precious':
-          expiresAt.setDate(expiresAt.getDate() + 7); // 1 week
+          expiresAt.setHours(expiresAt.getHours() + 12); // 12 hours as shown in UI
           break;
+        case 'star':
+          expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours as shown in UI
+          break;
+        case 'legend':
         case 'legendary':
-          expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month
+          expiresAt.setDate(expiresAt.getDate() + 7); // 1 week as shown in UI
           break;
         default:
           expiresAt.setHours(expiresAt.getHours() + 24);
