@@ -67,6 +67,24 @@ export default function PointPackages() {
           </div>
         </div>
 
+        {/* Payment Unavailable Notice */}
+        <div className="mb-8 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-xl p-6 border-2 border-orange-400/50">
+          <div className="flex items-center justify-center gap-4">
+            <div className="w-16 h-16 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0">
+              <CreditCard className="h-8 w-8 text-white" />
+            </div>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">⚠️ تنبيه هام</h2>
+              <p className="text-orange-200 text-lg font-semibold mb-1">
+                عملية الشراء غير متاحة حالياً في بلدك
+              </p>
+              <p className="text-orange-100 text-sm">
+                يرجى الانتظار حتى يتم تفعيل الخدمة في منطقتك قريباً
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Package Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {(packages as PointPackage[]).map((pkg: PointPackage) => (
@@ -120,11 +138,11 @@ export default function PointPackages() {
 
               <CardFooter>
                 <Button 
-                  onClick={() => handlePurchase(pkg)}
-                  className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium py-3"
+                  disabled={true}
+                  className="w-full bg-gray-500 cursor-not-allowed text-white font-medium py-3 opacity-60"
                 >
                   <CreditCard className="h-4 w-4 ml-2" />
-                  اشتري الآن
+                  غير متاح حالياً
                 </Button>
               </CardFooter>
             </Card>

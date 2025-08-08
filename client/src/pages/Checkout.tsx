@@ -223,6 +223,24 @@ export default function Checkout() {
           <h1 className="text-2xl font-bold text-white">إتمام الدفع</h1>
         </div>
 
+        {/* Payment Unavailable Notice */}
+        <div className="mb-8 bg-gradient-to-r from-red-500/20 to-orange-500/20 backdrop-blur-sm rounded-xl p-6 border-2 border-red-400/50">
+          <div className="flex items-center justify-center gap-4">
+            <div className="w-16 h-16 bg-red-400 rounded-full flex items-center justify-center flex-shrink-0">
+              <CreditCard className="h-8 w-8 text-white" />
+            </div>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">🚫 عذراً</h2>
+              <p className="text-red-200 text-lg font-semibold mb-1">
+                عملية الشراء غير متاحة حالياً في بلدك
+              </p>
+              <p className="text-red-100 text-sm">
+                نعمل على توسيع خدماتنا لتشمل منطقتك قريباً. يرجى المحاولة لاحقاً
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Summary */}
           <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
