@@ -8,7 +8,6 @@ import { Bell, Mail, Search } from "lucide-react";
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
-import { LanguageToggle } from "@/components/language-toggle";
 import { useTranslation } from "@/lib/i18n";
 
 export default function SimpleHome() {
@@ -75,9 +74,6 @@ export default function SimpleHome() {
             
             {/* Action Buttons - Right Side */}
             <div className="flex items-center gap-2">
-              {/* Language Toggle */}
-              <LanguageToggle />
-              
               {/* Search Button */}
               <button 
                 onClick={() => setLocation('/search')}
