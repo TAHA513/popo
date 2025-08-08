@@ -7,16 +7,25 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Calendar, CreditCard, UserPlus, Camera, Upload } from "lucide-react";
+import { User, Mail, Phone, Calendar, CreditCard, UserPlus, Camera, Upload, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage, languages } from "@/contexts/LanguageContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AccountPage() {
   const { user } = useAuth();
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const { currentLanguage, setLanguage, t, isRTL } = useLanguage();
 
   // Profile image upload mutation
   const uploadProfileImageMutation = useMutation({
@@ -98,19 +107,31 @@ export default function AccountPage() {
 
   // Account management for logged users
   return (
-    <div className="min-h-screen bg-gradient-to-br from-laa-pink/10 via-laa-purple/10 to-laa-blue/10 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className={`min-h-screen bg-gradient-to-br from-laa-pink/10 via-laa-purple/10 to-laa-blue/10 dark:from-gray-900 dark:to-gray-800 p-4 ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="container mx-auto max-w-4xl py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold gradient-text mb-2">إدارة الحساب</h1>
-          <p className="text-gray-600 dark:text-gray-400">قم بإدارة معلومات حسابك وإعداداتك</p>
+          <h1 className="text-3xl font-bold gradient-text mb-2">
+            {isRTL ? 'إدارة الحساب' : 'Account Management'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {isRTL ? 'قم بإدارة معلومات حسابك وإعداداتك' : 'Manage your account information and settings'}
+          </p>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="wallet">المحفظة</TabsTrigger>
-            <TabsTrigger value="settings">الإعدادات</TabsTrigger>
-            <TabsTrigger value="security">الأمان</TabsTrigger>
+            <TabsTrigger value="profile">
+              {isRTL ? 'الملف الشخصي' : 'Profile'}
+            </TabsTrigger>
+            <TabsTrigger value="wallet">
+              {isRTL ? 'المحفظة' : 'Wallet'}
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              {isRTL ? 'الإعدادات' : 'Settings'}
+            </TabsTrigger>
+            <TabsTrigger value="security">
+              {isRTL ? 'الأمان' : 'Security'}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
@@ -118,7 +139,7 @@ export default function AccountPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  المعلومات الشخصية
+                  {isRTL ? 'المعلومات الشخصية' : 'Personal Information'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -155,13 +176,13 @@ export default function AccountPage() {
                   </div>
                   <div className="space-y-1">
                     <h3 className="font-semibold">{user.username}</h3>
-                    <p className="text-sm text-gray-500">انقر على الكاميرا لتغيير الصورة</p>
+                    <p className="text-sm text-gray-500">{t('profile.click_camera')}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">الاسم الأول</Label>
+                    <Label htmlFor="firstName">{t('profile.first_name')}</Label>
                     <Input 
                       id="firstName" 
                       defaultValue={user.firstName || ''} 
@@ -169,7 +190,7 @@ export default function AccountPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">الاسم الأخير</Label>
+                    <Label htmlFor="lastName">{t('profile.last_name')}</Label>
                     <Input 
                       id="lastName" 
                       defaultValue={user.lastName || ''} 
@@ -177,7 +198,7 @@ export default function AccountPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Label htmlFor="email">{t('profile.email')}</Label>
                     <Input 
                       id="email" 
                       defaultValue={user.email || ''} 
@@ -186,14 +207,14 @@ export default function AccountPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>نوع الحساب</Label>
+                    <Label>{t('profile.account_type')}</Label>
                     <Badge variant="secondary" className="w-fit">
-                      {user.role === 'super_admin' ? 'مدير عام' : user.role === 'admin' ? 'مدير' : 'مستخدم'}
+                      {user.role === 'super_admin' ? (isRTL ? 'مدير عام' : 'Super Admin') : user.role === 'admin' ? (isRTL ? 'مدير' : 'Admin') : (isRTL ? 'مستخدم' : 'User')}
                     </Badge>
                   </div>
                 </div>
                 <Button className="gradient-bg text-white">
-                  حفظ التغييرات
+                  {t('profile.save_changes')}
                 </Button>
               </CardContent>
             </Card>
@@ -204,30 +225,30 @@ export default function AccountPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="w-5 h-5" />
-                  المحفظة الرقمية
+                  {t('wallet.digital_wallet')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center p-6 bg-gradient-to-r from-laa-pink to-laa-purple rounded-lg text-white">
                     <div className="text-3xl font-bold">{user.points || 0}</div>
-                    <div className="text-sm opacity-90">النقاط الحالية</div>
+                    <div className="text-sm opacity-90">{t('wallet.current_points')}</div>
                   </div>
                   <div className="text-center p-6 bg-gradient-to-r from-laa-purple to-laa-blue rounded-lg text-white">
                     <div className="text-3xl font-bold">{user.totalEarnings || 0}</div>
-                    <div className="text-sm opacity-90">إجمالي الأرباح</div>
+                    <div className="text-sm opacity-90">{t('wallet.total_earnings')}</div>
                   </div>
                   <div className="text-center p-6 bg-gradient-to-r from-laa-blue to-laa-pink rounded-lg text-white">
                     <div className="text-3xl font-bold">0</div>
-                    <div className="text-sm opacity-90">الهدايا المرسلة</div>
+                    <div className="text-sm opacity-90">{t('wallet.gifts_sent')}</div>
                   </div>
                 </div>
                 <div className="mt-6 space-y-4">
                   <Button className="w-full gradient-bg text-white">
-                    شراء نقاط
+                    {t('wallet.buy_points')}
                   </Button>
                   <Button variant="outline" className="w-full">
-                    سحب الأرباح
+                    {t('wallet.withdraw')}
                   </Button>
                 </div>
               </CardContent>
@@ -237,25 +258,75 @@ export default function AccountPage() {
           <TabsContent value="settings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>إعدادات التطبيق</CardTitle>
+                <CardTitle>{t('settings.app_settings')}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
+                {/* Language Setting */}
                 <div className="flex items-center justify-between">
-                  <div>
-                    <Label>الإشعارات</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">تلقي إشعارات الهدايا والرسائل</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-gray-600" />
+                      <Label className="font-medium">{t('settings.language')}</Label>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {t('settings.language_desc')}
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm">تفعيل</Button>
+                  <div className="w-48">
+                    <Select
+                      value={currentLanguage.code}
+                      onValueChange={(value) => {
+                        const selectedLang = languages.find(lang => lang.code === value);
+                        if (selectedLang) {
+                          setLanguage(selectedLang);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue>
+                          <div className="flex items-center gap-2">
+                            <span>{currentLanguage.flag}</span>
+                            <span>{currentLanguage.localName}</span>
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.map((lang) => (
+                          <SelectItem key={lang.code} value={lang.code}>
+                            <div className="flex items-center gap-2">
+                              <span>{lang.flag}</span>
+                              <span>{lang.localName}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>{t('settings.notifications')}</Label>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t('settings.notifications_desc')}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm">{t('settings.enable')}</Button>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>الخصوصية</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">إدارة إعدادات الخصوصية</p>
+                    <Label>{t('settings.privacy')}</Label>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('settings.privacy_desc')}
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm">إدارة</Button>
+                  <Button variant="outline" size="sm">{t('settings.manage')}</Button>
                 </div>
                 
-                <div className="col-span-full">
+                <div className="border-t pt-4">
                   <LastSeenToggle />
                 </div>
               </CardContent>
@@ -265,11 +336,11 @@ export default function AccountPage() {
           <TabsContent value="security" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>الأمان والحماية</CardTitle>
+                <CardTitle>{t('security.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">كلمة المرور الحالية</Label>
+                  <Label htmlFor="currentPassword">{t('security.current_password')}</Label>
                   <Input 
                     id="currentPassword" 
                     type="password" 
@@ -278,7 +349,7 @@ export default function AccountPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                  <Label htmlFor="newPassword">{t('security.new_password')}</Label>
                   <Input 
                     id="newPassword" 
                     type="password" 
@@ -287,7 +358,7 @@ export default function AccountPage() {
                   />
                 </div>
                 <Button className="gradient-bg text-white">
-                  تحديث كلمة المرور
+                  {t('security.update_password')}
                 </Button>
               </CardContent>
             </Card>

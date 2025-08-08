@@ -10,21 +10,29 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Globe, ChevronDown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-
-const loginSchema = z.object({
-  username: z.string().min(1, "اسم المستخدم مطلوب"),
-  password: z.string().min(1, "كلمة المرور مطلوبة"),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+import { useLanguage, languages } from "@/contexts/LanguageContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentLanguage, setLanguage, t, isRTL } = useLanguage();
+
+  const loginSchema = z.object({
+    username: z.string().min(1, t('login.username')),
+    password: z.string().min(1, t('login.password')),
+  });
+
+  type LoginForm = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -47,14 +55,14 @@ export default function Login() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "حدث خطأ أثناء تسجيل الدخول");
+        throw new Error(error.message || t('login.error'));
       }
 
       return response.json();
     },
     onSuccess: async (data) => {
       toast({
-        title: "تم بنجاح",
+        title: t('login.success'),
         description: data.message,
       });
       
@@ -66,7 +74,7 @@ export default function Login() {
     },
     onError: (error: Error) => {
       toast({
-        title: "خطأ",
+        title: t('login.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -78,13 +86,42 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+    <div className={`min-h-screen bg-black relative overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-blue-900/50"></div>
       <div className="absolute inset-0">
         <div className="absolute top-10 left-10 w-32 h-32 bg-pink-500/20 rounded-full blur-xl animate-pulse"></div>
         <div className="absolute top-1/3 right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-1000"></div>
         <div className="absolute bottom-20 left-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
+      </div>
+      
+      {/* Language Switcher - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all"
+            >
+              <Globe className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <span>{currentLanguage.flag} {currentLanguage.localName}</span>
+              <ChevronDown className={`w-3 h-3 ${isRTL ? 'mr-2' : 'ml-2'}`} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-black/90 backdrop-blur-lg border border-white/20">
+            {languages.map((lang) => (
+              <DropdownMenuItem
+                key={lang.code}
+                onClick={() => setLanguage(lang)}
+                className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+              >
+                <span className={`${isRTL ? 'ml-3' : 'mr-3'}`}>{lang.flag}</span>
+                {lang.localName}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       
       <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -95,7 +132,7 @@ export default function Login() {
               <span className="text-3xl rabbit-animated">🐰</span>
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">LaaBoBo Live</h1>
-            <p className="text-gray-300 text-sm">مرحباً بعودتك</p>
+            <p className="text-gray-300 text-sm">{t('login.welcome')}</p>
           </div>
 
           {/* Login Form */}
@@ -106,7 +143,7 @@ export default function Login() {
                 <Input
                   id="username"
                   {...register("username")}
-                  placeholder="اسم المستخدم"
+                  placeholder={t('login.username')}
                   disabled={loginMutation.isPending}
                   className="h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-2xl text-lg backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all"
                 />
@@ -122,15 +159,15 @@ export default function Login() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
-                    placeholder="كلمة المرور"
+                    placeholder={t('login.password')}
                     disabled={loginMutation.isPending}
-                    className="h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-2xl text-lg backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all pl-14"
+                    className={`h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-2xl text-lg backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all ${isRTL ? 'pr-14' : 'pl-14'}`}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg"
+                    className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg`}
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={loginMutation.isPending}
                   >
@@ -155,10 +192,10 @@ export default function Login() {
                 {loginMutation.isPending ? (
                   <div className="flex items-center gap-3">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>جاري تسجيل الدخول...</span>
+                    <span>{t('login.signing_in')}</span>
                   </div>
                 ) : (
-                  "تسجيل الدخول"
+                  t('login.button')
                 )}
               </Button>
 
@@ -170,7 +207,7 @@ export default function Login() {
                   type="button"
                   onClick={() => navigate("/forgot-password")}
                 >
-                  نسيت كلمة المرور؟
+                  {t('login.forgot_password')}
                 </Button>
               </div>
             </form>

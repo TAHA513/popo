@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -61,9 +62,7 @@ import AdminDashboardPage from "@/pages/admin-dashboard";
 import OwnerWelcomePage from "@/pages/owner-welcome";
 import SearchPage from "@/pages/search";
 
-import { LanguageOption } from "@/types";
 
-type Language = 'en' | 'ar';
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -160,27 +159,29 @@ function Router() {
   );
 }
 
-function App() {
-  const [language, setLanguage] = useState<Language>('en');
+function AppContent() {
+  return (
+    <div className="min-h-screen">
+      <Router />
+      <LiveStreamIndicator />
+      <Toaster />
+    </div>
+  );
+}
 
+function App() {
   useEffect(() => {
-    // Set document direction and language
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
-    
     // Initialize performance optimizations
     initPerformanceOptimizations();
-  }, [language]);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StreamProvider>
-        <div className={`${language === 'ar' ? 'rtl' : 'ltr'} min-h-screen`}>
-          <Router />
-          <LiveStreamIndicator />
-          <Toaster />
-        </div>
-      </StreamProvider>
+      <LanguageProvider>
+        <StreamProvider>
+          <AppContent />
+        </StreamProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
