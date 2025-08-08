@@ -42,6 +42,9 @@ export const users = pgTable("users", {
   countryCode: varchar("country_code", { length: 2 }), // ISO country code (e.g., "US", "SA")
   countryName: varchar("country_name", { length: 100 }), // Country name in English
   countryFlag: varchar("country_flag", { length: 10 }), // Country flag emoji
+  dateOfBirth: timestamp("date_of_birth"), // User's birth date (required for 18+ verification)
+  passwordResetToken: varchar("password_reset_token"), // Token for password reset
+  passwordResetExpiry: timestamp("password_reset_expiry"), // Token expiry time
   points: integer("points").default(0), // Start with 0 points - paid system only
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0"),
   totalGiftsReceived: decimal("total_gifts_received", { precision: 10, scale: 2 }).default("0"), // Track gifts received
@@ -1103,6 +1106,37 @@ export const registerSchema = z.object({
   firstName: z.string().min(2, "الاسم الأول مطلوب"),
   lastName: z.string().min(2, "الاسم الأخير مطلوب"),
   email: z.string().email("البريد الإلكتروني غير صالح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+  confirmPassword: z.string(),
+  dateOfBirth: z.string().refine((date) => {
+    const birthDate = new Date(date);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    
+    let actualAge = age;
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      actualAge--;
+    }
+    
+    return actualAge >= 18;
+  }, "يجب أن يكون عمرك 18 سنة أو أكثر لإنشاء حساب"),
+  countryCode: z.string().optional(),
+  countryName: z.string().optional(),
+  countryFlag: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
+  path: ["confirmPassword"],
+});
+
+// Password reset schemas
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("البريد الإلكتروني غير صالح"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string(),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {

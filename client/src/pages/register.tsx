@@ -14,23 +14,8 @@ import { Loader2, Eye, EyeOff, Check, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import CountrySelector from "@/components/country-selector";
 
-const registerSchema = z.object({
-  username: z.string()
-    .min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل")
-    .max(20, "اسم المستخدم لا يمكن أن يزيد عن 20 حرف")
-    .regex(/^[a-zA-Z0-9_]+$/, "اسم المستخدم يجب أن يحتوي على أحرف وأرقام و _ فقط"),
-  firstName: z.string().min(2, "الاسم الأول مطلوب"),
-  lastName: z.string().min(2, "الاسم الأخير مطلوب"),
-  email: z.string().email("البريد الإلكتروني غير صالح"),
-  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
-  confirmPassword: z.string(),
-  countryCode: z.string().optional(),
-  countryName: z.string().optional(),
-  countryFlag: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "كلمة المرور وتأكيد كلمة المرور غير متطابقين",
-  path: ["confirmPassword"],
-});
+// Use the centralized schema from shared folder
+import { registerSchema } from "@/../../shared/schema";
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
@@ -298,6 +283,24 @@ export default function Register() {
                     <p className="text-red-400 text-xs px-2">{errors.confirmPassword.message}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Date of Birth Field */}
+              <div className="space-y-1">
+                <div className="text-white text-sm mb-2">
+                  تاريخ الميلاد <span className="text-red-400">*</span>
+                  <span className="text-gray-400 text-xs block">يجب أن تكون 18 سنة أو أكثر</span>
+                </div>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  {...register("dateOfBirth")}
+                  disabled={registerMutation.isPending}
+                  className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-xl backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all [color-scheme:dark]"
+                />
+                {errors.dateOfBirth && (
+                  <p className="text-red-400 text-xs px-2">{errors.dateOfBirth.message}</p>
+                )}
               </div>
 
               {/* Country Selector */}

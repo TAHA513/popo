@@ -138,6 +138,8 @@ export interface IStorage {
   isUsernameAvailable(username: string): Promise<boolean>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
   updateUserPoints(userId: string, newPoints: number): Promise<void>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
   
   // Stream operations
   createStream(stream: InsertStream): Promise<Stream>;
@@ -308,6 +310,16 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.passwordResetToken, token));
     return user;
   }
 

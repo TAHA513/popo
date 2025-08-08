@@ -19,6 +19,8 @@ import SimpleStreamPage from "@/pages/simple-stream";
 import AccountPage from "@/pages/account";
 import RegisterPage from "@/pages/register";
 import LoginPage from "@/pages/login";
+import ForgotPasswordPage from "@/pages/forgot-password";
+import ResetPasswordPage from "@/pages/reset-password";
 import FeedPage from "@/pages/feed";
 import MessagesPage from "@/pages/messages";
 import NewChatPage from "@/pages/new-chat";
@@ -147,6 +149,8 @@ function Router() {
           <Route path="/landing" component={Landing} />
           <Route path="/login" component={LoginPage} />
           <Route path="/register" component={RegisterPage} />
+          <Route path="/forgot-password" component={ForgotPasswordPage} />
+          <Route path="/reset-password" component={ResetPasswordPage} />
           <Route component={LoginPage} />
         </>
       )}

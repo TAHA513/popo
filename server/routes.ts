@@ -906,6 +906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         countryCode: validatedData.countryCode,
         countryName: validatedData.countryName,
         countryFlag: validatedData.countryFlag,
+        dateOfBirth: new Date(validatedData.dateOfBirth),
         passwordHash,
       });
 
@@ -4269,6 +4270,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error responding to content request:", error);
       res.status(500).json({ message: "فشل في الرد على الطلب" });
+    }
+  });
+
+  // Forgot Password API
+  app.post('/api/forgot-password', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "البريد الإلكتروني مطلوب" });
+      }
+
+      // Check if user exists
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal if email exists or not for security
+        return res.json({ message: "إذا كان بريدك الإلكتروني موجود لدينا، ستتلقى رابط إعادة تعيين كلمة المرور" });
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Save token to database
+      await storage.updateUser(user.id, {
+        passwordResetToken: resetToken,
+        passwordResetExpiry: resetExpiry
+      });
+
+      // For demo purposes, return the reset link (in production, send via email)
+      const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+      console.log(`Password reset link for ${email}: ${resetLink}`);
+      
+      res.json({ 
+        message: "إذا كان بريدك الإلكتروني موجود لدينا، ستتلقى رابط إعادة تعيين كلمة المرور",
+        resetLink // Remove this in production
+      });
+    } catch (error) {
+      console.error("Error in forgot password:", error);
+      res.status(500).json({ message: "حدث خطأ أثناء إرسال رابط الاستعادة" });
+    }
+  });
+
+  // Reset Password API
+  app.post('/api/reset-password', async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      
+      if (!token || !password) {
+        return res.status(400).json({ message: "الرمز وكلمة المرور الجديدة مطلوبان" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" });
+      }
+
+      // Find user by reset token
+      const user = await storage.getUserByResetToken(token);
+      if (!user) {
+        return res.status(400).json({ message: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية" });
+      }
+
+      // Check if token is expired
+      if (!user.passwordResetExpiry || new Date() > user.passwordResetExpiry) {
+        return res.status(400).json({ message: "رابط إعادة التعيين منتهي الصلاحية" });
+      }
+
+      // Hash new password
+      const saltRounds = 12;
+      const passwordHash = await bcrypt.hash(password, saltRounds);
+
+      // Update user password and clear reset token
+      await storage.updateUser(user.id, {
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpiry: null
+      });
+
+      res.json({ message: "تم تعيين كلمة المرور الجديدة بنجاح" });
+    } catch (error) {
+      console.error("Error in reset password:", error);
+      res.status(500).json({ message: "حدث خطأ أثناء تعيين كلمة المرور" });
     }
   });
 
