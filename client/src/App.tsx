@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -71,7 +71,7 @@ function Router() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
-        <div className="text-white text-lg">جاري التحميل...</div>
+        <div className="text-white text-lg">Loading...</div>
       </div>
     );
   }
@@ -88,7 +88,7 @@ function Router() {
       {isAuthenticated ? (
         <Suspense fallback={
           <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
-            <div className="text-white text-lg">جاري التحميل...</div>
+            <div className="text-white text-lg">Loading...</div>
           </div>
         }>
           {/* System owner gets admin panel access */}

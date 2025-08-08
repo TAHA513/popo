@@ -374,6 +374,30 @@ const translations = {
     'stream.chat_details': 'تفاصيل الدردشة',
     'stream.chat_title': 'عنوان الدردشة',
     'stream.chat_description': 'وصف الدردشة',
+
+    // Profile Additional
+    'profile.laaboboo_user': 'مستخدم LaaBoBo',
+    'profile.user_points': 'النقاط',
+    'profile.user_followers': 'المتابعون',
+    'profile.user_likes': 'الإعجابات',
+    'profile.user_comments': 'التعليقات',
+    'profile.user_shares': 'المشاركات',
+    'profile.user_gifts': 'الهدايا',
+    'profile.protected_albums': 'الألبومات المحمية',
+    'profile.view_albums': 'عرض الألبومات',
+    'profile.create_album': 'إنشاء ألبوم',
+    'profile.no_locked_albums': 'لا توجد ألبومات محمية',
+    'profile.create_first_album': 'قم بإنشاء أول ألبوم محمي لك',
+    'profile.my_content': 'المحتوى الخاص بي',
+    'profile.user_memories': 'الذكريات',
+    'profile.user_videos': 'الفيديوهات',
+    'profile.account_settings': 'الإعدادات',
+    'profile.user_wallet': 'المحفظة',
+    'profile.platform_policies': 'السياسات',
+    'profile.logout_action': 'تسجيل الخروج',
+    'profile.albums_count': 'لديك {count} ألبوم محمي',
+    'memory.type_short': 'ذكرى',
+    'common.user': 'مستخدم',
   },
   en: {
     // Login Page
@@ -711,6 +735,33 @@ const translations = {
 
     // Validation
     'validation.title_required': 'Please enter a chat title',
+
+    // Profile Additional
+    'profile.laaboboo_user': 'LaaBoBo User',
+    'profile.user_points': 'Points',
+    'profile.user_followers': 'Followers',
+    'profile.user_likes': 'Likes',
+    'profile.user_comments': 'Comments',
+    'profile.user_shares': 'Shares',
+    'profile.user_gifts': 'Gifts',
+    'profile.protected_albums': 'Protected Albums',
+    'profile.view_albums': 'View Albums',
+    'profile.create_album': 'Create Album',
+    'profile.no_locked_albums': 'No protected albums',
+    'profile.create_first_album': 'Create your first protected album',
+    'profile.my_content': 'My Content',
+    'profile.user_memories': 'Memories',
+    'profile.user_videos': 'Videos',
+    'profile.account_settings': 'Settings',
+    'profile.user_wallet': 'Wallet',
+    'profile.platform_policies': 'Policies',
+    'profile.logout_action': 'Logout',
+    'profile.albums_count': 'You have {count} protected albums',
+    'memory.type_short': 'Memory',
+    'common.user': 'User',
+
+    // Authentication Additional
+    'auth.login_required': 'Please log in',
   }
 };
 

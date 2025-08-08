@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -20,6 +21,7 @@ import BottomNavigation from "@/components/bottom-navigation";
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [, setLocation] = useLocation();
 
   // جلب بيانات المستخدم
@@ -39,9 +41,9 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
           <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">يجب تسجيل الدخول</h2>
+            <h2 className="text-xl font-bold mb-4">{t('auth.login_required')}</h2>
             <Button onClick={() => setLocation("/login")} className="w-full">
-              تسجيل الدخول
+              {t('auth.login')}
             </Button>
           </CardContent>
         </Card>
@@ -73,9 +75,9 @@ export default function ProfilePage() {
               className="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 hover:text-gray-800"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>العودة</span>
+              <span>{t('nav.back')}</span>
             </button>
-            <h1 className="text-xl font-bold text-gray-800">الملف الشخصي</h1>
+            <h1 className="text-xl font-bold text-gray-800">{t('nav.profile')}</h1>
             <div className="w-16"></div>
           </div>
         </div>
@@ -92,10 +94,10 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold">{user.username}</h2>
-                <p className="text-white/80">مستخدم LaaBoBo</p>
+                <p className="text-white/80">{t('profile.laaboboo_user')}</p>
                 <div className="flex items-center space-x-4 rtl:space-x-reverse mt-2">
-                  <span className="text-sm">النقاط: {user.points || 0}</span>
-                  <span className="text-sm">المتابعون: 0</span>
+                  <span className="text-sm">{t('profile.user_points')}: {user.points || 0}</span>
+                  <span className="text-sm">{t('profile.user_followers')}: 0</span>
                 </div>
               </div>
             </div>
@@ -107,22 +109,22 @@ export default function ProfilePage() {
           <Card className="text-center p-3">
             <Heart className="w-6 h-6 mx-auto text-red-500 mb-1" />
             <div className="text-sm font-bold">0</div>
-            <div className="text-xs text-gray-500">الإعجابات</div>
+            <div className="text-xs text-gray-500">{t('profile.user_likes')}</div>
           </Card>
           <Card className="text-center p-3">
             <MessageSquare className="w-6 h-6 mx-auto text-blue-500 mb-1" />
             <div className="text-sm font-bold">0</div>
-            <div className="text-xs text-gray-500">التعليقات</div>
+            <div className="text-xs text-gray-500">{t('profile.user_comments')}</div>
           </Card>
           <Card className="text-center p-3">
             <Share className="w-6 h-6 mx-auto text-green-500 mb-1" />
             <div className="text-sm font-bold">0</div>
-            <div className="text-xs text-gray-500">المشاركات</div>
+            <div className="text-xs text-gray-500">{t('profile.user_shares')}</div>
           </Card>
           <Card className="text-center p-3">
             <Gift className="w-6 h-6 mx-auto text-yellow-500 mb-1" />
             <div className="text-sm font-bold">0</div>
-            <div className="text-xs text-gray-500">الهدايا</div>
+            <div className="text-xs text-gray-500">{t('profile.user_gifts')}</div>
           </Card>
         </div>
 
@@ -131,7 +133,7 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
               <Lock className="w-5 h-5 text-purple-600" />
-              <span>الألبومات المحمية</span>
+              <span>{t('profile.protected_albums')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -141,16 +143,16 @@ export default function ProfilePage() {
                 className="w-full bg-purple-500 hover:bg-purple-600 text-white"
               >
                 <Lock className="w-4 h-4 mr-2" />
-                إدارة الألبومات المحمية
+{t('profile.view_albums')}
               </Button>
               
               {lockedAlbums.length > 0 ? (
                 <div className="text-sm text-gray-600">
-                  لديك {lockedAlbums.length} ألبوم محمي
+{t('profile.albums_count').replace('{count}', lockedAlbums.length.toString())}
                 </div>
               ) : (
                 <div className="text-sm text-gray-500 text-center py-4">
-                  لا توجد ألبومات محمية بعد
+{t('profile.no_locked_albums')}
                 </div>
               )}
             </div>
@@ -160,7 +162,7 @@ export default function ProfilePage() {
         {/* Content Creation */}
         <Card>
           <CardHeader>
-            <CardTitle>إنشاء المحتوى</CardTitle>
+            <CardTitle>{t('profile.my_content')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
@@ -168,14 +170,14 @@ export default function ProfilePage() {
               className="w-full bg-blue-500 hover:bg-blue-600 text-white"
             >
               <Camera className="w-4 h-4 mr-2" />
-              إنشاء ذكرى جديدة
+{t('memory.create')}
             </Button>
             <Button 
               onClick={() => setLocation('/start-stream')}
               className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
             >
               <Video className="w-4 h-4 mr-2" />
-              بدء بث مباشر
+{t('stream.start_streaming')}
             </Button>
           </CardContent>
         </Card>
@@ -185,7 +187,7 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
               <Settings className="w-5 h-5" />
-              <span>الإعدادات</span>
+              <span>{t('profile.account_settings')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -195,7 +197,7 @@ export default function ProfilePage() {
               onClick={() => setLocation('/account')}
             >
               <User className="w-4 h-4 mr-2" />
-              إعدادات الحساب
+{t('account.settings')}
             </Button>
             <Button 
               variant="outline" 
@@ -203,7 +205,7 @@ export default function ProfilePage() {
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2" />
-              تسجيل الخروج
+{t('profile.logout_action')}
             </Button>
           </CardContent>
         </Card>

@@ -16,7 +16,7 @@ export default function SimpleHome() {
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // المنشورات العامة فقط (بدون البثوث) - محسّن للسرعة
+  // Public posts only (no streams) - optimized for speed
   const { data: memories = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
     refetchInterval: 15000, // تقليل تحديث البيانات من 10 إلى 15 ثانية
@@ -78,7 +78,7 @@ export default function SimpleHome() {
               <button 
                 onClick={() => setLocation('/search')}
                 className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
-                title="البحث"
+                title={t('common.search')}
               >
                 <Search className="w-6 h-6" />
               </button>
@@ -113,12 +113,12 @@ export default function SimpleHome() {
               <button 
                 onClick={() => setLocation('/create-memory')}
                 className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
-                title="إنشاء ذكرى"
+                title={t('memory.create')}
               >
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span className="text-white font-medium text-xs">ذكرى</span>
+                <span className="text-white font-medium text-xs">{t('memory.type_short')}</span>
               </button>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function SimpleHome() {
       </div>
 
       <div className="max-w-sm mx-auto">
-        {/* الصفحة الرئيسية - المنشورات مع البطاقات التفاعلية */}
+        {/* Homepage - Posts with Interactive Cards */}
         <div className="p-2">
           {isLoading && memories.length === 0 && (
             <div className="flex justify-center items-center py-4">
@@ -175,7 +175,7 @@ export default function SimpleHome() {
                       mediaUrls: mediaUrls,
                       author: memory.author || {
                         id: memory.authorId,
-                        firstName: memory.author?.firstName || 'مستخدم',
+                        firstName: memory.author?.firstName || t('common.user'),
                         username: memory.author?.username || 'LaaBoBo',
                         profileImageUrl: memory.author?.profileImageUrl
                       }
@@ -184,7 +184,7 @@ export default function SimpleHome() {
                     isLiked={likedItems.has(memory.id.toString())}
                     onLike={(id) => handleLike(memory.id.toString())}
                     onAction={(action) => {
-                      // يمكن إضافة إجراءات هنا إذا لزم الأمر
+                      // Additional actions can be added here if needed
                     }}
                   />
                 );
