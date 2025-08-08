@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { GiftShop } from "@/components/gift-shop";
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const { isRTL, t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,7 +147,7 @@ export default function MessagesPage() {
       <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
         {/* No navigation during loading */}
         <div className="flex items-center justify-center h-screen">
-          <div className="text-lg">جاري التحميل...</div>
+          <div className="text-lg">{t('common.loading')}</div>
         </div>
         <BottomNavigation />
       </div>
@@ -153,7 +155,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className={`min-h-screen bg-gray-50 pb-20 md:pb-0 ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Header with back button */}
       <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 max-w-4xl">
@@ -164,9 +166,9 @@ export default function MessagesPage() {
               onClick={() => window.history.back()}
               className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
             >
-              <ArrowLeft className="h-5 w-5" />
+              {isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
             </Button>
-            <h1 className="text-xl font-bold text-gray-900">الرسائل</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('messages.title')}</h1>
           </div>
         </div>
       </div>
@@ -178,18 +180,18 @@ export default function MessagesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Regular Messages Section */}
             <Card className="p-4">
-              <h3 className="font-bold text-gray-700 mb-3 text-center">المحادثات العادية</h3>
+              <h3 className="font-bold text-gray-700 mb-3 text-center">{t('messages.conversations')}</h3>
               <div className="space-y-2">
                 <Link href="/messages/new-chat" className="block">
                   <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700">
-                    <MessageCircle className="w-4 h-4 ml-1" />
-                    غرفة دردشة جديدة
+                    <MessageCircle className={`w-4 h-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                    {t('messages.new_message')}
                   </Button>
                 </Link>
                 <Link href="/messages/requests" className="block">
                   <Button variant="outline" className="w-full text-purple-600 border-purple-600 hover:bg-purple-50">
-                    طلبات الرسائل
-                    <Badge className="mr-2 bg-purple-600 text-white">
+                    {t('messages.requests')}
+                    <Badge className={`${isRTL ? 'ml-2' : 'mr-2'} bg-purple-600 text-white`}>
                       {requestCount}
                     </Badge>
                   </Button>

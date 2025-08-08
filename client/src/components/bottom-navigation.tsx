@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 
 import { 
@@ -15,6 +16,7 @@ import {
 
 export default function BottomNavigation() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [location] = useLocation();
 
 
@@ -39,12 +41,12 @@ export default function BottomNavigation() {
   );
 
   const navItems = [
-    { href: "/", icon: Home, label: "المنشورات" },
-    { href: "/explore", icon: Radio, label: "البث" },
-    { href: "/create-memory", icon: Plus, label: "إنشاء", isSpecial: true },
-    { href: "/gifts", icon: Gift, label: "الهدايا" },
-    { href: "/messages", icon: MessageCircle, label: "الرسائل" },
-    { href: "/profile", icon: User, label: "الملف" }
+    { href: "/", icon: Home, label: t('nav.home') },
+    { href: "/explore", icon: Radio, label: t('explore.title') },
+    { href: "/create-memory", icon: Plus, label: t('common.create'), isSpecial: true },
+    { href: "/gifts", icon: Gift, label: t('nav.gifts') },
+    { href: "/messages", icon: MessageCircle, label: t('nav.messages') },
+    { href: "/profile", icon: User, label: t('nav.profile') }
   ];
 
   return (

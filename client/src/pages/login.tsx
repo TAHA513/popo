@@ -102,11 +102,11 @@ export default function Login() {
             <Button
               variant="ghost"
               size="sm"
-              className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all"
+              className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all px-2 py-1 h-8"
             >
-              <Globe className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-              <span>{currentLanguage.flag} {currentLanguage.localName}</span>
-              <ChevronDown className={`w-3 h-3 ${isRTL ? 'mr-2' : 'ml-2'}`} />
+              <Globe className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+              <span className="text-sm">{currentLanguage.flag}</span>
+              <ChevronDown className={`w-2 h-2 ${isRTL ? 'mr-1' : 'ml-1'}`} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-black/90 backdrop-blur-lg border border-white/20">
@@ -114,9 +114,9 @@ export default function Login() {
               <DropdownMenuItem
                 key={lang.code}
                 onClick={() => setLanguage(lang)}
-                className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+                className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10 text-sm"
               >
-                <span className={`${isRTL ? 'ml-3' : 'mr-3'}`}>{lang.flag}</span>
+                <span className={`${isRTL ? 'ml-2' : 'mr-2'}`}>{lang.flag}</span>
                 {lang.localName}
               </DropdownMenuItem>
             ))}

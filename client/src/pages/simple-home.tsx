@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import PromotionalBanner from "@/components/promotional-banner";
 
 export default function SimpleHome() {
   const { user } = useAuth();
+  const { isRTL, t } = useLanguage();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
@@ -59,7 +61,7 @@ export default function SimpleHome() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className={`min-h-screen bg-gray-50 pb-20 ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="p-4">
