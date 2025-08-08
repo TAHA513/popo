@@ -502,6 +502,7 @@ export const memoryViews = pgTable("memory_views", {
   viewedAt: timestamp("viewed_at").defaultNow(),
   // Unique constraint to prevent duplicate views from same user
 }, (table) => [
+  unique("memory_views_unique_user_memory").on(table.memoryId, table.viewerId),
   index("memory_views_memory_viewer_idx").on(table.memoryId, table.viewerId),
 ]);
 

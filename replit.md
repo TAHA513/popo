@@ -48,6 +48,8 @@ Gift System: Fully activated across all platform components with real working tr
 - ✅ Implemented verification badges in profile pages and memory cards
 - ✅ Created admin API endpoints for managing user verification status
 - ✅ Verified user account (fnnm945@gmail.com) with LaaBoBo badge
+- ✅ FIXED DUPLICATE VIEW COUNTING: Added unique constraint to prevent same user from counting multiple views on same memory
+- ✅ CORRECTED MEMORY EXPIRATION PERIODS: Fixed time periods to match UI display (flash: 3h, trending: 12h, star: 24h, legend: 1 week, permanent: never expires)
 - ✅ Created TikTok-style secure admin panel with multi-layer protection
 - ✅ Added hidden access URL and secret code verification system
 - ✅ Implemented attempt-based blocking and security logging
