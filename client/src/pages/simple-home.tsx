@@ -112,13 +112,13 @@ export default function SimpleHome() {
               {/* Create Memory Button */}
               <button 
                 onClick={() => setLocation('/create-memory')}
-                className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
+                className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 rounded-full transition-all duration-200 shadow-sm hover:shadow-md min-w-[60px]"
                 title={t('memory.create')}
               >
-                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span className="text-white font-medium text-xs">{t('memory.type_short')}</span>
+                <span className="text-white font-medium text-xs whitespace-nowrap">{t('memory.type_short')}</span>
               </button>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function SimpleHome() {
           {memories.length > 0 && (
             <div className="grid grid-cols-1 gap-4">
               {memories.map((memory: any) => {
-                // تحديد نوع المحتوى بناءً على البيانات الحقيقية
+                // Determine content type based on real data
                 const hasVideo = memory.type === 'video' || 
                   (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
                     url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')
