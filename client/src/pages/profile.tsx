@@ -80,18 +80,17 @@ export default function ProfilePage() {
             <h1 className="text-xl font-bold text-gray-800">{t('nav.profile')}</h1>
             <button 
               onClick={() => setLocation('/account')}
-              className="flex items-center space-x-1 rtl:space-x-reverse px-3 py-1.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors text-sm"
+              className="flex items-center justify-center w-[45px] h-[32px] text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
               title={t('nav.settings')}
             >
-              <Settings className="w-4 h-4" />
-              <span>{t('nav.settings')}</span>
+              <Settings className="w-5 h-5" />
             </button>
           </div>
         </div>
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-20" style={{ touchAction: 'pan-y' }}>
+      <div className="flex-1 overflow-y-auto pb-20 scroll-smooth" style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
         <div className="max-w-md mx-auto p-4 space-y-6">
         {/* Profile Header */}
         <Card className="bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 text-white">
