@@ -11,12 +11,10 @@ import BottomNavigation from "@/components/bottom-navigation";
 import MemoryCard from "@/components/memory-card";
 import { Link } from "wouter";
 import VerificationBadge from "@/components/ui/verification-badge";
-import { useTranslation } from "@/lib/i18n";
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const { t } = useTranslation();
   const [searchHistory, setSearchHistory] = useState<string[]>([
     "الذكريات الجميلة",
     "البث المباشر",
@@ -94,7 +92,7 @@ export default function SearchPage() {
             <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               type="text"
-              placeholder={t('search.searchPlaceholder')}
+              placeholder="ابحث عن الذكريات، الأشخاص، أو البثوث..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 rtl:pr-10 rtl:pl-4 pr-10 py-3 text-lg border-2 border-gray-200 focus:border-purple-500 rounded-full"
@@ -121,7 +119,7 @@ export default function SearchPage() {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <Clock className="w-5 h-5 text-gray-500" />
-                  <h2 className="text-lg font-semibold text-gray-800">{t('search.searchResults')}</h2>
+                  <h2 className="text-lg font-semibold text-gray-800">عمليات البحث الأخيرة</h2>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {searchHistory.map((item, index) => (
@@ -185,10 +183,10 @@ export default function SearchPage() {
             ) : hasResults ? (
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-4 mb-6">
-                  <TabsTrigger value="all">{t('common.search')} ({memories.length + users.length + streams.length})</TabsTrigger>
-                  <TabsTrigger value="memories">{t('memory.memories')} ({memories.length})</TabsTrigger>
-                  <TabsTrigger value="users">{t('search.users')} ({users.length})</TabsTrigger>
-                  <TabsTrigger value="streams">{t('search.liveStreams')} ({streams.length})</TabsTrigger>
+                  <TabsTrigger value="all">الكل ({memories.length + users.length + streams.length})</TabsTrigger>
+                  <TabsTrigger value="memories">الذكريات ({memories.length})</TabsTrigger>
+                  <TabsTrigger value="users">الأشخاص ({users.length})</TabsTrigger>
+                  <TabsTrigger value="streams">البثوث ({streams.length})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all">
@@ -197,7 +195,7 @@ export default function SearchPage() {
                       <div>
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                           <Users className="w-5 h-5" />
-                          {t('search.users')}
+                          الأشخاص
                         </h3>
                         <div className="space-y-3">
                           {users.slice(0, 3).map((user: any) => (
@@ -238,7 +236,7 @@ export default function SearchPage() {
                       <div>
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                           <Video className="w-5 h-5" />
-                          {t('memory.memories')}
+                          الذكريات
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {memories.slice(0, 6).map((memory: any) => (

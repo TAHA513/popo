@@ -11,15 +11,12 @@ import { User, Mail, Phone, Calendar, CreditCard, UserPlus, Camera, Upload } fro
 import { toast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { LanguageToggle } from "@/components/language-toggle";
-import { useTranslation } from "@/lib/i18n";
 
 export default function AccountPage() {
   const { user } = useAuth();
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
 
   // Profile image upload mutation
   const uploadProfileImageMutation = useMutation({
@@ -256,14 +253,6 @@ export default function AccountPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">إدارة إعدادات الخصوصية</p>
                   </div>
                   <Button variant="outline" size="sm">إدارة</Button>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>{t('common.settings')} - اللغة</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">تغيير لغة واجهة التطبيق</p>
-                  </div>
-                  <LanguageToggle />
                 </div>
                 
                 <div className="col-span-full">
