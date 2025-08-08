@@ -4,6 +4,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* منع السحب الأفقي والتمرير الأفقي غير المرغوب فيه */
+body, html {
+  overflow-x: hidden;
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+}
+
+/* منع سحب العناصر والنصوص */
+* {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+/* تحسين التعامل مع اللمس للشرائط الثابتة */
+.sticky-header {
+  touch-action: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 /* تأثيرات التعليقات مثل TikTok */
 @keyframes fade-in-up {
   0% {

@@ -337,12 +337,12 @@ export default function ProfileRedesign() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0 overflow-x-hidden" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
       {/* Header with back button and settings - only show for other users' profiles */}
       {!isOwnProfile && (
-        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20 select-none sticky-header">
           <div className="container mx-auto px-4 py-3 max-w-4xl">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between touch-pan-y overscroll-none" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -368,7 +368,7 @@ export default function ProfileRedesign() {
               </div>
               
               {/* Settings Icon */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0" style={{ touchAction: 'none' }}>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -398,13 +398,13 @@ export default function ProfileRedesign() {
       {isOwnProfile && (
         <>
           <SimpleNavigation />
-          <div className="bg-white shadow-sm border-b border-gray-200 sticky top-16 z-10">
+          <div className="bg-white shadow-sm border-b border-gray-200 sticky top-16 z-10 select-none sticky-header">
             <div className="container mx-auto px-4 py-2 max-w-4xl">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between touch-pan-y overscroll-none" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
                 <h1 className="text-lg font-bold text-gray-900">الملف الشخصي</h1>
                 
                 {/* Settings Icon */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0" style={{ touchAction: 'none' }}>
                   <Button
                     variant="ghost"
                     size="sm"
