@@ -78,7 +78,13 @@ export default function ProfilePage() {
               <span>{t('nav.back')}</span>
             </button>
             <h1 className="text-xl font-bold text-gray-800">{t('nav.profile')}</h1>
-            <div className="w-16"></div>
+            <button 
+              onClick={() => setLocation('/account')}
+              className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+              title={t('nav.settings')}
+            >
+              <Settings className="w-6 h-6" />
+            </button>
           </div>
         </div>
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
