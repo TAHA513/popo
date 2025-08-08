@@ -28,8 +28,8 @@ export default function Login() {
   const { currentLanguage, setLanguage, t, isRTL } = useLanguage();
 
   const loginSchema = z.object({
-    username: z.string().min(1, t('login.username')),
-    password: z.string().min(1, t('login.password')),
+    username: z.string().min(1, t('auth.username')),
+    password: z.string().min(1, t('auth.password')),
   });
 
   type LoginForm = z.infer<typeof loginSchema>;
@@ -55,14 +55,14 @@ export default function Login() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || t('login.error'));
+        throw new Error(error.message || t('auth.error_title'));
       }
 
       return response.json();
     },
     onSuccess: async (data) => {
       toast({
-        title: t('login.success'),
+        title: t('auth.success_title'),
         description: data.message,
       });
       
@@ -74,7 +74,7 @@ export default function Login() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('login.error'),
+        title: t('auth.error_title'),
         description: error.message,
         variant: "destructive",
       });
@@ -132,7 +132,7 @@ export default function Login() {
               <span className="text-3xl rabbit-animated">🐰</span>
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">LaaBoBo Live</h1>
-            <p className="text-gray-300 text-sm">{t('login.welcome')}</p>
+            <p className="text-gray-300 text-sm">{isRTL ? 'أهلاً وسهلاً' : 'Welcome back'}</p>
           </div>
 
           {/* Login Form */}
@@ -143,7 +143,7 @@ export default function Login() {
                 <Input
                   id="username"
                   {...register("username")}
-                  placeholder={t('login.username')}
+                  placeholder={t('auth.username')}
                   disabled={loginMutation.isPending}
                   className="h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-2xl text-lg backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all"
                 />
@@ -159,7 +159,7 @@ export default function Login() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
-                    placeholder={t('login.password')}
+                    placeholder={t('auth.password')}
                     disabled={loginMutation.isPending}
                     className={`h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-300 rounded-2xl text-lg backdrop-blur-sm focus:bg-white/20 focus:border-pink-400 transition-all ${isRTL ? 'pr-14' : 'pl-14'}`}
                   />
@@ -192,10 +192,10 @@ export default function Login() {
                 {loginMutation.isPending ? (
                   <div className="flex items-center gap-3">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>{t('login.signing_in')}</span>
+                    <span>{t('auth.logging_in')}</span>
                   </div>
                 ) : (
-                  t('login.button')
+                  t('auth.login')
                 )}
               </Button>
 
@@ -207,7 +207,7 @@ export default function Login() {
                   type="button"
                   onClick={() => navigate("/forgot-password")}
                 >
-                  {t('login.forgot_password')}
+                  {t('auth.forgot_password')}
                 </Button>
               </div>
             </form>
@@ -216,7 +216,7 @@ export default function Login() {
           {/* Sign Up Link */}
           <div className="text-center mt-8">
             <p className="text-gray-300 text-sm mb-4">
-              ليس لديك حساب؟
+              {t('auth.dont_have_account')}
             </p>
             <Button
               variant="outline"
@@ -224,14 +224,14 @@ export default function Login() {
               onClick={() => navigate("/register")}
               disabled={loginMutation.isPending}
             >
-              إنشاء حساب جديد
+{t('auth.register_now')}
             </Button>
           </div>
 
           {/* Footer */}
           <div className="text-center mt-8">
             <p className="text-gray-400 text-xs">
-              بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية
+              {isRTL ? 'بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية' : 'By continuing, you agree to our Terms of Service and Privacy Policy'}
             </p>
           </div>
         </div>
