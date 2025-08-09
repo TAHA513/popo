@@ -11,9 +11,8 @@ import {
   LogOut, 
   ArrowLeft,
   Heart,
-  MessageSquare,
-  Share,
-  Gift,
+  Users,
+  Shield,
   Camera,
   Video
 } from "lucide-react";
@@ -112,19 +111,17 @@ export default function ProfilePage() {
             <div className="text-xs text-gray-500">{t('profile.user_likes')}</div>
           </Card>
           <Card className="text-center p-3">
-            <MessageSquare className="w-6 h-6 mx-auto text-blue-500 mb-1" />
+            <Users className="w-6 h-6 mx-auto text-blue-500 mb-1" />
             <div className="text-sm font-bold">0</div>
-            <div className="text-xs text-gray-500">{t('profile.user_comments')}</div>
+            <div className="text-xs text-gray-500">{t('profile.user_followers')}</div>
           </Card>
-          <Card className="text-center p-3">
-            <Share className="w-6 h-6 mx-auto text-green-500 mb-1" />
-            <div className="text-sm font-bold">0</div>
-            <div className="text-xs text-gray-500">{t('profile.user_shares')}</div>
+          <Card className="text-center p-3" onClick={() => setLocation('/privacy')}>
+            <Shield className="w-6 h-6 mx-auto text-purple-500 mb-1" />
+            <div className="text-xs text-gray-600">{t('profile.platform_policies')}</div>
           </Card>
-          <Card className="text-center p-3">
-            <Gift className="w-6 h-6 mx-auto text-yellow-500 mb-1" />
-            <div className="text-sm font-bold">0</div>
-            <div className="text-xs text-gray-500">{t('profile.user_gifts')}</div>
+          <Card className="text-center p-3" onClick={() => setLocation('/account')}>
+            <Settings className="w-6 h-6 mx-auto text-gray-600 mb-1" />
+            <div className="text-xs text-gray-600">{t('profile.account_settings')}</div>
           </Card>
         </div>
 
@@ -182,34 +179,12 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Settings */}
+        {/* Logout Section */}
         <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Settings className="w-5 h-5" />
-              <span>{t('profile.account_settings')}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-4">
             <Button 
               variant="outline" 
-              className="w-full justify-start"
-              onClick={() => setLocation('/account')}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              {t('profile.account_settings')}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => setLocation('/privacy')}
-            >
-              <Lock className="w-4 h-4 mr-2" />
-              {t('profile.platform_policies')}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50"
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2" />
