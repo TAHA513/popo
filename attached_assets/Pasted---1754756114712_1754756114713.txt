@@ -1,0 +1,76 @@
+أفهم المشكلة. المستخدم ينقر على "قرأت كل الإشعارات" لكن الإشعارات تبقى ظاهرة ولا يتم وضع علامة "مقروءة" عليها. دعني أتحقق من صفحة الإشعارات وأصلح هذه المشكلة.
+
+الآن دعني أرى باقي الصفحة وأتحقق من endpoint تحديد جميع الإشعارات كمقروءة:
+
+Optimized Agent memory
+الآن دعني أتحقق من endpoint التحكم في الخادم لوضع علامة مقروءة على جميع الإشعارات:
+
+أرى أن الكود يبدو صحيح من ناحية المنطق، لكن دعني أتحقق من قاعدة البيانات لرؤية الإشعارات الحالية وحالة القراءة:
+
+دعني أصحح التسمية واستعلم بشكل صحيح:
+
+أرى أن الإشعارات موجودة في قاعدة البيانات وهي بالفعل مقروءة (is_read=t). المشكلة قد تكون في تسمية الأعمدة بين الكود وقاعدة البيانات. دعني أتحقق من الـ schema:
+
+دعني أجد جدول الإشعارات في الـ schema:
+
+الآن أرى المشكلة! في قاعدة البيانات، أسماء الأعمدة تستخدم snake_case (user_id, is_read) بينما في الكود JavaScript نستخدم camelCase (userId, isRead). لكن في الـ schema، الأعمدة معرفة بشكل صحيح. دعني أتحقق من الـ API endpoint وأضيف سجلات للتتبع:
+
+الآن دعني أضيف import للدالة and المطلوبة:
+
+أرى أن دالة and موجودة بالفعل في imports. الآن دعني أنشئ بعض الإشعارات للاختبار وأختبر وظيفة "قراءة الكل":
+
+الآن دعني أختبر الوظيفة بتسجيل الدخول أولاً ومن ثم اختبار "قراءة الكل":
+
+7:08 pm, Aug 09, 2025
+Update system to mark all user notifications as read correctly
+2 minutes of work
+تمت إضافة تتبع مفصل لوظيفة "قراءة الكل":
+
+✓ تحسين API endpoint لتحديد الإشعارات كمقروءة
+✓ إضافة سجلات مفصلة لتتبع العملية
+✓ إنشاء إشعارات اختبار جديدة لفحص الوظيفة
+✓ تحسين استعلام قاعدة البيانات للدقة
+
+الآن سجل دخول واختبر زر "قراءة الكل" في صفحة الإشعارات. ستظهر السجلات في وحدة التحكم توضح عدد الإشعارات التي تم العثور عليها وتحديثها. هل يعمل الزر الآن بشكل صحيح؟
+
+This chat has ended
+Preview
+/
+
+Secrets
+SESSION_SECRET
+••••••••
+DATABASE_URL
+••••••••
+PGDATABASE
+••••••••
+PGHOST
+••••••••
+PGPORT
+••••••••
+PGUSER
+••••••••
+PGPASSWORD
+••••••••
+VIDEOSDK_API_KEY
+••••••••
+VIDEOSDK_SECRET_KEY
+••••••••
+AUTH0_CLIENT_ID
+••••••••
+AUTH0_CLIENT_SECRET
+QsoBirqot5GuVb7ELDOCE3UghNwvbyxc
+AUTH0_DOMAIN
+dev-ayaqfo81skd0tzhf.us.auth0.com
+Key
+AUTH0_AUDIENCE
+Value
+https://dev-ayaqfo81skd0tzhf.us.auth0.com/api/v2/
+Key
+STRIPE_SECRET_KEY
+Value
+sk_test_51RreU4F5B5GPeR6GKXqcUSmZng5yoJ4ILXI7QpoBpcSK2AQyGH1raZU8MRBwdPEalDGQ5ZSkWZGWu55pkQedLt3M00ygIlJxDq
+Key
+VITE_STRIPE_PUBLIC_KEY
+Value
+pk_test_51RreU4F5B5GPeR6GsZaOLsQZ5U8GUd6sqQS4Xyju3fxOG3YQOFnrPa5NkEGPZEWDoufAOmfePu5S9iPAey7NkjcT00y7pMKUFW
