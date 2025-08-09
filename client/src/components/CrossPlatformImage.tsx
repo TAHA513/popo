@@ -13,11 +13,15 @@ export function CrossPlatformImage({ src, alt, className, onClick }: CrossPlatfo
   const [isLoading, setIsLoading] = useState(true);
 
   const handleError = () => {
-    if (!hasError) {
+    if (!hasError && imageSrc === src) {
+      // Try proxy URL if original fails
+      const filename = src.split('/').pop();
+      const proxyUrl = `/proxy/file/${filename}`;
+      setImageSrc(proxyUrl);
       setHasError(true);
-      console.log(`صورة غير متوفرة: ${src}`);
-      // Show a placeholder for missing images
-      setImageSrc("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2YjcyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7Yt9mI2LHYqSDYutmK2LEg2YXYqtmI2YHYsdipPC90ZXh0Pgo8L3N2Zz4=");
+      console.log(`تجربة تحميل الملف من منصة أخرى: ${filename}`);
+    } else {
+      console.log(`فشل في العثور على الملف في كلا المنصتين: ${src}`);
     }
   };
 

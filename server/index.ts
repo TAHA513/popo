@@ -13,56 +13,33 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Cross-platform file serving with automatic fallback
-app.use('/uploads', async (req, res, next) => {
-  const requestedFile = req.path;
-  const localFilePath = path.join(process.cwd(), 'uploads', requestedFile);
-  
-  // First try to serve file locally
-  if (fs.existsSync(localFilePath)) {
-    return express.static('uploads')(req, res, next);
-  }
-  
-  // If file doesn't exist locally, try to fetch from alternative platforms
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
+
+// Add file proxy endpoint for cross-platform access
+app.get('/proxy/file/*', async (req, res) => {
+  const filePath = req.params[0];
   const alternativeUrls = [
-    `https://laabolive.replit.app/uploads${requestedFile}`,
-    `https://laabo-render.onrender.com/uploads${requestedFile}`,
-    // Add direct file access with different encoding
-    `https://laabolive.replit.app/uploads/${encodeURIComponent(requestedFile.substring(1))}`,
-    `https://laabo-render.onrender.com/uploads/${encodeURIComponent(requestedFile.substring(1))}`
+    `https://laabolive.replit.app/uploads/${filePath}`,
+    `https://laabo-render.onrender.com/uploads/${filePath}`
   ];
-  
-  console.log(`🔍 File not found locally: ${requestedFile}, trying alternatives...`);
   
   for (const url of alternativeUrls) {
     try {
-      console.log(`📥 Attempting to fetch: ${url}`);
       const response = await fetch(url);
       if (response.ok) {
-        console.log(`✅ Found file at: ${url}`);
         const buffer = await response.arrayBuffer();
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-        
-        // Cache the file locally for future requests
-        try {
-          await fs.promises.writeFile(localFilePath, Buffer.from(buffer));
-          console.log(`💾 Cached file locally: ${localFilePath}`);
-        } catch (cacheError) {
-          console.log(`⚠️ Could not cache file: ${cacheError}`);
-        }
-        
-        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
         res.setHeader('Cache-Control', 'public, max-age=31536000');
         res.send(Buffer.from(buffer));
         return;
       }
     } catch (error: any) {
-      console.log(`❌ Failed to fetch from ${url}:`, error?.message || 'Unknown error');
+      console.log(`Failed to fetch from ${url}:`, error?.message || 'Unknown error');
     }
   }
   
-  console.log(`❌ File not found on any platform: ${requestedFile}`);
-  res.status(404).send('File not found');
+  res.status(404).send('File not found on any platform');
 });
 
 // Disable caching for all API endpoints to ensure fresh data
