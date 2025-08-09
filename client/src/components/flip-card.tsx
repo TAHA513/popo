@@ -10,8 +10,8 @@ import { VideoOptimizer } from "@/utils/video-optimizer";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { CrossPlatformImage } from './CrossPlatformImage';
-import { CrossPlatformVideo } from './CrossPlatformVideo';
+import { SmartCrossPlatformImage } from './SmartCrossPlatformImage';
+import { SmartCrossPlatformVideo } from './SmartCrossPlatformVideo';
 import { 
   Play, 
   Heart, 
@@ -298,7 +298,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
         {/* Background Media */}
         {content.mediaUrls && content.mediaUrls.length > 0 ? (
           type === 'video' || type === 'live' ? (
-            <CrossPlatformVideo
+            <SmartCrossPlatformVideo
               src={content.mediaUrls[0]}
               className="w-full h-full object-cover transition-opacity duration-300"
               muted
@@ -312,7 +312,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
               }}
             />
           ) : (
-            <CrossPlatformImage
+            <SmartCrossPlatformImage
               src={content.mediaUrls[0]}
               alt="منشور"
               className="w-full h-full object-cover"
@@ -340,7 +340,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
             >
               <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/60 group-hover:border-white transition-colors">
                 {content.author?.profileImageUrl ? (
-                  <CrossPlatformImage
+                  <SmartCrossPlatformImage
                     src={content.author.profileImageUrl}
                     alt={content.author?.firstName || content.author?.username || 'مستخدم'}
                     className="w-full h-full object-cover"
