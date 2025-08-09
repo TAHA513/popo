@@ -1,22 +1,24 @@
 // Owner account protection system
-// This file contains utilities to protect the owner account from appearing in public lists
+// This file contains utilities to protect ONLY the admin owner account from appearing in public lists
+// The verified official account (LaaBoBo) should remain visible to users
 
-export const OWNER_EMAIL = 'fnnm945@gmail.com';
-export const OWNER_USERNAME = 'LaaBoBo_Owner';
+export const ADMIN_OWNER_EMAIL = 'fnnm945@gmail.com';
+export const ADMIN_OWNER_USERNAME = 'LaaBoBo_Owner';
 
-// Function to check if a user is the owner (by email or username)
+// Function to check if a user is the protected admin owner account
 export function isOwnerAccount(user: { username?: string; email?: string }): boolean {
-  return user.username === OWNER_USERNAME || user.email === OWNER_EMAIL;
+  // Only hide the admin owner account, not the official verified account
+  return user.username === ADMIN_OWNER_USERNAME || user.email === ADMIN_OWNER_EMAIL;
 }
 
-// Function to check if username is the owner username
+// Function to check if username is the admin owner username
 export function isOwnerUsername(username: string): boolean {
-  return username === OWNER_USERNAME;
+  return username === ADMIN_OWNER_USERNAME;
 }
 
-// Function to check if email is the owner email
+// Function to check if email is the admin owner email
 export function isOwnerEmail(email: string): boolean {
-  return email === OWNER_EMAIL;
+  return email === ADMIN_OWNER_EMAIL;
 }
 
 // Function to filter out owner from user arrays
