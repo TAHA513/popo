@@ -13,6 +13,7 @@ import passport from "passport";
 // @ts-ignore
 import { checkSuperAdmin } from "./middleware/checkSuperAdmin.js";
 import { trackUserActivity, cleanupStaleOnlineUsers } from "./middleware/activityTracker";
+import { filterOwnerFromUsers, logOwnerProtection, isOwnerUsername, isOwnerEmail, isOwnerAccount } from './owner-protection';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -1482,7 +1483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search
       });
       
-      // Get users excluding the current user and owner account
+      // Get users excluding the current user
       const usersResult = await db
         .select({
           id: users.id,
@@ -1492,12 +1493,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isOnline: users.isOnline
         })
         .from(users)
-        .where(and(ne(users.id, req.user.id), ne(users.username, 'fnnm945@gmail.com')))
+        .where(ne(users.id, req.user.id))
         .limit(limit);
       
-      console.log('👥 Found users:', usersResult.length);
+      // Filter out owner account using protection system
+      const filteredUsers = filterOwnerFromUsers(usersResult);
+      logOwnerProtection('user search', usersResult.length - filteredUsers.length);
       
-      res.json(usersResult);
+      console.log('👥 Found users:', filteredUsers.length);
+      
+      res.json(filteredUsers);
     } catch (error) {
       console.error('Error searching users:', error);
       res.status(500).json({ message: 'فشل في البحث عن المستخدمين' });
@@ -1662,6 +1667,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         console.log('❌ User not found:', userId);
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      // Check if requested user is the protected owner account
+      if (isOwnerAccount(user)) {
+        console.log('🛡️ Owner account access blocked for user:', req.user?.username);
+        logOwnerProtection('user profile access', 1);
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
       
@@ -2340,11 +2352,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const users = await storage.searchUsers(query.trim());
-      // Remove current user and owner account from results
-      const filteredUsers = users.filter((user: any) => 
-        user.id !== req.user?.id && user.username !== 'fnnm945@gmail.com'
-      );
-      console.log(`🛡️ Owner protection: Chat search filtered from ${users.length} to ${filteredUsers.length}`);
+      // Remove current user from results
+      const filteredFromCurrentUser = users.filter((user: any) => user.id !== req.user?.id);
+      // Filter out owner account using protection system
+      const filteredUsers = filterOwnerFromUsers(filteredFromCurrentUser);
+      logOwnerProtection('chat search', users.length - filteredUsers.length);
       res.json(filteredUsers);
     } catch (error) {
       console.error("Error searching users:", error);
@@ -2434,6 +2446,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUserById(userId);
       
       if (!user) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      // Check if requested user is the protected owner account
+      if (isOwnerAccount(user)) {
+        logOwnerProtection('user profile access', 1);
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
       
@@ -4424,9 +4442,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(desc(users.followersCount))
         .limit(30);
 
-      // Filter out owner account from search results
-      const filteredResults = searchResults.filter(user => user.username !== 'fnnm945@gmail.com');
-      console.log(`🛡️ Owner protection: Filtered search results from ${searchResults.length} to ${filteredResults.length}`);
+      // Filter out owner account using protection system
+      const filteredResults = filterOwnerFromUsers(searchResults);
+      logOwnerProtection('user search', searchResults.length - filteredResults.length);
 
       res.json(filteredResults);
     } catch (error) {

@@ -1,3 +1,4 @@
+import { filterOwnerFromUsers, logOwnerProtection, isOwnerAccount } from './owner-protection';
 import {
   users,
   streams,
@@ -725,7 +726,11 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(followers.followerId, users.id))
       .where(eq(followers.followedId, userId))
       .orderBy(desc(followers.createdAt));
-    return followersList;
+    
+    // Filter out owner account from followers list
+    const filteredFollowers = followersList.filter(item => !isOwnerAccount(item.follower));
+    logOwnerProtection('followers list', followersList.length - filteredFollowers.length);
+    return filteredFollowers;
   }
   
   async getFollowing(userId: string): Promise<any[]> {
@@ -738,7 +743,11 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(followers.followedId, users.id))
       .where(eq(followers.followerId, userId))
       .orderBy(desc(followers.createdAt));
-    return followingList;
+    
+    // Filter out owner account from following list
+    const filteredFollowing = followingList.filter(item => !isOwnerAccount(item.following));
+    logOwnerProtection('following list', followingList.length - filteredFollowing.length);
+    return filteredFollowing;
   }
   
   // Message Request operations
@@ -2003,7 +2012,7 @@ export class DatabaseStorage implements IStorage {
   // User search operations
   async searchUsers(query: string): Promise<User[]> {
     const searchPattern = `%${query}%`;
-    return await db
+    const searchResults = await db
       .select({
         id: users.id,
         username: users.username,
@@ -2013,8 +2022,13 @@ export class DatabaseStorage implements IStorage {
         isOnline: users.isOnline,
       })
       .from(users)
-      .where(sql`${users.username} ILIKE ${searchPattern} AND ${users.username} != 'fnnm945@gmail.com'`)
+      .where(sql`${users.username} ILIKE ${searchPattern}`)
       .limit(20);
+    
+    // Filter out owner account using protection system
+    const filteredResults = filterOwnerFromUsers(searchResults);
+    logOwnerProtection('user search', searchResults.length - filteredResults.length);
+    return filteredResults;
   }
 
   // Check if user is following another user
