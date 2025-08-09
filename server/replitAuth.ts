@@ -25,13 +25,12 @@ const getOidcConfig = memoize(
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
-  // Configure connection string with SSL for external databases
-  const connectionConfig = process.env.DATABASE_URL?.includes('render.com') 
-    ? `${process.env.DATABASE_URL}${process.env.DATABASE_URL.includes('?') ? '&' : '?'}sslmode=require`
-    : process.env.DATABASE_URL;
-    
+  
+  // Build connection string with SSL for external databases
+  const connectionString = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/laabobo?sslmode=require`;
+  
   const sessionStore = new pgStore({
-    conString: connectionConfig,
+    conString: connectionString,
     createTableIfMissing: false,
     ttl: sessionTtl,
     tableName: "sessions",
