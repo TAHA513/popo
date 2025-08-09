@@ -1953,13 +1953,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/notifications/mark-all-read', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
+      console.log(`📋 Marking all notifications as read for user: ${userId}`);
       
-      await db
+      // First, check how many unread notifications exist
+      const unreadCount = await db
+        .select()
+        .from(notifications)
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        ));
+      
+      console.log(`📋 Found ${unreadCount.length} unread notifications`);
+      
+      // Update all unread notifications
+      const result = await db
         .update(notifications)
         .set({ isRead: true })
-        .where(eq(notifications.userId, userId));
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        ))
+        .returning();
       
-      res.json({ success: true });
+      console.log(`📋 Updated ${result.length} notifications to read`);
+      
+      res.json({ success: true, updated: result.length });
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       res.status(500).json({ message: "فشل في تحديث جميع الإشعارات" });
