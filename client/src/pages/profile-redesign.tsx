@@ -377,7 +377,7 @@ export default function ProfileRedesign() {
                   title="سياسات وشروط المنصة"
                 >
                   <Shield className="h-3 w-3" />
-                  <span className="text-xs font-medium hidden sm:inline">السياسات</span>
+                  <span className="text-xs font-medium hidden sm:inline">يُرجى قراءة السياسات</span>
                 </Button>
                 <Button
                   variant="ghost"
@@ -413,7 +413,7 @@ export default function ProfileRedesign() {
                     title="سياسات وشروط المنصة"
                   >
                     <Shield className="h-3 w-3" />
-                    <span className="text-xs font-medium hidden sm:inline">السياسات</span>
+                    <span className="text-xs font-medium hidden sm:inline">يُرجى قراءة السياسات</span>
                   </Button>
                   <Button
                     variant="ghost"
