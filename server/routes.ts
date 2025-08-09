@@ -1268,11 +1268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get public memory fragments for homepage
   app.get('/api/memories/public', async (req, res) => {
     try {
-      // Disable caching to ensure fresh data is always served
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      
       // Get memories with author info and comment counts
       const memoriesWithCounts = await db
         .select({
@@ -1580,31 +1575,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get total users count
       const totalUsersResult = await db.select({ count: sql`count(*)` }).from(users);
-      const totalUsers = parseInt(String(totalUsersResult[0]?.count || '0'));
+      const totalUsers = parseInt(totalUsersResult[0]?.count || '0');
 
       // Get verified users count
       const verifiedUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isVerified, true));
-      const verifiedUsers = parseInt(String(verifiedUsersResult[0]?.count || '0'));
+      const verifiedUsers = parseInt(verifiedUsersResult[0]?.count || '0');
 
       // Get online users count
       const onlineUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isOnline, true));
-      const onlineUsers = parseInt(String(onlineUsersResult[0]?.count || '0'));
+      const onlineUsers = parseInt(onlineUsersResult[0]?.count || '0');
 
       // Get total memories count
       const totalMemoriesResult = await db.select({ count: sql`count(*)` }).from(memoryFragments);
-      const totalMemories = parseInt(String(totalMemoriesResult[0]?.count || '0'));
+      const totalMemories = parseInt(totalMemoriesResult[0]?.count || '0');
 
       // Get total gifts count
       const totalGiftsResult = await db.select({ count: sql`count(*)` }).from(gifts);
-      const totalGifts = parseInt(String(totalGiftsResult[0]?.count || '0'));
+      const totalGifts = parseInt(totalGiftsResult[0]?.count || '0');
 
       // Get total points in system
       const totalPointsResult = await db.select({ sum: sql`sum(points)` }).from(users);
-      const totalPoints = parseInt(String(totalPointsResult[0]?.sum || '0'));
+      const totalPoints = parseInt(totalPointsResult[0]?.sum || '0');
 
       const stats = {
         totalUsers,
@@ -1787,7 +1782,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'follow',
           title: 'متابع جديد',
           message: `بدأ ${req.user.firstName || req.user.username} في متابعتك`,
-          relatedId: 0,
+          relatedId: null,
           relatedType: 'follow'
         });
         
@@ -1916,11 +1911,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread notifications count
   app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
     try {
-      // Disable caching for real-time notification count
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      
       const userId = req.user.id;
       
       const [result] = await db
@@ -4399,14 +4389,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           id: memoryFragments.id,
           title: memoryFragments.title,
-          description: memoryFragments.description,
-          mediaType: memoryFragments.mediaType,
-          mediaUrl: memoryFragments.mediaUrl,
+          caption: memoryFragments.caption,
+          type: memoryFragments.type,
+          mediaUrls: memoryFragments.mediaUrls,
           thumbnailUrl: memoryFragments.thumbnailUrl,
           createdAt: memoryFragments.createdAt,
           expiresAt: memoryFragments.expiresAt,
           memoryType: memoryFragments.memoryType,
-          userId: memoryFragments.userId,
+          authorId: memoryFragments.authorId,
           viewCount: memoryFragments.viewCount,
           username: users.username,
           firstName: users.firstName,
@@ -4415,8 +4405,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationBadge: users.verificationBadge
         })
         .from(memoryFragments)
-        .leftJoin(users, eq(memoryFragments.userId, users.id))
-        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.description} ILIKE ${searchTerm}`)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.caption} ILIKE ${searchTerm}`)
         .orderBy(desc(memoryFragments.createdAt))
         .limit(50);
 
@@ -4444,12 +4434,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profileImageUrl: users.profileImageUrl,
           bio: users.bio,
           isVerified: users.isVerified,
-          verificationBadge: users.verificationBadge,
-          followersCount: users.followersCount
+          verificationBadge: users.verificationBadge
         })
         .from(users)
         .where(sql`${users.username} ILIKE ${searchTerm} OR ${users.firstName} ILIKE ${searchTerm} OR ${users.lastName} ILIKE ${searchTerm}`)
-        .orderBy(desc(users.followersCount))
+        .orderBy(desc(users.createdAt))
         .limit(30);
 
       // Filter out owner account using protection system
@@ -4476,20 +4465,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: streams.id,
           title: streams.title,
           description: streams.description,
-          streamType: streams.streamType,
-          userId: streams.userId,
+          category: streams.category,
+          hostId: streams.hostId,
           username: users.username,
           viewerCount: streams.viewerCount,
           createdAt: streams.createdAt
         })
         .from(streams)
-        .leftJoin(users, eq(streams.userId, users.id))
-        .where(
-          and(
-            sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`,
-            eq(streams.isActive, true)
-          )
-        )
+        .leftJoin(users, eq(streams.hostId, users.id))
+        .where(sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`)
         .orderBy(desc(streams.viewerCount))
         .limit(20);
 
