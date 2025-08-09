@@ -111,6 +111,11 @@ export function setupSimpleMessageRoutes(app: Express) {
   // Get recent conversations (users you've chatted with)
   app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
     try {
+      // Disable caching for real-time conversations
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const userId = req.user.id;
 
       // Get recent messages involving this user
