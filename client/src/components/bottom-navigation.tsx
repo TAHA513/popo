@@ -51,7 +51,7 @@ export default function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
-      <div className="grid grid-cols-6 gap-1 py-1 px-2 max-w-md mx-auto">
+      <div className="flex items-center justify-around py-1 px-1">
         {navItems.map((item, index) => {
           const isActive = location === item.href;
           const Icon = item.icon;
@@ -95,7 +95,7 @@ export default function BottomNavigation() {
           
           return (
             <Link key={item.href} href={item.href}>
-              <div className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 relative ${
+              <div className={`flex flex-col items-center justify-center py-2 px-2 rounded-xl transition-all duration-200 relative ${
                 isActive 
                   ? 'text-purple-600 bg-purple-50 scale-105' 
                   : 'text-gray-500 hover:text-purple-400 hover:bg-gray-50'
