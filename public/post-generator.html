@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد بوستات LaaBoBo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .canvas-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #postCanvas {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .download-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            font-size: 16px;
+            padding: 12px 30px;
+            display: inline-block;
+            width: auto;
+            margin: 10px;
+        }
+
+        .templates {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .template-btn {
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .template-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 مولد بوستات LaaBoBo</h1>
+        
+        <div class="templates">
+            <button class="template-btn" onclick="loadTemplate('welcome')">ترحيب</button>
+            <button class="template-btn" onclick="loadTemplate('feature')">مميزة</button>
+            <button class="template-btn" onclick="loadTemplate('update')">تحديث</button>
+            <button class="template-btn" onclick="loadTemplate('promo')">ترويج</button>
+        </div>
+
+        <div class="form-group">
+            <label>النص الرئيسي:</label>
+            <textarea id="mainText" placeholder="اكتب النص هنا..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>لون الخلفية:</label>
+            <select id="bgColor">
+                <option value="purple">بنفسجي وردي</option>
+                <option value="blue">أزرق</option>
+                <option value="green">أخضر</option>
+                <option value="orange">برتقالي</option>
+                <option value="red">أحمر</option>
+            </select>
+        </div>
+
+        <button class="btn" onclick="generatePost()">إنشاء البوست</button>
+
+        <div class="canvas-container">
+            <canvas id="postCanvas" width="600" height="600"></canvas>
+        </div>
+
+        <div class="download-section" style="display: none;" id="downloadSection">
+            <button class="download-btn" onclick="downloadPost()">تحميل كصورة</button>
+        </div>
+    </div>
+
+    <script>
+        const templates = {
+            welcome: "مرحباً بك في LaaBoBo Live! 🎉\n\nمنصة البث المباشر الأولى عربياً\n\n✨ شارك ذكرياتك\n🎁 أرسل الهدايا\n📺 ابدأ بثك المباشر\n\nانضم الآن!",
+            feature: "مميزات جديدة في LaaBoBo! ⭐\n\n🔥 تحديثات مذهلة:\n📱 واجهة محدثة\n🎁 هدايا ثلاثية الأبعاد\n💎 نظام نقاط\n🔒 حماية معززة\n\nجرب الآن!",
+            update: "تحديث جديد متاح! 📢\n\n🆕 إصدار محسن:\n⚡ أداء أسرع\n🎁 هدايا جديدة\n🔧 إصلاحات\n📱 استقرار أفضل\n\nحدث الآن!",
+            promo: "انضم لمجتمع LaaBoBo! 🚀\n\n100 ألف مستخدم يثقون بنا\n\n🎯 بث عالي الجودة\n🎨 ذكريات تفاعلية\n🏆 نظام هدايا\n👥 مجتمع نشط\n\nكن جزءاً منا!"
+        };
+
+        function loadTemplate(type) {
+            document.getElementById('mainText').value = templates[type];
+        }
+
+        function generatePost() {
+            const canvas = document.getElementById('postCanvas');
+            const ctx = canvas.getContext('2d');
+            const text = document.getElementById('mainText').value || 'LaaBoBo Live - منصة البث المباشر العربية';
+            const bgColor = document.getElementById('bgColor').value;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, 600, 600);
+
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 600, 600);
+            
+            switch(bgColor) {
+                case 'purple':
+                    gradient.addColorStop(0, '#8B5CF6');
+                    gradient.addColorStop(1, '#EC4899');
+                    break;
+                case 'blue':
+                    gradient.addColorStop(0, '#3B82F6');
+                    gradient.addColorStop(1, '#1E40AF');
+                    break;
+                case 'green':
+                    gradient.addColorStop(0, '#10B981');
+                    gradient.addColorStop(1, '#059669');
+                    break;
+                case 'orange':
+                    gradient.addColorStop(0, '#F59E0B');
+                    gradient.addColorStop(1, '#D97706');
+                    break;
+                case 'red':
+                    gradient.addColorStop(0, '#EF4444');
+                    gradient.addColorStop(1, '#DC2626');
+                    break;
+            }
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 600, 600);
+
+            // Add decorative circles
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.beginPath();
+            ctx.arc(520, 80, 100, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(80, 520, 80, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Logo area
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fillRect(50, 50, 500, 80);
+            
+            // App name
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 36px Cairo, Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('LaaBoBo Live', 300, 100);
+
+            // Main text
+            ctx.font = '24px Cairo, Arial';
+            ctx.fillStyle = '#FFFFFF';
+            
+            const lines = text.split('\n');
+            let y = 180;
+            
+            lines.forEach(line => {
+                if (line.trim()) {
+                    const words = line.split(' ');
+                    let currentLine = '';
+                    
+                    words.forEach(word => {
+                        const testLine = currentLine + word + ' ';
+                        const metrics = ctx.measureText(testLine);
+                        
+                        if (metrics.width > 480 && currentLine !== '') {
+                            ctx.fillText(currentLine.trim(), 300, y);
+                            currentLine = word + ' ';
+                            y += 35;
+                        } else {
+                            currentLine = testLine;
+                        }
+                    });
+                    
+                    if (currentLine.trim()) {
+                        ctx.fillText(currentLine.trim(), 300, y);
+                        y += 35;
+                    }
+                } else {
+                    y += 20;
+                }
+            });
+
+            // Bottom logo/branding
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = 'bold 20px Cairo, Arial';
+            ctx.fillText('LaaBoBo', 300, 550);
+
+            // Show download button
+            document.getElementById('downloadSection').style.display = 'block';
+        }
+
+        function downloadPost() {
+            const canvas = document.getElementById('postCanvas');
+            const link = document.createElement('a');
+            link.download = `laabolive-post-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+
+        // Load default template
+        window.onload = function() {
+            loadTemplate('welcome');
+        };
+    </script>
+</body>
+</html>
