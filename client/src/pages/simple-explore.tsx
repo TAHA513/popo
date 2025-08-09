@@ -9,6 +9,7 @@ import BottomNavigation from "@/components/bottom-navigation";
 import { apiRequest } from "@/lib/queryClient";
 import FriendsGardens from "@/components/FriendsGardens";
 import PromotionalBanner from "@/components/promotional-banner";
+import { VerificationBadge } from "@/components/ui/verification-badge";
 
 export default function SimpleExplore() {
   const { user } = useAuth();
@@ -123,7 +124,15 @@ export default function SimpleExplore() {
                   👤
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">{user?.username || "المستخدم"}</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-bold">{user?.username || "المستخدم"}</h2>
+                    {user?.isVerified && (
+                      <VerificationBadge 
+                        size="sm" 
+                        badge={user.verificationBadge || 'LaaBoBo'} 
+                      />
+                    )}
+                  </div>
                   <p className="text-sm opacity-90">المستوى {Math.floor((user?.points || 0) / 100) + 1}</p>
                 </div>
               </div>

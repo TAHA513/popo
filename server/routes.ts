@@ -1083,6 +1083,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPrivateAccount: user.isPrivateAccount,
         allowDirectMessages: user.allowDirectMessages,
         allowGiftsFromStrangers: user.allowGiftsFromStrangers,
+        isVerified: user.isVerified,
+        verificationBadge: user.verificationBadge,
       });
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -3113,6 +3115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: users.username,
             firstName: users.firstName,
             profileImageUrl: users.profileImageUrl,
+            isVerified: users.isVerified,
+            verificationBadge: users.verificationBadge,
           }
         })
         .from(memoryFragments)
@@ -3262,6 +3266,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: users.username,
             firstName: users.firstName,
             profileImageUrl: users.profileImageUrl,
+            isVerified: users.isVerified,
+            verificationBadge: users.verificationBadge,
           }
         })
         .from(comments)
