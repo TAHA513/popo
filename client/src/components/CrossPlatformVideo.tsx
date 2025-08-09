@@ -29,16 +29,8 @@ export function CrossPlatformVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleError = () => {
-    if (!hasError && videoSrc === src) {
-      // Try proxy URL if original fails
-      const filename = src.split('/').pop();
-      const proxyUrl = `/proxy/file/${filename}`;
-      setVideoSrc(proxyUrl);
-      setHasError(true);
-      console.log(`تجربة تحميل الفيديو من منصة أخرى: ${filename}`);
-    } else {
-      console.log(`فشل في العثور على الفيديو في كلا المنصتين: ${src}`);
-    }
+    setIsLoading(false);
+    setHasError(true);
   };
 
   const handleCanPlay = (e: React.SyntheticEvent<HTMLVideoElement>) => {

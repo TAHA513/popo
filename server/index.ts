@@ -13,43 +13,38 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Enhanced file serving with cross-platform fallback
-app.use('/uploads', (req, res, next) => {
-  const staticHandler = express.static('uploads');
-  staticHandler(req, res, async (err) => {
-    if (err || res.headersSent) {
-      return next(err);
-    }
-    
-    // If file not found locally, try other platforms
-    const filePath = req.path.substring(1); // Remove leading slash
-    const alternativeUrls = [
-      `https://laabo-render.onrender.com/uploads/${filePath}`,
-      `https://laabolive.replit.app/uploads/${filePath}`
-    ];
-    
-    console.log(`🔍 File not found locally: ${filePath}, trying alternatives...`);
-    
-    for (const url of alternativeUrls) {
-      try {
-        console.log(`🌐 Trying: ${url}`);
-        const response = await fetch(url);
-        if (response.ok) {
-          console.log(`✅ Found file at: ${url}`);
-          const buffer = await response.arrayBuffer();
-          res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
-          res.setHeader('Cache-Control', 'public, max-age=31536000');
-          res.send(Buffer.from(buffer));
-          return;
-        }
-      } catch (error: any) {
-        console.log(`❌ Failed to fetch from ${url}:`, error?.message || 'Unknown error');
+// Universal file serving system - serves from local first, then other platforms
+app.use('/uploads', async (req, res, next) => {
+  const filePath = req.path.substring(1); // Remove leading slash
+  const localPath = path.join('uploads', filePath);
+  
+  // Check if file exists locally first
+  if (fs.existsSync(localPath)) {
+    return express.static('uploads')(req, res, next);
+  }
+  
+  // If not local, try other platforms immediately
+  const alternativeUrls = [
+    `https://laabo-render.onrender.com/uploads/${filePath}`,
+    `https://laabolive.replit.app/uploads/${filePath}`
+  ];
+  
+  for (const url of alternativeUrls) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const buffer = await response.arrayBuffer();
+        res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+        res.send(Buffer.from(buffer));
+        return;
       }
+    } catch (error) {
+      // Continue to next URL
     }
-    
-    console.log(`🚫 File not found on any platform: ${filePath}`);
-    res.status(404).send('File not found on any platform');
-  });
+  }
+  
+  res.status(404).send('File not found');
 });
 
 // Disable caching for all API endpoints to ensure fresh data

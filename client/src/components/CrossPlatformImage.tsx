@@ -8,41 +8,41 @@ interface CrossPlatformImageProps {
 }
 
 export function CrossPlatformImage({ src, alt, className, onClick }: CrossPlatformImageProps) {
-  const [imageSrc, setImageSrc] = useState(src);
-  const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
-  const handleError = () => {
-    if (!hasError && imageSrc === src) {
-      // Try proxy URL if original fails
-      const filename = src.split('/').pop();
-      const proxyUrl = `/proxy/file/${filename}`;
-      setImageSrc(proxyUrl);
-      setHasError(true);
-      console.log(`تجربة تحميل الملف من منصة أخرى: ${filename}`);
-    } else {
-      console.log(`فشل في العثور على الملف في كلا المنصتين: ${src}`);
-    }
-  };
+  const [hasError, setHasError] = useState(false);
 
   const handleLoad = () => {
     setIsLoading(false);
+    setHasError(false);
+  };
+
+  const handleError = () => {
+    setIsLoading(false);
+    setHasError(true);
   };
 
   return (
     <div className={`relative ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center z-10">
           <div className="text-gray-400 text-sm">جاري التحميل...</div>
         </div>
       )}
+      {hasError && (
+        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+          <div className="text-gray-500 text-sm text-center">
+            <div>الصورة غير متوفرة</div>
+          </div>
+        </div>
+      )}
       <img
-        src={imageSrc}
+        src={src}
         alt={alt}
         className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         onError={handleError}
         onLoad={handleLoad}
         onClick={onClick}
+        style={{ display: hasError ? 'none' : 'block' }}
       />
     </div>
   );
