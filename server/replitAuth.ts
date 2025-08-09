@@ -32,11 +32,12 @@ export function getSession() {
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || 'laabo-session-secret-default',
     store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
-    name: 'sessionId',
+    resave: true, // Force session to be saved on each request
+    saveUninitialized: true, // Save uninitialized sessions
+    rolling: true, // Reset expiration on activity
+    name: 'connect.sid',
     cookie: {
       httpOnly: true,
       secure: false, // Always false for development and Replit environment
