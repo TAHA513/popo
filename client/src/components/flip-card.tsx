@@ -7,6 +7,7 @@ import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VideoOptimizer } from "@/utils/video-optimizer";
+import { MediaUtils } from "@/utils/media-utils";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
