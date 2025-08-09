@@ -290,158 +290,67 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
 
   const cardStyle = getCardStyle();
 
-  // Helper function to fix URL encoding issues and validate media URLs
-  const getValidMediaUrl = (url: string): string | null => {
-    if (!url) return null;
-    
-    try {
-      // Fix double-encoded URLs and decode properly
-      let fixedUrl = url;
-      
-      // Handle multiple encoding layers
-      while (fixedUrl.includes('%') && fixedUrl !== decodeURIComponent(fixedUrl)) {
-        try {
-          fixedUrl = decodeURIComponent(fixedUrl);
-        } catch {
-          break;
-        }
-      }
-      
-      // Ensure URL starts with /uploads/ for local files
-      if (!fixedUrl.startsWith('http') && !fixedUrl.startsWith('/uploads/')) {
-        fixedUrl = `/uploads/${fixedUrl.replace(/^\/+/, '')}`;
-      }
-      
-      return fixedUrl;
-    } catch (error) {
-      console.warn('فشل في إصلاح رابط الوسائط:', url, error);
-      return url; // Return original if fixing fails
-    }
-  };
-
-  // Get the best available media URL with fallbacks
-  const getMediaUrl = (): string | null => {
-    // Try main media URLs first
-    if (content.mediaUrls && content.mediaUrls.length > 0) {
-      for (const url of content.mediaUrls) {
-        const validUrl = getValidMediaUrl(url);
-        if (validUrl) return validUrl;
-      }
-    }
-    
-    // Try thumbnail as fallback
-    if (content.thumbnailUrl) {
-      return getValidMediaUrl(content.thumbnailUrl);
-    }
-    
-    return null;
-  };
-
   const renderFrontContent = () => {
-    const mediaUrl = getMediaUrl();
-    const hasValidMedia = !!mediaUrl;
-    
     return (
       <div className={`relative w-full h-full ${cardStyle.front} overflow-hidden rounded-xl ${cardStyle.glow}`}>
         {/* Background Media */}
-        {hasValidMedia ? (
+        {content.mediaUrls && content.mediaUrls.length > 0 ? (
           type === 'video' || type === 'live' ? (
-            <div className="relative w-full h-full">
-              <video
-                ref={videoRef}
-                src={mediaUrl}
-                className="w-full h-full object-cover transition-opacity duration-300"
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                poster={content.thumbnailUrl ? getValidMediaUrl(content.thumbnailUrl) || undefined : undefined}
-                style={{ opacity: isVideoLoaded ? 1 : 0.7 }}
-                onLoadStart={() => {
-                  // تحسين إعدادات الفيديو
-                  if (videoRef.current) {
-                    VideoOptimizer.optimizeVideoElement(videoRef.current);
-                  }
-                }}
-                onLoadedData={() => {
-                  setIsVideoLoaded(true);
-                }}
-                onCanPlay={async (e) => {
-                  const video = e.currentTarget;
-                  try {
-                    await VideoOptimizer.playVideoFast(video);
-                  } catch (error) {
-                    console.log('Video autoplay failed:', error);
-                  }
-                }}
-                onError={(e) => {
-                  console.error('خطأ في تحميل الفيديو:', mediaUrl, e);
-                  // Hide broken video and show fallback
-                  e.currentTarget.style.display = 'none';
-                  const fallback = e.currentTarget.parentElement?.querySelector('.video-fallback');
-                  if (fallback) {
-                    (fallback as HTMLElement).style.display = 'flex';
-                  }
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const video = e.currentTarget;
-                  if (video.paused) {
-                    video.play().catch(() => {});
-                  } else {
-                    video.pause();
-                  }
-                }}
-              />
-              {/* Video Error Fallback */}
-              <div className="video-fallback absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col items-center justify-center text-white hidden">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-3">
-                  <Play className="w-8 h-8" />
-                </div>
-                <p className="text-sm font-medium">فيديو غير متاح</p>
-                <p className="text-xs text-white/70 mt-1">المحتوى غير قابل للعرض حالياً</p>
-              </div>
-            </div>
+            <video
+              ref={videoRef}
+              src={content.mediaUrls[0]}
+              className="w-full h-full object-cover transition-opacity duration-300"
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster={content.thumbnailUrl}
+              style={{ opacity: isVideoLoaded ? 1 : 0.7 }}
+              onLoadStart={() => {
+                // تحسين إعدادات الفيديو
+                if (videoRef.current) {
+                  VideoOptimizer.optimizeVideoElement(videoRef.current);
+                }
+              }}
+              onLoadedData={() => {
+                setIsVideoLoaded(true);
+              }}
+              onCanPlay={async (e) => {
+                const video = e.currentTarget;
+                try {
+                  await VideoOptimizer.playVideoFast(video);
+                } catch (error) {
+                  console.log('Video autoplay failed:', error);
+                }
+              }}
+              onError={(e) => {
+                console.error('Video load error:', e);
+                e.currentTarget.style.display = 'none';
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const video = e.currentTarget;
+                if (video.paused) {
+                  video.play().catch(() => {});
+                } else {
+                  video.pause();
+                }
+              }}
+            />
           ) : (
-            <div className="relative w-full h-full">
-              <img
-                src={mediaUrl}
-                alt={content.caption || content.title || "منشور"}
-                className="w-full h-full object-cover transition-opacity duration-300"
-                onLoad={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                }}
-                onError={(e) => {
-                  console.error('خطأ في تحميل الصورة:', mediaUrl, e);
-                  // Hide broken image and show fallback
-                  e.currentTarget.style.display = 'none';
-                  const fallback = e.currentTarget.parentElement?.querySelector('.image-fallback');
-                  if (fallback) {
-                    (fallback as HTMLElement).style.display = 'flex';
-                  }
-                }}
-                style={{ opacity: 0 }}
-              />
-              {/* Image Error Fallback */}
-              <div className="image-fallback absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-600 flex flex-col items-center justify-center text-white hidden">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-3">
-                  <Image className="w-8 h-8" />
-                </div>
-                <p className="text-sm font-medium">صورة غير متاحة</p>
-                <p className="text-xs text-white/70 mt-1">المحتوى غير قابل للعرض حالياً</p>
-              </div>
-            </div>
+            <img
+              src={content.mediaUrls[0]}
+              alt="منشور"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Show gradient background instead of broken image
+                e.currentTarget.style.display = 'none';
+              }}
+            />
           )
         ) : (
-          // No media available - show default content
-          <div className="w-full h-full flex flex-col items-center justify-center text-white">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4">
-              <Image className="w-10 h-10" />
-            </div>
-            <p className="text-lg font-medium mb-2">منشور نصي</p>
-            <p className="text-sm text-white/70 text-center px-6">
-              {content.caption || content.title || "محتوى من LaaBoBo"}
-            </p>
+          <div className="w-full h-full flex items-center justify-center">
+            <Image className="w-16 h-16 text-white/50" />
           </div>
         )}
 

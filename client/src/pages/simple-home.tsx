@@ -157,34 +157,14 @@ export default function SimpleHome() {
                 
                 const cardType = hasVideo ? 'video' : 'image';
                 
-                // إعداد URLs الوسائط بشكل صحيح مع إصلاح مشاكل الترميز
-                let mediaUrls: string[] = [];
-                
-                // Fix URL encoding issues for Arabic filenames
-                const fixMediaUrl = (url: string): string => {
-                  if (!url) return url;
-                  try {
-                    // Handle multiple encoding layers
-                    let fixedUrl = url;
-                    while (fixedUrl.includes('%') && fixedUrl !== decodeURIComponent(fixedUrl)) {
-                      try {
-                        fixedUrl = decodeURIComponent(fixedUrl);
-                      } catch {
-                        break;
-                      }
-                    }
-                    return fixedUrl;
-                  } catch {
-                    return url; // Return original if fixing fails
-                  }
-                };
-                
+                // إعداد URLs الوسائط بشكل صحيح
+                let mediaUrls = [];
                 if (memory.mediaUrls && Array.isArray(memory.mediaUrls)) {
-                  mediaUrls = memory.mediaUrls.map(fixMediaUrl).filter(Boolean);
+                  mediaUrls = memory.mediaUrls;
                 } else if (memory.imageUrl) {
-                  mediaUrls = [fixMediaUrl(memory.imageUrl)];
+                  mediaUrls = [memory.imageUrl];
                 } else if (memory.thumbnailUrl) {
-                  mediaUrls = [fixMediaUrl(memory.thumbnailUrl)];
+                  mediaUrls = [memory.thumbnailUrl];
                 }
                 
                 return (

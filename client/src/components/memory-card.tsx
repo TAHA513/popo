@@ -16,9 +16,7 @@ import {
   Zap,
   Clock,
   Settings,
-  CheckCircle,
-  ImageIcon,
-  Play
+  CheckCircle
 } from "lucide-react";
 import VerificationBadge from "@/components/ui/verification-badge";
 import { 
@@ -239,31 +237,11 @@ export default function MemoryCard({
           <div className="relative">
             {memory.type === 'image' && memory.thumbnailUrl ? (
               <Link href={`/memory/${memory.id}`}>
-                <div className="relative w-full h-64 overflow-hidden">
-                  <img
-                    src={memory.thumbnailUrl}
-                    alt={memory.title || memory.caption || 'Memory'}
-                    className="w-full h-64 object-cover cursor-pointer hover:opacity-95 transition-opacity"
-                    onError={(e) => {
-                      // Hide broken image and show fallback
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.parentElement?.querySelector('.image-error-fallback');
-                      if (fallback) {
-                        (fallback as HTMLElement).style.display = 'flex';
-                      }
-                    }}
-                  />
-                  {/* Image Error Fallback */}
-                  <div className="image-error-fallback absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-600 flex flex-col items-center justify-center text-white hidden">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-3">
-                      <ImageIcon className="w-8 h-8" />
-                    </div>
-                    <p className="text-sm font-medium">صورة غير متاحة</p>
-                    <p className="text-xs text-white/70 mt-1 text-center px-4">
-                      {memory.caption || memory.title || "المحتوى غير قابل للعرض"}
-                    </p>
-                  </div>
-                </div>
+                <img
+                  src={memory.thumbnailUrl}
+                  alt={memory.title || 'Memory'}
+                  className="w-full h-64 object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                />
               </Link>
             ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
               <div 
@@ -273,55 +251,30 @@ export default function MemoryCard({
                   window.location.href = `/video/${memory.id}`;
                 }}
               >
-                <div className="relative w-full h-64 overflow-hidden">
-                  <video
-                    src={memory.mediaUrls[0]}
-                    className="w-full h-64 object-cover"
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    onMouseEnter={(e) => e.currentTarget.play()}
-                    onMouseLeave={(e) => e.currentTarget.pause()}
-                    onCanPlay={(e) => {
-                      e.currentTarget.currentTime = 0.01;
-                    }}
-                    onError={(e) => {
-                      // Hide broken video and show fallback
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.parentElement?.querySelector('.video-error-fallback');
-                      if (fallback) {
-                        (fallback as HTMLElement).style.display = 'flex';
-                      }
-                    }}
-                  />
-                  {/* Video Error Fallback */}
-                  <div className="video-error-fallback absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col items-center justify-center text-white hidden">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-3">
-                      <Play className="w-8 h-8" />
-                    </div>
-                    <p className="text-sm font-medium">فيديو غير متاح</p>
-                    <p className="text-xs text-white/70 mt-1 text-center px-4">
-                      {memory.caption || memory.title || "المحتوى غير قابل للعرض"}
-                    </p>
-                  </div>
-                  {/* Play button overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
-                    <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                      <div className="w-0 h-0 border-l-6 border-l-gray-800 border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
-                    </div>
+                <video
+                  src={memory.mediaUrls[0]}
+                  className="w-full h-64 object-cover"
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
+                  onCanPlay={(e) => {
+                    e.currentTarget.currentTime = 0.01;
+                  }}
+                />
+                {/* Play button overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
+                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
+                    <div className="w-0 h-0 border-l-6 border-l-gray-800 border-t-4 border-t-transparent border-b-4 border-b-transparent ml-1"></div>
                   </div>
                 </div>
               </div>
             ) : (
               <Link href={`/memory/${memory.id}`}>
-                <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex flex-col items-center justify-center text-white cursor-pointer hover:opacity-95 transition-opacity`}>
-                  <div className="text-6xl mb-3">{getMemoryIcon(memory.memoryType)}</div>
-                  {memory.caption && (
-                    <p className="text-sm text-center px-4 text-white/90">
-                      {memory.caption}
-                    </p>
-                  )}
+                <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl cursor-pointer hover:opacity-95 transition-opacity`}>
+                  {getMemoryIcon(memory.memoryType)}
                 </div>
               </Link>
             )}
