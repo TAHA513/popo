@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RealTimeTimestamp } from "@/components/real-time-timestamp";
-import { VerificationBadge } from "@/components/ui/verification-badge";
 import { useLocation } from "wouter";
 import { 
   ArrowLeft, 
@@ -27,8 +26,6 @@ interface Comment {
     username: string;
     firstName?: string;
     profileImageUrl?: string;
-    isVerified?: boolean;
-    verificationBadge?: string;
   };
 }
 
@@ -36,12 +33,9 @@ interface Memory {
   id: number;
   caption: string;
   mediaUrls: string[];
-  createdAt?: string;
   author?: {
     username: string;
     profileImageUrl?: string;
-    isVerified?: boolean;
-    verificationBadge?: string;
   };
 }
 
@@ -179,17 +173,9 @@ export default function CommentsPage() {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <p className="text-white font-semibold">@{memory.author?.username || 'مستخدم'}</p>
-                {memory.author?.isVerified && (
-                  <VerificationBadge 
-                    size="sm" 
-                    badge={memory.author.verificationBadge || 'LaaBoBo'} 
-                  />
-                )}
-              </div>
+              <p className="text-white font-semibold">@{memory.author?.username || 'مستخدم'}</p>
               <p className="text-purple-300 text-sm">
-                {new Date(memory.createdAt || Date.now()).toLocaleDateString('ar')}
+                {new Date(memory.createdAt).toLocaleDateString('ar')}
               </p>
               {memory.caption && (
                 <p className="text-white/90 text-sm leading-relaxed mt-2">
@@ -239,12 +225,6 @@ export default function CommentsPage() {
                       >
                         {comment.author?.username || 'مستخدم'}
                       </button>
-                      {comment.author?.isVerified && (
-                        <VerificationBadge 
-                          size="sm" 
-                          badge={comment.author.verificationBadge || 'LaaBoBo'} 
-                        />
-                      )}
                       <span className="text-purple-400 text-xs">
                         <RealTimeTimestamp timestamp={comment.createdAt} />
                       </span>
