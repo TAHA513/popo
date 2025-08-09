@@ -595,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       if (!user || (user.points || 0) < totalCost) {
         return res.status(400).json({ 
-          message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user.points || 0} نقطة`
+          message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user?.points || 0} نقطة`
         });
       }
 
@@ -1575,31 +1575,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get total users count
       const totalUsersResult = await db.select({ count: sql`count(*)` }).from(users);
-      const totalUsers = parseInt(totalUsersResult[0]?.count || '0');
+      const totalUsers = parseInt(String(totalUsersResult[0]?.count || '0'));
 
       // Get verified users count
       const verifiedUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isVerified, true));
-      const verifiedUsers = parseInt(verifiedUsersResult[0]?.count || '0');
+      const verifiedUsers = parseInt(String(verifiedUsersResult[0]?.count || '0'));
 
       // Get online users count
       const onlineUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isOnline, true));
-      const onlineUsers = parseInt(onlineUsersResult[0]?.count || '0');
+      const onlineUsers = parseInt(String(onlineUsersResult[0]?.count || '0'));
 
       // Get total memories count
       const totalMemoriesResult = await db.select({ count: sql`count(*)` }).from(memoryFragments);
-      const totalMemories = parseInt(totalMemoriesResult[0]?.count || '0');
+      const totalMemories = parseInt(String(totalMemoriesResult[0]?.count || '0'));
 
       // Get total gifts count
       const totalGiftsResult = await db.select({ count: sql`count(*)` }).from(gifts);
-      const totalGifts = parseInt(totalGiftsResult[0]?.count || '0');
+      const totalGifts = parseInt(String(totalGiftsResult[0]?.count || '0'));
 
       // Get total points in system
       const totalPointsResult = await db.select({ sum: sql`sum(points)` }).from(users);
-      const totalPoints = parseInt(totalPointsResult[0]?.sum || '0');
+      const totalPoints = parseInt(String(totalPointsResult[0]?.sum || '0'));
 
       const stats = {
         totalUsers,
@@ -1782,7 +1782,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'follow',
           title: 'متابع جديد',
           message: `بدأ ${req.user.firstName || req.user.username} في متابعتك`,
-          relatedId: null,
+          relatedId: followerId,
           relatedType: 'follow'
         });
         
@@ -2157,7 +2157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
-      if (!user || user.points < album.accessPrice) {
+      if (!user || (user.points || 0) < (album.accessPrice || 0)) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
       
@@ -2168,21 +2168,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: album.userId,
         accessType: 'full_album',
         giftPaid,
-        amountPaid: album.accessPrice,
+        amountPaid: album.accessPrice || 0,
       });
       
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
-        points: user.points - album.accessPrice
+        points: (user.points || 0) - (album.accessPrice || 0)
       });
       
       // Add earnings to seller (40% profit)
-      const sellerEarnings = Math.floor(album.accessPrice * 0.4);
+      const sellerEarnings = Math.floor((album.accessPrice || 0) * 0.4);
       const seller = await storage.getUser(album.userId);
       if (seller) {
         await storage.updateUser(album.userId, {
-          points: seller.points + sellerEarnings,
-          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
+          points: (seller.points || 0) + sellerEarnings,
+          totalEarnings: (Number(seller.totalEarnings || 0) + sellerEarnings).toString()
         });
       }
       
@@ -2190,7 +2190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: currentUserId,
         type: 'album_purchase',
-        amount: album.accessPrice.toString(),
+        amount: (album.accessPrice || 0).toString(),
         description: `شراء ألبوم: ${album.title}`,
         relatedUserId: album.userId,
         relatedAlbumId: albumId,
@@ -2237,7 +2237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
-      if (!user || user.points < photo.accessPrice) {
+      if (!user || (user.points || 0) < (photo.accessPrice || 0)) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
       
@@ -2249,21 +2249,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: album.userId,
         accessType: 'single_photo',
         giftPaid,
-        amountPaid: photo.accessPrice,
+        amountPaid: photo.accessPrice || 0,
       });
       
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
-        points: user.points - photo.accessPrice
+        points: (user.points || 0) - (photo.accessPrice || 0)
       });
       
       // Add earnings to seller (40% profit)
-      const sellerEarnings = Math.floor(photo.accessPrice * 0.4);
+      const sellerEarnings = Math.floor((photo.accessPrice || 0) * 0.4);
       const seller = await storage.getUser(album.userId);
       if (seller) {
         await storage.updateUser(album.userId, {
-          points: seller.points + sellerEarnings,
-          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
+          points: (seller.points || 0) + sellerEarnings,
+          totalEarnings: (Number(seller.totalEarnings || 0) + sellerEarnings).toString()
         });
       }
       
@@ -2271,7 +2271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: currentUserId,
         type: 'photo_purchase',
-        amount: photo.accessPrice.toString(),
+        amount: (photo.accessPrice || 0).toString(),
         description: `شراء صورة من ألبوم: ${album.title}`,
         relatedUserId: album.userId,
         relatedPhotoId: photoId,
@@ -2826,9 +2826,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedStream = await storage.updateStream(streamId, req.body);
       console.log('📝 Stream updated:', { 
-        id: streamId, 
-        zegoRoomId: updatedStream.zegoRoomId,
-        zegoStreamId: updatedStream.zegoStreamId 
+        id: streamId,
+        title: updatedStream.title,
+        isLive: updatedStream.isLive
       });
       res.json(updatedStream);
     } catch (error) {
@@ -3007,8 +3007,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For now, save to database using direct Drizzle
       const [message] = await db.insert(chatMessages).values({
-        senderId,
-        recipientId,
+        userId: senderId,
         content,
         messageType: messageType || 'text',
         isRead: false,
