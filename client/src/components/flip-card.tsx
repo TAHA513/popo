@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RealTimeTimestamp } from "./real-time-timestamp";
 import { OnlineStatus } from "./online-status";
-import SupporterBadge from "./SupporterBadge";
-import VerificationBadge from "./VerificationBadge";
+import { SupporterBadge } from "./SupporterBadge";
+import { VerificationBadge } from "@/components/ui/verification-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VideoOptimizer } from "@/utils/video-optimizer";
 import { MediaUtils } from "@/utils/media-utils";
@@ -389,7 +389,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                 </span>
                 {content.author?.isVerified && (
                   <VerificationBadge 
-                    size="xs" 
+                    size="sm" 
                     badge={content.author.verificationBadge || 'LaaBoBo'} 
                   />
                 )}
