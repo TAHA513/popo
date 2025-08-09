@@ -51,7 +51,7 @@ export default function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
-      <div className="relative flex items-center justify-around py-1 px-2">
+      <div className="relative flex items-center justify-evenly py-1 px-1">
         {navItems.map((item, index) => {
           const isActive = location === item.href;
           const Icon = item.icon;
@@ -63,7 +63,7 @@ export default function BottomNavigation() {
                   <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-white">
                     <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <span className="text-xs mt-1 text-purple-600 font-medium text-center">{item.label}</span>
+                  <span className="text-[10px] mt-1 text-purple-600 font-medium text-center">{item.label}</span>
                 </div>
               </Link>
             );
@@ -108,7 +108,7 @@ export default function BottomNavigation() {
                     </span>
                   )}
                 </div>
-                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-purple-600' : ''}`}>{item.label}</span>
+                <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-purple-600' : ''}`}>{item.label}</span>
               </div>
             </Link>
           );
