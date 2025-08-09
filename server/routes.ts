@@ -414,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate album ownership
       const album = await storage.getPremiumAlbum(albumId);
-      if (!album || album.creatorId !== senderId) {
+      if (!album || album.userId !== senderId) {
         return res.status(403).json({ error: "Album not found or not owned by user" });
       }
 
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Process the transaction
-      await storage.processAlbumUnlock(userId, album.creatorId, messageId, totalCost);
+      await storage.processAlbumUnlock(userId, album.userId, messageId, totalCost);
 
       const updatedMessage = await storage.getPremiumMessage(messageId);
       res.json(updatedMessage);
@@ -1268,6 +1268,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get public memory fragments for homepage
   app.get('/api/memories/public', async (req, res) => {
     try {
+      // Disable caching to ensure fresh data is always served
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       // Get memories with author info and comment counts
       const memoriesWithCounts = await db
         .select({
@@ -1911,6 +1916,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread notifications count
   app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
     try {
+      // Disable caching for real-time notification count
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const userId = req.user.id;
       
       const [result] = await db
@@ -4389,14 +4399,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           id: memoryFragments.id,
           title: memoryFragments.title,
-          caption: memoryFragments.caption,
-          type: memoryFragments.type,
-          mediaUrls: memoryFragments.mediaUrls,
+          description: memoryFragments.description,
+          mediaType: memoryFragments.mediaType,
+          mediaUrl: memoryFragments.mediaUrl,
           thumbnailUrl: memoryFragments.thumbnailUrl,
           createdAt: memoryFragments.createdAt,
           expiresAt: memoryFragments.expiresAt,
           memoryType: memoryFragments.memoryType,
-          authorId: memoryFragments.authorId,
+          userId: memoryFragments.userId,
           viewCount: memoryFragments.viewCount,
           username: users.username,
           firstName: users.firstName,
@@ -4405,8 +4415,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationBadge: users.verificationBadge
         })
         .from(memoryFragments)
-        .leftJoin(users, eq(memoryFragments.authorId, users.id))
-        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.caption} ILIKE ${searchTerm}`)
+        .leftJoin(users, eq(memoryFragments.userId, users.id))
+        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.description} ILIKE ${searchTerm}`)
         .orderBy(desc(memoryFragments.createdAt))
         .limit(50);
 
@@ -4434,11 +4444,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profileImageUrl: users.profileImageUrl,
           bio: users.bio,
           isVerified: users.isVerified,
-          verificationBadge: users.verificationBadge
+          verificationBadge: users.verificationBadge,
+          followersCount: users.followersCount
         })
         .from(users)
         .where(sql`${users.username} ILIKE ${searchTerm} OR ${users.firstName} ILIKE ${searchTerm} OR ${users.lastName} ILIKE ${searchTerm}`)
-        .orderBy(desc(users.createdAt))
+        .orderBy(desc(users.followersCount))
         .limit(30);
 
       // Filter out owner account using protection system
@@ -4465,15 +4476,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: streams.id,
           title: streams.title,
           description: streams.description,
-          category: streams.category,
-          hostId: streams.hostId,
+          streamType: streams.streamType,
+          userId: streams.userId,
           username: users.username,
           viewerCount: streams.viewerCount,
           createdAt: streams.createdAt
         })
         .from(streams)
-        .leftJoin(users, eq(streams.hostId, users.id))
-        .where(sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`)
+        .leftJoin(users, eq(streams.userId, users.id))
+        .where(
+          and(
+            sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`,
+            eq(streams.isActive, true)
+          )
+        )
         .orderBy(desc(streams.viewerCount))
         .limit(20);
 

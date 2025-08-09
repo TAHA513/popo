@@ -111,6 +111,11 @@ export function setupSimpleMessageRoutes(app: Express) {
   // Get recent conversations (users you've chatted with)
   app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
     try {
+      // Disable caching for real-time conversations
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const userId = req.user.id;
 
       // Get recent messages involving this user
@@ -136,7 +141,7 @@ export function setupSimpleMessageRoutes(app: Express) {
       const conversationsSet = new Set();
       const conversationsList = [];
 
-      for (const chat of recentChats) {
+      for (const chat of recentChats.rows) {
         let otherUserId;
         if (chat.senderId === userId) {
           otherUserId = chat.recipientId;
