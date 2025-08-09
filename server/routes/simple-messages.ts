@@ -136,7 +136,7 @@ export function setupSimpleMessageRoutes(app: Express) {
       const conversationsSet = new Set();
       const conversationsList = [];
 
-      for (const chat of recentChats.rows) {
+      for (const chat of recentChats) {
         let otherUserId;
         if (chat.senderId === userId) {
           otherUserId = chat.recipientId;

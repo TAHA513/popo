@@ -414,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate album ownership
       const album = await storage.getPremiumAlbum(albumId);
-      if (!album || album.userId !== senderId) {
+      if (!album || album.creatorId !== senderId) {
         return res.status(403).json({ error: "Album not found or not owned by user" });
       }
 
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Process the transaction
-      await storage.processAlbumUnlock(userId, album.userId, messageId, totalCost);
+      await storage.processAlbumUnlock(userId, album.creatorId, messageId, totalCost);
 
       const updatedMessage = await storage.getPremiumMessage(messageId);
       res.json(updatedMessage);
@@ -4389,14 +4389,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           id: memoryFragments.id,
           title: memoryFragments.title,
-          description: memoryFragments.description,
-          mediaType: memoryFragments.mediaType,
-          mediaUrl: memoryFragments.mediaUrl,
+          caption: memoryFragments.caption,
+          type: memoryFragments.type,
+          mediaUrls: memoryFragments.mediaUrls,
           thumbnailUrl: memoryFragments.thumbnailUrl,
           createdAt: memoryFragments.createdAt,
           expiresAt: memoryFragments.expiresAt,
           memoryType: memoryFragments.memoryType,
-          userId: memoryFragments.userId,
+          authorId: memoryFragments.authorId,
           viewCount: memoryFragments.viewCount,
           username: users.username,
           firstName: users.firstName,
@@ -4405,8 +4405,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationBadge: users.verificationBadge
         })
         .from(memoryFragments)
-        .leftJoin(users, eq(memoryFragments.userId, users.id))
-        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.description} ILIKE ${searchTerm}`)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.caption} ILIKE ${searchTerm}`)
         .orderBy(desc(memoryFragments.createdAt))
         .limit(50);
 
@@ -4434,12 +4434,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profileImageUrl: users.profileImageUrl,
           bio: users.bio,
           isVerified: users.isVerified,
-          verificationBadge: users.verificationBadge,
-          followersCount: users.followersCount
+          verificationBadge: users.verificationBadge
         })
         .from(users)
         .where(sql`${users.username} ILIKE ${searchTerm} OR ${users.firstName} ILIKE ${searchTerm} OR ${users.lastName} ILIKE ${searchTerm}`)
-        .orderBy(desc(users.followersCount))
+        .orderBy(desc(users.createdAt))
         .limit(30);
 
       // Filter out owner account using protection system
@@ -4466,20 +4465,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: streams.id,
           title: streams.title,
           description: streams.description,
-          streamType: streams.streamType,
-          userId: streams.userId,
+          category: streams.category,
+          hostId: streams.hostId,
           username: users.username,
           viewerCount: streams.viewerCount,
           createdAt: streams.createdAt
         })
         .from(streams)
-        .leftJoin(users, eq(streams.userId, users.id))
-        .where(
-          and(
-            sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`,
-            eq(streams.isActive, true)
-          )
-        )
+        .leftJoin(users, eq(streams.hostId, users.id))
+        .where(sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`)
         .orderBy(desc(streams.viewerCount))
         .limit(20);
 
