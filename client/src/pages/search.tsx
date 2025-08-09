@@ -199,7 +199,7 @@ export default function SearchPage() {
                         </h3>
                         <div className="space-y-3">
                           {users.slice(0, 3).map((user: any) => (
-                            <Link key={user.id} href={`/profile/${user.id}`}>
+                            <Link key={user.id} href={`/user/${user.id}`}>
                               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                                 <CardContent className="p-4">
                                   <div className="flex items-center gap-4">
@@ -291,7 +291,7 @@ export default function SearchPage() {
                 <TabsContent value="users">
                   <div className="space-y-3">
                     {users.map((user: any) => (
-                      <Link key={user.id} href={`/profile/${user.id}`}>
+                      <Link key={user.id} href={`/user/${user.id}`}>
                         <Card className="hover:shadow-md transition-shadow cursor-pointer">
                           <CardContent className="p-4">
                             <div className="flex items-center gap-4">
