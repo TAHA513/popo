@@ -1360,6 +1360,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             firstName: users.firstName,
             profileImageUrl: users.profileImageUrl,
             isStreamer: users.isStreamer,
+            isVerified: users.isVerified,
+            verificationBadge: users.verificationBadge,
           }
         })
         .from(memoryFragments)
