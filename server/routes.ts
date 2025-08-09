@@ -1268,11 +1268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get public memory fragments for homepage
   app.get('/api/memories/public', async (req, res) => {
     try {
-      // Disable caching to ensure fresh data is always served
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      
       // Get memories with author info and comment counts
       const memoriesWithCounts = await db
         .select({
@@ -1916,11 +1911,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get unread notifications count
   app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
     try {
-      // Disable caching for real-time notification count
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      
       const userId = req.user.id;
       
       const [result] = await db
