@@ -199,11 +199,11 @@ export default function SearchPage() {
                         </h3>
                         <div className="space-y-3">
                           {users.slice(0, 3).map((user: any) => (
-                            <Link key={user.id} href={`/profile/${user.id}`}>
-                              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                            <Link key={user.id} href={`/profile/${user.id}`} className="block">
+                              <Card className="hover:shadow-lg hover:bg-gray-50 transition-all cursor-pointer">
                                 <CardContent className="p-4">
                                   <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                                       {user.profileImageUrl ? (
                                         <img src={user.profileImageUrl} alt={user.username} className="w-full h-full object-cover" />
                                       ) : (
@@ -214,7 +214,7 @@ export default function SearchPage() {
                                     </div>
                                     <div className="flex-1">
                                       <div className="flex items-center gap-2">
-                                        <h4 className="font-semibold">{user.firstName || user.username}</h4>
+                                        <h4 className="font-semibold text-gray-900 hover:text-purple-600">{user.firstName || user.username}</h4>
                                         {user.isVerified && (
                                           <VerificationBadge size="sm" badge={user.verificationBadge || 'LaaBoBo'} />
                                         )}
@@ -291,11 +291,11 @@ export default function SearchPage() {
                 <TabsContent value="users">
                   <div className="space-y-3">
                     {users.map((user: any) => (
-                      <Link key={user.id} href={`/profile/${user.id}`}>
-                        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                      <Link key={user.id} href={`/profile/${user.id}`} className="block">
+                        <Card className="hover:shadow-lg hover:bg-gray-50 transition-all cursor-pointer">
                           <CardContent className="p-4">
                             <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                                 {user.profileImageUrl ? (
                                   <img src={user.profileImageUrl} alt={user.username} className="w-full h-full object-cover" />
                                 ) : (
@@ -306,7 +306,7 @@ export default function SearchPage() {
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold">{user.firstName || user.username}</h4>
+                                  <h4 className="font-semibold text-gray-900 hover:text-purple-600">{user.firstName || user.username}</h4>
                                   {user.isVerified && (
                                     <VerificationBadge size="sm" badge={user.verificationBadge || 'LaaBoBo'} />
                                   )}
