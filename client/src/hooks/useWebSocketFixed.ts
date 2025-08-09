@@ -22,21 +22,11 @@ class WebSocketManager {
       
       let wsUrl;
       if (isDev) {
-        // In development, use current port or fallback to 5000
-        const currentPort = window.location.port;
-        if (currentPort && currentPort !== '3000') {
-          wsUrl = `ws://localhost:${currentPort}/ws`;
-        } else {
-          wsUrl = 'ws://localhost:5000/ws';
-        }
+        wsUrl = 'ws://localhost:5000/ws';
       } else {
-        // For production - clean URL construction
-        const cleanHost = window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-        wsUrl = `${protocol}//${cleanHost}/ws`;
+        // For production Replit environment - use the same host and port as the main app
+        wsUrl = `${protocol}//${window.location.host}/ws`;
       }
-      
-      // Remove any query parameters that might be accidentally added
-      wsUrl = wsUrl.split('?')[0];
       
       console.log('WebSocket connecting to:', wsUrl);
       

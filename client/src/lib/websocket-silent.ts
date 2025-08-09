@@ -15,21 +15,10 @@ class SilentWebSocketManager {
       
       let wsUrl;
       if (isDev) {
-        // In development, use current port or fallback
-        const currentPort = window.location.port;
-        if (currentPort && currentPort !== '3000') {
-          wsUrl = `ws://localhost:${currentPort}/ws`;
-        } else {
-          wsUrl = 'ws://localhost:5000/ws';
-        }
+        wsUrl = 'ws://localhost:5000/ws';
       } else {
-        // For production - clean URL construction
-        const cleanHost = window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-        wsUrl = `${protocol}//${cleanHost}/ws`;
+        wsUrl = `${protocol}//${window.location.host}/ws`;
       }
-      
-      // Remove any query parameters that might be added
-      wsUrl = wsUrl.split('?')[0];
       
       this.ws = new WebSocket(wsUrl);
       
