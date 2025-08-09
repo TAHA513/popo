@@ -29,15 +29,10 @@ export function CrossPlatformVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleError = () => {
-    if (!hasError && videoSrc === src) {
-      // Try proxy URL if original fails
-      const filename = src.split('/').pop();
-      const proxyUrl = `/proxy/file/${filename}`;
-      setVideoSrc(proxyUrl);
+    if (!hasError) {
       setHasError(true);
-      console.log(`تجربة تحميل الفيديو من منصة أخرى: ${filename}`);
-    } else {
-      console.log(`فشل في العثور على الفيديو في كلا المنصتين: ${src}`);
+      setIsLoading(false);
+      console.log(`فيديو غير متوفر: ${src}`);
     }
   };
 
