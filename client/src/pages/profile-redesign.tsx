@@ -367,26 +367,26 @@ export default function ProfileRedesign() {
                 )}
               </div>
               
-              {/* Settings Icons on the left */}
-              <div className="flex items-center gap-2 flex-shrink-0" style={{ touchAction: 'none' }}>
+              {/* Settings Icons on the left - mobile optimized */}
+              <div className="flex items-center gap-1 flex-shrink-0" style={{ touchAction: 'none' }}>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation('/privacy-policy')}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1 flex items-center gap-1"
                   title="سياسات وشروط المنصة"
                 >
-                  <Shield className="h-4 w-4" />
-                  <span className="text-sm font-medium">السياسات</span>
+                  <Shield className="h-3 w-3" />
+                  <span className="text-xs font-medium hidden sm:inline">السياسات</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation('/account')}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1 flex items-center gap-1"
                 >
-                  <Settings className="h-4 w-4" />
-                  <span className="text-sm font-medium">الإعدادات</span>
+                  <Settings className="h-3 w-3" />
+                  <span className="text-xs font-medium hidden sm:inline">الإعدادات</span>
                 </Button>
               </div>
             </div>
@@ -403,26 +403,26 @@ export default function ProfileRedesign() {
               <div className="flex items-center justify-between touch-pan-y overscroll-none" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
                 <h1 className="text-lg font-bold text-gray-900">الملف الشخصي</h1>
                 
-                {/* Settings Icon */}
-                <div className="flex items-center gap-2 flex-shrink-0" style={{ touchAction: 'none' }}>
+                {/* Settings Icon - mobile optimized */}
+                <div className="flex items-center gap-1 flex-shrink-0" style={{ touchAction: 'none' }}>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setLocation('/privacy-policy')}
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1 flex items-center gap-1"
                     title="سياسات وشروط المنصة"
                   >
-                    <Shield className="h-4 w-4" />
-                    <span className="text-sm font-medium">السياسات</span>
+                    <Shield className="h-3 w-3" />
+                    <span className="text-xs font-medium hidden sm:inline">السياسات</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setLocation('/account')}
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1 flex items-center gap-1"
                   >
-                    <Settings className="h-4 w-4" />
-                    <span className="text-sm font-medium">الإعدادات</span>
+                    <Settings className="h-3 w-3" />
+                    <span className="text-xs font-medium hidden sm:inline">الإعدادات</span>
                   </Button>
                 </div>
               </div>
