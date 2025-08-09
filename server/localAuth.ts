@@ -44,7 +44,7 @@ export function setupLocalAuth(app: Express) {
 
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUser(id);
+      const user = await storage.getUserById(id);
       if (!user) {
         return done(null, false);
       }
@@ -62,8 +62,8 @@ export const requireAuth: RequestHandler = (req, res, next) => {
     sessionId: req.sessionID,
     isAuthenticated: req.isAuthenticated(),
     hasUser: !!req.user,
-    userId: req.user?.id,
-    username: req.user?.username
+    userId: (req.user as any)?.id,
+    username: (req.user as any)?.username
   });
   
   if (req.isAuthenticated() && req.user) {
