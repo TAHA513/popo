@@ -27,7 +27,6 @@ import { registerStripeRoutes } from './routes/stripe';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
-import axios from 'axios';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -224,60 +223,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup Stripe payment routes
   registerStripeRoutes(app);
-
-  // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
-  app.get('/api/media/proxy', async (req: any, res) => {
-    try {
-      const { url } = req.query;
-      
-      if (!url || typeof url !== 'string') {
-        return res.status(400).json({ error: 'عنوان URL مطلوب' });
-      }
-
-      // التحقق من صحة الرابط
-      try {
-        const urlObj = new URL(url);
-        if (!urlObj.protocol.startsWith('http')) {
-          return res.status(400).json({ error: 'رابط غير صالح' });
-        }
-      } catch {
-        return res.status(400).json({ error: 'رابط غير صالح' });
-      }
-
-      // جلب الوسائط من المصدر الأصلي
-      const response = await axios.get(url, {
-        responseType: 'stream',
-        timeout: 30000,
-        headers: {
-          'User-Agent': 'LaaBoBo-Media-Proxy/1.0',
-          'Accept': '*/*',
-        },
-      });
-
-      // إعداد الهيدرات لحل مشكلة CORS
-      res.set({
-        'Content-Type': response.headers['content-type'] || 'application/octet-stream',
-        'Cache-Control': 'public, max-age=3600',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      });
-
-      // إرسال الوسائط
-      response.data.pipe(res);
-
-    } catch (error: any) {
-      console.error('خطأ في وكيل الوسائط:', error?.message);
-      
-      if (error?.response?.status === 404) {
-        res.status(404).json({ error: 'الملف غير موجود' });
-      } else if (error?.code === 'ENOTFOUND' || error?.code === 'ECONNREFUSED') {
-        res.status(502).json({ error: 'لا يمكن الوصول للمصدر' });
-      } else {
-        res.status(500).json({ error: 'خطأ في جلب الوسائط' });
-      }
-    }
-  });
 
   // Wallet API endpoints
   // Get user transactions

@@ -32,9 +32,7 @@ export class VideoOptimizer {
         if (this.preloadedVideos.size >= this.maxCacheSize) {
           // إزالة أقدم فيديو
           const firstKey = this.preloadedVideos.keys().next().value;
-          if (firstKey) {
-            this.preloadedVideos.delete(firstKey);
-          }
+          this.preloadedVideos.delete(firstKey);
         }
         
         this.preloadedVideos.set(src, video);
