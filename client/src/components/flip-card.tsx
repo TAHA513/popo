@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { RealTimeTimestamp } from "./real-time-timestamp";
 import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
+import VerificationBadge from "./VerificationBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VideoOptimizer } from "@/utils/video-optimizer";
 import { MediaUtils } from "@/utils/media-utils";
@@ -386,6 +387,12 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                 <span className="text-white font-semibold text-sm group-hover:text-white/90 transition-colors">
                   {content.author?.username || 'مستخدم LaaBoBo'}
                 </span>
+                {content.author?.isVerified && (
+                  <VerificationBadge 
+                    size="xs" 
+                    badge={content.author.verificationBadge || 'LaaBoBo'} 
+                  />
+                )}
                 {content.author?.isStreamer && (
                   <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                 )}
@@ -651,6 +658,12 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                   <h3 className="font-bold text-lg text-white text-right">
                     {author.username || 'مستخدم LaaBoBo'}
                   </h3>
+                  {author.isVerified && (
+                    <VerificationBadge 
+                      size="sm" 
+                      badge={author.verificationBadge || 'LaaBoBo'} 
+                    />
+                  )}
                   {author.supporterLevel > 0 && (
                     <SupporterBadge 
                       level={author.supporterLevel}
