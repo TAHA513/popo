@@ -46,13 +46,7 @@ export default function BottomNavigation() {
     { href: "/gifts", icon: Gift, label: t('nav.gifts') },
     { href: "/create-memory", icon: Plus, label: t('common.create'), isSpecial: true },
     { href: "/explore", icon: Radio, label: t('stream.start_streaming') },
-    { href: "/profile", icon: User, label: t('nav.profile') },
-    { 
-      href: "/post-generator.html", 
-      icon: () => <span style={{fontSize: '20px'}}>📱</span>, 
-      label: "بوستات", 
-      isExternal: true 
-    }
+    { href: "/profile", icon: User, label: t('nav.profile') }
   ];
 
   return (
@@ -99,17 +93,6 @@ export default function BottomNavigation() {
             );
           }
           
-          if ('isExternal' in item && item.isExternal) {
-            return (
-              <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer">
-                <div className="flex flex-col items-center justify-center py-2 px-2 rounded-xl transition-all duration-200 text-gray-500 hover:text-purple-400 hover:bg-gray-50">
-                  <Icon className="w-6 h-6" />
-                  <span className="text-[10px] mt-1 font-medium">{item.label}</span>
-                </div>
-              </a>
-            );
-          }
-
           return (
             <Link key={item.href} href={item.href}>
               <div className={`flex flex-col items-center justify-center py-2 px-2 rounded-xl transition-all duration-200 relative ${
