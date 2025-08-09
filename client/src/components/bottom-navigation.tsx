@@ -31,8 +31,8 @@ export default function BottomNavigation() {
       return response.json();
     },
     enabled: !!user,
-    refetchInterval: 3000, // تحديث كل 3 ثوان
-    staleTime: 1000 // البيانات تعتبر قديمة بعد ثانية واحدة
+    refetchInterval: 3000, // Update every 3 seconds
+    staleTime: 1000 // Data becomes stale after one second
   });
 
   // Calculate total unread messages
@@ -51,7 +51,7 @@ export default function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
-      <div className="flex items-center justify-around py-1 px-1">
+      <div className="flex items-center justify-evenly py-1 px-1">
         {navItems.map((item, index) => {
           const isActive = location === item.href;
           const Icon = item.icon;
@@ -59,11 +59,11 @@ export default function BottomNavigation() {
           if (item.isSpecial) {
             return (
               <Link key={item.href} href={item.href}>
-                <div className="flex flex-col items-center justify-center -mt-4 relative">
-                  <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-white">
+                <div className="flex flex-col items-center justify-center -mt-4 relative mx-auto">
+                  <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-white mx-auto">
                     <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <span className="text-xs mt-1 text-purple-600 font-medium">{item.label}</span>
+                  <span className="text-xs mt-1 text-purple-600 font-medium text-center">{item.label}</span>
                 </div>
               </Link>
             );
