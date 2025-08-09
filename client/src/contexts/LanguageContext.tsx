@@ -771,21 +771,41 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [currentLanguage, setCurrentLanguage] = useState<LanguageOption>(() => {
-    // Get saved language from localStorage or default to Arabic
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage) {
-      return languages.find(lang => lang.code === savedLanguage) || languages[0];
+    // Check if we're in browser environment
+    if (typeof window === 'undefined') {
+      return languages[0]; // Default to Arabic for SSR
     }
-    return languages[0]; // Default to Arabic
+    
+    try {
+      // Get saved language from localStorage or default to Arabic
+      const savedLanguage = localStorage.getItem('language');
+      if (savedLanguage) {
+        return languages.find(lang => lang.code === savedLanguage) || languages[0];
+      }
+      return languages[0]; // Default to Arabic
+    } catch (error) {
+      // Fallback if localStorage is not available
+      return languages[0];
+    }
   });
 
   const setLanguage = (language: LanguageOption) => {
     setCurrentLanguage(language);
-    localStorage.setItem('language', language.code);
+    
+    try {
+      // Only access localStorage in browser environment
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('language', language.code);
+      }
+    } catch (error) {
+      console.warn('Failed to save language to localStorage:', error);
+    }
     
     // Update document direction
-    document.documentElement.dir = language.direction;
-    document.documentElement.lang = language.code;
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = language.direction;
+      document.documentElement.lang = language.code;
+    }
   };
 
   const t = (key: string): string => {
@@ -794,8 +814,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   // Set initial direction on mount
   useEffect(() => {
-    document.documentElement.dir = currentLanguage.direction;
-    document.documentElement.lang = currentLanguage.code;
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = currentLanguage.direction;
+      document.documentElement.lang = currentLanguage.code;
+    }
   }, [currentLanguage]);
 
   const value: LanguageContextType = {
