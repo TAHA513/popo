@@ -10,6 +10,7 @@ interface CrossPlatformImageProps {
 export function CrossPlatformImage({ src, alt, className, onClick }: CrossPlatformImageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -17,8 +18,17 @@ export function CrossPlatformImage({ src, alt, className, onClick }: CrossPlatfo
   };
 
   const handleError = () => {
-    setIsLoading(false);
-    setHasError(true);
+    if (currentSrc === src && src.includes('/uploads/')) {
+      // Try proxy URL if original fails
+      const filename = src.split('/').pop();
+      const proxyUrl = `/proxy/file/${filename}`;
+      setCurrentSrc(proxyUrl);
+      console.log(`🖼️ جاري جلب الصورة من منصة أخرى: ${filename}`);
+    } else {
+      setIsLoading(false);
+      setHasError(true);
+      console.log(`❌ فشل في العثور على الصورة في كلا المنصتين: ${src}`);
+    }
   };
 
   return (
@@ -36,7 +46,7 @@ export function CrossPlatformImage({ src, alt, className, onClick }: CrossPlatfo
         </div>
       )}
       <img
-        src={src}
+        src={currentSrc}
         alt={alt}
         className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         onError={handleError}

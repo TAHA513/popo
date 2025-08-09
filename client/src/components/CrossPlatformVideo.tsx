@@ -23,14 +23,24 @@ export function CrossPlatformVideo({
   onMouseLeave,
   onCanPlay
 }: CrossPlatformVideoProps) {
-  const [videoSrc, setVideoSrc] = useState(src);
+
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentSrc, setCurrentSrc] = useState(src);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleError = () => {
-    setIsLoading(false);
-    setHasError(true);
+    if (currentSrc === src && src.includes('/uploads/')) {
+      // Try proxy URL if original fails
+      const filename = src.split('/').pop();
+      const proxyUrl = `/proxy/file/${filename}`;
+      setCurrentSrc(proxyUrl);
+      console.log(`🎥 جاري جلب الفيديو من منصة أخرى: ${filename}`);
+    } else {
+      setIsLoading(false);
+      setHasError(true);
+      console.log(`❌ فشل في العثور على الفيديو في كلا المنصتين: ${src}`);
+    }
   };
 
   const handleCanPlay = (e: React.SyntheticEvent<HTMLVideoElement>) => {
@@ -47,7 +57,7 @@ export function CrossPlatformVideo({
       )}
       <video
         ref={videoRef}
-        src={videoSrc}
+        src={currentSrc}
         className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         muted={muted}
         loop={loop}
