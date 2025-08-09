@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { getSession } from "./replitAuth";
+import { setupAuth, getSession } from "./replitAuth";
 import { setupLocalAuth } from "./localAuth";
 import passport from "passport";
 
@@ -23,10 +23,7 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// Setup session and passport
-app.use(getSession());
-app.use(passport.initialize());
-app.use(passport.session());
+// Setup unified authentication system (both Replit and local)
 setupLocalAuth(app);
 
 app.use((req, res, next) => {
@@ -60,6 +57,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Setup authentication before routes
+  app.use(getSession());
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
+  // Setup Replit auth only if REPLIT_DOMAINS is available
+  if (process.env.REPLIT_DOMAINS) {
+    await setupAuth(app);
+    console.log("✅ Replit authentication enabled");
+  } else {
+    console.log("⚠️ Replit authentication disabled - using local auth only");
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
