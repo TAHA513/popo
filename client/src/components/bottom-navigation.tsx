@@ -31,8 +31,8 @@ export default function BottomNavigation() {
       return response.json();
     },
     enabled: !!user,
-    refetchInterval: 3000, // تحديث كل 3 ثوان
-    staleTime: 1000 // البيانات تعتبر قديمة بعد ثانية واحدة
+    refetchInterval: 3000, // Update every 3 seconds
+    staleTime: 1000 // Data is considered stale after 1 second
   });
 
   // Calculate total unread messages
