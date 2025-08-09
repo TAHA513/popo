@@ -414,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate album ownership
       const album = await storage.getPremiumAlbum(albumId);
-      if (!album || album.userId !== senderId) {
+      if (!album || album.creatorId !== senderId) {
         return res.status(403).json({ error: "Album not found or not owned by user" });
       }
 
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Process the transaction
-      await storage.processAlbumUnlock(userId, album.userId, messageId, totalCost);
+      await storage.processAlbumUnlock(userId, album.creatorId, messageId, totalCost);
 
       const updatedMessage = await storage.getPremiumMessage(messageId);
       res.json(updatedMessage);
@@ -1580,31 +1580,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get total users count
       const totalUsersResult = await db.select({ count: sql`count(*)` }).from(users);
-      const totalUsers = parseInt(totalUsersResult[0]?.count || '0');
+      const totalUsers = parseInt(String(totalUsersResult[0]?.count || '0'));
 
       // Get verified users count
       const verifiedUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isVerified, true));
-      const verifiedUsers = parseInt(verifiedUsersResult[0]?.count || '0');
+      const verifiedUsers = parseInt(String(verifiedUsersResult[0]?.count || '0'));
 
       // Get online users count
       const onlineUsersResult = await db.select({ count: sql`count(*)` })
         .from(users)
         .where(eq(users.isOnline, true));
-      const onlineUsers = parseInt(onlineUsersResult[0]?.count || '0');
+      const onlineUsers = parseInt(String(onlineUsersResult[0]?.count || '0'));
 
       // Get total memories count
       const totalMemoriesResult = await db.select({ count: sql`count(*)` }).from(memoryFragments);
-      const totalMemories = parseInt(totalMemoriesResult[0]?.count || '0');
+      const totalMemories = parseInt(String(totalMemoriesResult[0]?.count || '0'));
 
       // Get total gifts count
       const totalGiftsResult = await db.select({ count: sql`count(*)` }).from(gifts);
-      const totalGifts = parseInt(totalGiftsResult[0]?.count || '0');
+      const totalGifts = parseInt(String(totalGiftsResult[0]?.count || '0'));
 
       // Get total points in system
       const totalPointsResult = await db.select({ sum: sql`sum(points)` }).from(users);
-      const totalPoints = parseInt(totalPointsResult[0]?.sum || '0');
+      const totalPoints = parseInt(String(totalPointsResult[0]?.sum || '0'));
 
       const stats = {
         totalUsers,
@@ -1787,7 +1787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'follow',
           title: 'متابع جديد',
           message: `بدأ ${req.user.firstName || req.user.username} في متابعتك`,
-          relatedId: null,
+          relatedId: 0,
           relatedType: 'follow'
         });
         
