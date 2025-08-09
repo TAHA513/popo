@@ -42,16 +42,16 @@ export default function BottomNavigation() {
 
   const navItems = [
     { href: "/", icon: Home, label: t('nav.home') },
-    { href: "/explore", icon: Radio, label: t('explore.title') },
-    { href: "/create-memory", icon: Plus, label: t('common.create'), isSpecial: true },
-    { href: "/gifts", icon: Gift, label: t('nav.gifts') },
     { href: "/messages", icon: MessageCircle, label: t('nav.messages') },
+    { href: "/gifts", icon: Gift, label: t('nav.gifts') },
+    { href: "/create-memory", icon: Plus, label: t('common.create'), isSpecial: true },
+    { href: "/explore", icon: Radio, label: t('stream.start_streaming') },
     { href: "/profile", icon: User, label: t('nav.profile') }
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
-      <div className="relative flex items-center justify-evenly py-1 px-1">
+      <div className="relative flex items-center justify-around py-1 px-0">
         {navItems.map((item, index) => {
           const isActive = location === item.href;
           const Icon = item.icon;

@@ -157,7 +157,7 @@ const translations = {
     'wallet.points_packages': 'باقات النقاط',
     
     // Streaming
-    'stream.start_streaming': 'بدء البث',
+    'stream.start_streaming': 'ابدأ بث',
     'stream.stop_streaming': 'إيقاف البث',
     'stream.viewers': 'المشاهدون',
     'stream.chat': 'الدردشة',
