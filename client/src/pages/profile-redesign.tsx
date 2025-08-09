@@ -377,7 +377,7 @@ export default function ProfileRedesign() {
                   title="سياسات وشروط المنصة"
                 >
                   <Shield className="h-3 w-3" />
-                  <span className="text-xs font-medium hidden sm:inline">يُرجى قراءة السياسات</span>
+                  <span className="text-xs font-medium">يُرجى قراءة السياسات</span>
                 </Button>
                 <Button
                   variant="ghost"
@@ -386,7 +386,7 @@ export default function ProfileRedesign() {
                   className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1 flex items-center gap-1"
                 >
                   <Settings className="h-3 w-3" />
-                  <span className="text-xs font-medium hidden sm:inline">الإعدادات</span>
+                  <span className="text-xs font-medium">الإعدادات</span>
                 </Button>
               </div>
             </div>
@@ -413,7 +413,7 @@ export default function ProfileRedesign() {
                     title="سياسات وشروط المنصة"
                   >
                     <Shield className="h-3 w-3" />
-                    <span className="text-xs font-medium hidden sm:inline">يُرجى قراءة السياسات</span>
+                    <span className="text-xs font-medium">يُرجى قراءة السياسات</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -422,7 +422,7 @@ export default function ProfileRedesign() {
                     className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1 flex items-center gap-1"
                   >
                     <Settings className="h-3 w-3" />
-                    <span className="text-xs font-medium hidden sm:inline">الإعدادات</span>
+                    <span className="text-xs font-medium">الإعدادات</span>
                   </Button>
                 </div>
               </div>
