@@ -57,20 +57,9 @@ export function setupLocalAuth(app: Express) {
 }
 
 export const requireAuth: RequestHandler = (req, res, next) => {
-  // Debug session information
-  console.log('🔐 Auth check:', {
-    sessionId: req.sessionID,
-    isAuthenticated: req.isAuthenticated(),
-    hasUser: !!req.user,
-    userId: (req.user as any)?.id,
-    username: (req.user as any)?.username
-  });
-  
   if (req.isAuthenticated() && req.user) {
     return next();
   }
-  
-  console.log('❌ Authentication failed - redirecting to login');
   res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });
 };
 
