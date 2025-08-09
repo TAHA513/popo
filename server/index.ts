@@ -13,33 +13,43 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Serve uploaded files statically
-app.use('/uploads', express.static('uploads'));
-
-// Add file proxy endpoint for cross-platform access
-app.get('/proxy/file/*', async (req, res) => {
-  const filePath = req.params[0];
-  const alternativeUrls = [
-    `https://laabolive.replit.app/uploads/${filePath}`,
-    `https://laabo-render.onrender.com/uploads/${filePath}`
-  ];
-  
-  for (const url of alternativeUrls) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const buffer = await response.arrayBuffer();
-        res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-        res.send(Buffer.from(buffer));
-        return;
-      }
-    } catch (error: any) {
-      console.log(`Failed to fetch from ${url}:`, error?.message || 'Unknown error');
+// Enhanced file serving with cross-platform fallback
+app.use('/uploads', (req, res, next) => {
+  const staticHandler = express.static('uploads');
+  staticHandler(req, res, async (err) => {
+    if (err || res.headersSent) {
+      return next(err);
     }
-  }
-  
-  res.status(404).send('File not found on any platform');
+    
+    // If file not found locally, try other platforms
+    const filePath = req.path.substring(1); // Remove leading slash
+    const alternativeUrls = [
+      `https://laabo-render.onrender.com/uploads/${filePath}`,
+      `https://laabolive.replit.app/uploads/${filePath}`
+    ];
+    
+    console.log(`🔍 File not found locally: ${filePath}, trying alternatives...`);
+    
+    for (const url of alternativeUrls) {
+      try {
+        console.log(`🌐 Trying: ${url}`);
+        const response = await fetch(url);
+        if (response.ok) {
+          console.log(`✅ Found file at: ${url}`);
+          const buffer = await response.arrayBuffer();
+          res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
+          res.setHeader('Cache-Control', 'public, max-age=31536000');
+          res.send(Buffer.from(buffer));
+          return;
+        }
+      } catch (error: any) {
+        console.log(`❌ Failed to fetch from ${url}:`, error?.message || 'Unknown error');
+      }
+    }
+    
+    console.log(`🚫 File not found on any platform: ${filePath}`);
+    res.status(404).send('File not found on any platform');
+  });
 });
 
 // Disable caching for all API endpoints to ensure fresh data
