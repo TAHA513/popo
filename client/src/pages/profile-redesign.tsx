@@ -343,31 +343,31 @@ export default function ProfileRedesign() {
         <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20 select-none sticky-header">
           <div className="container mx-auto px-4 py-3 max-w-4xl">
             <div className="flex items-center justify-between touch-pan-y overscroll-none" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => window.history.back()}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-gray-900">
-                    {profileUser?.username || 'الملف الشخصي'}
-                  </h1>
-                  {profileUser?.isVerified && (
-                    <div className="group">
-                      <VerificationBadge 
-                        size="md" 
-                        badge={profileUser.verificationBadge || 'LaaBoBo'} 
-                      />
-                    </div>
-                  )}
-                </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.history.back()}
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              
+              {/* Username in center */}
+              <div className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
+                <h1 className="text-xl font-bold text-gray-900">
+                  {profileUser?.username || 'الملف الشخصي'}
+                </h1>
+                {profileUser?.isVerified && (
+                  <div className="group">
+                    <VerificationBadge 
+                      size="md" 
+                      badge={profileUser.verificationBadge || 'LaaBoBo'} 
+                    />
+                  </div>
+                )}
               </div>
               
-              {/* Settings Icon */}
+              {/* Settings Icons on the left */}
               <div className="flex items-center gap-2 flex-shrink-0" style={{ touchAction: 'none' }}>
                 <Button
                   variant="ghost"
