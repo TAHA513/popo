@@ -595,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       if (!user || (user.points || 0) < totalCost) {
         return res.status(400).json({ 
-          message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user?.points || 0} نقطة`
+          message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user.points || 0} نقطة`
         });
       }
 
@@ -1676,7 +1676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if requested user is the protected owner account
-      if (isOwnerAccount({ username: user.username || undefined, email: user.email || undefined })) {
+      if (isOwnerAccount(user)) {
         console.log('🛡️ Owner account access blocked for user:', req.user?.username);
         logOwnerProtection('user profile access', 1);
         return res.status(404).json({ message: "المستخدم غير موجود" });
@@ -2167,7 +2167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
-      if (!user || (user.points || 0) < (album.accessPrice || 0)) {
+      if (!user || user.points < album.accessPrice) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
       
@@ -2178,21 +2178,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: album.userId,
         accessType: 'full_album',
         giftPaid,
-        amountPaid: album.accessPrice || 0,
+        amountPaid: album.accessPrice,
       });
       
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
-        points: (user.points || 0) - (album.accessPrice || 0)
+        points: user.points - album.accessPrice
       });
       
       // Add earnings to seller (40% profit)
-      const sellerEarnings = Math.floor((album.accessPrice || 0) * 0.4);
+      const sellerEarnings = Math.floor(album.accessPrice * 0.4);
       const seller = await storage.getUser(album.userId);
       if (seller) {
         await storage.updateUser(album.userId, {
-          points: (seller.points || 0) + sellerEarnings,
-          totalEarnings: Number(seller.totalEarnings || 0) + sellerEarnings
+          points: seller.points + sellerEarnings,
+          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
         });
       }
       
@@ -2200,7 +2200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: currentUserId,
         type: 'album_purchase',
-        amount: (album.accessPrice || 0).toString(),
+        amount: album.accessPrice.toString(),
         description: `شراء ألبوم: ${album.title}`,
         relatedUserId: album.userId,
         relatedAlbumId: albumId,
@@ -2247,7 +2247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
-      if (!user || (user.points || 0) < (photo.accessPrice || 0)) {
+      if (!user || user.points < photo.accessPrice) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
       
@@ -2259,21 +2259,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sellerId: album.userId,
         accessType: 'single_photo',
         giftPaid,
-        amountPaid: photo.accessPrice || 0,
+        amountPaid: photo.accessPrice,
       });
       
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
-        points: (user.points || 0) - (photo.accessPrice || 0)
+        points: user.points - photo.accessPrice
       });
       
       // Add earnings to seller (40% profit)
-      const sellerEarnings = Math.floor((photo.accessPrice || 0) * 0.4);
+      const sellerEarnings = Math.floor(photo.accessPrice * 0.4);
       const seller = await storage.getUser(album.userId);
       if (seller) {
         await storage.updateUser(album.userId, {
-          points: (seller.points || 0) + sellerEarnings,
-          totalEarnings: Number(seller.totalEarnings || 0) + sellerEarnings
+          points: seller.points + sellerEarnings,
+          totalEarnings: Number(seller.totalEarnings) + sellerEarnings
         });
       }
       
@@ -2281,7 +2281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.addWalletTransaction({
         userId: currentUserId,
         type: 'photo_purchase',
-        amount: (photo.accessPrice || 0).toString(),
+        amount: photo.accessPrice.toString(),
         description: `شراء صورة من ألبوم: ${album.title}`,
         relatedUserId: album.userId,
         relatedPhotoId: photoId,
@@ -2460,7 +2460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if requested user is the protected owner account
-      if (isOwnerAccount({ username: user.username || undefined, email: user.email || undefined })) {
+      if (isOwnerAccount(user)) {
         logOwnerProtection('user profile access', 1);
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
@@ -2837,8 +2837,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedStream = await storage.updateStream(streamId, req.body);
       console.log('📝 Stream updated:', { 
         id: streamId, 
-        title: updatedStream.title,
-        category: updatedStream.category 
+        zegoRoomId: updatedStream.zegoRoomId,
+        zegoStreamId: updatedStream.zegoStreamId 
       });
       res.json(updatedStream);
     } catch (error) {
@@ -3017,10 +3017,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For now, save to database using direct Drizzle
       const [message] = await db.insert(chatMessages).values({
-        userId: senderId,
-        streamId: 1, // Default stream ID for direct messages
-        message: content,
-        sentAt: new Date(),
+        senderId,
+        recipientId,
+        content,
+        messageType: messageType || 'text',
+        isRead: false,
+        createdAt: new Date().toISOString(),
       }).returning();
       
       console.log('✅ تم حفظ الرسالة بنجاح:', message);
@@ -4397,14 +4399,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           id: memoryFragments.id,
           title: memoryFragments.title,
-          caption: memoryFragments.caption,
-          type: memoryFragments.type,
-          mediaUrls: memoryFragments.mediaUrls,
+          description: memoryFragments.description,
+          mediaType: memoryFragments.mediaType,
+          mediaUrl: memoryFragments.mediaUrl,
           thumbnailUrl: memoryFragments.thumbnailUrl,
           createdAt: memoryFragments.createdAt,
           expiresAt: memoryFragments.expiresAt,
           memoryType: memoryFragments.memoryType,
-          authorId: memoryFragments.authorId,
+          userId: memoryFragments.userId,
           viewCount: memoryFragments.viewCount,
           username: users.username,
           firstName: users.firstName,
@@ -4413,8 +4415,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationBadge: users.verificationBadge
         })
         .from(memoryFragments)
-        .leftJoin(users, eq(memoryFragments.authorId, users.id))
-        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.caption} ILIKE ${searchTerm}`)
+        .leftJoin(users, eq(memoryFragments.userId, users.id))
+        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.description} ILIKE ${searchTerm}`)
         .orderBy(desc(memoryFragments.createdAt))
         .limit(50);
 
@@ -4443,11 +4445,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bio: users.bio,
           isVerified: users.isVerified,
           verificationBadge: users.verificationBadge,
-          points: users.points
+          followersCount: users.followersCount
         })
         .from(users)
         .where(sql`${users.username} ILIKE ${searchTerm} OR ${users.firstName} ILIKE ${searchTerm} OR ${users.lastName} ILIKE ${searchTerm}`)
-        .orderBy(desc(users.createdAt))
+        .orderBy(desc(users.followersCount))
         .limit(30);
 
       // Filter out owner account using protection system
@@ -4474,16 +4476,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: streams.id,
           title: streams.title,
           description: streams.description,
-          category: streams.category,
-          hostId: streams.hostId,
+          streamType: streams.streamType,
+          userId: streams.userId,
           username: users.username,
           viewerCount: streams.viewerCount,
           createdAt: streams.createdAt
         })
         .from(streams)
-        .leftJoin(users, eq(streams.hostId, users.id))
+        .leftJoin(users, eq(streams.userId, users.id))
         .where(
-          sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`
+          and(
+            sql`${streams.title} ILIKE ${searchTerm} OR ${streams.description} ILIKE ${searchTerm}`,
+            eq(streams.isActive, true)
+          )
         )
         .orderBy(desc(streams.viewerCount))
         .limit(20);

@@ -44,7 +44,7 @@ export function setupLocalAuth(app: Express) {
 
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUserById(id);
+      const user = await storage.getUser(id);
       if (!user) {
         return done(null, false);
       }
@@ -57,7 +57,7 @@ export function setupLocalAuth(app: Express) {
 }
 
 export const requireAuth: RequestHandler = (req, res, next) => {
-  if (req.isAuthenticated() && req.user) {
+  if (req.isAuthenticated()) {
     return next();
   }
   res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });

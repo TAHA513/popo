@@ -4,8 +4,6 @@ import { setupVite, serveStatic, log } from "./vite";
 import { getSession } from "./replitAuth";
 import { setupLocalAuth } from "./localAuth";
 import passport from "passport";
-import fs from 'fs';
-import path from 'path';
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for proper session handling
@@ -13,39 +11,8 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Universal file serving system - serves from local first, then other platforms
-app.use('/uploads', async (req, res, next) => {
-  const filePath = req.path.substring(1); // Remove leading slash
-  const localPath = path.join('uploads', filePath);
-  
-  // Check if file exists locally first
-  if (fs.existsSync(localPath)) {
-    return express.static('uploads')(req, res, next);
-  }
-  
-  // If not local, try other platforms immediately
-  const alternativeUrls = [
-    `https://laabo-render.onrender.com/uploads/${filePath}`,
-    `https://laabolive.replit.app/uploads/${filePath}`
-  ];
-  
-  for (const url of alternativeUrls) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const buffer = await response.arrayBuffer();
-        res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
-        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
-        res.send(Buffer.from(buffer));
-        return;
-      }
-    } catch (error) {
-      // Continue to next URL
-    }
-  }
-  
-  res.status(404).send('File not found');
-});
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 // Disable caching for all API endpoints to ensure fresh data
 app.use('/api', (req, res, next) => {

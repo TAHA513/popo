@@ -26,8 +26,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
-import { SmartCrossPlatformImage } from "./SmartCrossPlatformImage";
-import { SmartCrossPlatformVideo } from "./SmartCrossPlatformVideo";
 // import { motion } from "framer-motion";
 
 interface MemoryCardProps {
@@ -239,11 +237,10 @@ export default function MemoryCard({
           <div className="relative">
             {memory.type === 'image' && memory.thumbnailUrl ? (
               <Link href={`/memory/${memory.id}`}>
-                <SmartCrossPlatformImage
+                <img
                   src={memory.thumbnailUrl}
                   alt={memory.title || 'Memory'}
                   className="w-full h-64 object-cover cursor-pointer hover:opacity-95 transition-opacity"
-                  onClick={() => {}}
                 />
               </Link>
             ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
@@ -254,16 +251,16 @@ export default function MemoryCard({
                   window.location.href = `/video/${memory.id}`;
                 }}
               >
-                <SmartCrossPlatformVideo
+                <video
                   src={memory.mediaUrls[0]}
                   className="w-full h-64 object-cover"
                   muted
                   loop
                   playsInline
                   preload="auto"
-                  onMouseEnter={(e: React.MouseEvent<HTMLVideoElement>) => e.currentTarget.play()}
-                  onMouseLeave={(e: React.MouseEvent<HTMLVideoElement>) => e.currentTarget.pause()}
-                  onCanPlay={(e: React.SyntheticEvent<HTMLVideoElement>) => {
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
+                  onCanPlay={(e) => {
                     e.currentTarget.currentTime = 0.01;
                   }}
                 />
