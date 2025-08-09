@@ -4,6 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { getSession } from "./replitAuth";
 import { setupLocalAuth } from "./localAuth";
 import passport from "passport";
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for proper session handling
@@ -11,43 +13,33 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Serve uploaded files with cross-platform fallback
-app.use('/uploads', (req, res, next) => {
-  const fs = require('fs');
-  const path = require('path');
-  const filePath = path.join(process.cwd(), 'uploads', req.path);
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
+
+// Add file proxy endpoint for cross-platform access
+app.get('/proxy/file/*', async (req, res) => {
+  const filePath = req.params[0];
+  const alternativeUrls = [
+    `https://laabolive.replit.app/uploads/${filePath}`,
+    `https://laabo-render.onrender.com/uploads/${filePath}`
+  ];
   
-  // If file exists locally, serve it
-  if (fs.existsSync(filePath)) {
-    express.static('uploads')(req, res, next);
-  } else {
-    // If file doesn't exist locally, try to fetch from other platform
-    const alternativeUrls = [
-      'https://laabolive.replit.app/uploads' + req.path,
-      'https://laabo-render.onrender.com/uploads' + req.path
-    ];
-    
-    // Try each alternative URL
-    const tryAlternativeUrls = async (urls: string[]) => {
-      for (const url of urls) {
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
-            const buffer = await response.arrayBuffer();
-            res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
-            res.send(Buffer.from(buffer));
-            return;
-          }
-        } catch (error: any) {
-          console.log(`Failed to fetch from ${url}:`, error?.message || 'Unknown error');
-        }
+  for (const url of alternativeUrls) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const buffer = await response.arrayBuffer();
+        res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.send(Buffer.from(buffer));
+        return;
       }
-      // If all alternatives fail, return 404
-      res.status(404).send('File not found');
-    };
-    
-    tryAlternativeUrls(alternativeUrls);
+    } catch (error: any) {
+      console.log(`Failed to fetch from ${url}:`, error?.message || 'Unknown error');
+    }
   }
+  
+  res.status(404).send('File not found on any platform');
 });
 
 // Disable caching for all API endpoints to ensure fresh data
