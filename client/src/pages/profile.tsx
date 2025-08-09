@@ -67,7 +67,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="p-4">
           <div className="flex items-center justify-between">
             <button 
