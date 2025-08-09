@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuthFixed";
 import { useLanguage } from "@/contexts/LanguageContext";
+import NotificationBell from "@/components/notification-bell";
 import { 
   Home, 
   User, 
@@ -99,6 +100,9 @@ export default function NavigationHeader() {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            {/* Notification Bell */}
+            <NotificationBell />
+
             {/* Create Memory Button */}
             <Link href="/create-memory">
               <Button 
