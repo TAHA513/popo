@@ -257,11 +257,45 @@ export default function MemoryCard({
                   muted
                   loop
                   playsInline
-                  preload="auto"
-                  onMouseEnter={(e) => e.currentTarget.play()}
-                  onMouseLeave={(e) => e.currentTarget.pause()}
+                  preload="metadata"
+                  onMouseEnter={(e) => {
+                    try {
+                      e.currentTarget.play().catch(() => {
+                        // تجاهل أخطاء التشغيل التلقائي
+                      });
+                    } catch (error) {
+                      // تجاهل الأخطاء
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    try {
+                      e.currentTarget.pause();
+                    } catch (error) {
+                      // تجاهل الأخطاء
+                    }
+                  }}
                   onCanPlay={(e) => {
-                    e.currentTarget.currentTime = 0.01;
+                    try {
+                      e.currentTarget.currentTime = 0.01;
+                    } catch (error) {
+                      // تجاهل الأخطاء
+                    }
+                  }}
+                  onError={(e) => {
+                    console.log('Video error handled silently for:', memory.mediaUrls[0]);
+                    // إخفاء الفيديو المعطل واستبداله بصورة مصغرة إن أمكن
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    
+                    // إنشاء عنصر صورة كبديل
+                    const fallbackImg = target.parentElement?.querySelector('img.video-fallback');
+                    if (!fallbackImg && memory.thumbnailUrl) {
+                      const img = document.createElement('img');
+                      img.src = memory.thumbnailUrl;
+                      img.className = 'w-full h-64 object-cover video-fallback';
+                      img.alt = memory.title || 'Memory thumbnail';
+                      target.parentElement?.appendChild(img);
+                    }
                   }}
                 />
                 {/* Play button overlay */}
