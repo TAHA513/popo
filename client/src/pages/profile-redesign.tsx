@@ -338,9 +338,98 @@ export default function ProfileRedesign() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0 overflow-x-hidden" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
-      {/* Header for visitors - Hidden */}
+      {/* Header with back button and settings - only show for other users' profiles */}
+      {!isOwnProfile && (
+        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20 select-none sticky-header">
+          <div className="container mx-auto px-4 py-3 max-w-4xl">
+            <div className="flex items-center justify-between touch-pan-y overscroll-none" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.history.back()}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full p-2"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-gray-900">
+                    {profileUser?.username || 'الملف الشخصي'}
+                  </h1>
+                  {profileUser?.isVerified && (
+                    <div className="group">
+                      <VerificationBadge 
+                        size="md" 
+                        badge={profileUser.verificationBadge || 'LaaBoBo'} 
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Settings Icon */}
+              <div className="flex items-center gap-2 flex-shrink-0" style={{ touchAction: 'none' }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation('/privacy-policy')}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                  title="سياسات وشروط المنصة"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span className="text-sm font-medium">السياسات</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation('/account')}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="text-sm font-medium">الإعدادات</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
-      {/* Header for own profile - Hidden */}
+      {/* Header for own profile with settings */}
+      {isOwnProfile && (
+        <>
+          <SimpleNavigation />
+          <div className="bg-white shadow-sm border-b border-gray-200 sticky top-16 z-10 select-none sticky-header">
+            <div className="container mx-auto px-4 py-2 max-w-4xl">
+              <div className="flex items-center justify-between touch-pan-y overscroll-none" style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}>
+                <h1 className="text-lg font-bold text-gray-900">الملف الشخصي</h1>
+                
+                {/* Settings Icon */}
+                <div className="flex items-center gap-2 flex-shrink-0" style={{ touchAction: 'none' }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLocation('/privacy-policy')}
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                    title="سياسات وشروط المنصة"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm font-medium">السياسات</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLocation('/account')}
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-3 py-2 flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span className="text-sm font-medium">الإعدادات</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       
       {/* Profile Header Card */}
       <div className="bg-white shadow-sm">
