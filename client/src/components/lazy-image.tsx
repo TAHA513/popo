@@ -23,12 +23,30 @@ export default function LazyImage({
   const [imageSrc, setImageSrc] = useState(placeholder || '');
   const imgRef = useRef<HTMLImageElement>(null);
 
+  // Media URL utility function
+  const getMediaUrl = (storedPath: string): string => {
+    if (!storedPath) return '';
+    
+    if (storedPath.startsWith('http')) {
+      return storedPath;
+    }
+    
+    const cleanPath = storedPath.replace(/^\/uploads\//, '');
+    const API_BASE = import.meta.env.VITE_API_URL || '';
+    
+    if (API_BASE) {
+      return `${API_BASE}/api/media/${cleanPath}`;
+    }
+    
+    return `/api/media/${cleanPath}`;
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && src && !isLoaded && !hasError) {
-            setImageSrc(src);
+            setImageSrc(getMediaUrl(src));
             observer.unobserve(entry.target);
           }
         });

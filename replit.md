@@ -49,3 +49,7 @@ The application follows a modern full-stack JavaScript/TypeScript architecture.
 - **Real-time Features**: Native WebSocket API (client and server).
 - **Payment Processing**: Stripe.
 - **File Storage**: Cloudinary (with fallback to local storage).
+  
+## Recent Changes
+- ✅ **UNIFIED STABLE STORAGE SYSTEM (Aug 10, 2025)**: Implemented asaad111-style stable file naming across all uploads (profile/cover images, memory posts, general files) - eliminates file disappearing issues and ensures consistent media availability across all environments
+- ✅ **DYNAMIC URL RESOLUTION (Aug 10, 2025)**: Created environment-aware media URL system that automatically handles path differences between development (localhost) and production environments - stores only filenames in database while generating appropriate URLs dynamically based on current environment

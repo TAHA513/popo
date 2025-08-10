@@ -1137,7 +1137,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const localPath = path.join('uploads', stableFilename);
       
       await fs.writeFile(localPath, req.file.buffer);
-      const fileUrl = `/uploads/${stableFilename}`;
+      // احفظ فقط اسم الملف - ليس المسار الكامل
+      const fileUrl = stableFilename;
       
       console.log('✅ File saved with stable filename:', fileUrl);
       
@@ -1176,7 +1177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const oldUser = await storage.getUser(userId);
         if (oldUser?.profileImageUrl) {
-          const oldFilename = oldUser.profileImageUrl.replace('/uploads/', '');
+          const oldFilename = oldUser.profileImageUrl.replace(/^\/uploads\//, '');
           const oldPath = path.join('uploads', oldFilename);
           await fs.unlink(oldPath).catch(() => {}); // Ignore if doesn't exist
         }
@@ -1185,7 +1186,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await fs.writeFile(localPath, file.buffer);
-      const profileImageUrl = `/uploads/${stableFilename}`;
+      // احفظ فقط اسم الملف في قاعدة البيانات - ليس المسار الكامل
+      const profileImageUrl = stableFilename;
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
@@ -1230,7 +1232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const oldUser = await storage.getUser(userId);
         if (oldUser?.coverImageUrl) {
-          const oldFilename = oldUser.coverImageUrl.replace('/uploads/', '');
+          const oldFilename = oldUser.coverImageUrl.replace(/^\/uploads\//, '');
           const oldPath = path.join('uploads', oldFilename);
           await fs.unlink(oldPath).catch(() => {}); // Ignore if doesn't exist
         }
@@ -1239,7 +1241,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await fs.writeFile(localPath, file.buffer);
-      const coverImageUrl = `/uploads/${stableFilename}`;
+      // احفظ فقط اسم الملف - ليس المسار الكامل
+      const coverImageUrl = stableFilename;
       
       console.log('📝 Updating database with stable coverImageUrl:', coverImageUrl);
       
@@ -1294,7 +1297,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const localPath = path.join('uploads', stableFilename);
           
           await fs.writeFile(localPath, file.buffer);
-          const fileUrl = `/uploads/${stableFilename}`;
+          // احفظ فقط اسم الملف في قاعدة البيانات - ليس المسار الكامل
+          const fileUrl = stableFilename;
           console.log('📁 File saved with stable filename:', fileUrl);
           mediaUrls.push(fileUrl);
         }
