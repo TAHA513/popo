@@ -214,19 +214,23 @@ export default function ConversationPage() {
                           minute: '2-digit' 
                         })}
                       </p>
-                      {/* Read receipt indicator for sent messages */}
+                      {/* Read receipt indicator - FORCE DISPLAY */}
                       {message.senderId === user?.id && (
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border-2 mt-1 ${
-                          message.isRead 
-                            ? 'bg-green-600 text-white border-green-500' 
-                            : 'bg-blue-600 text-white border-blue-500'
-                        }`}>
-                          <span className="text-sm">
-                            {message.isRead ? '✓✓' : '✓'}
-                          </span>
-                          <span>
-                            {message.isRead ? 'مقروءة' : 'مرسلة'}
-                          </span>
+                        <div>
+                          {/* Test display - ALWAYS show both states */}
+                          <div className="flex gap-2 mt-1">
+                            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-blue-600 text-white border-2 border-blue-500">
+                              <span>✓</span>
+                              <span>مرسلة</span>
+                            </div>
+                            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-green-600 text-white border-2 border-green-500">
+                              <span>✓✓</span>
+                              <span>مقروءة</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Status: {String(message.isRead)} | Type: {typeof message.isRead}
+                          </div>
                         </div>
                       )}
                     </div>
