@@ -29,6 +29,8 @@ import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
 import axios from 'axios';
 import { Client as ObjectStorageClient } from '@replit/object-storage';
+import { stableStorage } from './cloud-storage-system';
+import { handleMediaProxy } from './media-proxy';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -246,7 +248,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Stripe payment routes
   registerStripeRoutes(app);
 
-  // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
+  // Enhanced asaad111-style media proxy - handles cross-environment access
+  app.get('/api/media/:filePath(*)', handleMediaProxy);
+  
+  // Legacy Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
   app.get('/api/media/proxy', async (req: any, res) => {
     try {
       const { url } = req.query;
@@ -1126,18 +1131,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimetype: req.file.mimetype
       });
 
-      // Create stable filename like asaad111 system
+      // Generate stable filename using asaad111-style system
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      const timestamp = Date.now();
       const ext = path.extname(req.file.originalname);
-      const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 
-                      req.file.mimetype.startsWith('video/') ? 'video' : 'file';
-      const stableFilename = `${fileType}-${userId}-${user?.username || 'user'}-${timestamp}${ext}`;
-      const localPath = path.join('uploads', stableFilename);
+      const stableFilename = stableStorage.generateStableFilename(
+        userId, 
+        user?.username || 'user', 
+        'general', 
+        ext
+      );
       
-      await fs.writeFile(localPath, req.file.buffer);
-      const fileUrl = `/uploads/${stableFilename}`;
+      // Save with asaad111-style stability (local + cloud)
+      const { localPath, cloudPath } = await stableStorage.saveStableFile(
+        req.file.buffer, 
+        stableFilename, 
+        true
+      );
+      const fileUrl = cloudPath; // Use stable cloud path
       
       console.log('✅ File saved with stable filename:', fileUrl);
       
@@ -1148,7 +1159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalName: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype,
-        storage: 'local-stable'
+        storage: 'cloud-stable-asaad111'
       });
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -1166,11 +1177,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Create a stable filename like asaad111 (user-based instead of timestamp)
+      // Generate stable filename using asaad111-style system
       const user = await storage.getUser(userId);
       const ext = path.extname(file.originalname);
-      const stableFilename = `profile-${userId}-${user?.username || 'user'}${ext}`;
-      const localPath = path.join('uploads', stableFilename);
+      const stableFilename = stableStorage.generateStableFilename(
+        userId, 
+        user?.username || 'user', 
+        'profile', 
+        ext
+      );
       
       // Remove old profile image if exists
       try {
@@ -1184,8 +1199,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Note: Could not remove old profile image');
       }
       
-      await fs.writeFile(localPath, file.buffer);
-      const profileImageUrl = `/uploads/${stableFilename}`;
+      // Save with asaad111-style stability (local + cloud)
+      const { localPath, cloudPath } = await stableStorage.saveStableFile(
+        file.buffer, 
+        stableFilename, 
+        true
+      );
+      const profileImageUrl = cloudPath; // Use stable cloud path
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
@@ -1196,7 +1216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true, 
         profileImageUrl,
         message: "تم تحديث الصورة الشخصية بنجاح",
-        storage: 'local-stable'
+        storage: 'cloud-stable-asaad111'
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -1220,11 +1240,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Create a stable filename like asaad111 (user-based instead of timestamp)
+      // Generate stable filename using asaad111-style system  
       const user = await storage.getUser(userId);
       const ext = path.extname(file.originalname);
-      const stableFilename = `cover-${userId}-${user?.username || 'user'}${ext}`;
-      const localPath = path.join('uploads', stableFilename);
+      const stableFilename = stableStorage.generateStableFilename(
+        userId, 
+        user?.username || 'user', 
+        'cover', 
+        ext
+      );
       
       // Remove old cover image if exists
       try {
@@ -1238,8 +1262,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Note: Could not remove old cover image');
       }
       
-      await fs.writeFile(localPath, file.buffer);
-      const coverImageUrl = `/uploads/${stableFilename}`;
+      // Save with asaad111-style stability (local + cloud)
+      const { localPath, cloudPath } = await stableStorage.saveStableFile(
+        file.buffer, 
+        stableFilename, 
+        true
+      );
+      const coverImageUrl = cloudPath; // Use stable cloud path
       
       console.log('📝 Updating database with stable coverImageUrl:', coverImageUrl);
       
@@ -1252,7 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true, 
         coverImageUrl,
         message: "تم تحديث صورة الغلاف بنجاح",
-        storage: 'local-stable'
+        storage: 'cloud-stable-asaad111'
       });
     } catch (error) {
       console.error('❌ Error uploading cover image:', error);
@@ -1283,19 +1312,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (files && files.length > 0) {
         const user = await storage.getUser(userId);
-        const timestamp = Date.now();
         
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          // Create stable filename like asaad111 system
+          // Generate stable filename using asaad111-style system
           const ext = path.extname(file.originalname);
           const contentHash = title ? title.substring(0, 8).replace(/[^a-zA-Z0-9]/g, '') : 'post';
-          const stableFilename = `memory-${userId}-${user?.username || 'user'}-${timestamp}-${i}-${contentHash}${ext}`;
-          const localPath = path.join('uploads', stableFilename);
+          const stableFilename = stableStorage.generateStableFilename(
+            userId, 
+            user?.username || 'user', 
+            'memory', 
+            ext,
+            `${i}-${contentHash}`
+          );
           
-          await fs.writeFile(localPath, file.buffer);
-          const fileUrl = `/uploads/${stableFilename}`;
-          console.log('📁 File saved with stable filename:', fileUrl);
+          // Save with asaad111-style stability (local + cloud)
+          const { localPath, cloudPath } = await stableStorage.saveStableFile(
+            file.buffer, 
+            stableFilename, 
+            true
+          );
+          const fileUrl = cloudPath; // Use stable cloud path
+          console.log('📁 Memory file saved with stable cloud path:', fileUrl);
           mediaUrls.push(fileUrl);
         }
       }
