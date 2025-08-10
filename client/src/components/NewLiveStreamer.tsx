@@ -17,7 +17,7 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [streamStatus, setStreamStatus] = useState<'starting' | 'live' | 'error'>('starting');
+  const [streamStatus, setStreamStatus] = useState<'starting' | 'live' | 'error'>('live');
   const [viewerCount, setViewerCount] = useState(1);
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,19 +73,6 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
         console.error('❌ خطأ في بدء البث:', error);
         if (mounted) {
           setStreamStatus('error');
-          
-          // إرسال إشعار فشل البث
-          try {
-            if ('wsManager' in window && (window as any).wsManager?.isConnected()) {
-              (window as any).wsManager.sendMessage({
-                type: 'stream_error',
-                streamId: stream.id,
-                error: (error as Error).message || 'فشل في الوصول للكاميرا'
-              });
-            }
-          } catch (wsError) {
-            console.warn('⚠️ فشل في إرسال إشعار خطأ البث:', wsError);
-          }
         }
       }
     };
@@ -123,65 +110,12 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
     }
   };
 
-  const endStream = async () => {
-    try {
-      console.log('🛑 بدء إنهاء البث المباشر...');
-      
-      // إيقاف MediaStream أولاً
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => {
-          track.stop();
-          console.log('🎥 تم إيقاف:', track.kind);
-        });
-        setMediaStream(null);
-      }
-      
-      // إرسال إشعار إيقاف البث عبر WebSocket
-      try {
-        const wsMessage = JSON.stringify({
-          type: 'stop_live_stream',
-          streamId: stream.id,
-          message: 'Stream ended by host'
-        });
-        
-        if ('wsManager' in window && (window as any).wsManager?.isConnected()) {
-          (window as any).wsManager.sendMessage({
-            type: 'stop_live_stream',
-            streamId: stream.id,
-            message: 'Stream ended by host'
-          });
-        }
-      } catch (wsError) {
-        console.warn('⚠️ فشل في إرسال إشعار إيقاف البث عبر WebSocket:', wsError);
-      }
-      
-      // استدعاء API لإنهاء البث على الخادم
-      const response = await fetch(`/api/streams/end/${stream.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        console.log('✅ تم إنهاء البث بنجاح على الخادم');
-      } else {
-        console.warn('⚠️ فشل في إنهاء البث على الخادم');
-      }
-      
-      // إغلاق واجهة البث
-      onClose();
-      console.log('✅ تم إنهاء البث المباشر بالكامل');
-      
-    } catch (error) {
-      console.error('❌ خطأ في إنهاء البث:', error);
-      // حتى لو فشل، أغلق الواجهة
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-      }
-      onClose();
+  const endStream = () => {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
     }
+    onClose();
+    console.log('📱 تم إنهاء البث المباشر');
   };
 
   // البحث عن المستخدمين
@@ -358,22 +292,10 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
             </Button>
 
             <div className="flex items-center space-x-4">
-              {streamStatus === 'live' ? (
-                <div className="bg-red-600/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                  <span className="text-white text-sm font-bold">مباشر</span>
-                </div>
-              ) : streamStatus === 'error' ? (
-                <div className="bg-red-800/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <span className="text-white text-sm font-bold">خطأ</span>
-                </div>
-              ) : (
-                <div className="bg-yellow-600/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                  <span className="text-white text-sm font-bold">جاري التحميل...</span>
-                </div>
-              )}
+              <div className="bg-red-600/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center space-x-2">
+                <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                <span className="text-white text-sm font-bold">مباشر</span>
+              </div>
               
               <div className="bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full flex items-center space-x-2">
                 <Eye className="w-4 h-4 text-white" />

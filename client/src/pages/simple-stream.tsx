@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, ArrowLeft, Users, Loader } from "lucide-react";
+import { MessageCircle, ArrowLeft, Users } from "lucide-react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 
 export default function SimpleStreamPage() {
   const { user } = useAuth();
@@ -16,50 +15,6 @@ export default function SimpleStreamPage() {
   const [chatDescription, setChatDescription] = useState("دردشة مباشرة نصية");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
-  const [isChecking, setIsChecking] = useState(true);
-
-  // فحص البث النشط للمستخدم
-  const { data: activeStream, isLoading: checkingStream } = useQuery({
-    queryKey: ['/api/streams/my-active'],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      try {
-        const response = await fetch('/api/streams/my-active', {
-          credentials: 'include'
-        });
-        if (!response.ok) return null;
-        return response.json();
-      } catch (error) {
-        console.log('لا يوجد بث نشط');
-        return null;
-      }
-    },
-    enabled: !!user?.id,
-  });
-
-  useEffect(() => {
-    // مسح أي أخطاء سابقة عند تحميل الصفحة
-    setError('');
-    
-    // إذا كان هناك بث نشط، توجه المستخدم إليه مباشرة
-    if (activeStream && activeStream.id) {
-      console.log('🎯 تم العثور على بث نشط، التوجه إليه:', activeStream.id);
-      setLocation(`/stream/${activeStream.id}`);
-      return;
-    }
-    
-    // إنهاء حالة الفحص إذا لم يكن هناك بث نشط
-    if (!checkingStream && !activeStream) {
-      setIsChecking(false);
-    }
-  }, [activeStream, checkingStream, setLocation]);
-
-  // مسح الخطأ عند تغيير النص
-  useEffect(() => {
-    if (error && (chatTitle !== "دردشة سريعة جديدة" || chatDescription !== "دردشة مباشرة نصية")) {
-      setError('');
-    }
-  }, [chatTitle, chatDescription, error]);
 
   const createChat = async () => {
     if (!chatTitle.trim()) {
@@ -147,24 +102,7 @@ export default function SimpleStreamPage() {
             <p className="text-gray-300">ابدأ دردشة نصية مع الأصدقاء</p>
           </div>
 
-          {/* عرض مؤشر الفحص */}
-          {(checkingStream || isChecking) && (
-            <Card className="bg-black/40 backdrop-blur-lg border-white/20 shadow-2xl mb-6">
-              <CardContent className="p-6 text-center">
-                <div className="flex items-center justify-center gap-3 text-blue-300">
-                  <Loader className="w-6 h-6 animate-spin" />
-                  <span className="text-lg">جاري فحص البث النشط...</span>
-                </div>
-                <p className="text-gray-400 text-sm mt-2">
-                  نتحقق من وجود بث نشط لحسابك
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* عرض النموذج فقط إذا لم يكن هناك بث نشط */}
-          {!checkingStream && !isChecking && !activeStream && (
-            <Card className="bg-black/40 backdrop-blur-lg border-white/20 shadow-2xl">
+          <Card className="bg-black/40 backdrop-blur-lg border-white/20 shadow-2xl">
             <CardHeader>
               <CardTitle className="text-white text-xl">تفاصيل الدردشة</CardTitle>
             </CardHeader>
@@ -174,11 +112,7 @@ export default function SimpleStreamPage() {
                 <label className="text-sm font-medium text-gray-300">عنوان الدردشة</label>
                 <Input
                   value={chatTitle}
-                  onChange={(e) => {
-                    setChatTitle(e.target.value);
-                    // مسح الخطأ عند بدء الكتابة
-                    if (error) setError('');
-                  }}
+                  onChange={(e) => setChatTitle(e.target.value)}
                   placeholder="أدخل عنوان الدردشة"
                   className="bg-white/10 border-white/30 text-white placeholder:text-gray-400 focus:border-green-400"
                 />
@@ -188,11 +122,7 @@ export default function SimpleStreamPage() {
                 <label className="text-sm font-medium text-gray-300">وصف الدردشة</label>
                 <Textarea
                   value={chatDescription}
-                  onChange={(e) => {
-                    setChatDescription(e.target.value);
-                    // مسح الخطأ عند بدء الكتابة
-                    if (error) setError('');
-                  }}
+                  onChange={(e) => setChatDescription(e.target.value)}
                   placeholder="وصف مختصر للدردشة"
                   className="bg-white/10 border-white/30 text-white placeholder:text-gray-400 focus:border-green-400"
                   rows={3}
@@ -235,7 +165,6 @@ export default function SimpleStreamPage() {
               </div>
             </CardContent>
           </Card>
-          )}
         </div>
       </div>
     </div>
