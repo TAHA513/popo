@@ -151,7 +151,43 @@ export function setupDirectMessageRoutes(app: Express) {
         return res.status(400).json({ message: "المستلم والمحتوى مطلوبان" });
       }
 
-      // TODO: Re-enable block checking after fixing storage issues
+      // Check if sender is blocked by recipient - direct DB query
+      try {
+        const [blockCheck] = await db
+          .select()
+          .from(blockedUsers)
+          .where(
+            and(
+              eq(blockedUsers.blockerId, recipientId),
+              eq(blockedUsers.blockedId, senderId)
+            )
+          )
+          .limit(1);
+
+        if (blockCheck) {
+          console.log('🚫 رسالة محظورة: المرسل محظور من المستقبل', { senderId, recipientId });
+          return res.status(403).json({ message: "لا يمكنك إرسال رسائل لهذا المستخدم" });
+        }
+
+        // Check if recipient is blocked by sender
+        const [blockCheck2] = await db
+          .select()
+          .from(blockedUsers)
+          .where(
+            and(
+              eq(blockedUsers.blockerId, senderId),
+              eq(blockedUsers.blockedId, recipientId)
+            )
+          )
+          .limit(1);
+
+        if (blockCheck2) {
+          console.log('🚫 رسالة محظورة: المستقبل محظور من المرسل', { senderId, recipientId });
+          return res.status(403).json({ message: "لا يمكنك إرسال رسائل لمستخدم محظور" });
+        }
+      } catch (error) {
+        console.log('⚠️ خطأ في فحص البلوك، سيتم السماح بالرسالة:', error);
+      }
 
       // Insert message directly
       const newMessage = await db

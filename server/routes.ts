@@ -723,6 +723,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test block status endpoint  
+  app.get('/api/test-block/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.id;
+      const targetUserId = req.params.userId;
+
+      const [blockCheck] = await db
+        .select()
+        .from(blockedUsers)
+        .where(
+          and(
+            eq(blockedUsers.blockerId, currentUserId),
+            eq(blockedUsers.blockedId, targetUserId)
+          )
+        );
+
+      const [reverseBlockCheck] = await db
+        .select()
+        .from(blockedUsers)
+        .where(
+          and(
+            eq(blockedUsers.blockerId, targetUserId),
+            eq(blockedUsers.blockedId, currentUserId)
+          )
+        );
+
+      res.json({
+        youBlockedThem: !!blockCheck,
+        theyBlockedYou: !!reverseBlockCheck,
+        canSendMessage: !blockCheck && !reverseBlockCheck
+      });
+    } catch (error) {
+      console.error("Error checking block status:", error);
+      res.status(500).json({ message: "فشل في فحص حالة البلوك" });
+    }
+  });
+
   // Add media to album
   app.post('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     console.log('🔄 طلب إضافة محتوى للألبوم:', {
