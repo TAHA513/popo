@@ -169,10 +169,10 @@ function AppContent() {
 }
 
 function App() {
-  useEffect(() => {
-    // Initialize performance optimizations
-    initPerformanceOptimizations();
-  }, []);
+  // Remove performance optimizations that might conflict with React
+  // useEffect(() => {
+  //   initPerformanceOptimizations();
+  // }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
