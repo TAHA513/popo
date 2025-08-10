@@ -87,6 +87,7 @@ export class ObjectStorageService {
       metadata: {
         contentType: mimeType,
       },
+      public: true,
     });
     
     // Return the public URL
