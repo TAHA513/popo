@@ -2,8 +2,20 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const text = await res.text();
+    
+    // محاولة استخراج الرسالة من JSON response
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.message) {
+        throw new Error(parsed.message);
+      }
+    } catch (e) {
+      // إذا فشل في parsing JSON، استخدم النص كما هو
+    }
+    
+    // استخدام النص مباشرة أو statusText كبديل، بدون رقم الخطأ
+    throw new Error(text || res.statusText);
   }
 }
 

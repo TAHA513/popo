@@ -75,11 +75,16 @@ export default function ConversationPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
     },
     onError: (error: any) => {
-      // عرض رسالة الخطأ من السيرفر مباشرة بدون تنسيق أو ألوان
+      // عرض رسالة الخطأ من السيرفر بتصميم جميل وبسيط
       if (error?.message) {
         toast({
-          description: error.message,
-          className: "border-0 bg-gray-50 text-gray-800 shadow-sm",
+          description: (
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">🚫</div>
+              <div className="text-sm font-medium">{error.message}</div>
+            </div>
+          ),
+          className: "border-0 bg-blue-50 text-blue-900 shadow-lg rounded-xl",
         });
       }
     },
