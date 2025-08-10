@@ -2910,27 +2910,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // If not found locally, try external URLs for cross-platform access
-      const possibleUrls = [
-        `https://laabobo-live-api.onrender.com/uploads/${filePath}`,
-        `https://laabobo-api.onrender.com/uploads/${filePath}`,
-        // يمكن إضافة المزيد من روابط النشر هنا
-      ];
+      const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
+        process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
+          'https://laabobo-live-api.onrender.com',
+          'https://laabobo-api.onrender.com', 
+          'https://laabobo-live.onrender.com',
+          'https://laabobo.onrender.com'
+        ];
+        
+      const possibleUrls = externalBaseUrls.map(baseUrl => `${baseUrl}/uploads/${filePath}`);
+      
+      console.log(`🔍 Searching for file: ${filePath} in external sources...`);
       
       for (const url of possibleUrls) {
         try {
-          const response = await fetch(url);
+          console.log(`🌐 Trying: ${url}`);
+          const response = await fetch(url, {
+            timeout: 5000, // 5 second timeout
+            headers: {
+              'User-Agent': 'LaaBoBo-Cross-Platform-Sync'
+            }
+          });
+          
           if (response.ok) {
+            console.log(`✅ Found file at: ${url}`);
             const buffer = await response.arrayBuffer();
             res.set('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
+            res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
             return res.send(Buffer.from(buffer));
+          } else {
+            console.log(`❌ ${url} returned ${response.status}`);
           }
         } catch (urlError) {
-          console.log(`Failed to fetch from ${url}:`, urlError.message);
+          console.log(`❌ Failed to fetch from ${url}:`, urlError?.message || urlError);
         }
       }
       
-      // If all sources fail, return 404
-      res.status(404).json({ message: 'File not found in any source' });
+      // If all sources fail, return 404 with helpful info
+      console.log(`❌ File not found: ${filePath} in any of ${possibleUrls.length} sources`);
+      res.status(404).json({ 
+        message: 'File not found in any source',
+        fileName: filePath,
+        searchedSources: possibleUrls.length
+      });
     } catch (error) {
       console.error('Media serving error:', error);
       res.status(500).json({ message: 'Error serving media' });
