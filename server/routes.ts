@@ -3479,6 +3479,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // End specific stream
+  app.delete('/api/streams/end/:id', requireAuth, async (req: any, res) => {
+    try {
+      const streamId = parseInt(req.params.id);
+      const userId = req.user.id;
+      console.log(`🛑 Ending stream ${streamId} for user: ${userId}`);
+      
+      const stream = await storage.getStreamById(streamId);
+      
+      if (!stream || stream.hostId !== userId) {
+        return res.status(403).json({ message: "غير مصرح لك بإنهاء هذا البث" });
+      }
+      
+      // Update stream status to ended
+      await storage.updateStream(streamId, { 
+        isLive: false, 
+        endedAt: new Date()
+      });
+      
+      // Broadcast stream ended to all connected clients
+      broadcastToStream(streamId, {
+        type: 'stream_ended',
+        streamId: streamId,
+        message: 'تم إنهاء البث من قبل المضيف'
+      });
+      
+      console.log(`✅ Stream ${streamId} ended successfully`);
+      
+      res.json({ 
+        success: true,
+        message: 'تم إنهاء البث بنجاح',
+        streamId: streamId,
+        endedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("❌ Error ending stream:", error);
+      res.status(500).json({ message: "فشل في إنهاء البث" });
+    }
+  });
+
   // End all streams for current user
   app.post('/api/streams/end-all', requireAuth, async (req: any, res) => {
     try {
@@ -4669,13 +4709,59 @@ async function handleWebSocketMessage(clientId: string, message: any) {
     case 'stop_live_stream':
         console.log("🛑 Stopping live stream:", {
           userId: client.userId,
-          streamId: client.streamId
+          streamId: client.streamId || message.streamId
         });
         
-        if (client.streamId) {
-          broadcastToStream(client.streamId, {
+        const streamToStop = client.streamId || message.streamId;
+        if (streamToStop) {
+          // Update stream status in database
+          try {
+            await storage.updateStream(streamToStop, { 
+              isLive: false, 
+              endedAt: new Date()
+            });
+            console.log(`✅ Stream ${streamToStop} marked as ended in database`);
+          } catch (error) {
+            console.error(`❌ Failed to update stream ${streamToStop} status:`, error);
+          }
+          
+          // Broadcast to all connected clients
+          broadcastToStream(streamToStop, {
             type: 'stream_ended',
-            streamId: client.streamId
+            streamId: streamToStop,
+            message: message.message || 'تم إنهاء البث'
+          });
+          
+          // Clear client stream reference
+          client.streamId = undefined;
+        }
+        break;
+
+    case 'stream_error':
+        console.log("❌ Stream error reported:", {
+          userId: client.userId,
+          streamId: message.streamId,
+          error: message.error
+        });
+        
+        if (message.streamId) {
+          // Update stream status to indicate error
+          try {
+            await storage.updateStream(message.streamId, { 
+              isLive: false,
+              endedAt: new Date()
+            });
+            console.log(`⚠️ Stream ${message.streamId} marked as error in database`);
+          } catch (error) {
+            console.error(`❌ Failed to update stream ${message.streamId} error status:`, error);
+          }
+          
+          // Broadcast error to connected clients
+          broadcastToStream(message.streamId, {
+            type: 'stream_error',
+            streamId: message.streamId,
+            error: message.error,
+            message: 'حدث خطأ في البث'
           });
         }
         break;
