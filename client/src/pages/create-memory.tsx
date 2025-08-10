@@ -219,9 +219,12 @@ export default function CreateMemoryPage() {
 
       return response.json();
     },
-    onSuccess: () => {
-      // Update cache instead of reloading page
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    onSuccess: async (newMemory) => {
+      // أضف المنشور الجديد للـ cache بدلاً من إعادة تحميل كل شيء
+      queryClient.setQueryData(['/api/memories/public'], (oldData: any) => {
+        if (!oldData) return [newMemory];
+        return [newMemory, ...oldData];
+      });
       
       toast({
         title: "تم النشر بنجاح! 🎉",

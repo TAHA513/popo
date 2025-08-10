@@ -58,8 +58,10 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false, // منع التحديث التلقائي المستمر
       refetchOnWindowFocus: false, // منع التحديث عند العودة للتبويب
-      staleTime: 1000 * 60 * 5, // البيانات تبقى حديثة لمدة 5 دقائق
+      staleTime: 1000 * 60 * 15, // البيانات تبقى حديثة لمدة 15 دقيقة
+      gcTime: 1000 * 60 * 30, // الاحتفاظ بالبيانات في الذاكرة لمدة 30 دقيقة (استخدام gcTime بدلاً من cacheTime)
       retry: false,
+      // منع فقدان البيانات عند التحديث
     },
     mutations: {
       retry: false,

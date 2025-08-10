@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -30,13 +30,15 @@ export default function Feed() {
     staleTime: 0,
   });
 
-  // Fetch public memories/posts
+  // Fetch public memories/posts - استخدام cache محسن
   const { data: memories = [], isLoading: memoriesLoading, error: memoriesError } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 15000, // كل 15 ثانية - متوازن
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // كل 30 ثانية بدلاً من 15
+    staleTime: 1000 * 60 * 10, // البيانات تبقى حديثة لمدة 10 دقائق
+    gcTime: 1000 * 60 * 20, // الاحتفاظ بالبيانات لمدة 20 دقيقة
+    refetchOnMount: false, // لا تحديث عند تحميل المكون
+    refetchOnWindowFocus: false, // لا تحديث عند العودة للتبويب
+    // احتفظ بالبيانات السابقة أثناء التحديث
   });
 
   const typedStreams = (streams as Stream[]);
@@ -65,7 +67,8 @@ export default function Feed() {
         title: data.following ? "تمت المتابعة!" : "تم إلغاء المتابعة",
         description: data.following ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      // لا تعيد تحميل كل المنشورات - فقط حدث بيانات المتابعة
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: () => {
       toast({
@@ -93,7 +96,8 @@ export default function Feed() {
         description: "شكراً لتفاعلك مع المحتوى",
       });
 
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      // لا تعيد تحميل كل المنشورات عند التفاعل
+      // queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
     },
     onError: () => {
       toast({
@@ -158,13 +162,16 @@ export default function Feed() {
     mutationFn: async ({ memoryId }: { memoryId: number }) => {
       return await apiRequest(`/api/memories/${memoryId}`, 'DELETE');
     },
-    onSuccess: () => {
+    onSuccess: (_, { memoryId }) => {
       toast({
         title: "تم الحذف",
         description: "تم حذف المنشور بنجاح",
       });
-      // إعادة تحميل قائمة المنشورات
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      // إزالة المنشور من الـ cache بدلاً من إعادة تحميل كل شيء
+      queryClient.setQueryData(['/api/memories/public'], (oldData: any) => {
+        if (!oldData) return [];
+        return oldData.filter((memory: any) => memory.id !== memoryId);
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/memories/user'] });
     },
     onError: (error: any) => {
