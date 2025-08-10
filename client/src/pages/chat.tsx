@@ -925,7 +925,7 @@ export default function ChatPage() {
           
           <div 
             className="flex items-center space-x-2 space-x-reverse cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors"
-            onClick={() => setLocation(`/profile/${otherUser?.username}`)}
+            onClick={() => setLocation(`/user/${otherUser?.id}`)}
           >
             <div className="relative">
               <img

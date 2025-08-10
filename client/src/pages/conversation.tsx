@@ -149,7 +149,7 @@ export default function ConversationPage() {
           
           <div 
             className="flex items-center space-x-3 space-x-reverse flex-1 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors"
-            onClick={() => setLocation(`/profile/${otherUser?.username}`)}
+            onClick={() => setLocation(`/user/${otherUser?.id}`)}
           >
             <div className="relative">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
