@@ -321,8 +321,10 @@ export function setupMessageRoutes(app: Express) {
       const currentUserId = req.user.id;
       const otherUserId = req.params.userId;
 
+      console.log(`🔄 تحديد الرسائل كمقروءة: المستقبل ${currentUserId} من المرسل ${otherUserId}`);
+
       // Mark all unread messages from the other user as read
-      await db
+      const result = await db
         .update(messages)
         .set({ isRead: true })
         .where(
@@ -333,7 +335,8 @@ export function setupMessageRoutes(app: Express) {
           )
         );
 
-      res.json({ success: true });
+      console.log(`✅ تم تحديد ${result.rowCount || 0} رسالة كمقروءة`);
+      res.json({ success: true, markedAsRead: result.rowCount || 0 });
     } catch (error) {
       console.error("Error marking messages as read:", error);
       res.status(500).json({ message: "Failed to mark messages as read" });

@@ -1998,14 +1998,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(messages.isRead, false)
         ));
       
-      const totalCount = (notificationResult.count || 0) + (messageResult.count || 0);
+      const notificationCount = parseInt(notificationResult.count.toString()) || 0;
+      const messageCount = parseInt(messageResult.count.toString()) || 0;
+      const totalCount = notificationCount + messageCount;
+      
       console.log(`📊 عدد الإشعارات غير المقروءة للمستخدم ${userId}:`, {
-        notifications: notificationResult.count || 0,
-        messages: messageResult.count || 0,
+        notifications: notificationCount,
+        messages: messageCount,
         total: totalCount
       });
       
-      res.json({ count: totalCount.toString() });
+      res.json({ count: totalCount });
     } catch (error) {
       console.error("Error getting unread count:", error);
       res.status(500).json({ message: "فشل في جلب عدد الإشعارات غير المقروءة" });
@@ -2033,8 +2036,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Mark all notifications as read
+  // Mark all notifications and messages as read
   app.patch('/api/notifications/mark-all-read', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Mark all notifications as read
+      const notificationResult = await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        ));
+
+      // Mark all messages received by this user as read
+      const messageResult = await db
+        .update(messages)
+        .set({ isRead: true })
+        .where(and(
+          eq(messages.recipientId, userId),
+          eq(messages.isRead, false)
+        ));
+
+      console.log(`🔄 تم تحديد جميع الإشعارات كمقروءة للمستخدم ${userId}:`, {
+        notifications: notificationResult.rowCount || 0,
+        messages: messageResult.rowCount || 0
+      });
+
+      res.json({ 
+        success: true, 
+        notificationsMarked: notificationResult.rowCount || 0,
+        messagesMarked: messageResult.rowCount || 0
+      });
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+      res.status(500).json({ message: "فشل في تحديد جميع الإشعارات كمقروءة" });
+    }
+  });
+
+  // Clear all notifications (for testing)
+  app.delete('/api/notifications/clear-all', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       
