@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
+import * as fsSync from 'fs';
 import { ObjectStorageService } from './objectStorage';
 import { setupDirectMessageRoutes } from './routes/direct-messages';
 import { setupPrivateRoomRoutes } from './routes/private-rooms';
@@ -236,6 +237,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error searching for public object:", error);
       return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Legacy file serving endpoint for environments without Object Storage
+  app.get('/api/media/legacy-uploads/:filename', async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(process.cwd(), 'uploads', filename);
+      
+      // Check if file exists
+      if (!fsSync.existsSync(filePath)) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      
+      // Get file stats for content type
+      const stats = await fs.stat(filePath);
+      const ext = path.extname(filename).toLowerCase();
+      
+      // Set appropriate content type
+      let contentType = 'application/octet-stream';
+      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      else if (ext === '.mp4') contentType = 'video/mp4';
+      else if (ext === '.webm') contentType = 'video/webm';
+      
+      // Set headers
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': stats.size,
+        'Cache-Control': 'public, max-age=3600'
+      });
+      
+      // Stream the file
+      const fileBuffer = await fs.readFile(filePath);
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Error serving legacy file:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -1173,12 +1214,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn("Cloud storage failed for profile image, falling back to legacy:", error);
           // Fallback to legacy file system
           const legacyPath = path.join(process.cwd(), 'uploads', filename);
+          // Ensure uploads directory exists
+          const uploadsDir = path.join(process.cwd(), 'uploads');
+          if (!fsSync.existsSync(uploadsDir)) {
+            await fs.mkdir(uploadsDir, { recursive: true });
+          }
           await fs.writeFile(legacyPath, file.buffer);
           profileImageUrl = `/api/media/legacy-uploads/${filename}`;
         }
       } else {
         // Use legacy file system when cloud storage unavailable
         const legacyPath = path.join(process.cwd(), 'uploads', filename);
+        // Ensure uploads directory exists
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (!fsSync.existsSync(uploadsDir)) {
+          await fs.mkdir(uploadsDir, { recursive: true });
+        }
         await fs.writeFile(legacyPath, file.buffer);
         profileImageUrl = `/api/media/legacy-uploads/${filename}`;
       }
@@ -1231,12 +1282,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn("Cloud storage failed for cover image, falling back to legacy:", error);
           // Fallback to legacy file system
           const legacyPath = path.join(process.cwd(), 'uploads', filename);
+          // Ensure uploads directory exists
+          const uploadsDir = path.join(process.cwd(), 'uploads');
+          if (!fsSync.existsSync(uploadsDir)) {
+            await fs.mkdir(uploadsDir, { recursive: true });
+          }
           await fs.writeFile(legacyPath, file.buffer);
           coverImageUrl = `/api/media/legacy-uploads/${filename}`;
         }
       } else {
         // Use legacy file system when cloud storage unavailable
         const legacyPath = path.join(process.cwd(), 'uploads', filename);
+        // Ensure uploads directory exists
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (!fsSync.existsSync(uploadsDir)) {
+          await fs.mkdir(uploadsDir, { recursive: true });
+        }
         await fs.writeFile(legacyPath, file.buffer);
         coverImageUrl = `/api/media/legacy-uploads/${filename}`;
       }
@@ -1300,13 +1361,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.warn("Cloud storage failed, falling back to legacy upload:", error);
               // Fallback to legacy file system
               const legacyPath = path.join(process.cwd(), 'uploads', fileName);
-              await fs.promises.writeFile(legacyPath, file.buffer);
+              // Ensure uploads directory exists
+              const uploadsDir = path.join(process.cwd(), 'uploads');
+              if (!fsSync.existsSync(uploadsDir)) {
+                await fs.mkdir(uploadsDir, { recursive: true });
+              }
+              await fs.writeFile(legacyPath, file.buffer);
               mediaUrl = `/api/media/legacy-uploads/${fileName}`;
             }
           } else {
             // Use legacy file system when cloud storage unavailable
             const legacyPath = path.join(process.cwd(), 'uploads', fileName);
-            await fs.promises.writeFile(legacyPath, file.buffer);
+            // Ensure uploads directory exists
+            const uploadsDir = path.join(process.cwd(), 'uploads');
+            if (!fsSync.existsSync(uploadsDir)) {
+              await fs.mkdir(uploadsDir, { recursive: true });
+            }
+            await fs.writeFile(legacyPath, file.buffer);
             mediaUrl = `/api/media/legacy-uploads/${fileName}`;
           }
           
