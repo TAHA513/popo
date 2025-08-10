@@ -1,25 +1,14 @@
-// Centralized WebSocket URL helper to prevent localhost:undefined errors
+// Centralized WebSocket URL helper - always use production for unified data
 export function getWebSocketUrl(): string {
   try {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const hostname = window.location.hostname;
-    const port = window.location.port;
-    
-    // Development environment detection
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'ws://localhost:5000/ws';
-    }
-    
-    // Production environment - use current domain
-    if (port && port !== '80' && port !== '443') {
-      return `${protocol}//${hostname}:${port}/ws`;
-    } else {
-      return `${protocol}//${hostname}/ws`;
-    }
+    // Always use production WebSocket for unified data access
+    const productionWsUrl = 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/ws';
+    console.log('🔗 Using unified production WebSocket:', productionWsUrl);
+    return productionWsUrl;
   } catch (error) {
     console.error('Error constructing WebSocket URL:', error);
-    // Fallback for any URL construction errors
-    return `ws://${window.location.host || 'localhost:5000'}/ws`;
+    // Fallback to production WebSocket
+    return 'wss://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/ws';
   }
 }
 

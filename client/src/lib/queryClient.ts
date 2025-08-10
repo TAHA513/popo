@@ -14,9 +14,9 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
-  // Use configured API base URL if available - empty for local development
-  const API_BASE = import.meta.env.VITE_API_URL || '';
-  const fullUrl = url.startsWith('http') ? url : (API_BASE ? `${API_BASE}${url}` : url);
+  // Use production API for unified data access
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev';
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
   
   const res = await fetch(fullUrl, {
     method,
@@ -35,10 +35,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Use configured API base URL if available - empty for local development
-    const API_BASE = import.meta.env.VITE_API_URL || '';
+    // Use production API for unified data access
+    const API_BASE = import.meta.env.VITE_API_URL || 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev';
     const url = queryKey.join("/") as string;
-    const fullUrl = url.startsWith('http') ? url : (API_BASE ? `${API_BASE}${url}` : url);
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
     
     const res = await fetch(fullUrl, {
       credentials: "include",
