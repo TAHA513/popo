@@ -13,10 +13,67 @@ export default function NewLiveViewer({ stream, onClose }: NewLiveViewerProps) {
   const { user } = useAuth();
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connected');
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
+  const [streamStatus, setStreamStatus] = useState<'live' | 'ended' | 'error'>('live');
   const [viewerCount, setViewerCount] = useState(stream.viewerCount || 1);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    const connectWebSocket = () => {
+      try {
+        if ('wsManager' in window && (window as any).wsManager?.isConnected()) {
+          (window as any).wsManager.addMessageHandler((message: any) => {
+            console.log('📨 Viewer received WebSocket message:', message);
+            
+            switch (message.type) {
+              case 'stream_ended':
+                if (message.streamId === stream.id) {
+                  console.log('🛑 Stream ended notification received');
+                  setStreamStatus('ended');
+                  setTimeout(() => {
+                    onClose();
+                  }, 3000); // إغلاق تلقائي بعد 3 ثوان
+                }
+                break;
+                
+              case 'stream_error':
+                if (message.streamId === stream.id) {
+                  console.log('❌ Stream error notification received');
+                  setStreamStatus('error');
+                }
+                break;
+                
+              case 'viewer_count_update':
+                if (message.streamId === stream.id) {
+                  setViewerCount(message.count);
+                }
+                break;
+                
+              default:
+                break;
+            }
+          });
+          
+          setConnectionStatus('connected');
+          console.log('✅ WebSocket connected for stream viewer');
+        } else {
+          setConnectionStatus('error');
+          console.warn('⚠️ WebSocket not available');
+        }
+      } catch (error) {
+        console.error('❌ WebSocket connection failed:', error);
+        setConnectionStatus('error');
+      }
+    };
+    
+    connectWebSocket();
+    
+    return () => {
+      console.log('🔌 Disconnecting viewer WebSocket');
+    };
+  }, [stream.id, onClose]);
 
   // محاكاة البث المباشر مع رسوم متحركة واقعية
   useEffect(() => {

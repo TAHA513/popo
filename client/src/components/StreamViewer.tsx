@@ -1,5 +1,5 @@
 import React from 'react';
-import LiveStreamPlayer from './LiveStreamPlayer';
+import EnhancedStreamInterface from './EnhancedStreamInterface';
 import { Stream } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -11,5 +11,5 @@ export default function StreamViewer({ stream }: StreamViewerProps) {
   const { user } = useAuth();
   const isStreamer = user?.id === stream.hostId;
   
-  return <LiveStreamPlayer stream={stream} isStreamer={isStreamer} />;
+  return <EnhancedStreamInterface stream={stream} isStreamer={isStreamer} />;
 }

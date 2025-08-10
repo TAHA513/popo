@@ -13,7 +13,7 @@ interface LiveStreamPlayerProps {
 export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { user } = useAuth();
-  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('connected');
+  const [streamStatus, setStreamStatus] = useState<'loading' | 'connected' | 'error'>('loading');
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   
@@ -37,39 +37,34 @@ export default function LiveStreamPlayer({ stream, isStreamer }: LiveStreamPlaye
         if (!mounted) return;
         
         if (isStreamer && user) {
-          // للصاميمر - تشغيل الكاميرا مع تأخير قصير لإظهار البث أولاً
-          setTimeout(async () => {
-            try {
-              const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                  width: { ideal: 1280 }, 
-                  height: { ideal: 720 },
-                  facingMode: 'user'
-                }, 
-                audio: true 
-              });
-              
-              if (localVideoRef.current && mounted) {
-                localVideoRef.current.srcObject = stream;
-                localVideoRef.current.autoplay = true;
-                localVideoRef.current.playsInline = true;
-                localVideoRef.current.muted = true;
-                console.log('✅ تم تشغيل الكاميرا للصاميمر');
-              }
-            } catch (cameraError) {
-              console.warn('⚠️ تعذر الوصول للكاميرا، سيعمل البث بدونها:', cameraError);
-              // لا نغير الحالة إلى error، نتركها connected
-            }
-          }, 500); // تأخير نصف ثانية
+          // للصاميمر - استخدام النظام القديم المباشر
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              width: { ideal: 1280 }, 
+              height: { ideal: 720 },
+              facingMode: 'user'
+            }, 
+            audio: true 
+          });
+          
+          if (localVideoRef.current && mounted) {
+            localVideoRef.current.srcObject = stream;
+            localVideoRef.current.autoplay = true;
+            localVideoRef.current.playsInline = true;
+            localVideoRef.current.muted = true;
+            setStreamStatus('connected');
+            console.log('✅ تم تشغيل الكاميرا للصاميمر');
+          }
+        } else if (!isStreamer) {
+          // للمشاهدين - عرض البث
+          setStreamStatus('connected');
+          console.log('✅ تم تحضير عارض البث للمشاهد');
         }
-        
-        // عرض البث للجميع بدون تأخير
-        setStreamStatus('connected');
-        console.log('✅ تم تحضير واجهة البث');
       } catch (error) {
         console.error('❌ خطأ في تهيئة البث:', error);
-        // لا نعرض خطأ في البث، نتركه يعمل
-        console.log('🔄 سيعمل البث بدون كاميرا إذا لزم الأمر');
+        if (mounted) {
+          setStreamStatus('error');
+        }
       }
     };
 
