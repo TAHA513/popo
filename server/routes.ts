@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema, messages } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, desc, ne } from "drizzle-orm";
 import { db } from "./db";
@@ -1970,7 +1970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get unread notifications count
+  // Get unread notifications count (includes unread messages)
   app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
     try {
       // Disable caching for real-time notification count
@@ -1980,7 +1980,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userId = req.user.id;
       
-      const [result] = await db
+      // Count unread notifications
+      const [notificationResult] = await db
         .select({ count: sql<number>`count(*)` })
         .from(notifications)
         .where(and(
@@ -1988,7 +1989,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(notifications.isRead, false)
         ));
       
-      res.json({ count: result.count || 0 });
+      // Count unread messages from other users (imported from messages table)
+      const [messageResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(messages)
+        .where(and(
+          eq(messages.recipientId, userId),
+          eq(messages.isRead, false)
+        ));
+      
+      const totalCount = (notificationResult.count || 0) + (messageResult.count || 0);
+      console.log(`📊 عدد الإشعارات غير المقروءة للمستخدم ${userId}:`, {
+        notifications: notificationResult.count || 0,
+        messages: messageResult.count || 0,
+        total: totalCount
+      });
+      
+      res.json({ count: totalCount.toString() });
     } catch (error) {
       console.error("Error getting unread count:", error);
       res.status(500).json({ message: "فشل في جلب عدد الإشعارات غير المقروءة" });
