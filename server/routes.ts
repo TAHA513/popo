@@ -2919,7 +2919,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced multi-source media serving
   await fs.mkdir('uploads', { recursive: true });
   
-  // UNIFIED MEDIA HANDLER - Uses Object Storage for cross-platform access
+  // ENHANCED MEDIA HANDLER - Uses multiple fallback sources
   app.get('/api/media/*', async (req, res) => {
     const filePath = req.params[0];
     const localFilePath = path.join('uploads', filePath);
@@ -2930,6 +2930,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.sendFile(path.resolve(localFilePath));
       }
       
+      // Try direct uploads folder access
+      const directUploadPath = path.join('uploads', filePath);
+      if (await fs.access(directUploadPath).then(() => true).catch(() => false)) {
+        return res.sendFile(path.resolve(directUploadPath));
+      }
+      
       // Try external source for cross-environment access
       const workingExternalUrl = 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev';
       const directFileUrl = `${workingExternalUrl}/uploads/${filePath}`;
@@ -2938,8 +2944,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         const response = await fetch(directFileUrl, {
-          method: 'HEAD',
-          timeout: 3000
+          method: 'HEAD'
         });
         
         if (response.ok) {
@@ -2952,12 +2957,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.log(`❌ External source failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+      
+      // Create a placeholder for missing images
+      if (filePath.match(/\.(jpg|jpeg|png|webp)$/i)) {
+        // Return a simple SVG placeholder
+        const placeholder = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+          <rect width="400" height="400" fill="#f3f4f6"/>
+          <text x="200" y="180" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="16">صورة غير متوفرة</text>
+          <text x="200" y="220" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="12">${filePath}</text>
+        </svg>`;
         
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.send(placeholder);
+      }
+      
       // File not found in any source
       console.log(`❌ File not found: ${filePath}`);
       res.status(404).json({ 
         message: 'ملف غير موجود',
-        fileName: filePath
+        fileName: filePath,
+        suggestion: 'تحقق من مسار الملف أو قم برفعه مرة أخرى'
       });
     } catch (error) {
       console.error('Media serving error:', error);
