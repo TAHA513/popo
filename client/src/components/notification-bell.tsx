@@ -3,7 +3,7 @@ import { Bell, X, Heart, MessageCircle, Gift, UserPlus, Share } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -153,29 +153,34 @@ export default function NotificationBell() {
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>الإشعارات</span>
-              <div className="flex items-center gap-2">
-                {unreadCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => markAllAsReadMutation.mutate()}
-                    disabled={markAllAsReadMutation.isPending}
-                    className="text-sm text-purple-600 hover:text-purple-700"
-                  >
-                    قراءة الكل
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              عرض جميع الإشعارات الواردة
+            </DialogDescription>
           </DialogHeader>
+          
+          
+          <div className="flex items-center justify-end mb-4">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => markAllAsReadMutation.mutate()}
+                disabled={markAllAsReadMutation.isPending}
+                className="text-sm text-purple-600 hover:text-purple-700 mr-2"
+              >
+                قراءة الكل
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
           <ScrollArea className="max-h-[60vh]">
             {isLoading ? (

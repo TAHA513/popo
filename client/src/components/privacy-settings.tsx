@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger
 } from "@/components/ui/dialog";
 import { 
@@ -69,6 +70,9 @@ export default function PrivacySettings({
             <Shield className="w-5 h-5 text-purple-600" />
             <span>إعدادات الخصوصية والأمان</span>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            إعدادات الخصوصية والأمان للحساب
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
