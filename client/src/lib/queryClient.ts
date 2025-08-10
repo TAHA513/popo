@@ -14,9 +14,9 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
-  // Use configured API base URL if available
+  // Use configured API base URL if available - empty for local development
   const API_BASE = import.meta.env.VITE_API_URL || '';
-  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+  const fullUrl = url.startsWith('http') ? url : (API_BASE ? `${API_BASE}${url}` : url);
   
   const res = await fetch(fullUrl, {
     method,
@@ -35,10 +35,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Use configured API base URL if available
+    // Use configured API base URL if available - empty for local development
     const API_BASE = import.meta.env.VITE_API_URL || '';
     const url = queryKey.join("/") as string;
-    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    const fullUrl = url.startsWith('http') ? url : (API_BASE ? `${API_BASE}${url}` : url);
     
     const res = await fetch(fullUrl, {
       credentials: "include",
