@@ -961,6 +961,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick migration endpoint for media URLs - temporary fix
+  app.get('/api/admin/fix-urls', async (req, res) => {
+    try {
+      console.log('🔄 Starting quick URL migration...');
+      
+      // Fix memory fragments
+      const memories = await db.select().from(memoryFragments);
+      let updatedMemories = 0;
+      
+      for (const memory of memories) {
+        if (memory.mediaUrls && Array.isArray(memory.mediaUrls)) {
+          const hasOldPaths = memory.mediaUrls.some((url: string) => url.includes('/uploads/'));
+          
+          if (hasOldPaths) {
+            const updatedUrls = memory.mediaUrls.map((url: string) => 
+              url.replace(/^.*\/uploads\//, '')
+            );
+            
+            await db
+              .update(memoryFragments)
+              .set({ mediaUrls: updatedUrls })
+              .where(eq(memoryFragments.id, memory.id));
+              
+            updatedMemories++;
+            console.log(`✅ Fixed memory ${memory.id}`);
+          }
+        }
+      }
+      
+      // Fix user profile and cover images
+      const allUsers = await db.select().from(users);
+      let updatedUsers = 0;
+      
+      for (const user of allUsers) {
+        const updates: any = {};
+        
+        if (user.profileImageUrl && user.profileImageUrl.includes('/uploads/')) {
+          updates.profileImageUrl = user.profileImageUrl.replace(/^.*\/uploads\//, '');
+        }
+        
+        if (user.coverImageUrl && user.coverImageUrl.includes('/uploads/')) {
+          updates.coverImageUrl = user.coverImageUrl.replace(/^.*\/uploads\//, '');
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          await db
+            .update(users)
+            .set(updates)
+            .where(eq(users.id, user.id));
+          updatedUsers++;
+          console.log(`✅ Fixed user ${user.id}`);
+        }
+      }
+      
+      console.log(`✅ Quick migration completed!`);
+      res.json({ 
+        success: true, 
+        message: `تم إصلاح ${updatedMemories} منشور و ${updatedUsers} مستخدم`,
+        updatedMemories,
+        updatedUsers
+      });
+      
+    } catch (error) {
+      console.error('❌ Quick migration failed:', error);
+      res.status(500).json({ message: "فشل في الإصلاح" });
+    }
+  });
+
   // Local authentication routes
   app.post('/api/register', async (req, res) => {
     try {
