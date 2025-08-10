@@ -1,0 +1,40 @@
+Response {type: 'basic', url: 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/streams', redirected: false, status: 200, ok: true, …}
+simple-stream.tsx:99  ❌ Could not determine stream ID to redirect to
+createChat @ simple-stream.tsx:99
+await in createChat
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+simple-stream.tsx:104  ❌ Chat creation failed: Error: تعذر إنشاء الدردشة، يرجى المحاولة مرة أخرى
+    at createChat (simple-stream.tsx:100:15)
+createChat @ simple-stream.tsx:104
+await in createChat
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+simple-stream.tsx:105 🔍 Error details: {status: undefined, message: 'تعذر إنشاء الدردشة، يرجى المحاولة مرة أخرى', responseText: undefined, stack: 'Error: تعذر إنشاء الدردشة، يرجى المحاولة مرة أخرى\n…orf.replit.dev/src/pages/simple-stream.tsx:98:15)'}
+simple-stream.tsx:132 📋 Final error message: حدث خطأ في إنشاء الدردشة

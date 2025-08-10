@@ -22,7 +22,7 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  return res;
+  return await res.json(); // تحليل JSON بدلاً من إرجاع Response الخام
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

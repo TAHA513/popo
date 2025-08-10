@@ -44,26 +44,16 @@ export default function SimpleStreamPage() {
       
       const response = await apiRequest('/api/streams', 'POST', streamData);
       
-      console.log("✅ Stream created, full response:", response);
+      console.log("✅ Stream created successfully:", response);
       
-      // استخراج معرف البث من الاستجابة
+      // استخراج معرف البث من الاستجابة المحللة JSON
       let chatId = null;
       
-      // من logs الخادم: {"success":true,"data":{"id":126,...},...}
-      if (response && response.data && response.data.id) {
+      if (response?.success && response?.data?.id) {
         chatId = response.data.id;
-        console.log("🎯 Stream ID found:", chatId);
-      } else if (response && response.id) {
-        chatId = response.id;  
-        console.log("🎯 Stream ID found (direct):", chatId);
+        console.log("🎯 Stream ID extracted:", chatId);
       } else {
-        console.log("❌ No stream ID in response:", {
-          hasResponse: !!response,
-          hasData: !!(response && response.data),
-          dataId: response?.data?.id,
-          directId: response?.id,
-          success: response?.success
-        });
+        console.error("❌ Stream creation failed - no ID in response:", response);
       }
       
       if (chatId) {
