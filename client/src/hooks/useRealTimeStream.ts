@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useWebSocket } from './useWebSocketFixed';
+import { useWebSocketSafe } from './useWebSocketSafe';
 
 interface StreamConnection {
   streamId: number;
@@ -12,7 +12,7 @@ export function useRealTimeStream() {
   const [connections, setConnections] = useState<Map<string, StreamConnection>>(new Map());
   const [isStreamingVideo, setIsStreamingVideo] = useState(false);
   const [viewerStreams, setViewerStreams] = useState<Map<string, MediaStream>>(new Map());
-  const { sendMessage, subscribe, isConnected } = useWebSocket();
+  const { sendMessage, subscribe, isConnected } = useWebSocketSafe();
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
