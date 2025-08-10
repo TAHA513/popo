@@ -17,7 +17,7 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [streamStatus, setStreamStatus] = useState<'starting' | 'live' | 'error'>('starting');
+  const [streamStatus, setStreamStatus] = useState<'starting' | 'live' | 'error'>('live');
   const [viewerCount, setViewerCount] = useState(1);
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

@@ -13,7 +13,7 @@ export default function NewLiveViewer({ stream, onClose }: NewLiveViewerProps) {
   const { user } = useAuth();
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connected');
   const [viewerCount, setViewerCount] = useState(stream.viewerCount || 1);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

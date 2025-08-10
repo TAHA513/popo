@@ -14,7 +14,7 @@ export default function SimpleStreamer({ stream }: SimpleStreamerProps) {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [cameraStatus, setCameraStatus] = useState<'loading' | 'active' | 'error'>('loading');
+  const [cameraStatus, setCameraStatus] = useState<'loading' | 'active' | 'error'>('active');
 
   useEffect(() => {
     const initCamera = async () => {
