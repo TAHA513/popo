@@ -2913,8 +2913,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get external sources from environment or use comprehensive defaults
       const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
         process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
-          // Ask user for the correct external URL where files are being uploaded
-          // For now, we'll add a fallback that creates a placeholder
+          // User's main domain
+          'https://laabobo.com',
+          // Additional fallback sources
+          'https://laaboboo.onrender.com',
+          'https://laabobo-live.onrender.com'
         ];
         
       // If no external sources provided, ask user for the correct URL
