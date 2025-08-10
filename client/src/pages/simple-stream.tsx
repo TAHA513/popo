@@ -51,17 +51,20 @@ export default function SimpleStreamPage() {
       
       if (response) {
         // البحث عن معرف البث بطرق مختلفة
-        chatId = response.data?.id || 
-                 response.id || 
-                 response.streamId ||
-                 (response.success && response.data && response.data.id) ||
-                 (typeof response === 'object' && response.success === true && response.data?.id);
+        // الخادم يرجع البيانات في عدة أماكن محتملة
+        chatId = response.data?.id ||  // داخل data
+                 response.id ||        // مباشرة في response (بسبب ...stream)
+                 response.streamId ||  // احتمال آخر
+                 (response.success && response.data && response.data.id); // التأكد من النجاح
         
         console.log("🔍 Extracted chat ID:", chatId);
         console.log("📋 Full response structure:", {
           hasData: !!response.data,
           hasId: !!response.id,
           hasSuccess: !!response.success,
+          success: response.success,
+          dataId: response.data?.id,
+          directId: response.id,
           responseKeys: Object.keys(response)
         });
       }
