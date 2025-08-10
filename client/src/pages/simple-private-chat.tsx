@@ -96,11 +96,29 @@ export default function SimplePrivateChatPage() {
       }
       
       try {
-        const result = await apiRequest('/api/messages/send', 'POST', {
-          recipientId: otherUserId,
-          content,
-          messageType: 'text'
+        // إرسال الطلب مباشرة باستخدام fetch
+        const response = await fetch('/api/messages/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            recipientId: otherUserId,
+            content,
+            messageType: 'text'
+          })
         });
+        
+        console.log('📡 استجابة الخادم:', { status: response.status, statusText: response.statusText });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ خطأ في الاستجابة:', errorText);
+          throw new Error(`${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
         console.log('✅ تم إرسال الرسالة بنجاح:', result);
         return result;
       } catch (error) {
