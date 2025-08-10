@@ -124,7 +124,9 @@ export default function LiveStreams() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 truncate">{stream.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{stream.hostUsername || 'مضيف مجهول'}</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {stream.hostName || stream.hostUsername || (stream.hostId ? `المضيف: ${stream.hostId}` : 'مضيف مجهول')}
+                      </p>
                     </div>
                   </div>
                   
@@ -174,7 +176,7 @@ export default function LiveStreams() {
             setSelectedStreamForGift(null);
           }}
           receiverId={selectedStreamForGift.hostId}
-          receiverName={selectedStreamForGift.hostUsername}
+          receiverName={selectedStreamForGift.hostName || selectedStreamForGift.hostUsername || 'مجهول'}
           streamId={selectedStreamForGift.id}
           onGiftSent={(gift) => {
             console.log('Gift sent:', gift);
