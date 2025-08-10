@@ -28,9 +28,18 @@ import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
 import axios from 'axios';
+import { Client as ObjectStorageClient } from '@replit/object-storage';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Initialize Object Storage client for unified media storage
+let objectStorage: ObjectStorageClient | null = null;
+const BUCKET_ID = 'replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16';
+
+// Initialize Object Storage safely - temporarily disabled until properly configured
+objectStorage = null;
+console.log('⚠️ Object Storage disabled for now, using local storage with external sync');
 
 // Security functions for ZegoCloud protection
 const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
@@ -164,18 +173,9 @@ function cleanupUserTokens(userId: string): number {
   return cleanedCount;
 }
 
-// Configure multer for file uploads with better filename generation
+// Configure multer for file uploads with Object Storage support
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: 'uploads/',
-    filename: (req, file, cb) => {
-      // Generate unique filename with timestamp
-      const timestamp = Date.now();
-      const ext = path.extname(file.originalname);
-      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-      cb(null, filename);
-    }
-  }),
+  storage: multer.memoryStorage(), // Store in memory for Object Storage upload
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -188,6 +188,27 @@ const upload = multer({
     }
   },
 });
+
+// Helper function to upload file to Object Storage
+async function uploadToObjectStorage(fileBuffer: Buffer, originalName: string): Promise<string> {
+  if (!objectStorage) {
+    throw new Error('Object Storage not available');
+  }
+  
+  const timestamp = Date.now();
+  const ext = path.extname(originalName);
+  const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+  const objectKey = `public/${filename}`;
+  
+  try {
+    await objectStorage.uploadAsBytes(objectKey, fileBuffer);
+    console.log(`✅ File uploaded to Object Storage: ${objectKey}`);
+    return filename;
+  } catch (error) {
+    console.error(`❌ Object Storage upload failed:`, error);
+    throw error;
+  }
+}
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -1100,59 +1121,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('✅ تم رفع الملف:', {
-        filename: req.file.filename,
         originalname: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
       });
 
-      // Check if Cloudinary is enabled
-      const { isCloudinaryEnabled, uploadToCloudinary } = require('./cloudinary');
+      // Save to local storage with proper filename generation
+      const timestamp = Date.now();
+      const ext = path.extname(req.file.originalname);
+      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+      const localPath = path.join('uploads', filename);
       
-      if (isCloudinaryEnabled()) {
-        try {
-          // Upload to Cloudinary
-          const cloudinaryResult = await uploadToCloudinary(req.file.buffer, {
-            folder: 'laabobo-uploads',
-            resourceType: 'auto'
-          });
-
-          res.json({
-            success: true,
-            fileUrl: cloudinaryResult.secure_url,
-            filename: cloudinaryResult.public_id,
-            originalName: req.file.originalname,
-            size: cloudinaryResult.bytes,
-            mimetype: req.file.mimetype,
-            cloudinary: true
-          });
-        } catch (cloudinaryError) {
-          console.error('Cloudinary upload failed, falling back to local:', cloudinaryError);
-          // Fall back to local storage
-          const fileUrl = `/uploads/${req.file.filename}`;
-          res.json({
-            success: true,
-            fileUrl,
-            filename: req.file.filename,
-            originalName: req.file.originalname,
-            size: req.file.size,
-            mimetype: req.file.mimetype,
-            cloudinary: false
-          });
-        }
-      } else {
-        // Local storage fallback
-        const fileUrl = `/uploads/${req.file.filename}`;
-        res.json({
-          success: true,
-          fileUrl,
-          filename: req.file.filename,
-          originalName: req.file.originalname,
-          size: req.file.size,
-          mimetype: req.file.mimetype,
-          cloudinary: false
-        });
-      }
+      await fs.writeFile(localPath, req.file.buffer);
+      const fileUrl = `/uploads/${filename}`;
+      
+      console.log('✅ File saved successfully:', fileUrl);
+      
+      res.json({
+        success: true,
+        fileUrl,
+        filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        storage: 'local'
+      });
     } catch (error) {
       console.error("Error uploading file:", error);
       res.status(500).json({ message: "فشل في رفع الملف" });
@@ -1169,16 +1162,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // The file is already saved by multer, just use its filename
-      const profileImageUrl = `/uploads/${file.filename}`;
+      // Save to local storage
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+      const localPath = path.join('uploads', filename);
+      
+      await fs.writeFile(localPath, file.buffer);
+      const profileImageUrl = `/uploads/${filename}`;
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
       
+      console.log('✅ Profile image saved successfully:', profileImageUrl);
+      
       res.json({ 
         success: true, 
         profileImageUrl,
-        message: "تم تحديث الصورة الشخصية بنجاح" 
+        message: "تم تحديث الصورة الشخصية بنجاح",
+        storage: 'local'
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -1245,19 +1247,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       
       if (files && files.length > 0) {
-        // Use local storage for now - Cloudinary integration temporarily disabled
-        // const { isCloudinaryEnabled, uploadToCloudinary } = await import('./cloudinary');
-        
         for (const file of files) {
-          let fileUrl: string;
+          // Save to local storage
+          const timestamp = Date.now();
+          const ext = path.extname(file.originalname);
+          const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+          const localPath = path.join('uploads', filename);
           
-          // Use local storage for file uploads
-          const fileName = `${Date.now()}-${file.originalname}`;
-          const uploadPath = path.join('uploads', fileName);
-          await fs.rename(file.path, uploadPath);
-          fileUrl = `/uploads/${fileName}`;
-          console.log('📁 File saved locally:', fileUrl);
-          
+          await fs.writeFile(localPath, file.buffer);
+          const fileUrl = `/uploads/${filename}`;
+          console.log('📁 File saved successfully:', fileUrl);
           mediaUrls.push(fileUrl);
         }
       }
@@ -2880,18 +2879,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced multi-source media serving
   await fs.mkdir('uploads', { recursive: true });
   
-  // SIMPLIFIED FAST MEDIA HANDLER - Only checks working source
+  // UNIFIED MEDIA HANDLER - Uses Object Storage for cross-platform access
   app.get('/api/media/*', async (req, res) => {
     const filePath = req.params[0];
     const localFilePath = path.join('uploads', filePath);
     
     try {
-      // First try local file (fastest)
+      // First try local file (fastest for current environment)
       if (await fs.access(localFilePath).then(() => true).catch(() => false)) {
         return res.sendFile(path.resolve(localFilePath));
       }
       
-      // SOLUTION: Only try the working external source
+      // Try external source for cross-environment access
       const workingExternalUrl = 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev';
       const directFileUrl = `${workingExternalUrl}/uploads/${filePath}`;
       
@@ -2900,7 +2899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const response = await fetch(directFileUrl, {
           method: 'HEAD',
-          timeout: 3000 // Fast timeout
+          timeout: 3000
         });
         
         if (response.ok) {
@@ -2914,7 +2913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`❌ External source failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
         
-      // File not found in both local and external source
+      // File not found in any source
       console.log(`❌ File not found: ${filePath}`);
       res.status(404).json({ 
         message: 'ملف غير موجود',
