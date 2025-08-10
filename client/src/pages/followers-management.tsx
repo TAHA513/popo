@@ -25,12 +25,26 @@ export default function FollowersManagement() {
   // Get followers
   const { data: followers = [], isLoading: followersLoading } = useQuery<Follower[]>({
     queryKey: ['/api/users', user?.id, 'followers'],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${user?.id}/followers`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch followers');
+      return response.json();
+    },
     enabled: !!user?.id && activeTab === 'followers'
   });
 
   // Get following
   const { data: following = [], isLoading: followingLoading } = useQuery<Follower[]>({
     queryKey: ['/api/users', user?.id, 'following'],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${user?.id}/following`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch following');
+      return response.json();
+    },
     enabled: !!user?.id && activeTab === 'following'
   });
 

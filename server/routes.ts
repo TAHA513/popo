@@ -1820,6 +1820,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get user followers
+  app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      console.log('🔍 Getting followers for user:', userId);
+      
+      const followers = await storage.getFollowers(userId);
+      console.log('✅ Found followers:', followers.length);
+      
+      // Transform the data to match the expected format
+      const transformedFollowers = followers.map(item => ({
+        id: item.follower.id,
+        username: item.follower.username,
+        firstName: item.follower.firstName,
+        profileImageUrl: item.follower.profileImageUrl,
+        followedAt: item.followedAt
+      }));
+      
+      res.json(transformedFollowers);
+    } catch (error) {
+      console.error("❌ Error getting followers:", error);
+      res.status(500).json({ message: "فشل في جلب المتابعين" });
+    }
+  });
+  
+  // Get user following
+  app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      console.log('🔍 Getting following for user:', userId);
+      
+      const following = await storage.getFollowing(userId);
+      console.log('✅ Found following:', following.length);
+      
+      // Transform the data to match the expected format
+      const transformedFollowing = following.map(item => ({
+        id: item.following.id,
+        username: item.following.username,
+        firstName: item.following.firstName,
+        profileImageUrl: item.following.profileImageUrl,
+        followedAt: item.followedAt
+      }));
+      
+      res.json(transformedFollowing);
+    } catch (error) {
+      console.error("❌ Error getting following:", error);
+      res.status(500).json({ message: "فشل في جلب المتابَعين" });
+    }
+  });
+  
   // Follow/Unfollow user (toggle)
   app.post('/api/users/:userId/follow', requireAuth, async (req: any, res) => {
     try {
