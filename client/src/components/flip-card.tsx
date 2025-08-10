@@ -364,11 +364,12 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                   }}
                   onError={(e) => {
                     console.log('❌ Image load failed for:', e.currentTarget.src);
-                    // Auto-retry with different source if available
+                    // Force localhost URL in development
                     const currentSrc = e.currentTarget.src;
-                    if (!currentSrc.includes('api/media')) {
+                    if (currentSrc.includes('617f9402-3c68-4da7-9c19-a3c88da03abf')) {
                       const cleanPath = mediaUrl.replace(/^\/uploads\//, '').replace(/^\/api\/media\//, '');
                       e.currentTarget.src = `/api/media/${cleanPath}`;
+                      console.log('🔄 Retrying with localhost URL:', e.currentTarget.src);
                     } else {
                       // Show placeholder on final failure
                       e.currentTarget.style.display = 'none';
