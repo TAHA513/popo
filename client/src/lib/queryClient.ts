@@ -14,11 +14,7 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
-  // Use configured API base URL if available - empty for local development
-  const API_BASE = import.meta.env.VITE_API_URL || '';
-  const fullUrl = url.startsWith('http') ? url : (API_BASE ? `${API_BASE}${url}` : url);
-  
-  const res = await fetch(fullUrl, {
+  const res = await fetch(url, {
     method,
     headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
     body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
@@ -35,12 +31,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Use configured API base URL if available - empty for local development
-    const API_BASE = import.meta.env.VITE_API_URL || '';
-    const url = queryKey.join("/") as string;
-    const fullUrl = url.startsWith('http') ? url : (API_BASE ? `${API_BASE}${url}` : url);
-    
-    const res = await fetch(fullUrl, {
+    const res = await fetch(queryKey.join("/") as string, {
       credentials: "include",
     });
 
@@ -58,10 +49,8 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false, // منع التحديث التلقائي المستمر
       refetchOnWindowFocus: false, // منع التحديث عند العودة للتبويب
-      staleTime: 1000 * 60 * 15, // البيانات تبقى حديثة لمدة 15 دقيقة
-      gcTime: 1000 * 60 * 30, // الاحتفاظ بالبيانات في الذاكرة لمدة 30 دقيقة (استخدام gcTime بدلاً من cacheTime)
+      staleTime: 1000 * 60 * 5, // البيانات تبقى حديثة لمدة 5 دقائق
       retry: false,
-      // منع فقدان البيانات عند التحديث
     },
     mutations: {
       retry: false,

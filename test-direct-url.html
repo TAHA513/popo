@@ -1,56 +1,0 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Direct URL Test</title>
-</head>
-<body>
-    <h1>اختبار مباشر للصور</h1>
-    
-    <!-- صورة مباشرة -->
-    <h2>صورة مباشرة</h2>
-    <img src="/api/media/memory-4OsJBdkrkj8RyijMOG6OR-asaad111-1754848321807-0-post.png" alt="Direct" width="200">
-    
-    <!-- جلب البيانات من API -->
-    <h2>بيانات من API</h2>
-    <div id="api-data"></div>
-    <div id="images-container"></div>
-    
-    <script>
-        // جلب البيانات من API
-        fetch('/api/memories/public')
-            .then(r => r.json())
-            .then(data => {
-                console.log('📦 API Response:', data);
-                
-                // عرض البيانات
-                const apiDiv = document.getElementById('api-data');
-                apiDiv.innerHTML = '<pre>' + JSON.stringify(data[0], null, 2) + '</pre>';
-                
-                // عرض الصور
-                const container = document.getElementById('images-container');
-                const memory = data[0];
-                
-                if (memory && memory.mediaUrls) {
-                    memory.mediaUrls.forEach((url, i) => {
-                        console.log('🖼️ Media URL from DB:', url);
-                        
-                        const mediaPath = `/api/media/${url}`;
-                        console.log('🔗 Generated path:', mediaPath);
-                        
-                        const img = document.createElement('img');
-                        img.src = mediaPath;
-                        img.alt = `Memory ${i}`;
-                        img.width = 150;
-                        img.style.margin = '5px';
-                        
-                        img.onload = () => console.log('✅ Image loaded:', mediaPath);
-                        img.onerror = () => console.error('❌ Image failed:', mediaPath);
-                        
-                        container.appendChild(img);
-                    });
-                }
-            })
-            .catch(e => console.error('❌ API Error:', e));
-    </script>
-</body>
-</html>

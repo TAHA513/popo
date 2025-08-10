@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { WebSocketMessage, ChatMessage, Gift } from '@/types';
-import { getWebSocketUrl } from '../utils/websocket-helpers';
 
-class WebSocketManager {
+export class WebSocketManager {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -12,16 +11,20 @@ class WebSocketManager {
   connect() {
     if (this.ws?.readyState === WebSocket.OPEN) return;
 
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const isDev = window.location.hostname === 'localhost';
+    
+    let wsUrl;
+    if (isDev) {
+      wsUrl = 'ws://localhost:5000/ws';
+    } else {
+      // For production Replit environment
+      wsUrl = `${protocol}//${window.location.host}/ws`;
+    }
+    
+    console.log('WebSocket connecting to:', wsUrl);
+    
     try {
-      // استخدام المساعد الآمن للاتصال
-      const wsUrl = getWebSocketUrl();
-      console.log('WebSocket connecting to:', wsUrl);
-      
-      if (wsUrl.includes('undefined')) {
-        console.error('Invalid WebSocket URL detected, skipping connection');
-        return;
-      }
-      
       this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {

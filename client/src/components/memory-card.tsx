@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { getMediaUrl } from "@/utils/media-urls";
 import { 
   Heart, 
   MessageCircle, 
@@ -259,7 +258,7 @@ export default function MemoryCard({
                 }}
               >
                 <video
-                  src={getMediaUrl(memory.mediaUrls[0])}
+                  src={memory.mediaUrls[0]}
                   className="w-full h-64 object-cover"
                   muted
                   loop

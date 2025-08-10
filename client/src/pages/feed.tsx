@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -30,28 +30,17 @@ export default function Feed() {
     staleTime: 0,
   });
 
-  // Fetch public memories/posts - استخدام cache محسن
-  const { data: memories = [], isLoading: memoriesLoading, error: memoriesError } = useQuery({
+  // Fetch public memories/posts
+  const { data: memories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 30000, // كل 30 ثانية بدلاً من 15
-    staleTime: 1000 * 60 * 10, // البيانات تبقى حديثة لمدة 10 دقائق
-    gcTime: 1000 * 60 * 20, // الاحتفاظ بالبيانات لمدة 20 دقيقة
-    refetchOnMount: false, // لا تحديث عند تحميل المكون
-    refetchOnWindowFocus: false, // لا تحديث عند العودة للتبويب
-    // احتفظ بالبيانات السابقة أثناء التحديث
+    refetchInterval: 15000, // كل 15 ثانية - متوازن
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
-  
-  // Debug info shows data loading status
-  React.useEffect(() => {
-    console.log('🔍 Feed Status:', {
-      memoriesCount: typedMemories.length,
-      isLoading: memoriesLoading,
-      hasData: typedMemories.length > 0
-    });
-  }, [typedMemories.length, memoriesLoading]);
 
   const handleJoinStream = (streamId: number) => {
     window.location.href = `/stream/${streamId}`;
@@ -67,8 +56,7 @@ export default function Feed() {
         title: data.following ? "تمت المتابعة!" : "تم إلغاء المتابعة",
         description: data.following ? "أضيف المستخدم لقائمة الأصدقاء" : "تم إزالة المستخدم من الأصدقاء",
       });
-      // لا تعيد تحميل كل المنشورات - فقط حدث بيانات المتابعة
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
     },
     onError: () => {
       toast({
@@ -96,8 +84,7 @@ export default function Feed() {
         description: "شكراً لتفاعلك مع المحتوى",
       });
 
-      // لا تعيد تحميل كل المنشورات عند التفاعل
-      // queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
     },
     onError: () => {
       toast({
@@ -162,16 +149,13 @@ export default function Feed() {
     mutationFn: async ({ memoryId }: { memoryId: number }) => {
       return await apiRequest(`/api/memories/${memoryId}`, 'DELETE');
     },
-    onSuccess: (_, { memoryId }) => {
+    onSuccess: () => {
       toast({
         title: "تم الحذف",
         description: "تم حذف المنشور بنجاح",
       });
-      // إزالة المنشور من الـ cache بدلاً من إعادة تحميل كل شيء
-      queryClient.setQueryData(['/api/memories/public'], (oldData: any) => {
-        if (!oldData) return [];
-        return oldData.filter((memory: any) => memory.id !== memoryId);
-      });
+      // إعادة تحميل قائمة المنشورات
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
       queryClient.invalidateQueries({ queryKey: ['/api/memories/user'] });
     },
     onError: (error: any) => {
@@ -188,15 +172,6 @@ export default function Feed() {
   };
 
   const isLoading = streamsLoading || memoriesLoading;
-
-  // Show current loading state
-  if (memoriesLoading) {
-    console.log('⏳ Still loading memories...');
-  } else if (typedMemories.length > 0) {
-    console.log(`✅ ${typedMemories.length} memories loaded successfully`);
-  } else {
-    console.log('⚠️ No memories found');
-  }
 
   if (isLoading) {
     return (
@@ -283,7 +258,7 @@ export default function Feed() {
         <div>
           <h2 className="text-2xl font-bold mb-4 text-gray-800">آخر المنشورات</h2>
           
-          {typedMemories.length === 0 ? (
+          {typedMemories.length === 0 && typedStreams.length === 0 ? (
             <Card className="p-12 text-center">
               <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد منشورات حالياً</h3>
@@ -294,7 +269,7 @@ export default function Feed() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {typedMemories.map((memory, index) => (
+              {typedMemories.map((memory) => (
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
@@ -382,63 +357,40 @@ export default function Feed() {
                     {/* Media Preview */}
                     {memory.mediaUrls?.length > 0 && (
                       <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl aspect-square mb-3 sm:mb-4 overflow-hidden group cursor-pointer">
-                        {(() => {
-                          const mediaUrl = Array.isArray(memory.mediaUrls) ? memory.mediaUrls[0] : memory.mediaUrls;
-                          const isVideo = mediaUrl && (mediaUrl.includes('.mp4') || mediaUrl.includes('.webm') || mediaUrl.includes('.mov') || memory.type === 'video');
-                          
-                          console.log('🖼️ Rendering media:', { 
-                            mediaUrl, 
-                            isVideo, 
-                            type: memory.type,
-                            thumbnailUrl: memory.thumbnailUrl 
-                          });
-                          
-                          if (isVideo) {
-                            return (
-                              <video
-                                src={mediaUrl}
-                                className="w-full h-full object-cover"
-                                muted
-                                loop
-                                playsInline
-                                preload="metadata"
-                                poster={memory.thumbnailUrl}
-                                onMouseEnter={(e) => e.currentTarget.play()}
-                                onMouseLeave={(e) => e.currentTarget.pause()}
-                                onCanPlay={(e) => {
-                                  e.currentTarget.currentTime = 0.01;
-                                }}
-                                onLoadedData={() => {
-                                  console.log('✅ Video loaded successfully:', mediaUrl);
-                                }}
-                                onError={(e) => {
-                                  console.error('❌ Video load failed:', mediaUrl);
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            );
-                          } else {
-                            // For images, use first mediaUrl directly
-                            const imageUrl = memory.thumbnailUrl || mediaUrl;
-                            return (
-                              <img 
-                                src={imageUrl}
-                                alt={memory.caption || 'منشور'} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                loading="lazy"
-                                decoding="async"
-                                onLoad={() => {
-                                  console.log('✅ Image loaded successfully:', imageUrl);
-                                }}
-                                onError={(e) => {
-                                  console.error('❌ Image load failed:', imageUrl);
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                }}
-                              />
-                            );
-                          }
-                        })()}
+                        {memory.type === 'image' && memory.thumbnailUrl ? (
+                          <img 
+                            src={memory.thumbnailUrl} 
+                            alt={memory.caption || 'منشور'} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
+                          <video
+                            src={memory.mediaUrls[0]}
+                            className="w-full h-full object-cover"
+                            muted
+                            loop
+                            playsInline
+                            preload="auto"
+                            onMouseEnter={(e) => e.currentTarget.play()}
+                            onMouseLeave={(e) => e.currentTarget.pause()}
+                            onCanPlay={(e) => {
+                              e.currentTarget.currentTime = 0.01;
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                            <div className="text-center">
+                              <Video className="w-16 h-16 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-500">فيديو</p>
+                            </div>
+                          </div>
+                        )}
                         {/* Overlay gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>

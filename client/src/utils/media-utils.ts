@@ -24,39 +24,22 @@ export class MediaUtils {
     }
   }
 
-  // معالج أخطاء تحميل الوسائط المحسن
+  // معالج أخطاء تحميل الوسائط
   static handleMediaError(element: HTMLVideoElement | HTMLImageElement, fallbackUrl?: string): void {
     console.warn('فشل تحميل الوسائط:', element.src);
     
-    // محاولة إصلاح المسار أولاً
-    const originalSrc = element.src;
-    const fixedSrc = this.fixLegacyMediaUrl(originalSrc);
-    
-    if (fixedSrc !== originalSrc && !element.classList.contains('fix-attempted')) {
-      console.log('محاولة إصلاح المسار:', fixedSrc);
-      element.classList.add('fix-attempted');
-      element.src = fixedSrc;
-      return;
-    }
-    
-    // إذا فشل الإصلاح، استخدم الرابط الاحتياطي
-    if (fallbackUrl && element.src !== fallbackUrl && !element.classList.contains('fallback-attempted')) {
-      console.log('محاولة استخدام الرابط الاحتياطي:', fallbackUrl);
-      element.classList.add('fallback-attempted');
-      element.src = fallbackUrl;
-      return;
-    }
-    
-    // إذا فشلت كل المحاولات، إخفاء العنصر
+    // إخفاء العنصر المعطوب
     element.style.display = 'none';
+    
+    // إضافة كلاس للإشارة إلى الخطأ
     element.classList.add('media-error');
     
-    // إضافة رسالة خطأ للمطورين
-    console.error('فشل نهائي في تحميل الوسائط:', {
-      original: originalSrc,
-      fixed: fixedSrc,
-      fallback: fallbackUrl
-    });
+    // إذا كان هناك رابط احتياطي، جرب استخدامه
+    if (fallbackUrl && element.src !== fallbackUrl) {
+      console.log('محاولة استخدام الرابط الاحتياطي:', fallbackUrl);
+      element.src = fallbackUrl;
+      element.style.display = '';
+    }
   }
 
   // التحقق من نوع الوسائط
@@ -98,42 +81,9 @@ export class MediaUtils {
     }, { once: true });
   }
 
-  // إصلاح مسارات legacy-uploads المعطلة
-  static fixLegacyMediaUrl(url: string): string {
-    if (!url) return url;
-    
-    // إصلاح المسارات القديمة
-    if (url.includes('/api/media/legacy-uploads/')) {
-      return url; // المسار محدث بالفعل
-    }
-    
-    // إصلاح الروابط المكسورة من legacy
-    if (url.includes('legacy-uploads/') && !url.includes('/api/media/')) {
-      return `/api/media/legacy-uploads/${url.split('legacy-uploads/').pop()}`;
-    }
-    
-    return url;
-  }
-
-  // فك تشفير أسماء الملفات العربية
-  static decodeArabicFilename(filename: string): string {
-    try {
-      // فك تشفير URL encoding للأسماء العربية
-      return decodeURIComponent(filename);
-    } catch (error) {
-      console.warn('فشل في فك تشفير اسم الملف:', filename);
-      return filename;
-    }
-  }
-
   // تشغيل الفيديو مع معالجة الأخطاء
   static async playVideoSafely(video: HTMLVideoElement): Promise<boolean> {
     try {
-      // إصلاح مسار الفيديو إن كان معطلاً
-      if (video.src && video.src.includes('legacy-uploads')) {
-        video.src = this.fixLegacyMediaUrl(video.src);
-      }
-      
       await video.play();
       return true;
     } catch (error) {

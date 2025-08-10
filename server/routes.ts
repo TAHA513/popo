@@ -28,18 +28,9 @@ import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
 import axios from 'axios';
-import { Client as ObjectStorageClient } from '@replit/object-storage';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Initialize Object Storage client for unified media storage
-let objectStorage: ObjectStorageClient | null = null;
-const BUCKET_ID = 'replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16';
-
-// Initialize Object Storage safely - temporarily disabled until properly configured
-objectStorage = null;
-console.log('⚠️ Object Storage disabled for now, using local storage with external sync');
 
 // Security functions for ZegoCloud protection
 const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
@@ -173,9 +164,18 @@ function cleanupUserTokens(userId: string): number {
   return cleanedCount;
 }
 
-// Configure multer for file uploads with Object Storage support
+// Configure multer for file uploads with better filename generation
 const upload = multer({
-  storage: multer.memoryStorage(), // Store in memory for Object Storage upload
+  storage: multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+      // Generate unique filename with timestamp
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+      cb(null, filename);
+    }
+  }),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -188,27 +188,6 @@ const upload = multer({
     }
   },
 });
-
-// Helper function to upload file to Object Storage
-async function uploadToObjectStorage(fileBuffer: Buffer, originalName: string): Promise<string> {
-  if (!objectStorage) {
-    throw new Error('Object Storage not available');
-  }
-  
-  const timestamp = Date.now();
-  const ext = path.extname(originalName);
-  const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-  const objectKey = `public/${filename}`;
-  
-  try {
-    await objectStorage.uploadAsBytes(objectKey, fileBuffer);
-    console.log(`✅ File uploaded to Object Storage: ${objectKey}`);
-    return filename;
-  } catch (error) {
-    console.error(`❌ Object Storage upload failed:`, error);
-    throw error;
-  }
-}
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -299,8 +278,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
-
-  // دعم legacy uploads تم نقله إلى server/index.ts باستخدام express.static
 
   // Wallet API endpoints
   // Get user transactions
@@ -961,74 +938,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quick migration endpoint for media URLs - temporary fix
-  app.get('/api/admin/fix-urls', async (req, res) => {
-    try {
-      console.log('🔄 Starting quick URL migration...');
-      
-      // Fix memory fragments
-      const memories = await db.select().from(memoryFragments);
-      let updatedMemories = 0;
-      
-      for (const memory of memories) {
-        if (memory.mediaUrls && Array.isArray(memory.mediaUrls)) {
-          const hasOldPaths = memory.mediaUrls.some((url: string) => url.includes('/uploads/'));
-          
-          if (hasOldPaths) {
-            const updatedUrls = memory.mediaUrls.map((url: string) => 
-              url.replace(/^.*\/uploads\//, '')
-            );
-            
-            await db
-              .update(memoryFragments)
-              .set({ mediaUrls: updatedUrls })
-              .where(eq(memoryFragments.id, memory.id));
-              
-            updatedMemories++;
-            console.log(`✅ Fixed memory ${memory.id}`);
-          }
-        }
-      }
-      
-      // Fix user profile and cover images
-      const allUsers = await db.select().from(users);
-      let updatedUsers = 0;
-      
-      for (const user of allUsers) {
-        const updates: any = {};
-        
-        if (user.profileImageUrl && user.profileImageUrl.includes('/uploads/')) {
-          updates.profileImageUrl = user.profileImageUrl.replace(/^.*\/uploads\//, '');
-        }
-        
-        if (user.coverImageUrl && user.coverImageUrl.includes('/uploads/')) {
-          updates.coverImageUrl = user.coverImageUrl.replace(/^.*\/uploads\//, '');
-        }
-        
-        if (Object.keys(updates).length > 0) {
-          await db
-            .update(users)
-            .set(updates)
-            .where(eq(users.id, user.id));
-          updatedUsers++;
-          console.log(`✅ Fixed user ${user.id}`);
-        }
-      }
-      
-      console.log(`✅ Quick migration completed!`);
-      res.json({ 
-        success: true, 
-        message: `تم إصلاح ${updatedMemories} منشور و ${updatedUsers} مستخدم`,
-        updatedMemories,
-        updatedUsers
-      });
-      
-    } catch (error) {
-      console.error('❌ Quick migration failed:', error);
-      res.status(500).json({ message: "فشل في الإصلاح" });
-    }
-  });
-
   // Local authentication routes
   app.post('/api/register', async (req, res) => {
     try {
@@ -1181,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // General file upload endpoint - Updated for stable storage like asaad111
+  // General file upload endpoint
   app.post('/api/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
@@ -1189,38 +1098,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('✅ تم رفع الملف:', {
+        filename: req.file.filename,
         originalname: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
       });
 
-      // Create stable filename like asaad111 system
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      const timestamp = Date.now();
-      const ext = path.extname(req.file.originalname);
-      const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 
-                      req.file.mimetype.startsWith('video/') ? 'video' : 'file';
-      const stableFilename = `${fileType}-${userId}-${user?.username || 'user'}-${timestamp}${ext}`;
-      const localPath = path.join('uploads', stableFilename);
-      
-      // Upload using Hybrid Storage (local + database)
-      const { hybridStorage } = await import('./hybridStorage');
-      await hybridStorage.uploadFile(stableFilename, req.file.buffer, req.file.mimetype);
-      
-      // احفظ فقط اسم الملف - ليس المسار الكامل
-      const fileUrl = stableFilename;
-      
-      console.log('✅ File saved with stable filename:', fileUrl);
-      
+      const fileUrl = `/uploads/${req.file.filename}`;
       res.json({
         success: true,
         fileUrl,
-        filename: stableFilename,
+        filename: req.file.filename,
         originalName: req.file.originalname,
         size: req.file.size,
-        mimetype: req.file.mimetype,
-        storage: 'object-storage'
+        mimetype: req.file.mimetype
       });
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -1238,41 +1129,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Create a stable filename like asaad111 (user-based instead of timestamp)
-      const user = await storage.getUser(userId);
-      const ext = path.extname(file.originalname);
-      const stableFilename = `profile-${userId}-${user?.username || 'user'}${ext}`;
-      const localPath = path.join('uploads', stableFilename);
-      
-      // Remove old profile image if exists
-      try {
-        const oldUser = await storage.getUser(userId);
-        if (oldUser?.profileImageUrl) {
-          const oldFilename = oldUser.profileImageUrl.replace(/^\/uploads\//, '');
-          const oldPath = path.join('uploads', oldFilename);
-          await fs.unlink(oldPath).catch(() => {}); // Ignore if doesn't exist
-        }
-      } catch (error) {
-        console.log('Note: Could not remove old profile image');
-      }
-      
-      // Upload using Hybrid Storage (local + database)  
-      const { hybridStorage } = await import('./hybridStorage');
-      await hybridStorage.uploadFile(stableFilename, file.buffer, file.mimetype);
-      
-      // احفظ فقط اسم الملف في قاعدة البيانات - ليس المسار الكامل
-      const profileImageUrl = stableFilename;
+      // The file is already saved by multer, just use its filename
+      const profileImageUrl = `/uploads/${file.filename}`;
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
       
-      console.log('✅ Profile image saved successfully with stable filename:', profileImageUrl);
-      
       res.json({ 
         success: true, 
         profileImageUrl,
-        message: "تم تحديث الصورة الشخصية بنجاح",
-        storage: 'object-storage'
+        message: "تم تحديث الصورة الشخصية بنجاح" 
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -1280,7 +1146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cover image upload endpoint - Updated for stable filenames
+  // Cover image upload endpoint
   app.post('/api/upload/cover-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -1288,7 +1154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('🔄 Cover image upload request:', {
         userId,
-        file: file ? { originalname: file.originalname, size: file.size } : null
+        file: file ? { filename: file.filename, originalname: file.originalname, size: file.size } : null
       });
       
       if (!file) {
@@ -1296,43 +1162,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Create a stable filename like asaad111 (user-based instead of timestamp)
-      const user = await storage.getUser(userId);
-      const ext = path.extname(file.originalname);
-      const stableFilename = `cover-${userId}-${user?.username || 'user'}${ext}`;
-      const localPath = path.join('uploads', stableFilename);
+      // The file is already saved by multer, just use its filename
+      const coverImageUrl = `/uploads/${file.filename}`;
       
-      // Remove old cover image if exists
-      try {
-        const oldUser = await storage.getUser(userId);
-        if (oldUser?.coverImageUrl) {
-          const oldFilename = oldUser.coverImageUrl.replace(/^\/uploads\//, '');
-          const oldPath = path.join('uploads', oldFilename);
-          await fs.unlink(oldPath).catch(() => {}); // Ignore if doesn't exist
-        }
-      } catch (error) {
-        console.log('Note: Could not remove old cover image');
-      }
-      
-      // Upload using Hybrid Storage (local + database)
-      const { hybridStorage } = await import('./hybridStorage');
-      await hybridStorage.uploadFile(stableFilename, file.buffer, file.mimetype);
-      
-      // احفظ فقط اسم الملف - ليس المسار الكامل
-      const coverImageUrl = stableFilename;
-      
-      console.log('📝 Updating database with stable coverImageUrl:', coverImageUrl);
+      console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
       
       // Update user cover image URL in database
-      await db.update(users).set({ coverImageUrl }).where(eq(users.id, userId));
+      await db.update(users).set({ coverImageUrl: coverImageUrl }).where(eq(users.id, userId));
       
-      console.log('✅ Cover image uploaded successfully with stable filename:', coverImageUrl);
+      console.log('✅ Cover image uploaded successfully for user:', userId);
       
       res.json({ 
         success: true, 
         coverImageUrl,
-        message: "تم تحديث صورة الغلاف بنجاح",
-        storage: 'object-storage'
+        message: "تم تحديث صورة الغلاف بنجاح" 
       });
     } catch (error) {
       console.error('❌ Error uploading cover image:', error);
@@ -1362,25 +1205,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       
       if (files && files.length > 0) {
-        const user = await storage.getUser(userId);
-        const timestamp = Date.now();
-        
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          // Create stable filename like asaad111 system
-          const ext = path.extname(file.originalname);
-          const contentHash = title ? title.substring(0, 8).replace(/[^a-zA-Z0-9]/g, '') : 'post';
-          const stableFilename = `memory-${userId}-${user?.username || 'user'}-${timestamp}-${i}-${contentHash}${ext}`;
-          const localPath = path.join('uploads', stableFilename);
+        for (const file of files) {
+          // In production, you'd upload to cloud storage (AWS S3, Cloudinary, etc.)
+          // For now, we'll just use the local file path
+          const fileName = `${Date.now()}-${file.originalname}`;
+          const filePath = path.join('uploads', fileName);
           
-          // Upload using Hybrid Storage (local + database)
-          const { hybridStorage } = await import('./hybridStorage');
-          await hybridStorage.uploadFile(stableFilename, file.buffer, file.mimetype);
-          
-          // احفظ فقط اسم الملف في قاعدة البيانات - ليس المسار الكامل
-          const fileUrl = stableFilename;
-          console.log('📁 File saved via Hybrid Storage:', fileUrl);
-          mediaUrls.push(fileUrl);
+          // Move file to permanent location
+          await fs.rename(file.path, filePath);
+          mediaUrls.push(`/uploads/${fileName}`);
         }
       }
 
@@ -1796,46 +1629,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error unverifying user:", error);
       res.status(500).json({ message: "فشل في إلغاء توثيق المستخدم" });
-    }
-  });
-
-  // Admin route to clear all memories (for testing purposes)
-  app.delete('/api/admin/clear-all-memories', async (req, res) => {
-    try {
-      const { adminCode } = req.body;
-      
-      // Simple admin verification
-      if (adminCode !== 'laabobo_super_999') {
-        return res.status(403).json({ message: "غير مصرح" });
-      }
-
-      console.log('🗑️ Admin: Clearing all memories and related data...');
-      
-      // Delete all memory interactions first (foreign key constraint)
-      const deletedInteractions = await db.delete(memoryInteractions);
-      console.log('🗑️ Deleted memory interactions');
-      
-      // Delete all comments and their likes
-      const deletedCommentLikes = await db.delete(commentLikes);
-      console.log('🗑️ Deleted comment likes');
-      
-      const deletedComments = await db.delete(comments);
-      console.log('🗑️ Deleted comments');
-      
-      // Delete all memory fragments
-      const deletedMemories = await db.delete(memoryFragments);
-      console.log('🗑️ Deleted memory fragments');
-      
-      console.log('✅ All memories cleared successfully');
-      
-      res.json({ 
-        success: true, 
-        message: "تم حذف جميع المنشورات بنجاح",
-        clearedAt: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error("Error clearing memories:", error);
-      res.status(500).json({ message: "فشل في حذف المنشورات" });
     }
   });
 
@@ -3039,27 +2832,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Enhanced multi-source media serving
+  // Serve uploaded files
   await fs.mkdir('uploads', { recursive: true });
-  
-  // ENHANCED MEDIA HANDLER - Hybrid Storage (Local + Database + External)
-  app.get('/api/media/*', async (req, res) => {
-    const filePath = decodeURIComponent(req.params[0]);
-    
-    try {
-      // Use Hybrid Storage - handles all fallbacks internally
-      const { hybridStorage } = await import('./hybridStorage');
-      await hybridStorage.downloadObject(filePath, res);
-    } catch (error) {
-      console.error('Media serving error:', error);
-      res.status(500).json({ message: 'Error serving media' });
-    }
-  });
-
-  
-  // Keep old legacy routes for backward compatibility
-  
-  // Legacy uploads route for backward compatibility
   app.use('/uploads', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     next();
@@ -3075,26 +2849,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🎥 Creating new stream for user:", req.user.id);
       console.log("📊 Stream data:", req.body);
       
-      // Check if user already has an active stream
-      const existingStreams = await storage.getStreams();
-      const userActiveStream = existingStreams.find(s => s.hostId === req.user.id && s.isLive);
-      
-      if (userActiveStream) {
-        console.log("⚠️ User already has active stream:", userActiveStream.id);
-        return res.json({
-          success: true,
-          data: userActiveStream,
-          ...userActiveStream,
-          message: "لديك بث نشط بالفعل"
-        });
-      }
-      
       const streamData = {
         title: req.body.title || 'بث مباشر',
         description: req.body.description || '',
         hostId: req.user.id,
-        category: 'بث سريع',
-        thumbnailUrl: null,
+
+        category: 'بث سريع', // Add required category field
+        thumbnailUrl: null, // Add optional thumbnail field
         isLive: true,
         viewerCount: 0,
         startedAt: new Date()
@@ -3212,23 +2973,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🛑 Starting complete deletion of chat session:", { streamId, userId });
       
       const stream = await storage.getStreamById(streamId);
-      console.log("🔍 Stream end verification:", { 
-        found: !!stream, 
-        streamHostId: stream?.hostId, 
-        requestingUserId: userId,
-        streamId 
-      });
       
-      if (!stream) {
-        console.log("❌ Stream not found for ending:", streamId);
-        return res.status(404).json({ message: "البث المباشر غير موجود" });
-      }
-      
-      if (stream.hostId !== userId) {
-        console.log("❌ User not authorized to end stream:", { 
-          streamHostId: stream.hostId, 
-          requestingUserId: userId 
-        });
+      if (!stream || stream.hostId !== userId) {
         return res.status(403).json({ message: "غير مصرح لك بإنهاء هذه الدردشة" });
       }
       
@@ -3274,8 +3020,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "فشل في حذف الدردشة" });
     }
   });
-
-
 
   // Messages routes
   app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {

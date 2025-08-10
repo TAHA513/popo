@@ -23,34 +23,13 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, src, ...props }, ref) => {
-  // Import the media URL utility only when used
-  const getMediaUrl = React.useMemo(() => {
-    const getMediaUrlFn = (storedPath: string): string => {
-      if (!storedPath) return '';
-      
-      if (storedPath.startsWith('http')) {
-        return storedPath;
-      }
-      
-      // تنظيف المسار من أي prefixes موجودة
-      const cleanPath = storedPath.replace(/^.*\/uploads\//, '').replace(/^.*\/api\/media\//, '');
-      
-      // استخدم المسار النسبي مباشرة
-      return `/api/media/${cleanPath}`;
-    };
-    return getMediaUrlFn;
-  }, []);
-
-  return (
-    <AvatarPrimitive.Image
-      ref={ref}
-      className={cn("aspect-square h-full w-full", className)}
-      src={src ? getMediaUrl(src) : src}
-      {...props}
-    />
-  );
-})
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props}
+  />
+))
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = React.forwardRef<

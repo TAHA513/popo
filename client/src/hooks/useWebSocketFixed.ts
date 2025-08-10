@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { getWebSocketUrl, createSafeWebSocket } from '../utils/websocket-helpers';
 
 interface WebSocketMessage {
   type: string;
@@ -17,14 +16,21 @@ class WebSocketManager {
     if (this.ws?.readyState === WebSocket.OPEN) return;
 
     try {
-      // استخدام المساعد الآمن لتجنب الأخطاء
-      this.ws = createSafeWebSocket();
+      // تحسين اتصال WebSocket لتجنب الأخطاء
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const isDev = window.location.hostname === 'localhost';
       
-      if (!this.ws) {
-        console.error('Failed to create WebSocket connection');
-        this.attemptReconnect();
-        return;
+      let wsUrl;
+      if (isDev) {
+        wsUrl = 'ws://localhost:5000/ws';
+      } else {
+        // For production Replit environment - use the same host and port as the main app
+        wsUrl = `${protocol}//${window.location.host}/ws`;
       }
+      
+      console.log('WebSocket connecting to:', wsUrl);
+      
+      this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {
         console.log('WebSocket connected successfully');

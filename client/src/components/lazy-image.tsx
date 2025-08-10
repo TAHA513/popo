@@ -23,27 +23,12 @@ export default function LazyImage({
   const [imageSrc, setImageSrc] = useState(placeholder || '');
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Media URL utility function
-  const getMediaUrl = (storedPath: string): string => {
-    if (!storedPath) return '';
-    
-    if (storedPath.startsWith('http')) {
-      return storedPath;
-    }
-    
-    // تنظيف المسار من أي prefixes موجودة
-    const cleanPath = storedPath.replace(/^.*\/uploads\//, '').replace(/^.*\/api\/media\//, '');
-    
-    // استخدم المسار النسبي مباشرة
-    return `/api/media/${cleanPath}`;
-  };
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && src && !isLoaded && !hasError) {
-            setImageSrc(getMediaUrl(src));
+            setImageSrc(src);
             observer.unobserve(entry.target);
           }
         });
