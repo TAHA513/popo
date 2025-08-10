@@ -9,6 +9,7 @@ import VerificationBadge from "@/components/ui/verification-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VideoOptimizer } from "@/utils/video-optimizer";
 import { MediaUtils } from "@/utils/media-utils";
+import { getMediaUrl } from "@/utils/media-urls";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -305,7 +306,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
               return (
                 <video
                   ref={videoRef}
-                  src={mediaUrl.startsWith('http') ? mediaUrl : `/api/media/${mediaUrl.replace(/^\/uploads\//, '')}`}
+                  src={getMediaUrl(mediaUrl)}
                   className="w-full h-full object-cover transition-opacity duration-300"
                   muted
                   loop
@@ -352,28 +353,17 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
             } else {
               return (
                 <img
-                  src={(() => {
-                    if (mediaUrl.startsWith('http')) return mediaUrl;
-                    const cleanPath = mediaUrl.replace(/^\/uploads\//, '');
-                    return `/api/media/${cleanPath}`;
-                  })()}
+                  src={getMediaUrl(mediaUrl)}
                   alt="منشور"
                   className="w-full h-full object-cover"
                   onLoad={() => {
-                    console.log('✅ Image loaded successfully');
+                    console.log('✅ Image loaded successfully:', getMediaUrl(mediaUrl));
                   }}
                   onError={(e) => {
                     console.log('❌ Image load failed for:', e.currentTarget.src);
-                    // Force localhost URL in development
-                    const currentSrc = e.currentTarget.src;
-                    if (currentSrc.includes('617f9402-3c68-4da7-9c19-a3c88da03abf')) {
-                      const cleanPath = mediaUrl.replace(/^\/uploads\//, '').replace(/^\/api\/media\//, '');
-                      e.currentTarget.src = `/api/media/${cleanPath}`;
-                      console.log('🔄 Retrying with localhost URL:', e.currentTarget.src);
-                    } else {
-                      // Show placeholder on final failure
-                      e.currentTarget.style.display = 'none';
-                    }
+                    console.log('🔍 Original media URL:', mediaUrl);
+                    // Show placeholder on failure
+                    e.currentTarget.style.display = 'none';
                   }}
                 />
               );
