@@ -4,11 +4,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Mail, Search } from "lucide-react";
+import { Bell, Mail, Search } from "lucide-react";
 
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
+import NotificationBell from "@/components/notification-bell";
 
 export default function SimpleHome() {
   const { user } = useAuth();
