@@ -146,23 +146,35 @@ export default function ConversationPage() {
             </Button>
           </Link>
           
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
-            {otherUser?.profileImageUrl ? (
-              <img 
-                src={otherUser.profileImageUrl} 
-                alt={otherUser.username} 
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              <MessageCircle className="w-5 h-5" />
-            )}
-          </div>
-          
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold text-gray-800">
-              {otherUser?.firstName || otherUser?.username}
-            </h1>
-            <p className="text-sm text-gray-500">@{otherUser?.username}</p>
+          <div 
+            className="flex items-center space-x-3 space-x-reverse flex-1 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors"
+            onClick={() => setLocation(`/profile/${otherUser?.username}`)}
+          >
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white">
+                {otherUser?.profileImageUrl ? (
+                  <img 
+                    src={otherUser.profileImageUrl} 
+                    alt={otherUser.username} 
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <MessageCircle className="w-5 h-5" />
+                )}
+              </div>
+              {/* Online status indicator */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-gray-800 hover:text-purple-600 transition-colors">
+                {otherUser?.firstName || otherUser?.username}
+              </h1>
+              <div className="flex items-center space-x-1 space-x-reverse">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <p className="text-sm text-green-600 font-medium">متصل الآن</p>
+              </div>
+            </div>
           </div>
           
           {/* Gift button */}

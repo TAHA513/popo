@@ -923,17 +923,27 @@ export default function ChatPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           
-          <div className="flex items-center space-x-2 space-x-reverse">
-            <img
-              src={otherUser?.profileImageUrl || '/uploads/default-avatar.png'}
-              alt={otherUser?.username || 'User'}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+          <div 
+            className="flex items-center space-x-2 space-x-reverse cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors"
+            onClick={() => setLocation(`/profile/${otherUser?.username}`)}
+          >
+            <div className="relative">
+              <img
+                src={otherUser?.profileImageUrl || '/uploads/default-avatar.png'}
+                alt={otherUser?.username || 'User'}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+              {/* Online status indicator */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
             <div>
-              <h2 className="font-semibold text-gray-800">
+              <h2 className="font-semibold text-gray-800 hover:text-purple-600 transition-colors">
                 {otherUser?.firstName || otherUser?.username || 'مستخدم'}
               </h2>
-              <p className="text-sm text-gray-500">@{otherUser?.username}</p>
+              <div className="flex items-center space-x-1 space-x-reverse">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <p className="text-sm text-green-600 font-medium">متصل الآن</p>
+              </div>
             </div>
           </div>
         </div>
