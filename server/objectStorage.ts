@@ -46,35 +46,27 @@ export class ObjectStorageService {
           .filter((path) => path.length > 0)
       )
     );
-    if (paths.length === 0) {
-      throw new Error(
-        "PUBLIC_OBJECT_SEARCH_PATHS not set. Create a bucket in 'Object Storage' " +
-          "tool and set PUBLIC_OBJECT_SEARCH_PATHS env var (comma-separated paths)."
-      );
-    }
     return paths;
+  }
+  
+  // Check if object storage is available
+  isObjectStorageAvailable(): boolean {
+    return this.getPublicObjectSearchPaths().length > 0 && 
+           process.env.PRIVATE_OBJECT_DIR ? true : false;
   }
 
   // Gets the private object directory.
   getPrivateObjectDir(): string {
-    const dir = process.env.PRIVATE_OBJECT_DIR || "";
-    if (!dir) {
-      throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
-      );
-    }
-    return dir;
+    return process.env.PRIVATE_OBJECT_DIR || "";
   }
 
   // Upload a file to public storage and return the public URL
   async uploadToPublicStorage(buffer: Buffer, filename: string, mimeType: string): Promise<string> {
-    const searchPaths = this.getPublicObjectSearchPaths();
-    if (searchPaths.length === 0) {
-      throw new Error("No public storage paths configured");
+    if (!this.isObjectStorageAvailable()) {
+      throw new Error("Object Storage not available in this environment");
     }
     
-    // Use the first public path for uploads
+    const searchPaths = this.getPublicObjectSearchPaths();
     const uploadPath = searchPaths[0];
     const fullPath = `${uploadPath}/${filename}`;
     
@@ -95,6 +87,10 @@ export class ObjectStorageService {
 
   // Search for a public object from the search paths.
   async searchPublicObject(filePath: string): Promise<File | null> {
+    if (!this.isObjectStorageAvailable()) {
+      return null;
+    }
+    
     for (const searchPath of this.getPublicObjectSearchPaths()) {
       const fullPath = `${searchPath}/${filePath}`;
 

@@ -1,0 +1,42 @@
+
+1:12:33 AM [express] POST /api/memories/29/view 200 in 1431ms :: {"success":true,"viewCount":"3"}
+1:12:34 AM [express] GET /api/memories/24/gifts 200 in 1536ms :: []
+1:12:34 AM [express] GET /api/media/legacy-uploads/1754758490511-00cee3d40bc87a55ad57b116f8241acb.jp…
+Error searching for public object: Error: PUBLIC_OBJECT_SEARCH_PATHS not set. Create a bucket in 'Object Storage' tool and set PUBLIC_OBJECT_SEARCH_PATHS env var (comma-separated paths).
+    at ObjectStorageService.getPublicObjectSearchPaths (file:///opt/render/project/src/dist/index.js:2970:13)
+    at ObjectStorageService.searchPublicObject (file:///opt/render/project/src/dist/index.js:3006:35)
+    at file:///opt/render/project/src/dist/index.js:4328:40
+    at Layer.handle [as handle_request] (/opt/render/project/src/node_modules/express/lib/router/layer.js:95:5)
+    at next (/opt/render/project/src/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/opt/render/project/src/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/opt/render/project/src/node_modules/express/lib/router/layer.js:95:5)
+    at /opt/render/project/src/node_modules/express/lib/router/index.js:284:15
+    at param (/opt/render/project/src/node_modules/express/lib/router/index.js:365:14)
+    at param (/opt/render/project/src/node_modules/express/lib/router/index.js:376:14)
+1:12:34 AM [express] GET /api/media/legacy-uploads/1754758312689-%C3%98%C2%A7%C3%98%C2%AC%C3%99%C2%8…
+1:12:34 AM [express] GET /api/users/OFFICIAL-95424887205161159c/follow-status 200 in 1746ms :: {"isF…
+1:12:34 AM [express] GET /api/media/legacy-uploads/1754758201864-1000197871.mp4 206 in 1652ms
+1:12:34 AM [express] POST /api/memories/28/view 200 in 1718ms :: {"success":true,"viewCount":"3"}
+1:12:34 AM [express] GET /api/memories/29/gifts 200 in 1885ms :: []
+1:12:34 AM [express] GET /api/users/xYCWKrFN5PtNpeOzFvrai/follow-status 200 in 2144ms :: {"isFollowi…
+1:12:34 AM [express] GET /api/media/legacy-uploads/1754758448593-%C3%98%C2%B3%C3%98%C2%AA%C3%99%C2%8…
+1:12:34 AM [express] POST /api/memories/25/view 200 in 1758ms :: {"success":true,"viewCount":"4"}
+1:12:34 AM [express] GET /api/media/proxy 200 in 1249ms
+1:12:34 AM [express] GET /api/memories/27/gifts 200 in 2157ms :: []
+1:12:34 AM [express] POST /api/memories/24/view 200 in 1775ms :: {"success":true,"viewCount":"4"}
+1:12:34 AM [express] GET /api/users/S6YmYPOXvY80kOEdCuqRy/follow-status 200 in 2235ms :: {"isFollowi…
+1:12:34 AM [express] GET /api/users/4OsJBdkrkj8RyijMOG6OR/follow-status 200 in 1433ms :: {"isFollowi…
+1:12:34 AM [express] GET /api/users/OFFICIAL-95424887205161159c/follow-status 200 in 93ms :: {"isFol…
+1:12:34 AM [express] GET /api/messages/conversations 200 in 501ms :: [{"otherUser":{"id":"Q4C26soOmX…
+1:12:34 AM [express] POST /api/memories/26/view 200 in 1995ms :: {"success":true,"viewCount":"3"}
+1:12:35 AM [express] GET /api/users/OFFICIAL-95424887205161159c/follow-status 200 in 85ms :: {"isFol…
+Error creating memory: Error: PUBLIC_OBJECT_SEARCH_PATHS not set. Create a bucket in 'Object Storage' tool and set PUBLIC_OBJECT_SEARCH_PATHS env var (comma-separated paths).
+    at ObjectStorageService.getPublicObjectSearchPaths (file:///opt/render/project/src/dist/index.js:2970:13)
+    at ObjectStorageService.uploadToPublicStorage (file:///opt/render/project/src/dist/index.js:2988:30)
+    at file:///opt/render/project/src/dist/index.js:5107:48
+    at Layer.handle [as handle_request] (/opt/render/project/src/node_modules/express/lib/router/layer.js:95:5)
+    at next (/opt/render/project/src/node_modules/express/lib/router/route.js:149:13)
+    at done (/opt/render/project/src/node_modules/multer/lib/make-middleware.js:59:7)
+    at indicateDone (/opt/render/project/src/node_modules/multer/lib/make-middleware.js:63:68)
+    at Multipart.<anonymous> (/opt/render/project/src/node_modules/multer/lib/make-middleware.js:187:7)
+    a

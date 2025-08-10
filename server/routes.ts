@@ -224,6 +224,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/public-objects/:filePath(*)', async (req, res) => {
     const filePath = req.params.filePath;
     try {
+      if (!objectStorage.isObjectStorageAvailable()) {
+        return res.status(404).json({ error: "Object storage not available" });
+      }
+      
       const file = await objectStorage.searchPublicObject(filePath);
       if (!file) {
         return res.status(404).json({ error: "File not found" });
@@ -1156,12 +1160,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ext = path.extname(file.originalname);
       const filename = `profile-${userId}-${timestamp}${ext}`;
 
-      // Upload to cloud storage
-      const profileImageUrl = await objectStorage.uploadToPublicStorage(
-        file.buffer, 
-        filename, 
-        file.mimetype
-      );
+      // Try cloud storage first, fallback to legacy if not available
+      let profileImageUrl: string;
+      if (objectStorage.isObjectStorageAvailable()) {
+        try {
+          profileImageUrl = await objectStorage.uploadToPublicStorage(
+            file.buffer, 
+            filename, 
+            file.mimetype
+          );
+        } catch (error) {
+          console.warn("Cloud storage failed for profile image, falling back to legacy:", error);
+          // Fallback to legacy file system
+          const legacyPath = path.join(process.cwd(), 'uploads', filename);
+          await fs.writeFile(legacyPath, file.buffer);
+          profileImageUrl = `/api/media/legacy-uploads/${filename}`;
+        }
+      } else {
+        // Use legacy file system when cloud storage unavailable
+        const legacyPath = path.join(process.cwd(), 'uploads', filename);
+        await fs.writeFile(legacyPath, file.buffer);
+        profileImageUrl = `/api/media/legacy-uploads/${filename}`;
+      }
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
@@ -1198,12 +1218,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ext = path.extname(file.originalname);
       const filename = `cover-${userId}-${timestamp}${ext}`;
 
-      // Upload to cloud storage
-      const coverImageUrl = await objectStorage.uploadToPublicStorage(
-        file.buffer, 
-        filename, 
-        file.mimetype
-      );
+      // Try cloud storage first, fallback to legacy if not available
+      let coverImageUrl: string;
+      if (objectStorage.isObjectStorageAvailable()) {
+        try {
+          coverImageUrl = await objectStorage.uploadToPublicStorage(
+            file.buffer, 
+            filename, 
+            file.mimetype
+          );
+        } catch (error) {
+          console.warn("Cloud storage failed for cover image, falling back to legacy:", error);
+          // Fallback to legacy file system
+          const legacyPath = path.join(process.cwd(), 'uploads', filename);
+          await fs.writeFile(legacyPath, file.buffer);
+          coverImageUrl = `/api/media/legacy-uploads/${filename}`;
+        }
+      } else {
+        // Use legacy file system when cloud storage unavailable
+        const legacyPath = path.join(process.cwd(), 'uploads', filename);
+        await fs.writeFile(legacyPath, file.buffer);
+        coverImageUrl = `/api/media/legacy-uploads/${filename}`;
+      }
       
       console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
       
@@ -1251,12 +1287,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const ext = path.extname(file.originalname);
           const fileName = `memory-${userId}-${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
           
-          // Upload to cloud storage
-          const mediaUrl = await objectStorage.uploadToPublicStorage(
-            file.buffer, 
-            fileName, 
-            file.mimetype
-          );
+          // Try cloud storage first, fallback to legacy if not available
+          let mediaUrl: string;
+          if (objectStorage.isObjectStorageAvailable()) {
+            try {
+              mediaUrl = await objectStorage.uploadToPublicStorage(
+                file.buffer, 
+                fileName, 
+                file.mimetype
+              );
+            } catch (error) {
+              console.warn("Cloud storage failed, falling back to legacy upload:", error);
+              // Fallback to legacy file system
+              const legacyPath = path.join(process.cwd(), 'uploads', fileName);
+              await fs.promises.writeFile(legacyPath, file.buffer);
+              mediaUrl = `/api/media/legacy-uploads/${fileName}`;
+            }
+          } else {
+            // Use legacy file system when cloud storage unavailable
+            const legacyPath = path.join(process.cwd(), 'uploads', fileName);
+            await fs.promises.writeFile(legacyPath, file.buffer);
+            mediaUrl = `/api/media/legacy-uploads/${fileName}`;
+          }
           
           mediaUrls.push(mediaUrl);
         }
