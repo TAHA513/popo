@@ -2898,7 +2898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced multi-source media serving
   await fs.mkdir('uploads', { recursive: true });
   
-  // Enhanced media handler with automatic sync and fallback
+  // Custom media handler that tries multiple sources
   app.get('/api/media/*', async (req, res) => {
     const filePath = req.params[0];
     const localFilePath = path.join('uploads', filePath);
@@ -2909,39 +2909,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.sendFile(path.resolve(localFilePath));
       }
       
-      console.log(`🔍 File not found locally: ${filePath}`);
-      
-      // Try to find the file in database first to get better source URLs
-      let memoryRecord = null;
-      try {
-        memoryRecord = await db.select().from(memories).where(
-          sql`media_urls LIKE ${'%' + filePath + '%'}`
-        ).limit(1);
-        
-        if (memoryRecord.length > 0) {
-          console.log(`📁 Found file reference in database for: ${filePath}`);
-        }
-      } catch (dbError) {
-        console.log('Database check failed:', dbError);
-      }
-      
       // If not found locally, try external URLs for cross-platform access
-      // Enhanced external sources with more comprehensive patterns
+      // Get external sources from environment or use comprehensive defaults
       const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
         process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
-          // Primary deployment URLs - most likely to have files
+          // Primary deployment URLs
           'https://laaboboo.onrender.com',
-          'https://laabobo.onrender.com', 
           'https://laabobo-live.onrender.com',
           'https://laabobo-api.onrender.com',
-          // Alternative patterns
+          // Alternative naming patterns
           'https://laaboboo-api.onrender.com',
           'https://laaboboo-live.onrender.com',
-          'https://laabobo-live-api.onrender.com',
-          // Additional possible patterns
-          'https://laaboboo-live-api.onrender.com',
-          'https://laabobo-garden.onrender.com',
-          'https://laaboboo-garden.onrender.com'
+          'https://laabobo.onrender.com',
+          'https://laabobo-live-api.onrender.com'
         ];
         
       // Try both direct uploads and API routes
@@ -3003,15 +2983,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             res.set('Content-Type', finalContentType);
             res.set('Cache-Control', 'public, max-age=3600');
             res.set('Access-Control-Allow-Origin', '*');
-            
-            // Cache the file locally for future requests
-            try {
-              await fs.writeFile(localFilePath, Buffer.from(buffer));
-              console.log(`💾 Cached file locally: ${filePath}`);
-            } catch (cacheError) {
-              console.log('Failed to cache file locally:', cacheError);
-            }
-            
             return res.send(Buffer.from(buffer));
           } else {
             console.log(`❌ ${url} returned ${response.status}`);
@@ -3042,81 +3013,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   const expressModule = await import('express');
   app.use('/uploads', expressModule.static('uploads'));
-
-  // Automatic media sync endpoint - fetches missing files and updates locally
-  app.post('/api/sync-media', async (req, res) => {
-    try {
-      console.log('🔄 Starting automatic media sync...');
-      
-      // Get all memories that might have missing media
-      const allMemories = await db.select({
-        id: memories.id,
-        mediaUrls: memories.mediaUrls,
-        authorId: memories.authorId
-      }).from(memories).where(isNotNull(memories.mediaUrls));
-      
-      let syncCount = 0;
-      let foundCount = 0;
-      
-      for (const memory of allMemories) {
-        if (!memory.mediaUrls) continue;
-        
-        const mediaUrls = Array.isArray(memory.mediaUrls) ? memory.mediaUrls : [memory.mediaUrls];
-        
-        for (const mediaUrl of mediaUrls) {
-          if (!mediaUrl) continue;
-          
-          // Extract filename from URL
-          const fileName = mediaUrl.replace('/uploads/', '').replace('uploads/', '');
-          const localPath = path.join('uploads', fileName);
-          
-          // Check if file exists locally
-          const exists = await fs.access(localPath).then(() => true).catch(() => false);
-          
-          if (!exists) {
-            console.log(`🔍 Attempting to sync: ${fileName}`);
-            
-            // Try to fetch from external sources
-            const externalUrls = [
-              'https://laaboboo.onrender.com',
-              'https://laabobo.onrender.com',
-              'https://laabobo-live.onrender.com'
-            ];
-            
-            for (const baseUrl of externalUrls) {
-              try {
-                const testUrl = `${baseUrl}/uploads/${fileName}`;
-                const response = await fetch(testUrl);
-                
-                if (response.ok && !response.headers.get('content-type')?.includes('text/html')) {
-                  const buffer = await response.arrayBuffer();
-                  await fs.writeFile(localPath, Buffer.from(buffer));
-                  console.log(`✅ Synced: ${fileName}`);
-                  foundCount++;
-                  break;
-                }
-              } catch (error) {
-                // Continue to next source
-              }
-            }
-            syncCount++;
-          }
-        }
-      }
-      
-      console.log(`🎉 Sync complete: ${foundCount}/${syncCount} files synced`);
-      res.json({ 
-        success: true, 
-        message: `Media sync completed: ${foundCount}/${syncCount} files synced`,
-        syncedCount: foundCount,
-        totalChecked: syncCount
-      });
-      
-    } catch (error) {
-      console.error('Media sync error:', error);
-      res.status(500).json({ message: 'Sync failed', error: error.message });
-    }
-  });
 
 
 
