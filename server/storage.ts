@@ -941,6 +941,8 @@ export class DatabaseStorage implements IStorage {
           profileImageUrl: users.profileImageUrl,
           points: users.points,
           isStreamer: users.isStreamer,
+          isVerified: users.isVerified,
+          verificationBadge: users.verificationBadge,
         },
       })
       .from(memoryFragments)

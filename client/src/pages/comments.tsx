@@ -59,18 +59,25 @@ export default function CommentsPage() {
   }, [memoryId]);
 
   const fetchMemoryAndComments = async () => {
+    console.log('🔄 بدء جلب البيانات للذكرى:', memoryId);
     try {
       // جلب المنشور
+      console.log('📝 جلب معلومات المنشور...');
       const memoryResponse = await fetch(`/api/memories/${memoryId}`);
+      console.log('📝 استجابة المنشور:', memoryResponse.status);
       if (memoryResponse.ok) {
         const memoryData = await memoryResponse.json();
+        console.log('📝 بيانات المنشور:', memoryData);
         setMemory(memoryData);
       }
 
       // جلب التعليقات
+      console.log('💬 جلب التعليقات...');
       const commentsResponse = await fetch(`/api/memories/${memoryId}/comments`);
+      console.log('💬 استجابة التعليقات:', commentsResponse.status);
       if (commentsResponse.ok) {
         const commentsData = await commentsResponse.json();
+        console.log('💬 بيانات التعليقات:', commentsData);
         setComments(commentsData);
       } else {
         console.error('فشل في جلب التعليقات');
@@ -79,6 +86,7 @@ export default function CommentsPage() {
     } catch (error) {
       console.error('خطأ في جلب البيانات:', error);
     } finally {
+      console.log('✅ انتهى التحميل');
       setIsLoading(false);
     }
   };
