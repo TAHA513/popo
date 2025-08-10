@@ -14,7 +14,7 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
-  console.log('🌐 إرسال طلب API:', { url, method, data });
+  console.log('🌐 إرسال طلب API:', { url: url, method: method, data: data });
   
   const res = await fetch(url, {
     method,
