@@ -141,6 +141,30 @@ export default function SimplePrivateChatPage() {
     }
   });
 
+  // تحديث الإشعارات عند فتح المحادثة
+  useEffect(() => {
+    if (otherUserId && messages.length > 0) {
+      const markAsRead = async () => {
+        try {
+          await fetch(`/api/messages/${otherUserId}/read`, {
+            method: 'PUT',
+            credentials: 'include',
+          });
+          // تحديث عداد الإشعارات
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+        } catch (error) {
+          console.error('Error marking messages as read:', error);
+        }
+      };
+      markAsRead();
+    }
+  }, [otherUserId, messages.length, queryClient]);
+
+  // التمرير لأسفل عند تغيير الرسائل
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       sendMessage.mutate(newMessage.trim());
@@ -229,14 +253,21 @@ export default function SimplePrivateChatPage() {
                       }`}
                     >
                       <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-1 ${
+                      <div className={`text-xs mt-1 flex items-center justify-between ${
                         message.senderId === user?.id ? 'text-purple-100' : 'text-gray-500'
                       }`}>
-                        {new Date(message.createdAt).toLocaleTimeString('ar', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
+                        <span>
+                          {new Date(message.createdAt).toLocaleTimeString('ar', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        {message.senderId === user?.id && (
+                          <span className="mr-2">
+                            {message.isRead ? '✓✓' : '✓'}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))

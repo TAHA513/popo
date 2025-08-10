@@ -193,4 +193,32 @@ export function setupSimpleMessageRoutes(app: Express) {
       res.status(500).json({ message: "فشل في جلب المحادثات" });
     }
   });
+
+  // Mark messages as read for a specific conversation
+  app.put('/api/messages/:userId/read', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.id;
+      const otherUserId = req.params.userId;
+
+      console.log('📖 تحديد الرسائل كمقروءة:', { currentUserId, otherUserId });
+
+      // Mark all unread messages from the other user as read
+      const result = await db
+        .update(messages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(messages.senderId, otherUserId),
+            eq(messages.recipientId, currentUserId),
+            eq(messages.isRead, false)
+          )
+        );
+
+      console.log('✅ تم تحديد الرسائل كمقروءة:', result);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ message: "Failed to mark messages as read" });
+    }
+  });
 }
