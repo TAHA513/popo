@@ -17,6 +17,8 @@ Gift System: Fully activated across all platform components with real working tr
 - ✅ **EXTERNAL DEPLOYMENT READY**: Made REPLIT_DOMAINS optional for external deployments (Render)
 - ✅ **SSL CONFIGURATION**: Added proper SSL support for external database connections
 - ✅ **PRODUCTION BUILD FIX**: Resolved production deployment issues with environment variables
+- ✅ **LEGACY MEDIA FILES SUPPORT**: Fixed 404 errors for legacy uploads with proper static middleware
+- ✅ **ACCESSIBILITY IMPROVEMENTS**: Added DialogTitle and DialogDescription to gift modal for screen readers
 - ✅ Activated complete gift system with 13 default gift items ranging from 10-2000 points
 - ✅ Integrated gift icons and functionality across live streams, messages, and chat pages
 - ✅ Added 3D animated gift effects with framer-motion
