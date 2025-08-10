@@ -31,7 +31,7 @@ export default function Feed() {
   });
 
   // Fetch public memories/posts
-  const { data: memories = [], isLoading: memoriesLoading } = useQuery({
+  const { data: memories = [], isLoading: memoriesLoading, error: memoriesError } = useQuery({
     queryKey: ['/api/memories/public'],
     refetchInterval: 15000, // كل 15 ثانية - متوازن
     staleTime: 0,
@@ -41,6 +41,15 @@ export default function Feed() {
 
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
+  
+  // Debug info shows data loading status
+  React.useEffect(() => {
+    console.log('🔍 Feed Status:', {
+      memoriesCount: typedMemories.length,
+      isLoading: memoriesLoading,
+      hasData: typedMemories.length > 0
+    });
+  }, [typedMemories.length, memoriesLoading]);
 
   const handleJoinStream = (streamId: number) => {
     window.location.href = `/stream/${streamId}`;
@@ -173,6 +182,15 @@ export default function Feed() {
 
   const isLoading = streamsLoading || memoriesLoading;
 
+  // Show current loading state
+  if (memoriesLoading) {
+    console.log('⏳ Still loading memories...');
+  } else if (typedMemories.length > 0) {
+    console.log(`✅ ${typedMemories.length} memories loaded successfully`);
+  } else {
+    console.log('⚠️ No memories found');
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -258,7 +276,7 @@ export default function Feed() {
         <div>
           <h2 className="text-2xl font-bold mb-4 text-gray-800">آخر المنشورات</h2>
           
-          {typedMemories.length === 0 && typedStreams.length === 0 ? (
+          {typedMemories.length === 0 ? (
             <Card className="p-12 text-center">
               <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد منشورات حالياً</h3>
@@ -269,7 +287,9 @@ export default function Feed() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {typedMemories.map((memory) => (
+              {typedMemories.map((memory, index) => {
+                console.log(`🔍 Rendering memory ${index}:`, memory.id, memory.type);
+                return (
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
@@ -572,7 +592,8 @@ export default function Feed() {
                     </div>
                   </div>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
