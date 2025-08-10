@@ -94,8 +94,7 @@ export function setupSimpleMessageRoutes(app: Express) {
           .limit(1);
 
         if (blockCheck) {
-          console.log('🚫 رسالة محظورة في simple-messages: المرسل محظور من المستقبل', { senderId, recipientId });
-          return res.status(403).json({ message: "لا يمكنك إرسال رسائل لهذا المستخدم" });
+          return res.status(403).json({ message: "تم حظرك من قِبل هذا المستخدم. لا يمكنك إرسال رسائل إليه." });
         }
 
         // Check if recipient is blocked by sender
@@ -111,11 +110,10 @@ export function setupSimpleMessageRoutes(app: Express) {
           .limit(1);
 
         if (blockCheck2) {
-          console.log('🚫 رسالة محظورة في simple-messages: المستقبل محظور من المرسل', { senderId, recipientId });
-          return res.status(403).json({ message: "لا يمكنك إرسال رسائل لمستخدم محظور" });
+          return res.status(403).json({ message: "لقد قمت بحظر هذا المستخدم. قم بإلغاء الحظر أولاً لإرسال الرسائل." });
         }
       } catch (error) {
-        console.log('⚠️ خطأ في فحص البلوك في simple-messages، سيتم السماح بالرسالة:', error);
+        console.log('⚠️ خطأ في فحص البلوك، سيتم السماح بالرسالة:', error);
       }
 
       // Insert the message directly
