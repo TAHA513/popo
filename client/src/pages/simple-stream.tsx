@@ -38,6 +38,9 @@ export default function SimpleStreamPage() {
   });
 
   useEffect(() => {
+    // مسح أي أخطاء سابقة عند تحميل الصفحة
+    setError('');
+    
     // إذا كان هناك بث نشط، توجه المستخدم إليه مباشرة
     if (activeStream && activeStream.id) {
       console.log('🎯 تم العثور على بث نشط، التوجه إليه:', activeStream.id);
@@ -50,6 +53,13 @@ export default function SimpleStreamPage() {
       setIsChecking(false);
     }
   }, [activeStream, checkingStream, setLocation]);
+
+  // مسح الخطأ عند تغيير النص
+  useEffect(() => {
+    if (error && (chatTitle !== "دردشة سريعة جديدة" || chatDescription !== "دردشة مباشرة نصية")) {
+      setError('');
+    }
+  }, [chatTitle, chatDescription, error]);
 
   const createChat = async () => {
     if (!chatTitle.trim()) {
@@ -164,7 +174,11 @@ export default function SimpleStreamPage() {
                 <label className="text-sm font-medium text-gray-300">عنوان الدردشة</label>
                 <Input
                   value={chatTitle}
-                  onChange={(e) => setChatTitle(e.target.value)}
+                  onChange={(e) => {
+                    setChatTitle(e.target.value);
+                    // مسح الخطأ عند بدء الكتابة
+                    if (error) setError('');
+                  }}
                   placeholder="أدخل عنوان الدردشة"
                   className="bg-white/10 border-white/30 text-white placeholder:text-gray-400 focus:border-green-400"
                 />
@@ -174,7 +188,11 @@ export default function SimpleStreamPage() {
                 <label className="text-sm font-medium text-gray-300">وصف الدردشة</label>
                 <Textarea
                   value={chatDescription}
-                  onChange={(e) => setChatDescription(e.target.value)}
+                  onChange={(e) => {
+                    setChatDescription(e.target.value);
+                    // مسح الخطأ عند بدء الكتابة
+                    if (error) setError('');
+                  }}
                   placeholder="وصف مختصر للدردشة"
                   className="bg-white/10 border-white/30 text-white placeholder:text-gray-400 focus:border-green-400"
                   rows={3}
