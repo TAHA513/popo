@@ -83,7 +83,7 @@ export default function SimplePrivateChatPage() {
       if (!response.ok) throw new Error('فشل في جلب الرسائل');
       return response.json();
     },
-    refetchInterval: 3000 // تحديث كل 3 ثوان
+    refetchInterval: 2000 // تحديث كل 2 ثوان
   });
 
   // إرسال رسالة نصية
@@ -129,11 +129,24 @@ export default function SimplePrivateChatPage() {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       console.log('✅ نجح الإرسال، تحديث البيانات...');
       setNewMessage("");
-      refetchMessages();
+      
+      // تحديث الرسائل بالرسالة الصحيحة من الخادم
+      queryClient.setQueryData([`/api/messages/${otherUserId}`], (oldData: any) => {
+        if (oldData && Array.isArray(oldData)) {
+          // إزالة الرسائل المؤقتة وإضافة الرسالة الحقيقية
+          const realMessages = oldData.filter(msg => typeof msg.id === 'number' && msg.id < 1000000000000);
+          return [...realMessages, data];
+        }
+        return [data];
+      });
+      
+      // تحديث البيانات من الخادم
+      setTimeout(() => refetchMessages(), 500);
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
     },
     onError: (error) => {
       console.error('❌ فشل إرسال الرسالة:', error);
@@ -146,19 +159,26 @@ export default function SimplePrivateChatPage() {
     if (otherUserId && messages.length > 0) {
       const markAsRead = async () => {
         try {
-          await fetch(`/api/messages/${otherUserId}/read`, {
+          console.log(`📖 تحديد رسائل المحادثة كمقروءة من المستخدم: ${otherUserId}`);
+          const response = await fetch(`/api/messages/${otherUserId}/read`, {
             method: 'PUT',
             credentials: 'include',
           });
-          // تحديث عداد الإشعارات
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+          
+          if (response.ok) {
+            console.log('✅ تم تحديد الرسائل كمقروءة بنجاح');
+            // تحديث عداد الإشعارات فوراً
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+            // تحديث الرسائل لإظهار حالة القراءة
+            setTimeout(() => refetchMessages(), 100);
+          }
         } catch (error) {
-          console.error('Error marking messages as read:', error);
+          console.error('❌ خطأ في تحديد الرسائل كمقروءة:', error);
         }
       };
       markAsRead();
     }
-  }, [otherUserId, messages.length, queryClient]);
+  }, [otherUserId, messages.length, queryClient, refetchMessages]);
 
   // التمرير لأسفل عند تغيير الرسائل
   useEffect(() => {
@@ -167,7 +187,34 @@ export default function SimplePrivateChatPage() {
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      sendMessage.mutate(newMessage.trim());
+      const messageText = newMessage.trim();
+      
+      // إضافة الرسالة فوراً للواجهة (optimistic update)
+      const tempMessage = {
+        id: Date.now(), // temporary ID
+        senderId: user?.id || '',
+        recipientId: otherUserId || '',
+        content: messageText,
+        messageType: 'text',
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        senderInfo: {
+          id: user?.id || '',
+          username: user?.username || '',
+          firstName: user?.firstName || '',
+          profileImageUrl: user?.profileImageUrl || ''
+        }
+      };
+      
+      // تحديث فوري للواجهة
+      queryClient.setQueryData([`/api/messages/${otherUserId}`], (oldData: any) => {
+        if (oldData && Array.isArray(oldData)) {
+          return [...oldData, tempMessage];
+        }
+        return [tempMessage];
+      });
+      
+      sendMessage.mutate(messageText);
     }
   };
 
