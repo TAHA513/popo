@@ -46,27 +46,27 @@ export default function SimpleStreamPage() {
       
       console.log("✅ Chat created successfully:", response);
       
-      // التعامل مع الاستجابة بطرق متعددة
+      // التعامل مع الاستجابة - من logs نرى أن الخادم يرجع:
+      // {"success":true,"data":{"id":125,...},...otherProps}
       let chatId = null;
       
       if (response) {
-        // البحث عن معرف البث بطرق مختلفة
-        // الخادم يرجع البيانات في عدة أماكن محتملة
-        chatId = response.data?.id ||  // داخل data
-                 response.id ||        // مباشرة في response (بسبب ...stream)
-                 response.streamId ||  // احتمال آخر
-                 (response.success && response.data && response.data.id); // التأكد من النجاح
+        console.log("🔍 Full response:", response);
         
-        console.log("🔍 Extracted chat ID:", chatId);
-        console.log("📋 Full response structure:", {
-          hasData: !!response.data,
-          hasId: !!response.id,
-          hasSuccess: !!response.success,
-          success: response.success,
-          dataId: response.data?.id,
-          directId: response.id,
-          responseKeys: Object.keys(response)
-        });
+        // من logs الخادم، البيانات في response.data.id
+        if (response.success && response.data && response.data.id) {
+          chatId = response.data.id;
+          console.log("✅ Found chat ID in response.data:", chatId);
+        } else if (response.id) {
+          chatId = response.id;
+          console.log("✅ Found chat ID in response.id:", chatId);
+        } else {
+          console.log("❌ No ID found in response structure");
+          console.log("Response keys:", Object.keys(response));
+          console.log("Response.data:", response.data);
+        }
+      } else {
+        console.log("❌ No response received");
       }
       
       if (chatId) {
