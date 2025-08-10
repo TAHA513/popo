@@ -1113,7 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // General file upload endpoint
+  // General file upload endpoint - Updated for stable storage like asaad111
   app.post('/api/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
@@ -1126,25 +1126,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimetype: req.file.mimetype
       });
 
-      // Save to local storage with proper filename generation
+      // Create stable filename like asaad111 system
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
       const timestamp = Date.now();
       const ext = path.extname(req.file.originalname);
-      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-      const localPath = path.join('uploads', filename);
+      const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 
+                      req.file.mimetype.startsWith('video/') ? 'video' : 'file';
+      const stableFilename = `${fileType}-${userId}-${user?.username || 'user'}-${timestamp}${ext}`;
+      const localPath = path.join('uploads', stableFilename);
       
       await fs.writeFile(localPath, req.file.buffer);
-      const fileUrl = `/uploads/${filename}`;
+      const fileUrl = `/uploads/${stableFilename}`;
       
-      console.log('✅ File saved successfully:', fileUrl);
+      console.log('✅ File saved with stable filename:', fileUrl);
       
       res.json({
         success: true,
         fileUrl,
-        filename,
+        filename: stableFilename,
         originalName: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype,
-        storage: 'local'
+        storage: 'local-stable'
       });
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -1162,25 +1166,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Save to local storage
-      const timestamp = Date.now();
+      // Create a stable filename like asaad111 (user-based instead of timestamp)
+      const user = await storage.getUser(userId);
       const ext = path.extname(file.originalname);
-      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-      const localPath = path.join('uploads', filename);
+      const stableFilename = `profile-${userId}-${user?.username || 'user'}${ext}`;
+      const localPath = path.join('uploads', stableFilename);
+      
+      // Remove old profile image if exists
+      try {
+        const oldUser = await storage.getUser(userId);
+        if (oldUser?.profileImageUrl) {
+          const oldFilename = oldUser.profileImageUrl.replace('/uploads/', '');
+          const oldPath = path.join('uploads', oldFilename);
+          await fs.unlink(oldPath).catch(() => {}); // Ignore if doesn't exist
+        }
+      } catch (error) {
+        console.log('Note: Could not remove old profile image');
+      }
       
       await fs.writeFile(localPath, file.buffer);
-      const profileImageUrl = `/uploads/${filename}`;
+      const profileImageUrl = `/uploads/${stableFilename}`;
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
       
-      console.log('✅ Profile image saved successfully:', profileImageUrl);
+      console.log('✅ Profile image saved successfully with stable filename:', profileImageUrl);
       
       res.json({ 
         success: true, 
         profileImageUrl,
         message: "تم تحديث الصورة الشخصية بنجاح",
-        storage: 'local'
+        storage: 'local-stable'
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -1188,7 +1204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cover image upload endpoint
+  // Cover image upload endpoint - Updated for stable filenames
   app.post('/api/upload/cover-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -1196,7 +1212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('🔄 Cover image upload request:', {
         userId,
-        file: file ? { filename: file.filename, originalname: file.originalname, size: file.size } : null
+        file: file ? { originalname: file.originalname, size: file.size } : null
       });
       
       if (!file) {
@@ -1204,20 +1220,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // The file is already saved by multer, just use its filename
-      const coverImageUrl = `/uploads/${file.filename}`;
+      // Create a stable filename like asaad111 (user-based instead of timestamp)
+      const user = await storage.getUser(userId);
+      const ext = path.extname(file.originalname);
+      const stableFilename = `cover-${userId}-${user?.username || 'user'}${ext}`;
+      const localPath = path.join('uploads', stableFilename);
       
-      console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
+      // Remove old cover image if exists
+      try {
+        const oldUser = await storage.getUser(userId);
+        if (oldUser?.coverImageUrl) {
+          const oldFilename = oldUser.coverImageUrl.replace('/uploads/', '');
+          const oldPath = path.join('uploads', oldFilename);
+          await fs.unlink(oldPath).catch(() => {}); // Ignore if doesn't exist
+        }
+      } catch (error) {
+        console.log('Note: Could not remove old cover image');
+      }
+      
+      await fs.writeFile(localPath, file.buffer);
+      const coverImageUrl = `/uploads/${stableFilename}`;
+      
+      console.log('📝 Updating database with stable coverImageUrl:', coverImageUrl);
       
       // Update user cover image URL in database
-      await db.update(users).set({ coverImageUrl: coverImageUrl }).where(eq(users.id, userId));
+      await db.update(users).set({ coverImageUrl }).where(eq(users.id, userId));
       
-      console.log('✅ Cover image uploaded successfully for user:', userId);
+      console.log('✅ Cover image uploaded successfully with stable filename:', coverImageUrl);
       
       res.json({ 
         success: true, 
         coverImageUrl,
-        message: "تم تحديث صورة الغلاف بنجاح" 
+        message: "تم تحديث صورة الغلاف بنجاح",
+        storage: 'local-stable'
       });
     } catch (error) {
       console.error('❌ Error uploading cover image:', error);
@@ -1247,16 +1282,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       
       if (files && files.length > 0) {
-        for (const file of files) {
-          // Save to local storage
-          const timestamp = Date.now();
+        const user = await storage.getUser(userId);
+        const timestamp = Date.now();
+        
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          // Create stable filename like asaad111 system
           const ext = path.extname(file.originalname);
-          const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-          const localPath = path.join('uploads', filename);
+          const contentHash = title ? title.substring(0, 8).replace(/[^a-zA-Z0-9]/g, '') : 'post';
+          const stableFilename = `memory-${userId}-${user?.username || 'user'}-${timestamp}-${i}-${contentHash}${ext}`;
+          const localPath = path.join('uploads', stableFilename);
           
           await fs.writeFile(localPath, file.buffer);
-          const fileUrl = `/uploads/${filename}`;
-          console.log('📁 File saved successfully:', fileUrl);
+          const fileUrl = `/uploads/${stableFilename}`;
+          console.log('📁 File saved with stable filename:', fileUrl);
           mediaUrls.push(fileUrl);
         }
       }
