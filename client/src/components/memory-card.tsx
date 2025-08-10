@@ -236,13 +236,19 @@ export default function MemoryCard({
         <CardContent className="p-0">
           <div className="relative">
             {memory.type === 'image' && memory.thumbnailUrl ? (
-              <Link href={`/memory/${memory.id}`}>
+              <div 
+                className="relative cursor-pointer"
+                onClick={() => {
+                  // فتح الصورة في viewer بدلاً من صفحة التعليقات
+                  window.open(memory.thumbnailUrl, '_blank');
+                }}
+              >
                 <img
                   src={memory.thumbnailUrl}
                   alt={memory.title || 'Memory'}
                   className="w-full h-64 object-cover cursor-pointer hover:opacity-95 transition-opacity"
                 />
-              </Link>
+              </div>
             ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
               <div 
                 className="relative cursor-pointer"
@@ -272,11 +278,12 @@ export default function MemoryCard({
                 </div>
               </div>
             ) : (
-              <Link href={`/memory/${memory.id}`}>
-                <div className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl cursor-pointer hover:opacity-95 transition-opacity`}>
-                  {getMemoryIcon(memory.memoryType)}
-                </div>
-              </Link>
+              <div 
+                className={`w-full h-64 bg-gradient-to-br ${getMemoryColor(memory.memoryType)} flex items-center justify-center text-6xl cursor-pointer hover:opacity-95 transition-opacity`}
+                onClick={onComment}
+              >
+                {getMemoryIcon(memory.memoryType)}
+              </div>
             )}
             
             {/* Overlay with memory type */}
