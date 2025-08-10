@@ -357,40 +357,63 @@ export default function Feed() {
                     {/* Media Preview */}
                     {memory.mediaUrls?.length > 0 && (
                       <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl aspect-square mb-3 sm:mb-4 overflow-hidden group cursor-pointer">
-                        {memory.type === 'image' && memory.thumbnailUrl ? (
-                          <img 
-                            src={memory.thumbnailUrl} 
-                            alt={memory.caption || 'منشور'} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                            decoding="async"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                        ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
-                          <video
-                            src={memory.mediaUrls[0]}
-                            className="w-full h-full object-cover"
-                            muted
-                            loop
-                            playsInline
-                            preload="auto"
-                            onMouseEnter={(e) => e.currentTarget.play()}
-                            onMouseLeave={(e) => e.currentTarget.pause()}
-                            onCanPlay={(e) => {
-                              e.currentTarget.currentTime = 0.01;
-                            }}
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full">
-                            <div className="text-center">
-                              <Video className="w-16 h-16 text-gray-400 mx-auto mb-2" />
-                              <p className="text-sm text-gray-500">فيديو</p>
-                            </div>
-                          </div>
-                        )}
+                        {(() => {
+                          const mediaUrl = Array.isArray(memory.mediaUrls) ? memory.mediaUrls[0] : memory.mediaUrls;
+                          const isVideo = mediaUrl && (mediaUrl.includes('.mp4') || mediaUrl.includes('.webm') || mediaUrl.includes('.mov') || memory.type === 'video');
+                          
+                          console.log('🖼️ Rendering media:', { 
+                            mediaUrl, 
+                            isVideo, 
+                            type: memory.type,
+                            thumbnailUrl: memory.thumbnailUrl 
+                          });
+                          
+                          if (isVideo) {
+                            return (
+                              <video
+                                src={mediaUrl}
+                                className="w-full h-full object-cover"
+                                muted
+                                loop
+                                playsInline
+                                preload="metadata"
+                                poster={memory.thumbnailUrl}
+                                onMouseEnter={(e) => e.currentTarget.play()}
+                                onMouseLeave={(e) => e.currentTarget.pause()}
+                                onCanPlay={(e) => {
+                                  e.currentTarget.currentTime = 0.01;
+                                }}
+                                onLoadedData={() => {
+                                  console.log('✅ Video loaded successfully:', mediaUrl);
+                                }}
+                                onError={(e) => {
+                                  console.error('❌ Video load failed:', mediaUrl);
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            );
+                          } else {
+                            // For images, use first mediaUrl directly
+                            const imageUrl = memory.thumbnailUrl || mediaUrl;
+                            return (
+                              <img 
+                                src={imageUrl}
+                                alt={memory.caption || 'منشور'} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                                decoding="async"
+                                onLoad={() => {
+                                  console.log('✅ Image loaded successfully:', imageUrl);
+                                }}
+                                onError={(e) => {
+                                  console.error('❌ Image load failed:', imageUrl);
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                }}
+                              />
+                            );
+                          }
+                        })()}
                         {/* Overlay gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>

@@ -297,59 +297,75 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
       <div className={`relative w-full h-full ${cardStyle.front} overflow-hidden rounded-xl ${cardStyle.glow}`}>
         {/* Background Media */}
         {content.mediaUrls && content.mediaUrls.length > 0 ? (
-          type === 'video' || type === 'live' ? (
-            <video
-              ref={videoRef}
-              src={content.mediaUrls[0]}
-              className="w-full h-full object-cover transition-opacity duration-300"
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              poster={content.thumbnailUrl}
-              style={{ opacity: isVideoLoaded ? 1 : 0.7 }}
-              onLoadStart={() => {
-                // تحسين إعدادات الفيديو
-                if (videoRef.current) {
-                  VideoOptimizer.optimizeVideoElement(videoRef.current);
-                }
-              }}
-              onLoadedData={() => {
-                setIsVideoLoaded(true);
-              }}
-              onCanPlay={async (e) => {
-                const video = e.currentTarget;
-                try {
-                  await VideoOptimizer.playVideoFast(video);
-                } catch (error) {
-                  console.log('Video autoplay failed:', error);
-                }
-              }}
-              onError={(e) => {
-                console.error('Video load error:', e);
-                e.currentTarget.style.display = 'none';
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                const video = e.currentTarget;
-                if (video.paused) {
-                  video.play().catch(() => {});
-                } else {
-                  video.pause();
-                }
-              }}
-            />
-          ) : (
-            <img
-              src={content.mediaUrls[0]}
-              alt="منشور"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Show gradient background instead of broken image
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          )
+          (() => {
+            const mediaUrl = Array.isArray(content.mediaUrls) ? content.mediaUrls[0] : content.mediaUrls;
+            const isVideo = mediaUrl && (mediaUrl.includes('.mp4') || mediaUrl.includes('.webm') || mediaUrl.includes('.mov'));
+            
+            if (isVideo || type === 'video' || type === 'live') {
+              return (
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  className="w-full h-full object-cover transition-opacity duration-300"
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster={content.thumbnailUrl}
+                  style={{ opacity: isVideoLoaded ? 1 : 0.7 }}
+                  onLoadStart={() => {
+                    // تحسين إعدادات الفيديو
+                    if (videoRef.current && typeof VideoOptimizer !== 'undefined') {
+                      VideoOptimizer.optimizeVideoElement(videoRef.current);
+                    }
+                  }}
+                  onLoadedData={() => {
+                    setIsVideoLoaded(true);
+                  }}
+                  onCanPlay={async (e) => {
+                    const video = e.currentTarget;
+                    try {
+                      if (typeof VideoOptimizer !== 'undefined') {
+                        await VideoOptimizer.playVideoFast(video);
+                      } else {
+                        await video.play();
+                      }
+                    } catch (error) {
+                      console.log('Video autoplay failed:', error);
+                    }
+                  }}
+                  onError={(e) => {
+                    console.error('Video load error:', e);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const video = e.currentTarget;
+                    if (video.paused) {
+                      video.play().catch(() => {});
+                    } else {
+                      video.pause();
+                    }
+                  }}
+                />
+              );
+            } else {
+              return (
+                <img
+                  src={mediaUrl}
+                  alt="منشور"
+                  className="w-full h-full object-cover"
+                  onLoad={() => {
+                    console.log('✅ Image loaded successfully:', mediaUrl);
+                  }}
+                  onError={(e) => {
+                    console.error('❌ Image load failed:', mediaUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              );
+            }
+          })()
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Image className="w-16 h-16 text-white/50" />
