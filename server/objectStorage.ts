@@ -82,12 +82,11 @@ export class ObjectStorageService {
     const bucket = objectStorageClient.bucket(bucketName);
     const file = bucket.file(objectName);
     
-    // Upload the file
+    // Upload the file without setting public permissions
     await file.save(buffer, {
       metadata: {
         contentType: mimeType,
       },
-      public: true,
     });
     
     // Return the public URL
@@ -231,27 +230,7 @@ export class ObjectStorageService {
     return `https://storage.googleapis.com/${bucketName}/${objectName}`;
   }
 
-  // Upload a file to public storage
-  async uploadToPublicStorage(fileBuffer: Buffer, filename: string, contentType: string): Promise<string> {
-    const publicSearchPaths = this.getPublicObjectSearchPaths();
-    const searchPath = publicSearchPaths[0]; // Use first public directory
-    const fullPath = `${searchPath}/${filename}`;
-    
-    const { bucketName, objectName } = parseObjectPath(fullPath);
-    const bucket = objectStorageClient.bucket(bucketName);
-    const file = bucket.file(objectName);
 
-    // Upload the file
-    await file.save(fileBuffer, {
-      metadata: {
-        contentType: contentType,
-      },
-      public: true,
-    });
-
-    // Return the public URL
-    return `https://storage.googleapis.com/${bucketName}/${objectName}`;
-  }
 }
 
 function parseObjectPath(path: string): {
