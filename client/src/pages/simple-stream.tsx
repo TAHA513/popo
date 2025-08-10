@@ -69,9 +69,13 @@ export default function SimpleStreamPage() {
         });
       }
       
-      if (chatId && !isNaN(chatId)) {
+      if (chatId) {
         console.log("🎯 Redirecting to chat:", chatId);
+        // التأكد من تنظيف الأخطاء قبل الانتقال
+        setError('');
+        setIsCreating(false);
         setLocation(`/stream/${chatId}`);
+        return; // مهم جداً: الخروج من الدالة هنا
       } else {
         // إذا لم نحصل على معرف، نحاول الحصول على آخر بث تم إنشاؤه
         console.log("⚠️ No chat ID found, trying to get latest stream...");
@@ -85,14 +89,17 @@ export default function SimpleStreamPage() {
             const latestStream = streamsResponse[0];
             if (latestStream && latestStream.id) {
               console.log("🎯 Redirecting to latest stream:", latestStream.id);
+              setError('');
+              setIsCreating(false);
               setLocation(`/stream/${latestStream.id}`);
-              return;
+              return; // مهم جداً: الخروج من الدالة هنا
             }
           }
         } catch (e) {
           console.log("Failed to get latest streams:", e);
         }
         
+        console.error("❌ Could not determine stream ID to redirect to");
         throw new Error('تعذر إنشاء الدردشة، يرجى المحاولة مرة أخرى');
       }
       
