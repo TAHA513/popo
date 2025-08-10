@@ -2,8 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuthFixed";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Home, 
   User, 
@@ -23,7 +22,6 @@ import NotificationBell from "@/components/notification-bell";
 export default function SimpleNavigation() {
   const { user, logout } = useAuth();
   const [location] = useLocation();
-  const queryClient = useQueryClient();
 
   // Fetch conversations to get unread count
   const { data: conversations = [] } = useQuery({
@@ -42,28 +40,6 @@ export default function SimpleNavigation() {
   const totalUnreadCount = conversations.reduce((total: number, conv: any) => 
     total + (conv.unreadCount || 0), 0
   );
-
-  // Clear all notifications mutation
-  const clearAllNotifications = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/notifications/mark-all-read', {
-        method: 'PATCH',
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to clear notifications');
-      return response.json();
-    },
-    onSuccess: () => {
-      // Update notification count immediately
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
-      alert('تم مسح جميع الإشعارات ✅');
-    },
-    onError: (error) => {
-      console.error('Error clearing notifications:', error);
-      alert('فشل في مسح الإشعارات');
-    }
-  });
 
   return (
     <header className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 shadow-lg sticky top-0 z-50">
@@ -123,18 +99,6 @@ export default function SimpleNavigation() {
                 <Search className="w-5 h-5" />
               </Button>
             </Link>
-            
-            {/* Clear Notifications Button (Temporary for Testing) */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full bg-red-500/20"
-              onClick={() => clearAllNotifications.mutate()}
-              disabled={clearAllNotifications.isPending}
-              title="مسح جميع الإشعارات"
-            >
-              <span className="text-xs">🧹</span>
-            </Button>
             
             <Link href="/account">
               <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full">
