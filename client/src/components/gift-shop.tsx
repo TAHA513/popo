@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -144,8 +144,6 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md" dir="rtl">
-          <DialogTitle className="sr-only">جاري التحميل</DialogTitle>
-          <DialogDescription className="sr-only">يتم تحميل الهدايا</DialogDescription>
           <div className="flex items-center justify-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
           </div>
@@ -162,9 +160,6 @@ export function GiftShop({ isOpen, onClose, receiverId, receiverName, streamId, 
             <DialogTitle className="text-2xl font-bold text-center text-pink-600">
               🎁 متجر الهدايا
             </DialogTitle>
-            <DialogDescription className="sr-only">
-              متجر الهدايا لإرسال هدايا للأصدقاء
-            </DialogDescription>
             {showUserSelector ? (
               <p className="text-center text-gray-600 mt-2">
                 اختر الشخص الذي تريد إرسال الهدية إليه

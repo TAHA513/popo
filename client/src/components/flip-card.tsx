@@ -322,11 +322,11 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                 try {
                   await VideoOptimizer.playVideoFast(video);
                 } catch (error) {
-                  // معالجة صامتة للأخطاء
+                  console.log('Video autoplay failed:', error);
                 }
               }}
               onError={(e) => {
-                // معالجة صامتة لأخطاء تحميل الفيديو
+                console.error('Video load error:', e);
                 e.currentTarget.style.display = 'none';
               }}
               onClick={(e) => {

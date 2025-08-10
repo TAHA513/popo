@@ -693,7 +693,7 @@ export default function VideoPage() {
             setIsVideoLoading(false);
           }}
           onError={(e) => {
-            // معالجة صامتة للأخطاء - لا نعرض أخطاء في الكونسول
+            console.error('Video error:', e);
             setIsVideoLoading(false);
             setIsVideoPlaying(false);
             setVideoError(true);

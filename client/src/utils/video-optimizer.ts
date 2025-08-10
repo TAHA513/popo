@@ -41,10 +41,7 @@ export class VideoOptimizer {
         resolve(video);
       };
       
-      video.onerror = () => {
-        // معالجة صامتة للأخطاء
-        reject(new Error('فشل تحميل الفيديو'));
-      };
+      video.onerror = () => reject(new Error('فشل تحميل الفيديو'));
       video.src = src;
       video.load();
     });
@@ -57,7 +54,8 @@ export class VideoOptimizer {
       video.currentTime = 0;
       await video.play();
     } catch (error) {
-      // تعذر التشغيل التلقائي - معالجة صامتة
+      console.log('تعذر التشغيل التلقائي:', error);
+      // إظهار زر التشغيل للمستخدم
       video.controls = true;
     }
   }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { X, Gift, Coins, Heart, Crown, Star, Sparkles } from "lucide-react";
@@ -186,9 +186,6 @@ export function EnhancedGiftModal({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-md mx-auto p-0 border-0 bg-transparent shadow-2xl" dir="rtl">
-          {/* Hidden accessibility elements */}
-          <DialogTitle className="sr-only">إرسال هدية</DialogTitle>
-          <DialogDescription className="sr-only">اختر هدية لإرسالها</DialogDescription>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
