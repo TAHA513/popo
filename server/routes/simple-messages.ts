@@ -67,7 +67,16 @@ export function setupSimpleMessageRoutes(app: Express) {
       const senderId = req.user.id;
       const { recipientId, content, messageType = 'text' } = req.body;
 
+      console.log('📨 طلب إرسال رسالة وصل لـ simple-messages:', { 
+        senderId, 
+        recipientId, 
+        content: content?.substring(0, 50) + '...', 
+        messageType,
+        userExists: !!req.user
+      });
+
       if (!recipientId || !content?.trim()) {
+        console.log('❌ بيانات ناقصة:', { recipientId: !!recipientId, content: !!content?.trim() });
         return res.status(400).json({ message: "المستلم والمحتوى مطلوبان" });
       }
 

@@ -89,7 +89,11 @@ export default function SimplePrivateChatPage() {
   // إرسال رسالة نصية
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
-      console.log('📤 محاولة إرسال رسالة:', { otherUserId, content });
+      console.log('📤 محاولة إرسال رسالة:', { otherUserId, content, user: user?.id });
+      
+      if (!user) {
+        throw new Error('يجب تسجيل الدخول أولاً');
+      }
       
       try {
         const result = await apiRequest('/api/messages/send', 'POST', {
@@ -101,6 +105,9 @@ export default function SimplePrivateChatPage() {
         return result;
       } catch (error) {
         console.error('❌ خطأ في إرسال الرسالة:', error);
+        if (error instanceof Error && error.message?.includes('401')) {
+          throw new Error('انتهت جلسة تسجيل الدخول، يرجى تسجيل الدخول مرة أخرى');
+        }
         throw error;
       }
     },
@@ -112,6 +119,7 @@ export default function SimplePrivateChatPage() {
     },
     onError: (error) => {
       console.error('❌ فشل إرسال الرسالة:', error);
+      alert(`خطأ في إرسال الرسالة: ${error.message}`);
     }
   });
 
