@@ -229,7 +229,10 @@ export default function FollowersManagement() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setLocation(`/user/${follower.id}`)}
+                        onClick={() => {
+                          console.log('Navigating to follower profile:', follower.id);
+                          setLocation(`/user/${follower.id}`);
+                        }}
                       >
                         عرض الملف
                       </Button>
@@ -288,7 +291,10 @@ export default function FollowersManagement() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setLocation(`/user/${user.id}`)}
+                        onClick={() => {
+                          console.log('Navigating to following profile:', user.id);
+                          setLocation(`/user/${user.id}`);
+                        }}
                       >
                         عرض الملف
                       </Button>
