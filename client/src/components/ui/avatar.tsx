@@ -34,8 +34,16 @@ const AvatarImage = React.forwardRef<
       }
       
       const cleanPath = storedPath.replace(/^\/uploads\//, '');
-      const API_BASE = import.meta.env.VITE_API_URL || '';
       
+      // في بيئة التطوير، استخدم localhost دائماً
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      if (isDevelopment) {
+        return `/api/media/${cleanPath}`;
+      }
+      
+      // في الإنتاج، استخدم API base URL إذا كان متوفر
+      const API_BASE = import.meta.env.VITE_API_URL || '';
       if (API_BASE) {
         return `${API_BASE}/api/media/${cleanPath}`;
       }

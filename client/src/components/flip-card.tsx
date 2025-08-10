@@ -352,7 +352,11 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
             } else {
               return (
                 <img
-                  src={mediaUrl.startsWith('http') ? mediaUrl : `/api/media/${mediaUrl.replace(/^\/uploads\//, '')}`}
+                  src={(() => {
+                    if (mediaUrl.startsWith('http')) return mediaUrl;
+                    const cleanPath = mediaUrl.replace(/^\/uploads\//, '');
+                    return `/api/media/${cleanPath}`;
+                  })()}
                   alt="منشور"
                   className="w-full h-full object-cover"
                   onLoad={() => {
