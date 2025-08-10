@@ -12,8 +12,16 @@ import {
   Heart, 
   MessageCircle,
   Smile,
-  User
+  User,
+  MoreVertical,
+  Trash2
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Comment {
   id: number;
@@ -48,6 +56,7 @@ export default function CommentsPage() {
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
 
   // استخراج معرف المنشور من الرابط
   const memoryId = window.location.pathname.split('/comments/')[1];
@@ -125,6 +134,48 @@ export default function CommentsPage() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // وظيفة حذف التعليق
+  const deleteComment = async (commentId: number) => {
+    if (!user) return;
+    
+    setDeletingCommentId(commentId);
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        // إزالة التعليق من القائمة فوراً
+        setComments(prev => prev.filter(comment => comment.id !== commentId));
+        toast({
+          description: (
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">✅</div>
+              <div className="text-sm font-medium">تم حذف التعليق بنجاح</div>
+            </div>
+          ),
+          className: "border-0 bg-green-50 text-green-900 shadow-lg rounded-xl",
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'فشل في حذف التعليق');
+      }
+    } catch (error: any) {
+      toast({
+        description: (
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">❌</div>
+            <div className="text-sm font-medium">{error.message || 'حدث خطأ أثناء حذف التعليق'}</div>
+          </div>
+        ),
+        className: "border-0 bg-red-50 text-red-900 shadow-lg rounded-xl",
+      });
+    } finally {
+      setDeletingCommentId(null);
     }
   };
 
@@ -215,19 +266,53 @@ export default function CommentsPage() {
                 </button>
                 <div className="flex-1">
                   <div className="bg-purple-500/10 rounded-2xl px-4 py-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <button
-                        onClick={() => {
-                          console.log('Navigating to username profile:', comment.userId);
-                          setLocation(`/user/${comment.userId}`);
-                        }}
-                        className="font-semibold text-purple-300 text-sm hover:text-purple-200 transition-colors cursor-pointer"
-                      >
-                        {comment.author?.username || 'مستخدم'}
-                      </button>
-                      <span className="text-purple-400 text-xs">
-                        <RealTimeTimestamp timestamp={comment.createdAt} />
-                      </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            console.log('Navigating to username profile:', comment.userId);
+                            setLocation(`/user/${comment.userId}`);
+                          }}
+                          className="font-semibold text-purple-300 text-sm hover:text-purple-200 transition-colors cursor-pointer"
+                        >
+                          {comment.author?.username || 'مستخدم'}
+                        </button>
+                        <span className="text-purple-400 text-xs">
+                          <RealTimeTimestamp timestamp={comment.createdAt} />
+                        </span>
+                      </div>
+                      
+                      {/* زر حذف التعليق - يظهر فقط لصاحب التعليق */}
+                      {user && comment.userId === user.id && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-purple-400 hover:text-red-400 hover:bg-red-500/10"
+                            >
+                              <MoreVertical className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuItem
+                              onClick={() => deleteComment(comment.id)}
+                              disabled={deletingCommentId === comment.id}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4 ml-2" />
+                              {deletingCommentId === comment.id ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="animate-spin w-3 h-3 border border-red-500 border-t-transparent rounded-full" />
+                                  <span>حذف...</span>
+                                </div>
+                              ) : (
+                                'حذف التعليق'
+                              )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
                     <p className="text-white text-sm leading-relaxed">
                       {comment.content}

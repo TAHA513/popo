@@ -3430,6 +3430,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete comment endpoint
+  app.delete('/api/comments/:id', requireAuth, async (req: any, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      
+      // Check if comment exists and user owns it
+      const [existingComment] = await db
+        .select()
+        .from(comments)
+        .where(eq(comments.id, commentId));
+      
+      if (!existingComment) {
+        return res.status(404).json({ message: "التعليق غير موجود" });
+      }
+      
+      if (existingComment.authorId !== req.user.id) {
+        return res.status(403).json({ message: "لا يمكنك حذف تعليق شخص آخر" });
+      }
+      
+      // Delete comment
+      await db.delete(comments).where(eq(comments.id, commentId));
+      
+      res.json({ success: true, message: "تم حذف التعليق بنجاح" });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ message: "فشل في حذف التعليق" });
+    }
+  });
+
   app.post('/api/streams/:id/comments', requireAuth, async (req: any, res) => {
     try {
       const postId = parseInt(req.params.id);
