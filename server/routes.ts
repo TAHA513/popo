@@ -1676,6 +1676,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin route to clear all memories (for testing purposes)
+  app.delete('/api/admin/clear-all-memories', async (req, res) => {
+    try {
+      const { adminCode } = req.body;
+      
+      // Simple admin verification
+      if (adminCode !== 'laabobo_super_999') {
+        return res.status(403).json({ message: "غير مصرح" });
+      }
+
+      console.log('🗑️ Admin: Clearing all memories and related data...');
+      
+      // Delete all memory interactions first (foreign key constraint)
+      const deletedInteractions = await db.delete(memoryInteractions);
+      console.log('🗑️ Deleted memory interactions');
+      
+      // Delete all comments and their likes
+      const deletedCommentLikes = await db.delete(commentLikes);
+      console.log('🗑️ Deleted comment likes');
+      
+      const deletedComments = await db.delete(comments);
+      console.log('🗑️ Deleted comments');
+      
+      // Delete all memory fragments
+      const deletedMemories = await db.delete(memoryFragments);
+      console.log('🗑️ Deleted memory fragments');
+      
+      console.log('✅ All memories cleared successfully');
+      
+      res.json({ 
+        success: true, 
+        message: "تم حذف جميع المنشورات بنجاح",
+        clearedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error clearing memories:", error);
+      res.status(500).json({ message: "فشل في حذف المنشورات" });
+    }
+  });
+
   // Admin stats endpoint
   app.get('/api/admin/stats', requireAuth, checkSuperAdmin, async (req: any, res) => {
     try {
