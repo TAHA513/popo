@@ -44,29 +44,26 @@ export default function SimpleStreamPage() {
       
       const response = await apiRequest('/api/streams', 'POST', streamData);
       
-      console.log("✅ Chat created successfully:", response);
+      console.log("✅ Stream created, full response:", response);
       
-      // التعامل مع الاستجابة - من logs نرى أن الخادم يرجع:
-      // {"success":true,"data":{"id":125,...},...otherProps}
+      // استخراج معرف البث من الاستجابة
       let chatId = null;
       
-      if (response) {
-        console.log("🔍 Full response:", response);
-        
-        // من logs الخادم، البيانات في response.data.id
-        if (response.success && response.data && response.data.id) {
-          chatId = response.data.id;
-          console.log("✅ Found chat ID in response.data:", chatId);
-        } else if (response.id) {
-          chatId = response.id;
-          console.log("✅ Found chat ID in response.id:", chatId);
-        } else {
-          console.log("❌ No ID found in response structure");
-          console.log("Response keys:", Object.keys(response));
-          console.log("Response.data:", response.data);
-        }
+      // من logs الخادم: {"success":true,"data":{"id":126,...},...}
+      if (response && response.data && response.data.id) {
+        chatId = response.data.id;
+        console.log("🎯 Stream ID found:", chatId);
+      } else if (response && response.id) {
+        chatId = response.id;  
+        console.log("🎯 Stream ID found (direct):", chatId);
       } else {
-        console.log("❌ No response received");
+        console.log("❌ No stream ID in response:", {
+          hasResponse: !!response,
+          hasData: !!(response && response.data),
+          dataId: response?.data?.id,
+          directId: response?.id,
+          success: response?.success
+        });
       }
       
       if (chatId) {
