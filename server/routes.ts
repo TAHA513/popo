@@ -3018,13 +3018,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🎥 Creating new stream for user:", req.user.id);
       console.log("📊 Stream data:", req.body);
       
+      // Check if user already has an active stream
+      const existingStreams = await storage.getStreams();
+      const userActiveStream = existingStreams.find(s => s.hostId === req.user.id && s.isLive);
+      
+      if (userActiveStream) {
+        console.log("⚠️ User already has active stream:", userActiveStream.id);
+        return res.json({
+          success: true,
+          data: userActiveStream,
+          ...userActiveStream,
+          message: "لديك بث نشط بالفعل"
+        });
+      }
+      
       const streamData = {
         title: req.body.title || 'بث مباشر',
         description: req.body.description || '',
         hostId: req.user.id,
-
-        category: 'بث سريع', // Add required category field
-        thumbnailUrl: null, // Add optional thumbnail field
+        category: 'بث سريع',
+        thumbnailUrl: null,
         isLive: true,
         viewerCount: 0,
         startedAt: new Date()
@@ -3142,8 +3155,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🛑 Starting complete deletion of chat session:", { streamId, userId });
       
       const stream = await storage.getStreamById(streamId);
+      console.log("🔍 Stream end verification:", { 
+        found: !!stream, 
+        streamHostId: stream?.hostId, 
+        requestingUserId: userId,
+        streamId 
+      });
       
-      if (!stream || stream.hostId !== userId) {
+      if (!stream) {
+        console.log("❌ Stream not found for ending:", streamId);
+        return res.status(404).json({ message: "البث المباشر غير موجود" });
+      }
+      
+      if (stream.hostId !== userId) {
+        console.log("❌ User not authorized to end stream:", { 
+          streamHostId: stream.hostId, 
+          requestingUserId: userId 
+        });
         return res.status(403).json({ message: "غير مصرح لك بإنهاء هذه الدردشة" });
       }
       
