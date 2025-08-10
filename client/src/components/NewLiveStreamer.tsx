@@ -283,13 +283,31 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
         {/* الهيدر العلوي */}
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent p-4 z-30">
           <div className="flex items-center justify-between">
-            <Button
-              onClick={endStream}
-              variant="ghost"
-              className="bg-red-600/80 hover:bg-red-700 text-white rounded-full w-12 h-12 p-0"
-            >
-              <X className="w-6 h-6" />
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button
+                onClick={endStream}
+                variant="ghost"
+                className="bg-red-600/80 hover:bg-red-700 text-white rounded-full w-12 h-12 p-0"
+              >
+                <X className="w-6 h-6" />
+              </Button>
+              
+              {/* معلومات صاحب البث */}
+              {user && (
+                <div className="flex items-center bg-black/50 backdrop-blur-sm rounded-full px-4 py-2 space-x-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user.profileImageUrl || undefined} />
+                    <AvatarFallback className="bg-laa-pink text-white text-sm">
+                      {user.username?.[0]?.toUpperCase() || 'أ'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-white">
+                    <p className="text-sm font-bold">{user.firstName || user.username}</p>
+                    <p className="text-xs opacity-75">صاحب البث</p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center space-x-4">
               <div className="bg-red-600/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center space-x-2">
@@ -323,6 +341,13 @@ export default function NewLiveStreamer({ stream, onClose }: NewLiveStreamerProp
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
                   <span className="text-red-400 text-sm font-bold">بث مباشر</span>
                 </div>
+                {/* معلومات إضافية عن صاحب البث */}
+                {user && (
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-laa-pink rounded-full mr-2"></div>
+                    <span className="text-laa-pink text-sm font-bold">@{user.username}</span>
+                  </div>
+                )}
               </div>
             </div>
 
