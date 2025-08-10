@@ -1204,7 +1204,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stableFilename = `${fileType}-${userId}-${user?.username || 'user'}-${timestamp}${ext}`;
       const localPath = path.join('uploads', stableFilename);
       
-      await fs.writeFile(localPath, req.file.buffer);
+      // Upload to Object Storage instead of local file system
+      const { objectStorage } = await import('./objectStorage');
+      await objectStorage.uploadFile(stableFilename, req.file.buffer, req.file.mimetype);
+      
       // احفظ فقط اسم الملف - ليس المسار الكامل
       const fileUrl = stableFilename;
       
@@ -1217,7 +1220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalName: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype,
-        storage: 'local-stable'
+        storage: 'object-storage'
       });
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -1253,7 +1256,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Note: Could not remove old profile image');
       }
       
-      await fs.writeFile(localPath, file.buffer);
+      // Upload to Object Storage instead of local file system
+      const { objectStorage } = await import('./objectStorage');
+      await objectStorage.uploadFile(stableFilename, file.buffer, file.mimetype);
+      
       // احفظ فقط اسم الملف في قاعدة البيانات - ليس المسار الكامل
       const profileImageUrl = stableFilename;
       
@@ -1266,7 +1272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true, 
         profileImageUrl,
         message: "تم تحديث الصورة الشخصية بنجاح",
-        storage: 'local-stable'
+        storage: 'object-storage'
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -1308,7 +1314,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Note: Could not remove old cover image');
       }
       
-      await fs.writeFile(localPath, file.buffer);
+      // Upload to Object Storage instead of local file system
+      const { objectStorage } = await import('./objectStorage');
+      await objectStorage.uploadFile(stableFilename, file.buffer, file.mimetype);
+      
       // احفظ فقط اسم الملف - ليس المسار الكامل
       const coverImageUrl = stableFilename;
       
@@ -1323,7 +1332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true, 
         coverImageUrl,
         message: "تم تحديث صورة الغلاف بنجاح",
-        storage: 'local-stable'
+        storage: 'object-storage'
       });
     } catch (error) {
       console.error('❌ Error uploading cover image:', error);
@@ -1364,10 +1373,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const stableFilename = `memory-${userId}-${user?.username || 'user'}-${timestamp}-${i}-${contentHash}${ext}`;
           const localPath = path.join('uploads', stableFilename);
           
-          await fs.writeFile(localPath, file.buffer);
+          // Upload to Object Storage instead of local file system
+          const { objectStorage } = await import('./objectStorage');
+          await objectStorage.uploadFile(stableFilename, file.buffer, file.mimetype);
+          
           // احفظ فقط اسم الملف في قاعدة البيانات - ليس المسار الكامل
           const fileUrl = stableFilename;
-          console.log('📁 File saved with stable filename:', fileUrl);
+          console.log('📁 File saved to Object Storage:', fileUrl);
           mediaUrls.push(fileUrl);
         }
       }
@@ -3030,14 +3042,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced multi-source media serving
   await fs.mkdir('uploads', { recursive: true });
   
-  // ENHANCED MEDIA HANDLER - Uses multiple fallback sources
+  // ENHANCED MEDIA HANDLER - Object Storage with fallbacks
   app.get('/api/media/*', async (req, res) => {
     const filePath = decodeURIComponent(req.params[0]);
-    const localFilePath = path.join('uploads', filePath);
     
     try {
-      // First try local file (fastest for current environment)
+      // First try Object Storage (primary source)
+      try {
+        const { objectStorage } = await import('./objectStorage');
+        console.log(`🔍 Serving from Object Storage: ${filePath}`);
+        return await objectStorage.downloadObject(filePath, res);
+      } catch (objectStorageError) {
+        console.log(`⚠️ Object Storage failed: ${objectStorageError.message}`);
+      }
+
+      // Fallback to local file system
+      const localFilePath = path.join('uploads', filePath);
       if (await fs.access(localFilePath).then(() => true).catch(() => false)) {
+        console.log(`📁 Serving from local: ${filePath}`);
         return res.sendFile(path.resolve(localFilePath));
       }
       
