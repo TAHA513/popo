@@ -198,6 +198,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize point packages
   await initializePointPackages();
+
+  // Media migration endpoint for admins
+  app.post('/api/admin/migrate-media', requireAdmin, async (req, res) => {
+    try {
+      const { migrateMediaToCloud } = await import('./migrate-media');
+      const result = await migrateMediaToCloud();
+      
+      res.json({
+        success: true,
+        message: 'تم نقل الملفات بنجاح',
+        ...result
+      });
+    } catch (error) {
+      console.error('Media migration error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'فشل في نقل الملفات',
+        error: error.message
+      });
+    }
+  });
+
+  // Migrate existing files endpoint for admins  
+  app.post('/api/admin/migrate-existing-files', requireAdmin, async (req, res) => {
+    try {
+      const { migrateExistingFiles } = await import('./migrate-existing-files');
+      const result = await migrateExistingFiles();
+      
+      res.json({
+        success: true,
+        message: 'تم رفع الملفات الموجودة بنجاح',
+        ...result
+      });
+    } catch (error) {
+      console.error('Existing files migration error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'فشل في رفع الملفات الموجودة',
+        error: error.message
+      });
+    }
+  });
+
+  // Update legacy URLs endpoint for admins
+  app.post('/api/admin/update-legacy-urls', requireAdmin, async (req, res) => {
+    try {
+      const { updateLegacyUrls } = await import('./update-legacy-urls');
+      const result = await updateLegacyUrls();
+      
+      res.json({
+        success: true,
+        message: 'تم تحديث الروابط القديمة بنجاح',
+        ...result
+      });
+    } catch (error) {
+      console.error('Legacy URLs update error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'فشل في تحديث الروابط القديمة',
+        error: error.message
+      });
+    }
+  });
   
   // Setup activity tracking for all authenticated routes
   app.use('/api', trackUserActivity);
@@ -231,6 +294,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await objectStorage.downloadObject(file, res);
     } catch (error) {
       console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Serve legacy uploaded files from cloud storage
+  app.get("/api/media/legacy-uploads/:filename(*)", async (req, res) => {
+    const filename = req.params.filename;
+    
+    try {
+      const privateDir = objectStorage.getPrivateObjectDir();
+      const cloudPath = `${privateDir}/legacy-uploads/${filename}`;
+      
+      function parseObjectPath(path: string): { bucketName: string; objectName: string; } {
+        if (!path.startsWith("/")) path = `/${path}`;
+        const pathParts = path.split("/");
+        if (pathParts.length < 3) throw new Error("Invalid path");
+        return { bucketName: pathParts[1], objectName: pathParts.slice(2).join("/") };
+      }
+      
+      const { bucketName, objectName } = parseObjectPath(cloudPath);
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      
+      const [exists] = await file.exists();
+      if (!exists) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      
+      await objectStorage.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error serving legacy file:", error);
       return res.status(500).json({ error: "Internal server error" });
     }
   });

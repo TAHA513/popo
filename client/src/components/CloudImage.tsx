@@ -29,9 +29,18 @@ export function CloudImage({ src, alt, className = "", fallbackSrc }: CloudImage
       return;
     }
 
-    // If original src starts with /uploads/, try the media proxy
+    // If original src starts with /uploads/, try legacy uploads first
     if (src.startsWith('/uploads/')) {
       const filename = src.replace('/uploads/', '');
+      const legacyUrl = `/api/media/legacy-uploads/${filename}`;
+      if (imageSrc !== legacyUrl) {
+        setImageSrc(legacyUrl);
+        setIsLoading(true);
+        setHasError(false);
+        return;
+      }
+      
+      // If legacy failed, try the media proxy
       const proxyUrl = `/api/media/proxy?url=${encodeURIComponent(window.location.origin + src)}`;
       if (imageSrc !== proxyUrl) {
         setImageSrc(proxyUrl);
@@ -49,9 +58,10 @@ export function CloudImage({ src, alt, className = "", fallbackSrc }: CloudImage
       return url;
     }
     
-    // If it's a relative path starting with /uploads, it might be from local storage
+    // If it's a relative path starting with /uploads, try legacy uploads first
     if (url.startsWith('/uploads/')) {
-      return url; // Let the browser handle it, with fallback in handleError
+      const filename = url.replace('/uploads/', '');
+      return `/api/media/legacy-uploads/${filename}`; // Try legacy uploads first
     }
     
     // If it's a relative path, make it absolute
