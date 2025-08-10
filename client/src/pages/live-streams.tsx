@@ -108,6 +108,16 @@ export default function LiveStreams() {
                       </div>
                     </div>
 
+                    {/* Host Avatar - Bottom Left */}
+                    <div className="absolute bottom-3 left-3 z-10">
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-white shadow-lg">
+                          {stream.hostName?.charAt(0).toUpperCase() || stream.hostUsername?.charAt(0).toUpperCase() || 'H'}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+                      </div>
+                    </div>
+
                     {/* Play Button Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
                       <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:scale-110 transition-transform">
@@ -124,9 +134,14 @@ export default function LiveStreams() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 truncate">{stream.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {stream.hostName || stream.hostUsername || (stream.hostId ? `المضيف: ${stream.hostId}` : 'مضيف مجهول')}
-                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {stream.hostName?.charAt(0).toUpperCase() || stream.hostUsername?.charAt(0).toUpperCase() || 'H'}
+                        </div>
+                        <p className="text-sm text-gray-600 truncate">
+                          {stream.hostName || stream.hostUsername || (stream.hostId ? `المضيف: ${stream.hostId}` : 'مضيف مجهول')}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   
