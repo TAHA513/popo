@@ -14,7 +14,7 @@ export class HybridStorageService {
       await fs.writeFile(localPath, buffer);
       console.log(`✅ File saved locally: ${filename}`);
       
-      // 2. Save to database as backup (base64)
+      // 2. Save to database as backup (base64) - skip if DB not available
       try {
         const { db } = await import('./db');
         const { fileStorage } = await import('../shared/schema');
@@ -38,7 +38,7 @@ export class HybridStorageService {
         
         console.log(`💾 File backed up to database: ${filename}`);
       } catch (dbError: any) {
-        console.log(`⚠️ Database backup failed (continuing with local): ${dbError.message}`);
+        console.log(`⚠️ Database backup skipped (local storage sufficient): ${dbError.message}`);
       }
       
       return filename;
@@ -70,7 +70,7 @@ export class HybridStorageService {
         console.log(`🔍 Local file not found: ${filename}, trying database...`);
       }
 
-      // 2. Try database backup
+      // 2. Try database backup (skip if not available)
       try {
         const { db } = await import('./db');
         const { fileStorage } = await import('../shared/schema');
@@ -100,7 +100,7 @@ export class HybridStorageService {
           return;
         }
       } catch (dbError: any) {
-        console.log(`❌ Database retrieval failed: ${dbError.message}`);
+        console.log(`⚠️ Database not available, trying external source: ${dbError.message}`);
       }
 
       // 3. Try external fallback (production environment)
