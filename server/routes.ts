@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
+import { ObjectStorageService } from './objectStorage';
 import { setupDirectMessageRoutes } from './routes/direct-messages';
 import { setupPrivateRoomRoutes } from './routes/private-rooms';
 import { setupGroupRoomRoutes } from './routes/group-rooms';
@@ -164,18 +165,9 @@ function cleanupUserTokens(userId: string): number {
   return cleanedCount;
 }
 
-// Configure multer for file uploads with better filename generation
+// Configure multer for file uploads using memory storage for cloud upload
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: 'uploads/',
-    filename: (req, file, cb) => {
-      // Generate unique filename with timestamp
-      const timestamp = Date.now();
-      const ext = path.extname(file.originalname);
-      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-      cb(null, filename);
-    }
-  }),
+  storage: multer.memoryStorage(), // Use memory storage for cloud uploads
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -188,6 +180,9 @@ const upload = multer({
     }
   },
 });
+
+// Initialize object storage service
+const objectStorage = new ObjectStorageService();
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -224,6 +219,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup Stripe payment routes
   registerStripeRoutes(app);
+
+  // Public files serving from object storage
+  app.get('/public-objects/:filePath(*)', async (req, res) => {
+    const filePath = req.params.filePath;
+    try {
+      const file = await objectStorage.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      await objectStorage.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
   // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
   app.get('/api/media/proxy', async (req: any, res) => {
@@ -1097,18 +1107,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
+      // Generate unique filename
+      const timestamp = Date.now();
+      const ext = path.extname(req.file.originalname);
+      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+
+      // Upload to cloud storage
+      const fileUrl = await objectStorage.uploadToPublicStorage(
+        req.file.buffer, 
+        filename, 
+        req.file.mimetype
+      );
+
       console.log('✅ تم رفع الملف:', {
-        filename: req.file.filename,
+        filename: filename,
         originalname: req.file.originalname,
         size: req.file.size,
-        mimetype: req.file.mimetype
+        mimetype: req.file.mimetype,
+        cloudUrl: fileUrl
       });
 
-      const fileUrl = `/uploads/${req.file.filename}`;
       res.json({
         success: true,
         fileUrl,
-        filename: req.file.filename,
+        filename: filename,
         originalName: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
@@ -1129,8 +1151,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // The file is already saved by multer, just use its filename
-      const profileImageUrl = `/uploads/${file.filename}`;
+      // Generate unique filename for profile image
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const filename = `profile-${userId}-${timestamp}${ext}`;
+
+      // Upload to cloud storage
+      const profileImageUrl = await objectStorage.uploadToPublicStorage(
+        file.buffer, 
+        filename, 
+        file.mimetype
+      );
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
@@ -1154,7 +1185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('🔄 Cover image upload request:', {
         userId,
-        file: file ? { filename: file.filename, originalname: file.originalname, size: file.size } : null
+        file: file ? { originalname: file.originalname, size: file.size } : null
       });
       
       if (!file) {
@@ -1162,8 +1193,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // The file is already saved by multer, just use its filename
-      const coverImageUrl = `/uploads/${file.filename}`;
+      // Generate unique filename for cover image
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const filename = `cover-${userId}-${timestamp}${ext}`;
+
+      // Upload to cloud storage
+      const coverImageUrl = await objectStorage.uploadToPublicStorage(
+        file.buffer, 
+        filename, 
+        file.mimetype
+      );
       
       console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
       
@@ -1206,14 +1246,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (files && files.length > 0) {
         for (const file of files) {
-          // In production, you'd upload to cloud storage (AWS S3, Cloudinary, etc.)
-          // For now, we'll just use the local file path
-          const fileName = `${Date.now()}-${file.originalname}`;
-          const filePath = path.join('uploads', fileName);
+          // Generate unique filename
+          const timestamp = Date.now();
+          const ext = path.extname(file.originalname);
+          const fileName = `memory-${userId}-${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
           
-          // Move file to permanent location
-          await fs.rename(file.path, filePath);
-          mediaUrls.push(`/uploads/${fileName}`);
+          // Upload to cloud storage
+          const mediaUrl = await objectStorage.uploadToPublicStorage(
+            file.buffer, 
+            fileName, 
+            file.mimetype
+          );
+          
+          mediaUrls.push(mediaUrl);
         }
       }
 
