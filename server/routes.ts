@@ -2921,7 +2921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // ENHANCED MEDIA HANDLER - Uses multiple fallback sources
   app.get('/api/media/*', async (req, res) => {
-    const filePath = req.params[0];
+    const filePath = decodeURIComponent(req.params[0]);
     const localFilePath = path.join('uploads', filePath);
     
     try {
@@ -2930,19 +2930,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.sendFile(path.resolve(localFilePath));
       }
       
-      // Try direct uploads folder access
+      // Try direct uploads folder access with URL decoding
       const directUploadPath = path.join('uploads', filePath);
       if (await fs.access(directUploadPath).then(() => true).catch(() => false)) {
         return res.sendFile(path.resolve(directUploadPath));
       }
       
+      // Try with original encoded filename
+      const encodedFilePath = req.params[0];
+      const encodedUploadPath = path.join('uploads', encodedFilePath);
+      if (await fs.access(encodedUploadPath).then(() => true).catch(() => false)) {
+        return res.sendFile(path.resolve(encodedUploadPath));
+      }
+      
       // Try external source for cross-environment access
       const workingExternalUrl = 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev';
-      const directFileUrl = `${workingExternalUrl}/uploads/${filePath}`;
+      // Try both decoded and encoded versions
+      const directFileUrl = `${workingExternalUrl}/uploads/${encodeURIComponent(filePath)}`;
+      const directFileUrlDecoded = `${workingExternalUrl}/uploads/${filePath}`;
       
       console.log(`🔍 Trying external source: ${directFileUrl}`);
       
       try {
+        // Try encoded URL first
         const response = await fetch(directFileUrl, {
           method: 'HEAD',
           signal: AbortSignal.timeout(5000)
@@ -2955,22 +2965,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.redirect(directFileUrl);
           }
         }
+        
+        // Try decoded URL as fallback
+        const responseDecoded = await fetch(directFileUrlDecoded, {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(5000)
+        });
+        
+        if (responseDecoded.ok) {
+          const contentType = responseDecoded.headers.get('content-type') || '';
+          if (contentType.startsWith('image/') || contentType.startsWith('video/') || contentType.startsWith('audio/')) {
+            console.log(`✅ Found file with decoded URL, redirecting to: ${directFileUrlDecoded}`);
+            return res.redirect(directFileUrlDecoded);
+          }
+        }
       } catch (error) {
         console.log(`❌ External source failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       
-      // Create a placeholder for missing images
+      // Create a placeholder for missing images and videos
       if (filePath.match(/\.(jpg|jpeg|png|webp)$/i)) {
-        // Return a simple SVG placeholder
+        // Return a simple SVG placeholder for images
         const placeholder = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
           <rect width="400" height="400" fill="#f3f4f6"/>
           <text x="200" y="180" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="16">صورة غير متوفرة</text>
-          <text x="200" y="220" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="12">${filePath}</text>
+          <text x="200" y="220" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="12">${filePath.substring(0, 30)}...</text>
         </svg>`;
         
         res.setHeader('Content-Type', 'image/svg+xml');
         res.setHeader('Cache-Control', 'no-cache');
         return res.send(placeholder);
+      }
+      
+      // Handle video file 404s with better error response
+      if (filePath.match(/\.(mp4|avi|mov|webm|mkv)$/i)) {
+        console.log(`❌ Video file not found: ${filePath}`);
+        res.status(404).json({ 
+          message: 'ملف الفيديو غير موجود',
+          fileName: filePath,
+          suggestion: 'تحقق من رفع الملف مرة أخرى'
+        });
+        return;
       }
       
       // File not found in any source
