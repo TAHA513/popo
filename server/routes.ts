@@ -2913,32 +2913,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get external sources from environment or use comprehensive defaults
       const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
         process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
-          // Primary deployment URLs
-          'https://laaboboo.onrender.com',
-          'https://laabobo-live.onrender.com',
-          'https://laabobo-api.onrender.com',
-          // Alternative naming patterns
-          'https://laaboboo-api.onrender.com',
-          'https://laaboboo-live.onrender.com',
-          'https://laabobo.onrender.com',
-          'https://laabobo-live-api.onrender.com'
+          // Ask user for the correct external URL where files are being uploaded
+          // For now, we'll add a fallback that creates a placeholder
         ];
         
+      // If no external sources provided, ask user for the correct URL
+      if (!externalBaseUrls.length) {
+        console.log(`⚠️ No external media sources configured for file: ${filePath}`);
+        console.log(`📝 To enable cross-platform media sync, please provide the external deployment URL where files are being uploaded.`);
+        console.log(`💡 Example: Set EXTERNAL_MEDIA_SOURCES environment variable to "https://your-app.onrender.com"`);
+        
+        return res.status(404).json({ 
+          message: 'File not found locally. Cross-platform sync not configured.',
+          fileName: filePath,
+          hint: 'Please provide the external deployment URL in EXTERNAL_MEDIA_SOURCES environment variable',
+          example: 'EXTERNAL_MEDIA_SOURCES=https://your-app.onrender.com'
+        });
+      }
+
       // Try both direct uploads and API routes
       const possibleUrls = [
         ...externalBaseUrls.map(baseUrl => `${baseUrl}/uploads/${filePath}`),
         ...externalBaseUrls.map(baseUrl => `${baseUrl}/api/media/${filePath}`)
       ];
       
-      console.log(`🔍 Searching for file: ${filePath} in external sources...`);
+      console.log(`🔍 Searching for file: ${filePath} in ${possibleUrls.length} external sources...`);
       
       for (const url of possibleUrls) {
         try {
           console.log(`🌐 Trying: ${url}`);
           const response = await fetch(url, {
-            timeout: 5000, // 5 second timeout
+            timeout: 8000, // Increased timeout
             headers: {
-              'User-Agent': 'LaaBoBo-Cross-Platform-Sync'
+              'User-Agent': 'LaaBoBo-Cross-Platform-Sync',
+              'Accept': '*/*'
             }
           });
           
@@ -2994,10 +3002,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If all sources fail, return 404 with helpful info
       console.log(`❌ File not found: ${filePath} in any of ${possibleUrls.length} sources`);
+      console.log(`🔧 Searched URLs:`, possibleUrls);
       res.status(404).json({ 
-        message: 'File not found in any source',
+        message: 'File not found in any configured source',
         fileName: filePath,
-        searchedSources: possibleUrls.length
+        searchedSources: possibleUrls.length,
+        searchedUrls: possibleUrls,
+        solution: 'Make sure EXTERNAL_MEDIA_SOURCES environment variable contains the correct deployment URL where files are uploaded'
       });
     } catch (error) {
       console.error('Media serving error:', error);

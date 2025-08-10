@@ -1,0 +1,186 @@
+Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+flip-card.tsx:338 Video load error: SyntheticBaseEvent
+onError @ flip-card.tsx:338Understand this error
+1754758201864-1000197871.mp4:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+flip-card.tsx:338 Video load error: SyntheticBaseEvent
+onError @ flip-card.tsx:338Understand this error
+1754758312689-%C3%98%C2%A7%C3%98%C2%AC%C3%99%C2%85%C3%99%C2%84%20%C3%98%C2%AD%C3%98%C2%A7%C3%99%C2%84%C3%98%C2%A7%C3%98%C2%AA%20%C3%99%C2%88%C3%98%C2%A7%C3%98%C2%AA%C3%98%C2%B3%20%C3%98%C2%A7%C3%98%C2%A8%202024%20%C3%98%C2%8C%20%C3%99%C2%88%C3%98%C2%AF%C3%98%C2%A7%C3%98%C2%B9%C3%98%C2%A7%20%C3%99%C2%87%C3%98%C2%B0%C3%98%C2%A7%20%C3%98%C2%A7%C3%99%C2%84%C3%99%C2%83%C3%99%C2%88%C3%99%C2%83%C3%98%C2%A8%20%C3%B0%C2%9F%C2%A5%C2%BA%C3%B0%C2%9F%C2%92%C2%94(720P_HD).mp4:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+flip-card.tsx:338 Video load error: SyntheticBaseEvent
+onError @ flip-card.tsx:338Understand this error
+1754836779450-432280462_122177678702011163_8600468945120690091_n.jpg:1  GET https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/1754836779450-432280462_122177678702011163_8600468945120690091_n.jpg 404 (Not Found)
+Image
+commitMount @ chunk-RPCDYKBN.js?v=5eab1687:8412
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:17102
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=5eab1687:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19353
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627Understand this error
+flip-card.tsx:362 ❌ Image load failed, trying fallback
+onError @ flip-card.tsx:362
+callCallback2 @ chunk-RPCDYKBN.js?v=5eab1687:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=5eab1687:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=5eab1687:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=5eab1687:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=5eab1687:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=5eab1687:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=5eab1687:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=5eab1687:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=5eab1687:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=5eab1687:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=5eab1687:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=5eab1687:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=5eab1687:5472Understand this error
+1754836779450-432280462_122177678702011163_8600468945120690091_n.jpg:1  GET https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/1754836779450-432280462_122177678702011163_8600468945120690091_n.jpg 404 (Not Found)
+Image
+commitMount @ chunk-RPCDYKBN.js?v=5eab1687:8412
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:17102
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=5eab1687:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19353
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627Understand this error
+flip-card.tsx:362 ❌ Image load failed, trying fallback
+onError @ flip-card.tsx:362
+callCallback2 @ chunk-RPCDYKBN.js?v=5eab1687:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=5eab1687:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=5eab1687:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=5eab1687:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=5eab1687:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=5eab1687:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=5eab1687:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=5eab1687:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=5eab1687:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=5eab1687:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=5eab1687:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=5eab1687:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=5eab1687:5472Understand this error
+enhanced-gift-modal.tsx:52 🎁 EnhancedGiftModal props: {receiverId: '4OsJBdkrkj8RyijMOG6OR', receiverName: 'asaad111', streamId: undefined, memoryId: undefined}
+enhanced-gift-modal.tsx:56 🎁 EnhancedGiftModal memoryId changed: undefined
+enhanced-gift-modal.tsx:52 🎁 EnhancedGiftModal props: {receiverId: '4OsJBdkrkj8RyijMOG6OR', receiverName: 'asaad111', streamId: undefined, memoryId: undefined}
+enhanced-gift-modal.tsx:52 🎁 EnhancedGiftModal props: {receiverId: '4OsJBdkrkj8RyijMOG6OR', receiverName: 'asaad111', streamId: undefined, memoryId: undefined}
+enhanced-gift-modal.tsx:52 🎁 EnhancedGiftModal props: {receiverId: '4OsJBdkrkj8RyijMOG6OR', receiverName: 'asaad111', streamId: undefined, memoryId: undefined}
+enhanced-gift-modal.tsx:52 🎁 EnhancedGiftModal props: {receiverId: '4OsJBdkrkj8RyijMOG6OR', receiverName: 'asaad111', streamId: undefined, memoryId: undefined}
+memory-4OsJBdkrkj8RyijMOG6OR-1754792414863-sb8n3zb.jpg:1  GET https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/legacy-uploads/memory-4OsJBdkrkj8RyijMOG6OR-1754792414863-sb8n3zb.jpg 404 (Not Found)
+Image
+commitMount @ chunk-RPCDYKBN.js?v=5eab1687:8412
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:17102
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=5eab1687:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19353
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=5eab1687:555
+flush @ @tanstack_react-query.js?v=5eab1687:569
+batch @ @tanstack_react-query.js?v=5eab1687:587
+dispatch_fn @ @tanstack_react-query.js?v=5eab1687:996
+setData @ @tanstack_react-query.js?v=5eab1687:696
+onSuccess @ @tanstack_react-query.js?v=5eab1687:897
+resolve @ @tanstack_react-query.js?v=5eab1687:456
+Promise.then
+run @ @tanstack_react-query.js?v=5eab1687:498
+start @ @tanstack_react-query.js?v=5eab1687:536
+fetch @ @tanstack_react-query.js?v=5eab1687:926
+executeFetch_fn @ @tanstack_react-query.js?v=5eab1687:2211
+onSubscribe @ @tanstack_react-query.js?v=5eab1687:1898
+subscribe @ @tanstack_react-query.js?v=5eab1687:24
+(anonymous) @ @tanstack_react-query.js?v=5eab1687:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=5eab1687:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5eab1687:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5eab1687:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5eab1687:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5eab1687:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19416
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627Understand this error
+memory-4OsJBdkrkj8RyijMOG6OR-1754789675784-a3nadc.jpg:1  GET https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/legacy-uploads/memory-4OsJBdkrkj8RyijMOG6OR-1754789675784-a3nadc.jpg 404 (Not Found)
+Image
+commitMount @ chunk-RPCDYKBN.js?v=5eab1687:8412
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:17102
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=5eab1687:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19353
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=5eab1687:555
+flush @ @tanstack_react-query.js?v=5eab1687:569
+batch @ @tanstack_react-query.js?v=5eab1687:587
+dispatch_fn @ @tanstack_react-query.js?v=5eab1687:996
+setData @ @tanstack_react-query.js?v=5eab1687:696
+onSuccess @ @tanstack_react-query.js?v=5eab1687:897
+resolve @ @tanstack_react-query.js?v=5eab1687:456
+Promise.then
+run @ @tanstack_react-query.js?v=5eab1687:498
+start @ @tanstack_react-query.js?v=5eab1687:536
+fetch @ @tanstack_react-query.js?v=5eab1687:926
+executeFetch_fn @ @tanstack_react-query.js?v=5eab1687:2211
+onSubscribe @ @tanstack_react-query.js?v=5eab1687:1898
+subscribe @ @tanstack_react-query.js?v=5eab1687:24
+(anonymous) @ @tanstack_react-query.js?v=5eab1687:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=5eab1687:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5eab1687:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5eab1687:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5eab1687:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5eab1687:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19416
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627Understand this error
+1754758448593-%C3%98%C2%B3%C3%98%C2%AA%C3%99%C2%88%C3%98%C2%B1%C3%99%C2%8A%C3%98%C2%A7%C3%98%C2%AA%20%C3%98%C2%AA%C3%98%C2%AD%C3%99%C2%81%C3%99%C2%8A%C3%98%C2%B2%20%C3%98%C2%A8%C3%98%C2%AF%C3%99%C2%88%C3%99%C2%86%20%C3%98%C2%AD%C3%99%C2%82%C3%99%C2%88%C3%99%C2%82%20%C3%B0%C2%9F%C2%96%C2%A4(720P_HD).mp4:1  GET https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/legacy-uploads/1754758448593-%C3%98%C2%B3%C3%98%C2%AA%C3%99%C2%88%C3%98%C2%B1%C3%99%C2%8A%C3%98%C2%A7%C3%98%C2%AA%20%C3%98%C2%AA%C3%98%C2%AD%C3%99%C2%81%C3%99%C2%8A%C3%98%C2%B2%20%C3%98%C2%A8%C3%98%C2%AF%C3%99%C2%88%C3%99%C2%86%20%C3%98%C2%AD%C3%99%C2%82%C3%99%C2%88%C3%99%C2%82%20%C3%B0%C2%9F%C2%96%C2%A4(720P_HD).mp4 404 (Not Found)Understand this error
+@radix-ui_react-dialog.js?v=5eab1687:328 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ @radix-ui_react-dialog.js?v=5eab1687:328
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5eab1687:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5eab1687:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5eab1687:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5eab1687:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19416
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627Understand this error
+@radix-ui_react-dialog.js?v=5eab1687:342 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=5eab1687:342
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=5eab1687:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=5eab1687:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=5eab1687:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=5eab1687:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=5eab1687:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=5eab1687:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=5eab1687:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=5eab1687:19416
+commitRoot @ chunk-RPCDYKBN.js?v=5eab1687:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=5eab1687:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=5eab1687:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=5eab1687:18627Understand this warning
