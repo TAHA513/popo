@@ -151,6 +151,8 @@ export function setupDirectMessageRoutes(app: Express) {
         return res.status(400).json({ message: "المستلم والمحتوى مطلوبان" });
       }
 
+      console.log('🔍 direct-messages.ts - فحص البلوك بدأ:', { senderId, recipientId });
+      
       // Check if sender is blocked by recipient - direct DB query
       try {
         const [blockCheck] = await db
@@ -163,6 +165,8 @@ export function setupDirectMessageRoutes(app: Express) {
             )
           )
           .limit(1);
+
+        console.log('🔍 نتيجة فحص البلوك الأول:', { blockCheck: !!blockCheck, senderId, recipientId });
 
         if (blockCheck) {
           console.log('🚫 رسالة محظورة: المرسل محظور من المستقبل', { senderId, recipientId });
@@ -181,10 +185,14 @@ export function setupDirectMessageRoutes(app: Express) {
           )
           .limit(1);
 
+        console.log('🔍 نتيجة فحص البلوك الثاني:', { blockCheck2: !!blockCheck2, senderId, recipientId });
+
         if (blockCheck2) {
           console.log('🚫 رسالة محظورة: المستقبل محظور من المرسل', { senderId, recipientId });
           return res.status(403).json({ message: "لا يمكنك إرسال رسائل لمستخدم محظور" });
         }
+        
+        console.log('✅ فحوصات البلوك تمت بنجاح، لا يوجد بلوك');
       } catch (error) {
         console.log('⚠️ خطأ في فحص البلوك، سيتم السماح بالرسالة:', error);
       }
