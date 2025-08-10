@@ -89,20 +89,25 @@ export default function ConversationPage() {
 
   // Mark messages as read when opening conversation
   useEffect(() => {
-    if (userId && messages.length > 0) {
+    if (userId) {
       const markAsRead = async () => {
         try {
-          await fetch(`/api/messages/${userId}/read`, {
+          const response = await fetch(`/api/messages/${userId}/read`, {
             method: 'PUT',
             credentials: 'include',
           });
+          if (response.ok) {
+            // تحديث الإشعارات والمحادثات فوراً بعد القراءة
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+          }
         } catch (error) {
           console.error('Error marking messages as read:', error);
         }
       };
       markAsRead();
     }
-  }, [userId, messages.length]);
+  }, [userId, queryClient]);
 
   if (isLoading) {
     return (
