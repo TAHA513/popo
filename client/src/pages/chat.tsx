@@ -1084,9 +1084,18 @@ export default function ChatPage() {
                     })}
                   </span>
                   {message.senderId === user?.id && (
-                    <UserCheck className={`w-3 h-3 ml-1 ${
-                      message.isRead ? 'text-purple-200' : 'text-purple-300'
-                    }`} />
+                    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold border-2 ${
+                      message.isRead 
+                        ? 'bg-green-600 text-white border-green-500' 
+                        : 'bg-blue-600 text-white border-blue-500'
+                    }`}>
+                      <span className="text-xs">
+                        {message.isRead ? '✓✓' : '✓'}
+                      </span>
+                      <span className="text-xs">
+                        {message.isRead ? 'مقروءة' : 'مرسلة'}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
