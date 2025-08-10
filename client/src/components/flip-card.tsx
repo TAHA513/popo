@@ -60,21 +60,18 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
   const { data: giftCharacters = [], isLoading: giftCharactersLoading } = useQuery({
     queryKey: ['/api/gifts/characters'],
     queryFn: () => apiRequest('GET', '/api/gifts/characters').then(res => res.json()),
-    enabled: showQuickGifts
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Debug log with more details
-  if (showQuickGifts) {
-    console.log('🎁 Gift modal opened:', { 
-      showQuickGifts,
-      giftCharacters, 
-      length: giftCharacters?.length, 
-      loading: giftCharactersLoading,
-      firstGift: giftCharacters?.[0],
-      enabled: showQuickGifts,
-      queryEnabled: showQuickGifts
-    });
-  }
+  console.log('🎁 Gift data status:', { 
+    showQuickGifts,
+    giftCharacters, 
+    length: giftCharacters?.length, 
+    loading: giftCharactersLoading,
+    firstGift: giftCharacters?.[0],
+    hasGifts: Array.isArray(giftCharacters) && giftCharacters.length > 0
+  });
 
   // Quick gift icons - use emojis from database
   const getGiftIcon = (gift: any) => {
