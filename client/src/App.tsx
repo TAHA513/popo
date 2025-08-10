@@ -1,3 +1,4 @@
+import React, { useState, useEffect, Suspense } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,8 +8,6 @@ import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useEffect } from "react";
-import { Suspense } from "react";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
 import Landing from "@/pages/landing";
