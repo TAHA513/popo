@@ -359,12 +359,14 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
                     console.log('✅ Image loaded successfully');
                   }}
                   onError={(e) => {
-                    console.error('❌ Image load failed, trying fallback');
+                    console.log('❌ Image load failed for:', e.currentTarget.src);
                     // Auto-retry with different source if available
                     const currentSrc = e.currentTarget.src;
                     if (!currentSrc.includes('api/media')) {
-                      e.currentTarget.src = `/api/media/${mediaUrl.replace(/^\/uploads\//, '')}`;
+                      const cleanPath = mediaUrl.replace(/^\/uploads\//, '').replace(/^\/api\/media\//, '');
+                      e.currentTarget.src = `/api/media/${cleanPath}`;
                     } else {
+                      // Show placeholder on final failure
                       e.currentTarget.style.display = 'none';
                     }
                   }}

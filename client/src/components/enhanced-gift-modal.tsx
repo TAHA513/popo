@@ -48,12 +48,11 @@ export function EnhancedGiftModal({
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  // Debug logging for memoryId
-  console.log('🎁 EnhancedGiftModal props:', { receiverId, receiverName, streamId, memoryId });
-  
-  // Effect to log when memoryId changes
+  // Effect to handle memoryId changes
   React.useEffect(() => {
-    console.log('🎁 EnhancedGiftModal memoryId changed:', memoryId);
+    if (memoryId) {
+      console.log('🎁 EnhancedGiftModal memoryId:', memoryId);
+    }
   }, [memoryId]);
 
   // Fetch available gifts
