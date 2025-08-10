@@ -89,16 +89,29 @@ export default function SimplePrivateChatPage() {
   // إرسال رسالة نصية
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
-      return await apiRequest('/api/messages/send', 'POST', {
-        recipientId: otherUserId,
-        content,
-        messageType: 'text'
-      });
+      console.log('📤 محاولة إرسال رسالة:', { otherUserId, content });
+      
+      try {
+        const result = await apiRequest('/api/messages/send', 'POST', {
+          recipientId: otherUserId,
+          content,
+          messageType: 'text'
+        });
+        console.log('✅ تم إرسال الرسالة بنجاح:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ خطأ في إرسال الرسالة:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('✅ نجح الإرسال، تحديث البيانات...');
       setNewMessage("");
       refetchMessages();
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+    },
+    onError: (error) => {
+      console.error('❌ فشل إرسال الرسالة:', error);
     }
   });
 

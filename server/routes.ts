@@ -3053,10 +3053,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { recipientId, content, messageType = 'text' } = req.body;
       const senderId = req.user.id;
       
-      console.log('📨 طلب إرسال رسالة:', { senderId, recipientId, content: content.substring(0, 50) + '...', messageType });
+      console.log('📨 طلب إرسال رسالة وصل للخادم:', { 
+        senderId, 
+        recipientId, 
+        content: content ? content.substring(0, 50) + '...' : 'فارغ', 
+        messageType,
+        bodyKeys: Object.keys(req.body)
+      });
       
       if (!recipientId || !content) {
-        console.log('❌ بيانات ناقصة:', { recipientId, content });
+        console.log('❌ بيانات ناقصة:', { recipientId: !!recipientId, content: !!content });
         return res.status(400).json({ message: "بيانات الرسالة غير مكتملة" });
       }
 

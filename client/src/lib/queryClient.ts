@@ -14,6 +14,8 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
+  console.log('🌐 إرسال طلب API:', { url, method, data });
+  
   const res = await fetch(url, {
     method,
     headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
@@ -21,8 +23,12 @@ export async function apiRequest(
     credentials: "include",
   });
 
+  console.log('📡 استجابة الخادم:', { status: res.status, statusText: res.statusText });
+
   await throwIfResNotOk(res);
-  return await res.json(); // تحليل JSON بدلاً من إرجاع Response الخام
+  const result = await res.json();
+  console.log('✅ نتيجة الطلب:', result);
+  return result;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
