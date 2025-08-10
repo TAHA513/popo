@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CloudImage } from "@/components/CloudImage";
 import { useAuth } from "@/hooks/useAuth";
 import { X, Heart, MessageCircle, Gift, Trophy, Star, Crown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -169,19 +168,17 @@ export default function UserProfileModal({ userId, onClose }: UserProfileModalPr
 
         {/* User Info */}
         <div className="text-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full overflow-hidden mx-auto mb-3">
+          <div className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-3">
             {profile.user.profileImageUrl ? (
-              <CloudImage 
+              <img 
                 src={profile.user.profileImageUrl} 
                 alt={profile.user.username}
-                className="w-full h-full object-cover"
+                className="w-full h-full rounded-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">
-                  {profile.user.username.charAt(0).toUpperCase()}
-                </span>
-              </div>
+              <span className="text-white text-2xl font-bold">
+                {profile.user.username.charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
           

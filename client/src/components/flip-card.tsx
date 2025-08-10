@@ -7,8 +7,6 @@ import { OnlineStatus } from "./online-status";
 import SupporterBadge from "./SupporterBadge";
 import VerificationBadge from "@/components/ui/verification-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CloudImage } from "./CloudImage";
-import { CloudVideo } from "./CloudVideo";
 import { VideoOptimizer } from "@/utils/video-optimizer";
 import { MediaUtils } from "@/utils/media-utils";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -300,20 +298,56 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
         {/* Background Media */}
         {content.mediaUrls && content.mediaUrls.length > 0 ? (
           type === 'video' || type === 'live' ? (
-            <CloudVideo
+            <video
+              ref={videoRef}
               src={content.mediaUrls[0]}
               className="w-full h-full object-cover transition-opacity duration-300"
-              controls={false}
-              autoPlay={true}
-              muted={true}
-              loop={true}
+              muted
+              loop
+              playsInline
+              preload="metadata"
               poster={content.thumbnailUrl}
+              style={{ opacity: isVideoLoaded ? 1 : 0.7 }}
+              onLoadStart={() => {
+                // تحسين إعدادات الفيديو
+                if (videoRef.current) {
+                  VideoOptimizer.optimizeVideoElement(videoRef.current);
+                }
+              }}
+              onLoadedData={() => {
+                setIsVideoLoaded(true);
+              }}
+              onCanPlay={async (e) => {
+                const video = e.currentTarget;
+                try {
+                  await VideoOptimizer.playVideoFast(video);
+                } catch (error) {
+                  console.log('Video autoplay failed:', error);
+                }
+              }}
+              onError={(e) => {
+                console.error('Video load error:', e);
+                e.currentTarget.style.display = 'none';
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const video = e.currentTarget;
+                if (video.paused) {
+                  video.play().catch(() => {});
+                } else {
+                  video.pause();
+                }
+              }}
             />
           ) : (
-            <CloudImage
+            <img
               src={content.mediaUrls[0]}
               alt="منشور"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                // Show gradient background instead of broken image
+                e.currentTarget.style.display = 'none';
+              }}
             />
           )
         ) : (
@@ -338,7 +372,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
             >
               <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/60 group-hover:border-white transition-colors">
                 {content.author?.profileImageUrl ? (
-                  <CloudImage
+                  <img
                     src={content.author.profileImageUrl}
                     alt={content.author?.firstName || content.author?.username || 'مستخدم'}
                     className="w-full h-full object-cover"

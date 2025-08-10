@@ -19,8 +19,6 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
-import * as fsSync from 'fs';
-import { ObjectStorageService } from './objectStorage';
 import { setupDirectMessageRoutes } from './routes/direct-messages';
 import { setupPrivateRoomRoutes } from './routes/private-rooms';
 import { setupGroupRoomRoutes } from './routes/group-rooms';
@@ -166,9 +164,18 @@ function cleanupUserTokens(userId: string): number {
   return cleanedCount;
 }
 
-// Configure multer for file uploads using memory storage for cloud upload
+// Configure multer for file uploads with better filename generation
 const upload = multer({
-  storage: multer.memoryStorage(), // Use memory storage for cloud uploads
+  storage: multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+      // Generate unique filename with timestamp
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+      cb(null, filename);
+    }
+  }),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -181,9 +188,6 @@ const upload = multer({
     }
   },
 });
-
-// Initialize object storage service
-const objectStorage = new ObjectStorageService();
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -220,65 +224,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup Stripe payment routes
   registerStripeRoutes(app);
-
-  // Public files serving from object storage
-  app.get('/public-objects/:filePath(*)', async (req, res) => {
-    const filePath = req.params.filePath;
-    try {
-      if (!objectStorage.isObjectStorageAvailable()) {
-        return res.status(404).json({ error: "Object storage not available" });
-      }
-      
-      const file = await objectStorage.searchPublicObject(filePath);
-      if (!file) {
-        return res.status(404).json({ error: "File not found" });
-      }
-      await objectStorage.downloadObject(file, res);
-    } catch (error) {
-      console.error("Error searching for public object:", error);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Legacy file serving endpoint for environments without Object Storage
-  app.get('/api/media/legacy-uploads/:filename', async (req, res) => {
-    try {
-      const filename = req.params.filename;
-      const filePath = path.join(process.cwd(), 'uploads', filename);
-      
-      // Check if file exists
-      if (!fsSync.existsSync(filePath)) {
-        return res.status(404).json({ error: "File not found" });
-      }
-      
-      // Get file stats for content type
-      const stats = await fs.stat(filePath);
-      const ext = path.extname(filename).toLowerCase();
-      
-      // Set appropriate content type
-      let contentType = 'application/octet-stream';
-      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-      else if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.gif') contentType = 'image/gif';
-      else if (ext === '.webp') contentType = 'image/webp';
-      else if (ext === '.mp4') contentType = 'video/mp4';
-      else if (ext === '.webm') contentType = 'video/webm';
-      
-      // Set headers
-      res.set({
-        'Content-Type': contentType,
-        'Content-Length': stats.size,
-        'Cache-Control': 'public, max-age=3600'
-      });
-      
-      // Stream the file
-      const fileBuffer = await fs.readFile(filePath);
-      res.send(fileBuffer);
-    } catch (error) {
-      console.error("Error serving legacy file:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
 
   // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
   app.get('/api/media/proxy', async (req: any, res) => {
@@ -1152,30 +1097,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const ext = path.extname(req.file.originalname);
-      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-
-      // Upload to cloud storage
-      const fileUrl = await objectStorage.uploadToPublicStorage(
-        req.file.buffer, 
-        filename, 
-        req.file.mimetype
-      );
-
       console.log('✅ تم رفع الملف:', {
-        filename: filename,
+        filename: req.file.filename,
         originalname: req.file.originalname,
         size: req.file.size,
-        mimetype: req.file.mimetype,
-        cloudUrl: fileUrl
+        mimetype: req.file.mimetype
       });
 
+      const fileUrl = `/uploads/${req.file.filename}`;
       res.json({
         success: true,
         fileUrl,
-        filename: filename,
+        filename: req.file.filename,
         originalName: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
@@ -1196,43 +1129,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Generate unique filename for profile image
-      const timestamp = Date.now();
-      const ext = path.extname(file.originalname);
-      const filename = `profile-${userId}-${timestamp}${ext}`;
-
-      // Try cloud storage first, fallback to legacy if not available
-      let profileImageUrl: string;
-      if (objectStorage.isObjectStorageAvailable()) {
-        try {
-          profileImageUrl = await objectStorage.uploadToPublicStorage(
-            file.buffer, 
-            filename, 
-            file.mimetype
-          );
-        } catch (error) {
-          console.warn("Cloud storage failed for profile image, falling back to legacy:", error);
-          // Fallback to legacy file system
-          const legacyPath = path.join(process.cwd(), 'uploads', filename);
-          // Ensure uploads directory exists
-          const uploadsDir = path.join(process.cwd(), 'uploads');
-          if (!fsSync.existsSync(uploadsDir)) {
-            await fs.mkdir(uploadsDir, { recursive: true });
-          }
-          await fs.writeFile(legacyPath, file.buffer);
-          profileImageUrl = `/api/media/legacy-uploads/${filename}`;
-        }
-      } else {
-        // Use legacy file system when cloud storage unavailable
-        const legacyPath = path.join(process.cwd(), 'uploads', filename);
-        // Ensure uploads directory exists
-        const uploadsDir = path.join(process.cwd(), 'uploads');
-        if (!fsSync.existsSync(uploadsDir)) {
-          await fs.mkdir(uploadsDir, { recursive: true });
-        }
-        await fs.writeFile(legacyPath, file.buffer);
-        profileImageUrl = `/api/media/legacy-uploads/${filename}`;
-      }
+      // The file is already saved by multer, just use its filename
+      const profileImageUrl = `/uploads/${file.filename}`;
       
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
@@ -1256,7 +1154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('🔄 Cover image upload request:', {
         userId,
-        file: file ? { originalname: file.originalname, size: file.size } : null
+        file: file ? { filename: file.filename, originalname: file.originalname, size: file.size } : null
       });
       
       if (!file) {
@@ -1264,43 +1162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // Generate unique filename for cover image
-      const timestamp = Date.now();
-      const ext = path.extname(file.originalname);
-      const filename = `cover-${userId}-${timestamp}${ext}`;
-
-      // Try cloud storage first, fallback to legacy if not available
-      let coverImageUrl: string;
-      if (objectStorage.isObjectStorageAvailable()) {
-        try {
-          coverImageUrl = await objectStorage.uploadToPublicStorage(
-            file.buffer, 
-            filename, 
-            file.mimetype
-          );
-        } catch (error) {
-          console.warn("Cloud storage failed for cover image, falling back to legacy:", error);
-          // Fallback to legacy file system
-          const legacyPath = path.join(process.cwd(), 'uploads', filename);
-          // Ensure uploads directory exists
-          const uploadsDir = path.join(process.cwd(), 'uploads');
-          if (!fsSync.existsSync(uploadsDir)) {
-            await fs.mkdir(uploadsDir, { recursive: true });
-          }
-          await fs.writeFile(legacyPath, file.buffer);
-          coverImageUrl = `/api/media/legacy-uploads/${filename}`;
-        }
-      } else {
-        // Use legacy file system when cloud storage unavailable
-        const legacyPath = path.join(process.cwd(), 'uploads', filename);
-        // Ensure uploads directory exists
-        const uploadsDir = path.join(process.cwd(), 'uploads');
-        if (!fsSync.existsSync(uploadsDir)) {
-          await fs.mkdir(uploadsDir, { recursive: true });
-        }
-        await fs.writeFile(legacyPath, file.buffer);
-        coverImageUrl = `/api/media/legacy-uploads/${filename}`;
-      }
+      // The file is already saved by multer, just use its filename
+      const coverImageUrl = `/uploads/${file.filename}`;
       
       console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
       
@@ -1343,45 +1206,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (files && files.length > 0) {
         for (const file of files) {
-          // Generate unique filename
-          const timestamp = Date.now();
-          const ext = path.extname(file.originalname);
-          const fileName = `memory-${userId}-${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
+          // In production, you'd upload to cloud storage (AWS S3, Cloudinary, etc.)
+          // For now, we'll just use the local file path
+          const fileName = `${Date.now()}-${file.originalname}`;
+          const filePath = path.join('uploads', fileName);
           
-          // Try cloud storage first, fallback to legacy if not available
-          let mediaUrl: string;
-          if (objectStorage.isObjectStorageAvailable()) {
-            try {
-              mediaUrl = await objectStorage.uploadToPublicStorage(
-                file.buffer, 
-                fileName, 
-                file.mimetype
-              );
-            } catch (error) {
-              console.warn("Cloud storage failed, falling back to legacy upload:", error);
-              // Fallback to legacy file system
-              const legacyPath = path.join(process.cwd(), 'uploads', fileName);
-              // Ensure uploads directory exists
-              const uploadsDir = path.join(process.cwd(), 'uploads');
-              if (!fsSync.existsSync(uploadsDir)) {
-                await fs.mkdir(uploadsDir, { recursive: true });
-              }
-              await fs.writeFile(legacyPath, file.buffer);
-              mediaUrl = `/api/media/legacy-uploads/${fileName}`;
-            }
-          } else {
-            // Use legacy file system when cloud storage unavailable
-            const legacyPath = path.join(process.cwd(), 'uploads', fileName);
-            // Ensure uploads directory exists
-            const uploadsDir = path.join(process.cwd(), 'uploads');
-            if (!fsSync.existsSync(uploadsDir)) {
-              await fs.mkdir(uploadsDir, { recursive: true });
-            }
-            await fs.writeFile(legacyPath, file.buffer);
-            mediaUrl = `/api/media/legacy-uploads/${fileName}`;
-          }
-          
-          mediaUrls.push(mediaUrl);
+          // Move file to permanent location
+          await fs.rename(file.path, filePath);
+          mediaUrls.push(`/uploads/${fileName}`);
         }
       }
 

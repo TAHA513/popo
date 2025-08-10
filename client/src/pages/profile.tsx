@@ -2,7 +2,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CloudImage } from "@/components/CloudImage";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { 
@@ -89,18 +88,8 @@ export default function ProfilePage() {
         <Card className="bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 text-white">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30">
-                {user.profileImageUrl ? (
-                  <CloudImage
-                    src={user.profileImageUrl}
-                    alt={user.username}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                    <User className="w-8 h-8" />
-                  </div>
-                )}
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                <User className="w-8 h-8" />
               </div>
               <div>
                 <h2 className="text-xl font-bold">{user.username}</h2>
