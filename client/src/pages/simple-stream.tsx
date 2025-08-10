@@ -46,23 +46,61 @@ export default function SimpleStreamPage() {
       
       console.log("✅ Chat created successfully:", response);
       
-      if (response && (response.success || response.data || response.id)) {
-        const chatId = response.data?.id || response.id;
-        console.log("🎯 Redirecting to chat:", chatId);
+      // التعامل مع الاستجابة بطرق متعددة
+      let chatId = null;
+      
+      if (response) {
+        // البحث عن معرف البث بطرق مختلفة
+        chatId = response.data?.id || 
+                 response.id || 
+                 response.streamId ||
+                 (response.success && response.data && response.data.id) ||
+                 (typeof response === 'object' && response.success === true && response.data?.id);
         
-        if (chatId) {
-          // التوجه مباشرة للدردشة
-          setLocation(`/stream/${chatId}`);
-        } else {
-          throw new Error('لم يتم الحصول على معرف الدردشة');
-        }
+        console.log("🔍 Extracted chat ID:", chatId);
+        console.log("📋 Full response structure:", {
+          hasData: !!response.data,
+          hasId: !!response.id,
+          hasSuccess: !!response.success,
+          responseKeys: Object.keys(response)
+        });
+      }
+      
+      if (chatId && !isNaN(chatId)) {
+        console.log("🎯 Redirecting to chat:", chatId);
+        setLocation(`/stream/${chatId}`);
       } else {
-        console.error("⚠️ Unexpected response format:", response);
+        // إذا لم نحصل على معرف، نحاول الحصول على آخر بث تم إنشاؤه
+        console.log("⚠️ No chat ID found, trying to get latest stream...");
+        
+        try {
+          const streamsResponse = await apiRequest('/api/streams', 'GET');
+          console.log("📡 Latest streams:", streamsResponse);
+          
+          if (streamsResponse && Array.isArray(streamsResponse) && streamsResponse.length > 0) {
+            // الحصول على أحدث بث
+            const latestStream = streamsResponse[0];
+            if (latestStream && latestStream.id) {
+              console.log("🎯 Redirecting to latest stream:", latestStream.id);
+              setLocation(`/stream/${latestStream.id}`);
+              return;
+            }
+          }
+        } catch (e) {
+          console.log("Failed to get latest streams:", e);
+        }
+        
         throw new Error('تعذر إنشاء الدردشة، يرجى المحاولة مرة أخرى');
       }
       
     } catch (error: any) {
       console.error("❌ Chat creation failed:", error);
+      console.log("🔍 Error details:", {
+        status: error.status,
+        message: error.message,
+        responseText: error.responseText,
+        stack: error.stack
+      });
       
       let errorMessage = "حدث خطأ في إنشاء الدردشة";
       
@@ -72,7 +110,7 @@ export default function SimpleStreamPage() {
         return;
       } else if (error.status === 403) {
         errorMessage = "ليس لديك صلاحية لإنشاء دردشة";
-      } else if (error.message && error.message !== 'فشل في إنشاء الدردشة') {
+      } else if (error.message && error.message !== 'تعذر إنشاء الدردشة، يرجى المحاولة مرة أخرى') {
         errorMessage = error.message;
       } else if (error.responseText) {
         try {
@@ -82,6 +120,9 @@ export default function SimpleStreamPage() {
           console.log("Could not parse error response");
         }
       }
+      
+      // إضافة معلومات إضافية للمطور
+      console.log("📋 Final error message:", errorMessage);
       
       setError(errorMessage);
     } finally {
