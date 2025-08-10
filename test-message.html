@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Message Send</title>
+</head>
+<body>
+    <h1>Test Message Send</h1>
+    <button onclick="sendTestMessage()">Send Test Message</button>
+    <div id="result"></div>
+
+    <script>
+        async function sendTestMessage() {
+            try {
+                console.log('🔄 Sending test message...');
+                
+                const response = await fetch('/api/messages/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        recipientId: '4OsJBdkrkj8RyijMOG6OR',
+                        content: 'Test message from HTML',
+                        messageType: 'text'
+                    })
+                });
+                
+                console.log('📡 Response:', { status: response.status, statusText: response.statusText });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Error:', errorText);
+                    document.getElementById('result').innerHTML = `Error: ${response.status} - ${errorText}`;
+                    return;
+                }
+                
+                const result = await response.json();
+                console.log('✅ Success:', result);
+                document.getElementById('result').innerHTML = `Success: ${JSON.stringify(result)}`;
+                
+            } catch (error) {
+                console.error('❌ Fetch error:', error);
+                document.getElementById('result').innerHTML = `Fetch Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
