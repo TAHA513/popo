@@ -2895,8 +2895,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Serve uploaded files
+  // Enhanced multi-source media serving
   await fs.mkdir('uploads', { recursive: true });
+  
+  // Custom media handler that tries multiple sources
+  app.get('/api/media/*', async (req, res) => {
+    const filePath = req.params[0];
+    const localFilePath = path.join('uploads', filePath);
+    
+    try {
+      // First try local file
+      if (await fs.access(localFilePath).then(() => true).catch(() => false)) {
+        return res.sendFile(path.resolve(localFilePath));
+      }
+      
+      // If not found locally, try external URLs for cross-platform access
+      const possibleUrls = [
+        `https://laabobo-live-api.onrender.com/uploads/${filePath}`,
+        `https://laabobo-api.onrender.com/uploads/${filePath}`,
+        // يمكن إضافة المزيد من روابط النشر هنا
+      ];
+      
+      for (const url of possibleUrls) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            const buffer = await response.arrayBuffer();
+            res.set('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
+            return res.send(Buffer.from(buffer));
+          }
+        } catch (urlError) {
+          console.log(`Failed to fetch from ${url}:`, urlError.message);
+        }
+      }
+      
+      // If all sources fail, return 404
+      res.status(404).json({ message: 'File not found in any source' });
+    } catch (error) {
+      console.error('Media serving error:', error);
+      res.status(500).json({ message: 'Error serving media' });
+    }
+  });
+  
+  // Legacy uploads route for backward compatibility
   app.use('/uploads', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     next();

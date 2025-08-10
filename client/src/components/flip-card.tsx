@@ -305,7 +305,7 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
               return (
                 <video
                   ref={videoRef}
-                  src={mediaUrl}
+                  src={mediaUrl.startsWith('http') ? mediaUrl : `/api/media/${mediaUrl.replace(/^\/uploads\//, '')}`}
                   className="w-full h-full object-cover transition-opacity duration-300"
                   muted
                   loop
@@ -352,15 +352,21 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
             } else {
               return (
                 <img
-                  src={mediaUrl}
+                  src={mediaUrl.startsWith('http') ? mediaUrl : `/api/media/${mediaUrl.replace(/^\/uploads\//, '')}`}
                   alt="منشور"
                   className="w-full h-full object-cover"
                   onLoad={() => {
-                    console.log('✅ Image loaded successfully:', mediaUrl);
+                    console.log('✅ Image loaded successfully');
                   }}
                   onError={(e) => {
-                    console.error('❌ Image load failed:', mediaUrl);
-                    e.currentTarget.style.display = 'none';
+                    console.error('❌ Image load failed, trying fallback');
+                    // Auto-retry with different source if available
+                    const currentSrc = e.currentTarget.src;
+                    if (!currentSrc.includes('api/media')) {
+                      e.currentTarget.src = `/api/media/${mediaUrl.replace(/^\/uploads\//, '')}`;
+                    } else {
+                      e.currentTarget.style.display = 'none';
+                    }
                   }}
                 />
               );

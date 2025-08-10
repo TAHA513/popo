@@ -287,9 +287,7 @@ export default function Feed() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {typedMemories.map((memory, index) => {
-                console.log(`🔍 Rendering memory ${index}:`, memory.id, memory.type);
-                return (
+              {typedMemories.map((memory, index) => (
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
@@ -592,8 +590,7 @@ export default function Feed() {
                     </div>
                   </div>
                 </Card>
-                );
-              })}
+              ))}
             </div>
           )}
         </div>
