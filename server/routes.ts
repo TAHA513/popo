@@ -20,6 +20,7 @@ import { dirname } from 'path';
 import multer from 'multer';
 import fs from 'fs/promises';
 import { setupDirectMessageRoutes } from './routes/direct-messages';
+import { setupSimpleMessageRoutes } from './routes/simple-messages';
 import { setupPrivateRoomRoutes } from './routes/private-rooms';
 import { setupGroupRoomRoutes } from './routes/group-rooms';
 import { setupWalletRoutes } from './routes/wallet';
@@ -211,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setInterval(cleanupStaleOnlineUsers, 2 * 60 * 1000);
   
   // Setup message routes
-  setupDirectMessageRoutes(app);
+  setupSimpleMessageRoutes(app);
   
   // Setup private room routes
   setupPrivateRoomRoutes(app);
@@ -3080,34 +3081,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Messages routes
-  app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      // For now, return empty array since we don't have message system implemented yet
-      res.json([]);
-    } catch (error) {
-      console.error("Error fetching conversations:", error);
-      res.status(500).json({ message: "Failed to fetch conversations" });
-    }
-  });
-
-  app.get('/api/messages/:userId', requireAuth, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.id;
-      const otherUserId = req.params.userId;
-      // For now, return empty messages
-      res.json({
-        messages: [],
-        otherUser: await storage.getUser(otherUserId)
-      });
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      res.status(500).json({ message: "Failed to fetch messages" });
-    }
-  });
-
-  // NOTE: /api/messages/send endpoint is handled in server/routes/simple-messages.ts
+  // Messages routes are handled in server/routes/simple-messages.ts and server/routes/direct-messages.ts
 
 
 

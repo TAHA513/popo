@@ -88,26 +88,26 @@ export default function ConversationPage() {
   }, [messages]);
 
   // Mark messages as read when opening conversation
-  useEffect(() => {
-    if (userId) {
-      const markAsRead = async () => {
-        try {
-          const response = await fetch(`/api/messages/${userId}/read`, {
-            method: 'PUT',
-            credentials: 'include',
-          });
-          if (response.ok) {
-            // تحديث الإشعارات والمحادثات فوراً بعد القراءة
-            queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
-          }
-        } catch (error) {
-          console.error('Error marking messages as read:', error);
-        }
-      };
-      markAsRead();
+  const markAsReadMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/messages/${userId}/read`, 'PUT', {});
+    },
+    onSuccess: () => {
+      // تحديث الإشعارات والمحادثات فوراً بعد القراءة
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/messages/${userId}`] });
+    },
+    onError: (error) => {
+      console.error('Error marking messages as read:', error);
     }
-  }, [userId, queryClient]);
+  });
+
+  useEffect(() => {
+    if (userId && !markAsReadMutation.isPending) {
+      markAsReadMutation.mutate();
+    }
+  }, [userId]);
 
   if (isLoading) {
     return (
