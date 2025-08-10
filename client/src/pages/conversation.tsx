@@ -74,6 +74,15 @@ export default function ConversationPage() {
       queryClient.invalidateQueries({ queryKey: [`/api/messages/${userId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
     },
+    onError: (error: any) => {
+      // عرض رسالة الخطأ من السيرفر مباشرة بدون تنسيق أو ألوان
+      if (error?.message) {
+        toast({
+          description: error.message,
+          className: "border-0 bg-gray-50 text-gray-800 shadow-sm",
+        });
+      }
+    },
   });
 
   const handleSendMessage = (e: React.FormEvent) => {

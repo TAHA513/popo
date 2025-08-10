@@ -573,11 +573,13 @@ export default function ChatPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
     },
     onError: (error: any) => {
-      toast({
-        title: "خطأ في الإرسال",
-        description: error.message || "حدث خطأ أثناء إرسال الرسالة",
-        variant: "destructive"
-      });
+      // عرض رسالة الخطأ من السيرفر مباشرة بدون تنسيق أو ألوان
+      if (error?.message) {
+        toast({
+          description: error.message,
+          className: "border-0 bg-gray-50 text-gray-800 shadow-sm",
+        });
+      }
     }
   });
 
