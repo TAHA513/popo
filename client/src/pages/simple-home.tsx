@@ -79,7 +79,10 @@ export default function SimpleHome() {
                 <Search className="w-6 h-6" />
               </button>
 
-
+              {/* Notification Bell - نفس الموجود في الملف الشخصي */}
+              <div className="relative [&_button]:!text-gray-600 [&_button]:hover:!text-purple-600 [&_button]:hover:!bg-purple-50">
+                <NotificationBell />
+              </div>
 
               {/* Messages Button */}
               <button 
