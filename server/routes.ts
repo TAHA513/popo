@@ -2944,7 +2944,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         const response = await fetch(directFileUrl, {
-          method: 'HEAD'
+          method: 'HEAD',
+          signal: AbortSignal.timeout(5000)
         });
         
         if (response.ok) {
