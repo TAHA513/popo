@@ -2895,9 +2895,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get external sources from environment or use comprehensive defaults
       const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
         process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
-          // User's main domain
+          // User's Replit environment where files are uploaded
+          'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev',
+          // Additional sources
           'https://laabobo.com',
-          // Additional fallback sources
           'https://laaboboo.onrender.com',
           'https://laabobo-live.onrender.com'
         ];
