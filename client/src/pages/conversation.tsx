@@ -214,27 +214,19 @@ export default function ConversationPage() {
                           minute: '2-digit' 
                         })}
                       </p>
-                      {/* Read receipt indicator for sent messages - ALWAYS SHOW for debugging */}
+                      {/* Read receipt indicator for sent messages */}
                       {message.senderId === user?.id && (
-                        <div className="flex flex-col gap-1">
-                          {/* Debug info */}
-                          <div className="text-xs text-gray-400">
-                            Debug: isRead={String(message.isRead)}, type={typeof message.isRead}
-                          </div>
-                          
-                          {/* Actual read status */}
-                          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
-                            message.isRead === true
-                              ? 'bg-green-500/30 text-green-100 border-2 border-green-400' 
-                              : 'bg-blue-500/30 text-blue-100 border-2 border-blue-400'
-                          }`}>
-                            <span className="text-sm font-bold">
-                              {message.isRead === true ? '✓✓' : '✓'}
-                            </span>
-                            <span className="font-medium">
-                              {message.isRead === true ? 'مقروءة' : 'مرسلة'}
-                            </span>
-                          </div>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border-2 mt-1 ${
+                          message.isRead 
+                            ? 'bg-green-600 text-white border-green-500' 
+                            : 'bg-blue-600 text-white border-blue-500'
+                        }`}>
+                          <span className="text-sm">
+                            {message.isRead ? '✓✓' : '✓'}
+                          </span>
+                          <span>
+                            {message.isRead ? 'مقروءة' : 'مرسلة'}
+                          </span>
                         </div>
                       )}
                     </div>
