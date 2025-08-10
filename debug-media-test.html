@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Media URL Test</title>
+</head>
+<body>
+    <h1>Media URL Test</h1>
+    
+    <h2>Direct Test</h2>
+    <img src="/api/media/memory-4OsJBdkrkj8RyijMOG6OR-asaad111-1754848321807-0-post.png" alt="Test Image" style="width: 200px;" onload="console.log('✅ Direct URL works!')" onerror="console.log('❌ Direct URL failed!')">
+    
+    <h2>Console Tests</h2>
+    <script>
+        // Test direct fetch
+        fetch('/api/media/memory-4OsJBdkrkj8RyijMOG6OR-asaad111-1754848321807-0-post.png')
+            .then(response => {
+                console.log('📡 Fetch response status:', response.status);
+                console.log('📡 Fetch response headers:', response.headers);
+                if (response.ok) {
+                    console.log('✅ Fetch successful - media URL working!');
+                } else {
+                    console.log('❌ Fetch failed:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Fetch error:', error);
+            });
+        
+        // Test image load programmatically
+        const testImg = new Image();
+        testImg.onload = () => console.log('✅ Programmatic image load successful!');
+        testImg.onerror = () => console.log('❌ Programmatic image load failed!');
+        testImg.src = '/api/media/memory-4OsJBdkrkj8RyijMOG6OR-asaad111-1754848321807-0-post.png';
+        
+        // Test with actual path from database
+        fetch('/api/memories/public')
+            .then(r => r.json())
+            .then(memories => {
+                if (memories && memories[0] && memories[0].mediaUrls) {
+                    const firstMedia = memories[0].mediaUrls[0];
+                    console.log('🔍 Database media URL:', firstMedia);
+                    
+                    const testUrl = `/api/media/${firstMedia}`;
+                    console.log('🔍 Generated test URL:', testUrl);
+                    
+                    const dbTestImg = new Image();
+                    dbTestImg.onload = () => console.log('✅ Database URL works!', testUrl);
+                    dbTestImg.onerror = () => console.log('❌ Database URL failed!', testUrl);
+                    dbTestImg.src = testUrl;
+                }
+            })
+            .catch(e => console.error('❌ Failed to fetch memories:', e));
+    </script>
+</body>
+</html>

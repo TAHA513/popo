@@ -31,9 +31,10 @@ export default function LazyImage({
       return storedPath;
     }
     
-    const cleanPath = storedPath.replace(/^\/uploads\//, '');
+    // تنظيف المسار من أي prefixes موجودة
+    const cleanPath = storedPath.replace(/^.*\/uploads\//, '').replace(/^.*\/api\/media\//, '');
     
-    // دائماً استخدم المسار النسبي
+    // استخدم المسار النسبي مباشرة
     return `/api/media/${cleanPath}`;
   };
 
