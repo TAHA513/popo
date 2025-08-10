@@ -1106,15 +1106,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimetype: req.file.mimetype
       });
 
-      const fileUrl = `/uploads/${req.file.filename}`;
-      res.json({
-        success: true,
-        fileUrl,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size,
-        mimetype: req.file.mimetype
-      });
+      // Check if Cloudinary is enabled
+      const { isCloudinaryEnabled, uploadToCloudinary } = require('./cloudinary');
+      
+      if (isCloudinaryEnabled()) {
+        try {
+          // Upload to Cloudinary
+          const cloudinaryResult = await uploadToCloudinary(req.file.buffer, {
+            folder: 'laabobo-uploads',
+            resourceType: 'auto'
+          });
+
+          res.json({
+            success: true,
+            fileUrl: cloudinaryResult.secure_url,
+            filename: cloudinaryResult.public_id,
+            originalName: req.file.originalname,
+            size: cloudinaryResult.bytes,
+            mimetype: req.file.mimetype,
+            cloudinary: true
+          });
+        } catch (cloudinaryError) {
+          console.error('Cloudinary upload failed, falling back to local:', cloudinaryError);
+          // Fall back to local storage
+          const fileUrl = `/uploads/${req.file.filename}`;
+          res.json({
+            success: true,
+            fileUrl,
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            size: req.file.size,
+            mimetype: req.file.mimetype,
+            cloudinary: false
+          });
+        }
+      } else {
+        // Local storage fallback
+        const fileUrl = `/uploads/${req.file.filename}`;
+        res.json({
+          success: true,
+          fileUrl,
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          cloudinary: false
+        });
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       res.status(500).json({ message: "فشل في رفع الملف" });

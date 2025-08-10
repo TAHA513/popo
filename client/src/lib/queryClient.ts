@@ -14,7 +14,11 @@ export async function apiRequest(
 ): Promise<any> {
   const isFormData = data instanceof FormData;
   
-  const res = await fetch(url, {
+  // Use configured API base URL if available
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+  
+  const res = await fetch(fullUrl, {
     method,
     headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
     body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
@@ -31,7 +35,12 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    // Use configured API base URL if available
+    const API_BASE = import.meta.env.VITE_API_URL || '';
+    const url = queryKey.join("/") as string;
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    
+    const res = await fetch(fullUrl, {
       credentials: "include",
     });
 

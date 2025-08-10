@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth, getSession } from "./replitAuth";
@@ -8,6 +9,35 @@ import passport from "passport";
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for proper session handling
 app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoints
+
+// Configure CORS for external deployments
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (error: any, allow?: boolean) => void) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow Replit domains
+    if (origin.includes('.replit.dev') || origin.includes('.replit.com')) {
+      return callback(null, true);
+    }
+    
+    // Allow custom domains (Render, Vercel, etc.)
+    if (origin.includes('laabobo') || 
+        origin.includes('your-domain.com') ||
+        origin === 'http://localhost:3000' ||
+        origin === 'http://localhost:5000') {
+      return callback(null, true);
+    }
+    
+    // Allow for development
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
