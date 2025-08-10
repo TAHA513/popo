@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Bell, Mail, Search } from "lucide-react";
+import { Mail, Search } from "lucide-react";
 
 import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
@@ -27,12 +27,7 @@ export default function SimpleHome() {
     refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
   });
 
-  // Get unread notifications count
-  const { data: unreadCount } = useQuery<{ count: number }>({
-    queryKey: ['/api/notifications/unread-count'],
-    refetchInterval: 30000, // Check every 30 seconds
-    staleTime: 15000,
-  });
+
 
   // Get conversations to check for unread messages
   const { data: conversations } = useQuery<any[]>({
@@ -83,18 +78,7 @@ export default function SimpleHome() {
                 <Search className="w-6 h-6" />
               </button>
 
-              {/* Notifications Button */}
-              <button 
-                onClick={() => setLocation('/notifications')}
-                className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
-              >
-                <Bell className="w-6 h-6" />
-                {(unreadCount?.count || 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {(unreadCount?.count || 0) > 9 ? '9+' : unreadCount?.count}
-                  </span>
-                )}
-              </button>
+
 
               {/* Messages Button */}
               <button 
