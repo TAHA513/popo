@@ -2880,122 +2880,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced multi-source media serving
   await fs.mkdir('uploads', { recursive: true });
   
-  // Custom media handler that tries multiple sources
+  // SIMPLIFIED FAST MEDIA HANDLER - Only checks working source
   app.get('/api/media/*', async (req, res) => {
     const filePath = req.params[0];
     const localFilePath = path.join('uploads', filePath);
     
     try {
-      // First try local file
+      // First try local file (fastest)
       if (await fs.access(localFilePath).then(() => true).catch(() => false)) {
         return res.sendFile(path.resolve(localFilePath));
       }
       
-      // If not found locally, try external URLs for cross-platform access
-      // Get external sources from environment or use comprehensive defaults
-      const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
-        process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
-          // User's Replit environment where files are uploaded
-          'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev',
-          // Additional sources
-          'https://laabobo.com',
-          'https://laaboboo.onrender.com',
-          'https://laabobo-live.onrender.com'
-        ];
-        
-      // If no external sources provided, ask user for the correct URL
-      if (!externalBaseUrls.length) {
-        console.log(`⚠️ No external media sources configured for file: ${filePath}`);
-        console.log(`📝 To enable cross-platform media sync, please provide the external deployment URL where files are being uploaded.`);
-        console.log(`💡 Example: Set EXTERNAL_MEDIA_SOURCES environment variable to "https://your-app.onrender.com"`);
-        
-        return res.status(404).json({ 
-          message: 'الملف غير موجود محلياً. نظام المشاركة بين البيئات غير مُعَد.',
-          fileName: filePath,
-          hint: 'يرجى توفير رابط البيئة الخارجية في متغير EXTERNAL_MEDIA_SOURCES',
-          example: 'EXTERNAL_MEDIA_SOURCES=https://your-app.onrender.com',
-          helpText: 'للحصول على الرابط، راجع الملف get-external-url-guide.md'
+      // SOLUTION: Only try the working external source
+      const workingExternalUrl = 'https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev';
+      const directFileUrl = `${workingExternalUrl}/uploads/${filePath}`;
+      
+      console.log(`🔍 Trying external source: ${directFileUrl}`);
+      
+      try {
+        const response = await fetch(directFileUrl, {
+          method: 'HEAD',
+          timeout: 3000 // Fast timeout
         });
-      }
-
-      // Try both direct uploads and API routes
-      const possibleUrls = [
-        ...externalBaseUrls.map(baseUrl => `${baseUrl}/uploads/${filePath}`),
-        ...externalBaseUrls.map(baseUrl => `${baseUrl}/api/media/${filePath}`)
-      ];
-      
-      console.log(`🔍 Searching for file: ${filePath} in ${possibleUrls.length} external sources...`);
-      
-      for (const url of possibleUrls) {
-        try {
-          console.log(`🌐 Trying: ${url}`);
-          const response = await fetch(url, {
-            timeout: 8000, // Increased timeout
-            headers: {
-              'User-Agent': 'LaaBoBo-Cross-Platform-Sync',
-              'Accept': '*/*'
-            }
-          });
-          
-          if (response.ok) {
-            const contentType = response.headers.get('content-type') || '';
-            
-            // Check if we got actual media content, not HTML error page
-            if (contentType.includes('text/html')) {
-              console.log(`⚠️ ${url} returned HTML instead of media file`);
-              continue; // Try next URL
-            }
-            
-            console.log(`✅ Found file at: ${url}`);
-            const buffer = await response.arrayBuffer();
-            
-            // Set proper content type based on file extension if server didn't provide it
-            let finalContentType = contentType;
-            if (!finalContentType || finalContentType === 'application/octet-stream') {
-              const ext = filePath.split('.').pop()?.toLowerCase();
-              switch (ext) {
-                case 'jpg':
-                case 'jpeg':
-                  finalContentType = 'image/jpeg';
-                  break;
-                case 'png':
-                  finalContentType = 'image/png';
-                  break;
-                case 'gif':
-                  finalContentType = 'image/gif';
-                  break;
-                case 'mp4':
-                  finalContentType = 'video/mp4';
-                  break;
-                case 'webm':
-                  finalContentType = 'video/webm';
-                  break;
-                default:
-                  finalContentType = 'application/octet-stream';
-              }
-            }
-            
-            res.set('Content-Type', finalContentType);
-            res.set('Cache-Control', 'public, max-age=3600');
-            res.set('Access-Control-Allow-Origin', '*');
-            return res.send(Buffer.from(buffer));
-          } else {
-            console.log(`❌ ${url} returned ${response.status}`);
+        
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.startsWith('image/') || contentType.startsWith('video/') || contentType.startsWith('audio/')) {
+            console.log(`✅ Found file, redirecting to: ${directFileUrl}`);
+            return res.redirect(directFileUrl);
           }
-        } catch (urlError) {
-          console.log(`❌ Failed to fetch from ${url}:`, urlError?.message || urlError);
         }
+      } catch (error) {
+        console.log(`❌ External source failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-      
-      // If all sources fail, return 404 with helpful info
-      console.log(`❌ File not found: ${filePath} in any of ${possibleUrls.length} sources`);
-      console.log(`🔧 Searched URLs:`, possibleUrls);
+        
+      // File not found in both local and external source
+      console.log(`❌ File not found: ${filePath}`);
       res.status(404).json({ 
-        message: 'File not found in any configured source',
-        fileName: filePath,
-        searchedSources: possibleUrls.length,
-        searchedUrls: possibleUrls,
-        solution: 'Make sure EXTERNAL_MEDIA_SOURCES environment variable contains the correct deployment URL where files are uploaded'
+        message: 'ملف غير موجود',
+        fileName: filePath
       });
     } catch (error) {
       console.error('Media serving error:', error);
