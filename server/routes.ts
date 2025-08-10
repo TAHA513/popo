@@ -1194,6 +1194,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current user's active stream
+  app.get('/api/streams/my-active', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      console.log("🔍 Checking for active stream for user:", userId);
+      
+      const streams = await storage.getActiveStreams();
+      const userStream = streams.find((stream: any) => stream.hostId === userId && stream.isLive);
+      
+      if (userStream) {
+        console.log("✅ Found active stream:", { id: userStream.id, title: userStream.title });
+        res.json(userStream);
+      } else {
+        console.log("❌ No active stream found for user:", userId);
+        res.status(404).json({ message: "لا يوجد بث نشط" });
+      }
+    } catch (error) {
+      console.error("❌ Error checking for active stream:", error);
+      res.status(500).json({ message: "فشل في فحص البث النشط" });
+    }
+  });
+
   // Memory fragments routes
   app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
