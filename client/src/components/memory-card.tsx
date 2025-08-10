@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   Heart, 
   MessageCircle, 
@@ -16,7 +17,8 @@ import {
   Zap,
   Clock,
   Settings,
-  CheckCircle
+  CheckCircle,
+  X
 } from "lucide-react";
 import VerificationBadge from "@/components/ui/verification-badge";
 import { 
@@ -78,6 +80,7 @@ export default function MemoryCard({
   onDelete
 }: MemoryCardProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const [showImageViewer, setShowImageViewer] = useState(false);
   
   const getMemoryIcon = (type: string) => {
     switch (type) {
@@ -238,10 +241,7 @@ export default function MemoryCard({
             {memory.type === 'image' && memory.thumbnailUrl ? (
               <div 
                 className="relative cursor-pointer"
-                onClick={() => {
-                  // فتح الصورة في viewer بدلاً من صفحة التعليقات
-                  window.open(memory.thumbnailUrl, '_blank');
-                }}
+                onClick={() => setShowImageViewer(true)}
               >
                 <img
                   src={memory.thumbnailUrl}
@@ -371,6 +371,53 @@ export default function MemoryCard({
           </div>
         </CardContent>
       </Card>
+
+      {/* Image Viewer Modal */}
+      <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
+        <DialogContent className="max-w-4xl w-full h-full max-h-[90vh] p-0 bg-black/95 border-0">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 z-50 text-white hover:bg-white/20 rounded-full"
+              onClick={() => setShowImageViewer(false)}
+            >
+              <X className="w-6 h-6" />
+            </Button>
+
+            {/* Image */}
+            <img
+              src={memory.thumbnailUrl}
+              alt={memory.title || 'Memory'}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Image Info Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{memory.author.firstName || memory.author.username}</span>
+                  {memory.author.isVerified && (
+                    <VerificationBadge 
+                      size="sm" 
+                      badge={memory.author.verificationBadge || 'LaaBoBo'} 
+                      className="w-4 h-4"
+                    />
+                  )}
+                </div>
+              </div>
+              {memory.title && (
+                <h3 className="text-lg font-bold mb-1">{memory.title}</h3>
+              )}
+              {memory.caption && (
+                <p className="text-white/90 text-sm">{memory.caption}</p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
