@@ -109,6 +109,15 @@ export default function SimpleHome() {
                 )}
               </button>
 
+              {/* Live Stream Button */}
+              <button 
+                onClick={() => setLocation('/live-streams')}
+                className="relative p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                title="البثوث المباشرة"
+              >
+                <Video className="w-6 h-6" />
+              </button>
+
               {/* Create Memory Button */}
               <button 
                 onClick={() => setLocation('/create-memory')}
