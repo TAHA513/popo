@@ -55,17 +55,25 @@ export class ObjectStorageService {
       metadata: {
         contentType: mimetype,
       },
-      public: true, // Make publicly accessible
+      // Remove public: true to avoid access prevention issues
     });
 
     console.log(`✅ Uploaded to object storage: public/${filename}`);
     return filename;
   }
 
-  // Get public URL for a file
-  getPublicUrl(filename: string): string {
+  // Get signed URL for a file (temporary access)
+  async getSignedUrl(filename: string): Promise<string> {
     const bucketName = this.getBucketName();
-    return `https://storage.googleapis.com/${bucketName}/public/${filename}`;
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(`public/${filename}`);
+    
+    const [signedUrl] = await file.getSignedUrl({
+      action: 'read',
+      expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    });
+    
+    return signedUrl;
   }
 
   // Download/serve file from object storage

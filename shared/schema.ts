@@ -72,6 +72,16 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// File storage table for database backup
+export const fileStorage = pgTable("file_storage", {
+  id: serial("id").primaryKey(),
+  filename: varchar("filename").unique().notNull(),
+  data: text("data").notNull(), // Base64 encoded file data
+  mimetype: varchar("mimetype").notNull(),
+  size: integer("size").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow()
+});
+
 // Notifications table for user notifications
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
