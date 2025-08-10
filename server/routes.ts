@@ -2924,10 +2924,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`💡 Example: Set EXTERNAL_MEDIA_SOURCES environment variable to "https://your-app.onrender.com"`);
         
         return res.status(404).json({ 
-          message: 'File not found locally. Cross-platform sync not configured.',
+          message: 'الملف غير موجود محلياً. نظام المشاركة بين البيئات غير مُعَد.',
           fileName: filePath,
-          hint: 'Please provide the external deployment URL in EXTERNAL_MEDIA_SOURCES environment variable',
-          example: 'EXTERNAL_MEDIA_SOURCES=https://your-app.onrender.com'
+          hint: 'يرجى توفير رابط البيئة الخارجية في متغير EXTERNAL_MEDIA_SOURCES',
+          example: 'EXTERNAL_MEDIA_SOURCES=https://your-app.onrender.com',
+          helpText: 'للحصول على الرابط، راجع الملف get-external-url-guide.md'
         });
       }
 
