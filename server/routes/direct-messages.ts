@@ -119,6 +119,18 @@ export function setupDirectMessageRoutes(app: Express) {
         })
       );
 
+      // Mark messages as read (from the other user to current user)
+      await db
+        .update(messages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(messages.senderId, otherUserId),
+            eq(messages.recipientId, currentUserId),
+            eq(messages.isRead, false)
+          )
+        );
+
       res.json(messagesWithSenderInfo);
       
     } catch (error) {

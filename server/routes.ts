@@ -213,7 +213,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup message routes
   setupDirectMessageRoutes(app);
-  setupSimpleMessageRoutes(app);
   
   // Setup private room routes
   setupPrivateRoomRoutes(app);
