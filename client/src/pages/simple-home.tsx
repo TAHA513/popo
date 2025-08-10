@@ -10,6 +10,7 @@ import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
 import NotificationBell from "@/components/notification-bell";
+import { PWAInstall } from "@/components/PWAInstall";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -70,6 +71,9 @@ export default function SimpleHome() {
             
             {/* Action Buttons - Right Side */}
             <div className="flex items-center gap-2">
+              {/* PWA Install Button */}
+              <PWAInstall />
+              
               {/* Search Button */}
               <button 
                 onClick={() => setLocation('/search')}
