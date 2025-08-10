@@ -46,20 +46,25 @@ export default function SimpleStreamPage() {
       
       console.log("✅ Chat created successfully:", response);
       
-      if (response.success && response.data) {
-        const chatId = response.data.id;
+      if (response && (response.success || response.data || response.id)) {
+        const chatId = response.data?.id || response.id;
         console.log("🎯 Redirecting to chat:", chatId);
         
-        // التوجه مباشرة للدردشة
-        setLocation(`/stream/${chatId}`);
+        if (chatId) {
+          // التوجه مباشرة للدردشة
+          setLocation(`/stream/${chatId}`);
+        } else {
+          throw new Error('لم يتم الحصول على معرف الدردشة');
+        }
       } else {
-        throw new Error('فشل في إنشاء الدردشة');
+        console.error("⚠️ Unexpected response format:", response);
+        throw new Error('تعذر إنشاء الدردشة، يرجى المحاولة مرة أخرى');
       }
       
     } catch (error: any) {
       console.error("❌ Chat creation failed:", error);
       
-      let errorMessage = "فشل في إنشاء الدردشة";
+      let errorMessage = "حدث خطأ في إنشاء الدردشة";
       
       if (error.status === 401) {
         errorMessage = "يجب تسجيل الدخول أولاً";
@@ -67,8 +72,15 @@ export default function SimpleStreamPage() {
         return;
       } else if (error.status === 403) {
         errorMessage = "ليس لديك صلاحية لإنشاء دردشة";
-      } else if (error.message) {
+      } else if (error.message && error.message !== 'فشل في إنشاء الدردشة') {
         errorMessage = error.message;
+      } else if (error.responseText) {
+        try {
+          const errorData = JSON.parse(error.responseText);
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          console.log("Could not parse error response");
+        }
       }
       
       setError(errorMessage);
@@ -130,8 +142,20 @@ export default function SimpleStreamPage() {
               </div>
 
               {error && (
-                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-red-300 text-sm">
-                  {error}
+                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-red-300 text-sm flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs mt-0.5">
+                    !
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium mb-1">خطأ في الإنشاء</p>
+                    <p>{error}</p>
+                    <button 
+                      onClick={() => setError('')} 
+                      className="text-red-200 hover:text-white underline text-xs mt-2"
+                    >
+                      إغلاق الرسالة
+                    </button>
+                  </div>
                 </div>
               )}
 
