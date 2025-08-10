@@ -125,6 +125,20 @@ export function setupMessageRoutes(app: Express) {
         return res.status(400).json({ message: "Recipient and content are required" });
       }
 
+      // Check if the sender is blocked by the recipient
+      const isBlocked = await storage.isUserBlocked(recipientId, senderId);
+      if (isBlocked) {
+        console.log('🚫 Message blocked: sender is blocked by recipient', { senderId, recipientId });
+        return res.status(403).json({ message: "لا يمكنك إرسال رسائل لهذا المستخدم" });
+      }
+
+      // Check if the recipient is blocked by the sender (optional - prevents sending to blocked users)
+      const hasBlockedRecipient = await storage.isUserBlocked(senderId, recipientId);
+      if (hasBlockedRecipient) {
+        console.log('🚫 Message blocked: recipient is blocked by sender', { senderId, recipientId });
+        return res.status(403).json({ message: "لا يمكنك إرسال رسائل لمستخدم محظور" });
+      }
+
       // Insert the message with messageType support
       const newMessage = await db
         .insert(messages)
@@ -191,6 +205,20 @@ export function setupMessageRoutes(app: Express) {
 
       if (!recipientId || !content?.trim()) {
         return res.status(400).json({ message: "Recipient and content are required" });
+      }
+
+      // Check if the sender is blocked by the recipient
+      const isBlocked = await storage.isUserBlocked(recipientId, senderId);
+      if (isBlocked) {
+        console.log('🚫 Message blocked: sender is blocked by recipient', { senderId, recipientId });
+        return res.status(403).json({ message: "لا يمكنك إرسال رسائل لهذا المستخدم" });
+      }
+
+      // Check if the recipient is blocked by the sender
+      const hasBlockedRecipient = await storage.isUserBlocked(senderId, recipientId);
+      if (hasBlockedRecipient) {
+        console.log('🚫 Message blocked: recipient is blocked by sender', { senderId, recipientId });
+        return res.status(403).json({ message: "لا يمكنك إرسال رسائل لمستخدم محظور" });
       }
 
       // Check if there's an existing conversation or accepted message request
