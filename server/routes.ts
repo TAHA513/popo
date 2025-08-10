@@ -2912,13 +2912,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If not found locally, try external URLs for cross-platform access
       const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
         process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
+          'https://laaboboo.onrender.com',
           'https://laabobo-live-api.onrender.com',
           'https://laabobo-api.onrender.com', 
           'https://laabobo-live.onrender.com',
-          'https://laabobo.onrender.com'
+          'https://laabobo.onrender.com',
+          // Add variations
+          'https://laaboboo-api.onrender.com',
+          'https://laaboboo-live.onrender.com'
         ];
         
-      const possibleUrls = externalBaseUrls.map(baseUrl => `${baseUrl}/uploads/${filePath}`);
+      // Try both direct uploads and API routes
+      const possibleUrls = [
+        ...externalBaseUrls.map(baseUrl => `${baseUrl}/uploads/${filePath}`),
+        ...externalBaseUrls.map(baseUrl => `${baseUrl}/api/media/${filePath}`)
+      ];
       
       console.log(`🔍 Searching for file: ${filePath} in external sources...`);
       
