@@ -9,6 +9,7 @@ export function setupDirectMessageRoutes(app: Express) {
   app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
+      console.log(`🔍 جلب المحادثات للمستخدم: ${userId}`);
       
       // Get all messages involving this user
       const allMessages = await db
@@ -21,6 +22,8 @@ export function setupDirectMessageRoutes(app: Express) {
           )
         )
         .orderBy(desc(messages.createdAt));
+
+      console.log(`📨 وجدت ${allMessages.length} رسائل للمستخدم ${userId}`);
 
       // Create unique conversations list
       const conversationsMap = new Map();

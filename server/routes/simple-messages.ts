@@ -117,24 +117,16 @@ export function setupSimpleMessageRoutes(app: Express) {
     }
   });
 
-  // Get recent conversations (users you've chatted with)
-  app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
+  // Conversations endpoint is handled by direct-messages.ts
+  
+  // Debug endpoint to check messages
+  app.get('/api/messages/debug', requireAuth, async (req: any, res) => {
     try {
-      // Disable caching for real-time conversations
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      
       const userId = req.user.id;
-
-      // Get recent messages involving this user
-      const recentChats = await db
-        .select({
-          recipientId: messages.recipientId,
-          senderId: messages.senderId,
-          lastMessage: messages.content,
-          lastMessageAt: messages.createdAt
-        })
+      console.log(`🐛 Debug: checking messages for user ${userId}`);
+      
+      const allMessages = await db
+        .select()
         .from(messages)
         .where(
           or(
@@ -143,54 +135,16 @@ export function setupSimpleMessageRoutes(app: Express) {
           )
         )
         .orderBy(desc(messages.createdAt));
-
-      console.log(`📨 Found ${recentChats.length} messages for user ${userId}`);
-
-      // Create simple conversation list based on messages
-      const conversationsSet = new Set();
-      const conversationsList = [];
-
-      for (const chat of recentChats) {
-        let otherUserId;
-        if (chat.senderId === userId) {
-          otherUserId = chat.recipientId;
-        } else {
-          otherUserId = chat.senderId;
-        }
-
-        if (otherUserId && otherUserId !== userId && !conversationsSet.has(otherUserId)) {
-          conversationsSet.add(otherUserId);
-          
-          // Get other user info
-          const otherUserInfo = await db
-            .select({
-              id: users.id,
-              username: users.username,
-              firstName: users.firstName,
-              profileImageUrl: users.profileImageUrl
-            })
-            .from(users)
-            .where(eq(users.id, otherUserId))
-            .limit(1);
-
-          if (otherUserInfo[0]) {
-            conversationsList.push({
-              id: otherUserId,
-              otherUserId: otherUserId,
-              otherUser: otherUserInfo[0],
-              lastMessage: chat.lastMessage,
-              lastMessageAt: chat.lastMessageAt,
-              unreadCount: 0
-            });
-          }
-        }
-      }
-
-      console.log(`✅ Found ${conversationsList.length} conversations for user ${userId}`);
-      res.json(conversationsList);
+        
+      console.log(`🐛 Debug: found ${allMessages.length} messages`);
+      res.json({ 
+        userId,
+        messageCount: allMessages.length,
+        messages: allMessages.slice(0, 5) // First 5 messages for debug
+      });
     } catch (error) {
-      console.error("Error fetching conversations:", error);
-      res.status(500).json({ message: "فشل في جلب المحادثات" });
+      console.error("Debug error:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 

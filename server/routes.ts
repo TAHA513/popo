@@ -212,6 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setInterval(cleanupStaleOnlineUsers, 2 * 60 * 1000);
   
   // Setup message routes
+  setupDirectMessageRoutes(app);
   setupSimpleMessageRoutes(app);
   
   // Setup private room routes
