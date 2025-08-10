@@ -1245,36 +1245,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       
       if (files && files.length > 0) {
-        const { isCloudinaryEnabled, uploadToCloudinary } = require('./cloudinary');
+        // Use local storage for now - Cloudinary integration temporarily disabled
+        // const { isCloudinaryEnabled, uploadToCloudinary } = await import('./cloudinary');
         
         for (const file of files) {
           let fileUrl: string;
           
-          if (isCloudinaryEnabled()) {
-            try {
-              // Upload to Cloudinary for cross-platform compatibility
-              const cloudinaryResult = await uploadToCloudinary(file.buffer || require('fs').readFileSync(file.path), {
-                folder: 'laabobo-memories',
-                resourceType: 'auto'
-              });
-              fileUrl = cloudinaryResult.secure_url;
-              console.log('✅ File uploaded to Cloudinary:', fileUrl);
-            } catch (cloudinaryError) {
-              console.warn('⚠️ Cloudinary upload failed, using local storage:', cloudinaryError);
-              // Fallback to local storage
-              const fileName = `${Date.now()}-${file.originalname}`;
-              const filePath = path.join('uploads', fileName);
-              await fs.rename(file.path, filePath);
-              fileUrl = `/uploads/${fileName}`;
-            }
-          } else {
-            // Local storage as fallback
-            const fileName = `${Date.now()}-${file.originalname}`;
-            const filePath = path.join('uploads', fileName);
-            await fs.rename(file.path, filePath);
-            fileUrl = `/uploads/${fileName}`;
-            console.log('📁 File saved locally:', fileUrl);
-          }
+          // Use local storage for file uploads
+          const fileName = `${Date.now()}-${file.originalname}`;
+          const uploadPath = path.join('uploads', fileName);
+          await fs.rename(file.path, uploadPath);
+          fileUrl = `/uploads/${fileName}`;
+          console.log('📁 File saved locally:', fileUrl);
           
           mediaUrls.push(fileUrl);
         }
