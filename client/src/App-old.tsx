@@ -1,16 +1,17 @@
-import React from "react";
-import { Switch, Route } from "wouter";
+import React, { useState, useEffect, Suspense } from "react";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 
 import { useAuth } from "@/hooks/useAuth";
 
 import Landing from "@/pages/landing";
 import LiveStreams from "@/pages/live-streams";
+
 import SimpleHome from "@/pages/simple-home";
 import SimpleExplore from "@/pages/simple-explore";
 import SimpleStreamPage from "@/pages/simple-stream";
@@ -44,6 +45,7 @@ import ProfileRedesignPage from "@/pages/profile-redesign";
 import PointPackages from "@/pages/PointPackages";
 import Checkout from "@/pages/Checkout";
 import PaymentHistory from "@/pages/PaymentHistory";
+// Core page imports
 import CreateMemoryPage from "@/pages/create-memory";
 import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
@@ -58,9 +60,12 @@ import AdminDashboardPage from "@/pages/admin-dashboard";
 import OwnerWelcomePage from "@/pages/owner-welcome";
 import SearchPage from "@/pages/search";
 
+
+
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
+  // Always show loading screen while checking auth
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
@@ -69,6 +74,7 @@ function Router() {
     );
   }
 
+  // Once loaded, show appropriate routes based on auth status
   return (
     <Switch>
       <Route path="/login">
@@ -78,7 +84,12 @@ function Router() {
         {isAuthenticated ? <SimpleHome /> : <RegisterPage />}
       </Route>
       {isAuthenticated ? (
-        <>
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500">
+            <div className="text-white text-lg">Loading...</div>
+          </div>
+        }>
+          {/* System owner gets admin panel access */}
           {user?.email === 'fnnm945@gmail.com' && window.location.pathname === '/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard' ? (
             <Route path="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard" component={AdminDashboardPage} />
           ) : (
@@ -86,49 +97,51 @@ function Router() {
               <Route path="/" component={SimpleHome} />
               <Route path="/home" component={SimpleHome} />
               <Route path="/explore" component={LiveStreams} />
-              <Route path="/feed" component={FeedPage} />
-              <Route path="/albums" component={LockedAlbums} />
-              <Route path="/private-albums" component={PrivateAlbumsPage} />
-              <Route path="/premium-albums" component={PremiumAlbumsPage} />
-              <Route path="/premium-messages" component={PremiumMessagesPage} />
-              <Route path="/start-stream" component={SimpleStreamPage} />
-              <Route path="/stream/:id" component={WatchStreamPage} />
-              <Route path="/create-memory" component={CreateMemoryPage} />
-              <Route path="/profile" component={ProfileRedesignPage} />
-              <Route path="/profile-old" component={ProfileSimplePage} />
-              <Route path="/user/:userId" component={ProfileRedesignPage} />
-              <Route path="/account" component={AccountPage} />
-              <Route path="/messages" component={MessagesPage} />
-              <Route path="/video/:videoId" component={VideoPage} />
-              <Route path="/single-video" component={SingleVideoPage} />
-              <Route path="/messages/new-chat" component={NewChatPage} />
-              <Route path="/messages/requests" component={MessageRequestsPage} />
-              <Route path="/messages/chat/:userId" component={ChatPage} />
-              <Route path="/messages/:userId" component={SimplePrivateChatPage} />
-              <Route path="/create-private-room" component={CreatePrivateRoomPage} />
-              <Route path="/create-group-room" component={CreateGroupRoomPage} />
-              <Route path="/browse-group-rooms" component={BrowseGroupRoomsPage} />
-              <Route path="/room-invitations" component={RoomInvitationsPage} />
-              <Route path="/wallet" component={WalletPage} />
-              <Route path="/point-packages" component={PointPackages} />
-              <Route path="/checkout" component={Checkout} />
-              <Route path="/payment-history" component={PaymentHistory} />
-              <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
-              <Route path="/comments/:id" component={CommentsPage} />
-              <Route path="/memory/:id" component={CommentsPage} />
-              <Route path="/followers-management" component={FollowersManagementPage} />
-              <Route path="/gifts" component={GiftsPage} />
-              <Route path="/gifts-simple" component={GiftsSimplePage} />
-              <Route path="/simple-gifts" component={SimpleGiftsPage} />
-              <Route path="/gifts-test" component={GiftsTestPage} />
-              <Route path="/gift-demo" component={GiftDemoPage} />
-              <Route path="/notifications" component={NotificationsPage} />
-              <Route path="/privacy-policy" component={PrivacyPolicyPage} />
-              <Route path="/owner-welcome" component={OwnerWelcomePage} />
-              <Route path="/search" component={SearchPage} />
+          <Route path="/feed" component={FeedPage} />
+          <Route path="/albums" component={LockedAlbums} />
+          <Route path="/private-albums" component={PrivateAlbumsPage} />
+          <Route path="/premium-albums" component={PremiumAlbumsPage} />
+          <Route path="/premium-messages" component={PremiumMessagesPage} />
+          <Route path="/start-stream" component={SimpleStreamPage} />
+          <Route path="/stream/:id" component={WatchStreamPage} />
+          <Route path="/create-memory" component={CreateMemoryPage} />
+
+          <Route path="/profile" component={ProfileRedesignPage} />
+          <Route path="/profile-old" component={ProfileSimplePage} />
+          <Route path="/user/:userId" component={ProfileRedesignPage} />
+          <Route path="/account" component={AccountPage} />
+          <Route path="/messages" component={MessagesPage} />
+          <Route path="/video/:videoId" component={VideoPage} />
+          <Route path="/single-video" component={SingleVideoPage} />
+          <Route path="/messages/new-chat" component={NewChatPage} />
+          <Route path="/messages/requests" component={MessageRequestsPage} />
+          <Route path="/messages/chat/:userId" component={ChatPage} />
+          <Route path="/messages/:userId" component={SimplePrivateChatPage} />
+          <Route path="/create-private-room" component={CreatePrivateRoomPage} />
+          <Route path="/create-group-room" component={CreateGroupRoomPage} />
+          <Route path="/browse-group-rooms" component={BrowseGroupRoomsPage} />
+          <Route path="/room-invitations" component={RoomInvitationsPage} />
+          <Route path="/wallet" component={WalletPage} />
+          <Route path="/point-packages" component={PointPackages} />
+          <Route path="/checkout" component={Checkout} />
+
+          <Route path="/payment-history" component={PaymentHistory} />
+          <Route path="/messages/conversation/:conversationId" component={ConversationPage} />
+          <Route path="/comments/:id" component={CommentsPage} />
+          <Route path="/memory/:id" component={CommentsPage} />
+          <Route path="/followers-management" component={FollowersManagementPage} />
+          <Route path="/gifts" component={GiftsPage} />
+          <Route path="/gifts-simple" component={GiftsSimplePage} />
+          <Route path="/simple-gifts" component={SimpleGiftsPage} />
+          <Route path="/gifts-test" component={GiftsTestPage} />
+          <Route path="/gift-demo" component={GiftDemoPage} />
+          <Route path="/notifications" component={NotificationsPage} />
+          <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+          <Route path="/owner-welcome" component={OwnerWelcomePage} />
+          <Route path="/search" component={SearchPage} />
             </>
           )}
-        </>
+        </Suspense>
       ) : (
         <>
           <Route path="/" component={LoginPage} />
@@ -155,6 +168,11 @@ function AppContent() {
 }
 
 function App() {
+  // Remove performance optimizations that might conflict with React
+  // useEffect(() => {
+  //   initPerformanceOptimizations();
+  // }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
