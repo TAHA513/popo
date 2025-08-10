@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ export default function ConversationPage() {
   }
   const params = useParams<{ userId: string }>();
   const userId = params.userId;
+  const [location, setLocation] = useLocation();
   const [newMessage, setNewMessage] = useState("");
   const [showGiftModal, setShowGiftModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
