@@ -362,13 +362,24 @@ export default function WatchStreamPage() {
           )}
         </div>
 
-        {/* معلومات الدردشة العلوية */}
+        {/* معلومات المضيف والدردشة العلوية */}
         <div className="absolute top-4 right-4 z-50 bg-black/50 backdrop-blur-sm rounded-lg p-3">
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-400 font-bold">دردشة</span>
-            <span className="text-white">•</span>
-            <span className="text-white">{formatDuration(streamDuration)}</span>
+          <div className="flex items-center gap-3">
+            {/* صورة المضيف */}
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-white/30 shadow-lg">
+                {stream.hostName?.charAt(0).toUpperCase() || 'H'}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-white font-bold text-sm">{stream.hostName}</span>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 font-bold">مباشر</span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-300">{formatDuration(streamDuration)}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -389,13 +400,28 @@ export default function WatchStreamPage() {
           
           <div className="relative max-w-2xl mx-auto space-y-4 pt-20 pb-40">
             <div className="text-center mb-8">
+              {/* صورة وبيانات المضيف الرئيسية */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold border-4 border-white/30 shadow-2xl">
+                    {stream.hostName?.charAt(0).toUpperCase() || 'H'}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-1">{stream.hostName}</h3>
+                <div className="flex items-center gap-2 text-sm text-green-400">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>دردشة مباشرة • {viewerCount} مشاهد</span>
+                </div>
+              </div>
+              
               <div className="relative inline-block">
                 <h2 className="text-3xl font-bold text-white mb-2 relative z-10">
                   🎭 دردشة LaaBoBo المباشرة
                 </h2>
                 <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 blur-lg opacity-30 animate-pulse"></div>
               </div>
-              <p className="text-gray-200 text-lg">انضم للمحادثة مع {stream.hostName}</p>
+              <p className="text-gray-200 text-lg">شاركوا أفكاركم وآرائكم</p>
             </div>
             
             {/* الرسائل مع تصميم محسن */}
