@@ -208,18 +208,24 @@ export function setupMessageRoutes(app: Express) {
       }
 
       // Check if the sender is blocked by the recipient
+      console.log('🔍 Checking if sender is blocked:', { senderId, recipientId, checking: 'recipient blocking sender' });
       const isBlocked = await storage.isUserBlocked(recipientId, senderId);
+      console.log('🔍 Block check result (recipient blocking sender):', { isBlocked, senderId, recipientId });
       if (isBlocked) {
-        console.log('🚫 Message blocked: sender is blocked by recipient', { senderId, recipientId });
+        console.log('🚫 MESSAGE BLOCKED: sender is blocked by recipient', { senderId, recipientId });
         return res.status(403).json({ message: "لا يمكنك إرسال رسائل لهذا المستخدم" });
       }
 
       // Check if the recipient is blocked by the sender
+      console.log('🔍 Checking if recipient is blocked:', { senderId, recipientId, checking: 'sender blocking recipient' });
       const hasBlockedRecipient = await storage.isUserBlocked(senderId, recipientId);
+      console.log('🔍 Block check result (sender blocking recipient):', { hasBlockedRecipient, senderId, recipientId });
       if (hasBlockedRecipient) {
-        console.log('🚫 Message blocked: recipient is blocked by sender', { senderId, recipientId });
+        console.log('🚫 MESSAGE BLOCKED: recipient is blocked by sender', { senderId, recipientId });
         return res.status(403).json({ message: "لا يمكنك إرسال رسائل لمستخدم محظور" });
       }
+
+      console.log('✅ Block checks passed, proceeding with message send', { senderId, recipientId });
 
       // Check if there's an existing conversation or accepted message request
       const existingConversation = await db

@@ -80,6 +80,24 @@ export function setupSimpleMessageRoutes(app: Express) {
         return res.status(400).json({ message: "المستلم والمحتوى مطلوبان" });
       }
 
+      // Check if the sender is blocked by the recipient
+      console.log('🔍 فحص البلوك في simple-messages: هل المرسل محظور؟', { senderId, recipientId });
+      const isBlocked = await storage.isUserBlocked(recipientId, senderId);
+      console.log('🔍 نتيجة فحص البلوك:', { isBlocked, senderId, recipientId });
+      if (isBlocked) {
+        console.log('🚫 رسالة محظورة: المرسل محظور من المستقبل', { senderId, recipientId });
+        return res.status(403).json({ message: "لا يمكنك إرسال رسائل لهذا المستخدم" });
+      }
+
+      // Check if the recipient is blocked by the sender
+      const hasBlockedRecipient = await storage.isUserBlocked(senderId, recipientId);
+      if (hasBlockedRecipient) {
+        console.log('🚫 رسالة محظورة: المستقبل محظور من المرسل', { senderId, recipientId });
+        return res.status(403).json({ message: "لا يمكنك إرسال رسائل لمستخدم محظور" });
+      }
+
+      console.log('✅ فحوصات البلوك تمت بنجاح في simple-messages', { senderId, recipientId });
+
       // Insert the message directly
       const newMessage = await db
         .insert(messages)
