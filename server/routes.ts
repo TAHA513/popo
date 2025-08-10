@@ -2910,16 +2910,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // If not found locally, try external URLs for cross-platform access
+      // Get external sources from environment or use comprehensive defaults
       const externalBaseUrls = process.env.EXTERNAL_MEDIA_SOURCES ? 
         process.env.EXTERNAL_MEDIA_SOURCES.split(',') : [
+          // Primary deployment URLs
           'https://laaboboo.onrender.com',
-          'https://laabobo-live-api.onrender.com',
-          'https://laabobo-api.onrender.com', 
           'https://laabobo-live.onrender.com',
-          'https://laabobo.onrender.com',
-          // Add variations
+          'https://laabobo-api.onrender.com',
+          // Alternative naming patterns
           'https://laaboboo-api.onrender.com',
-          'https://laaboboo-live.onrender.com'
+          'https://laaboboo-live.onrender.com',
+          'https://laabobo.onrender.com',
+          'https://laabobo-live-api.onrender.com'
         ];
         
       // Try both direct uploads and API routes
@@ -2941,10 +2943,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           if (response.ok) {
+            const contentType = response.headers.get('content-type') || '';
+            
+            // Check if we got actual media content, not HTML error page
+            if (contentType.includes('text/html')) {
+              console.log(`⚠️ ${url} returned HTML instead of media file`);
+              continue; // Try next URL
+            }
+            
             console.log(`✅ Found file at: ${url}`);
             const buffer = await response.arrayBuffer();
-            res.set('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
-            res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+            
+            // Set proper content type based on file extension if server didn't provide it
+            let finalContentType = contentType;
+            if (!finalContentType || finalContentType === 'application/octet-stream') {
+              const ext = filePath.split('.').pop()?.toLowerCase();
+              switch (ext) {
+                case 'jpg':
+                case 'jpeg':
+                  finalContentType = 'image/jpeg';
+                  break;
+                case 'png':
+                  finalContentType = 'image/png';
+                  break;
+                case 'gif':
+                  finalContentType = 'image/gif';
+                  break;
+                case 'mp4':
+                  finalContentType = 'video/mp4';
+                  break;
+                case 'webm':
+                  finalContentType = 'video/webm';
+                  break;
+                default:
+                  finalContentType = 'application/octet-stream';
+              }
+            }
+            
+            res.set('Content-Type', finalContentType);
+            res.set('Cache-Control', 'public, max-age=3600');
+            res.set('Access-Control-Allow-Origin', '*');
             return res.send(Buffer.from(buffer));
           } else {
             console.log(`❌ ${url} returned ${response.status}`);
