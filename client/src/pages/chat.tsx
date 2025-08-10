@@ -955,7 +955,10 @@ export default function ChatPage() {
             variant="ghost" 
             size="sm" 
             className="p-2 text-pink-600 hover:bg-pink-50"
-            onClick={() => setShowGiftShop(true)}
+            onClick={() => {
+              console.log('Gift button clicked!');
+              setShowGiftShop(true);
+            }}
           >
             <Gift className="w-5 h-5" />
           </Button>
@@ -1254,11 +1257,15 @@ export default function ChatPage() {
       {showGiftShop && otherUser && (
         <GiftShop
           isOpen={showGiftShop}
-          onClose={() => setShowGiftShop(false)}
+          onClose={() => {
+            console.log('Closing gift shop');
+            setShowGiftShop(false);
+          }}
           receiverId={otherUser.id}
           receiverName={otherUser.firstName || otherUser.username}
           onGiftSent={(gift) => {
             console.log('Gift sent:', gift);
+            setShowGiftShop(false);
           }}
         />
       )}
