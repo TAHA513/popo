@@ -98,6 +98,8 @@ export function setupDirectMessageRoutes(app: Express) {
         )
         .orderBy(messages.createdAt);
 
+      console.log('🔍 Raw messages from DB (last 2):', JSON.stringify(conversationMessages.slice(-2), null, 2));
+
       // Add sender info to each message
       const messagesWithSenderInfo = await Promise.all(
         conversationMessages.map(async (message) => {
@@ -112,10 +114,22 @@ export function setupDirectMessageRoutes(app: Express) {
             .where(eq(users.id, message.senderId))
             .limit(1);
 
-          return {
+          const result = {
             ...message,
             senderInfo: senderInfo[0] || null
           };
+          
+          // Log each message for debugging
+          if (message.id >= 100) { // Only log recent messages
+            console.log('📨 Message prepared for frontend:', {
+              id: result.id,
+              senderId: result.senderId,
+              isRead: result.isRead,
+              isReadType: typeof result.isRead
+            });
+          }
+          
+          return result;
         })
       );
 
