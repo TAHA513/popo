@@ -14,6 +14,10 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
 
+// دعم legacy uploads - إعادة توجيه الطلبات القديمة 
+app.use('/api/media/legacy-uploads', express.static('uploads'));
+app.use('/api/media/legacy-uploads', express.static('uploads/legacy-uploads'));
+
 // Disable caching for all API endpoints to ensure fresh data
 app.use('/api', (req, res, next) => {
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate');

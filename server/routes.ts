@@ -279,6 +279,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // دعم legacy uploads تم نقله إلى server/index.ts باستخدام express.static
+
   // Wallet API endpoints
   // Get user transactions
   app.get('/api/users/:userId/transactions', requireAuth, async (req: any, res) => {
