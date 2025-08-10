@@ -216,16 +216,11 @@ export default function ConversationPage() {
                       </p>
                       {/* Read receipt indicator for sent messages */}
                       {message.senderId === user?.id && (
-                        <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                          <div className={`w-3 h-3 rounded-full ${
-                            message.isRead ? 'bg-green-400' : 'bg-gray-300'
-                          }`} />
-                          <span className={`text-xs ${
-                            message.isRead ? 'text-green-100' : 'text-gray-300'
-                          }`}>
-                            {message.isRead ? 'تم القراءة' : 'تم الإرسال'}
-                          </span>
-                        </div>
+                        <span className={`text-xs ml-2 ${
+                          message.isRead ? 'text-green-200' : 'text-purple-200'
+                        }`}>
+                          {message.isRead ? '✓✓' : '✓'}
+                        </span>
                       )}
                     </div>
                   </div>
