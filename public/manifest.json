@@ -6,14 +6,17 @@
   "start_url": "/?standalone=true",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "fullscreen"],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
   "background_color": "#000000",
   "theme_color": "#BF68FF",
   "categories": ["social", "entertainment", "communication"],
   "lang": "ar",
-  "dir": "rtl",
+  "dir": "rtl", 
   "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
       "src": "/icon-192x192.png",

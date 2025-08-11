@@ -1,13 +1,15 @@
 // LaaBoBo - Enhanced Service Worker for PWA
-const CACHE_NAME = 'laababo-v4';
-const STATIC_CACHE = 'laababo-static-v4';
-const DYNAMIC_CACHE = 'laababo-dynamic-v4';
+const CACHE_NAME = 'laababo-v5';
+const STATIC_CACHE = 'laababo-static-v5';
+const DYNAMIC_CACHE = 'laababo-dynamic-v5';
 
 const urlsToCache = [
   '/',
+  '/?standalone=true',
   '/manifest.json',
   '/icon-192x192.png',
-  '/icon-512x512.png'
+  '/icon-512x512.png',
+  '/offline.html'
 ];
 
 const DYNAMIC_URLS = [
@@ -18,7 +20,7 @@ const DYNAMIC_URLS = [
 
 // Install event - cache important resources
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing Service Worker v4...');
+  console.log('[SW] Installing Service Worker v5 - PWA Enhanced...');
   event.waitUntil(
     Promise.all([
       caches.open(STATIC_CACHE).then((cache) => {

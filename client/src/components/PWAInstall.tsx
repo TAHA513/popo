@@ -145,8 +145,9 @@ export function PWAInstall() {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isChrome = /Chrome/i.test(navigator.userAgent);
     const isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
+    const isEdge = /Edg/i.test(navigator.userAgent);
     
-    let instructions = 'لتثبيت التطبيق:\n\n';
+    let instructions = 'طرق تثبيت التطبيق كـ PWA حقيقي:\n\n';
     
     if (isMobile) {
       if (isChrome) {
