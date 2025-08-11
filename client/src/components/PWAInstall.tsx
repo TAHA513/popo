@@ -44,13 +44,15 @@ export function PWAInstall() {
       const hasManifest = document.querySelector('link[rel="manifest"]');
       const isSecureContext = window.isSecureContext;
       
-      console.log('[PWA] التحقق من متطلبات PWA:', {
+      console.log('[PWA] PWA Requirements Check:', {
         hasServiceWorker,
         hasManifest: !!hasManifest,
         isSecureContext,
         isStandalone,
         isiOSStandalone,
         isWinStandalone,
+        isHTTPS: window.location.protocol === 'https:',
+        currentURL: window.location.href,
         userAgent: navigator.userAgent.substring(0, 50) + '...'
       });
 

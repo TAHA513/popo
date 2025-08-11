@@ -1,71 +1,24 @@
 {
-  "name": "LaaBoBo - منصة التواصل الاجتماعي والبث المباشر",
+  "name": "LaaBoBo Live",
   "short_name": "LaaBoBo",
-  "description": "منصة التواصل الاجتماعي العربية للذكريات والبث المباشر مع الهدايا والشخصيات المتحركة",
-  "id": "/?standalone=true",
-  "start_url": "/?standalone=true",
+  "description": "منصة التواصل الاجتماعي العربية",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
-  "orientation": "portrait-primary",
   "background_color": "#000000",
   "theme_color": "#BF68FF",
-  "categories": ["social", "entertainment", "communication"],
-  "lang": "ar",
-  "dir": "rtl", 
-  "prefer_related_applications": false,
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  },
   "icons": [
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "إنشاء ذكرى",
-      "short_name": "ذكرى جديدة",
-      "description": "إنشاء ذكرى جديدة",
-      "url": "/create-memory",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "الرسائل",
-      "short_name": "رسائل",
-      "description": "فتح الرسائل",
-      "url": "/messages",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "البث المباشر",
-      "short_name": "البث",
-      "description": "مشاهدة البث المباشر",
-      "url": "/live-streams",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    }
-  ],
-  "protocol_handlers": [],
-  "file_handlers": []
+  ]
 }

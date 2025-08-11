@@ -1,11 +1,10 @@
-// LaaBoBo - Enhanced Service Worker for PWA
-const CACHE_NAME = 'laababo-v5';
-const STATIC_CACHE = 'laababo-static-v5';
-const DYNAMIC_CACHE = 'laababo-dynamic-v5';
+// LaaBoBo PWA Service Worker
+const CACHE_NAME = 'laababo-v6';
+const STATIC_CACHE = 'laababo-static-v6';
+const DYNAMIC_CACHE = 'laababo-dynamic-v6';
 
 const urlsToCache = [
   '/',
-  '/?standalone=true',
   '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png',
@@ -18,27 +17,22 @@ const DYNAMIC_URLS = [
   '/api/notifications/unread-count'
 ];
 
-// Install event - cache important resources
+// Install event
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing Service Worker v5 - PWA Enhanced...');
+  console.log('[SW] Installing Service Worker v6 - PWA Mode');
   event.waitUntil(
-    Promise.all([
-      caches.open(STATIC_CACHE).then((cache) => {
-        console.log('[SW] Caching static resources');
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW] Caching essential resources');
         return cache.addAll(urlsToCache);
-      }),
-      caches.open(CACHE_NAME).then((cache) => {
-        console.log('[SW] Creating main cache');
-        return cache.addAll(['/offline.html']);
       })
-    ])
-    .then(() => {
-      console.log('[SW] Installation complete - PWA ready!');
-      return self.skipWaiting();
-    })
-    .catch((error) => {
-      console.error('[SW] Installation failed:', error);
-    })
+      .then(() => {
+        console.log('[SW] PWA Installation complete!');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('[SW] Installation failed:', error);
+      })
   );
 });
 
