@@ -3,7 +3,6 @@ import { requireAuth } from "../localAuth";
 import { db } from "../db";
 import { messages, users, blockedUsers } from "@shared/schema";
 import { eq, and, or, desc } from "drizzle-orm";
-import { UrlHandler } from "../utils/url-handler";
 
 export function setupDirectMessageRoutes(app: Express) {
   // Get conversations - simple list of users you've messaged with
@@ -54,11 +53,7 @@ export function setupDirectMessageRoutes(app: Express) {
             );
             
             conversationsMap.set(otherUserId, {
-              otherUser: {
-                ...otherUserInfo[0],
-                profileImageUrl: otherUserInfo[0].profileImageUrl ? 
-                  UrlHandler.processMediaUrl(otherUserInfo[0].profileImageUrl, req) : null
-              },
+              otherUser: otherUserInfo[0],
               lastMessage: message.content,
               lastMessageAt: message.createdAt,
               unreadCount: unreadMessages.length,
@@ -121,11 +116,7 @@ export function setupDirectMessageRoutes(app: Express) {
 
           return {
             ...message,
-            senderInfo: senderInfo[0] ? {
-              ...senderInfo[0],
-              profileImageUrl: senderInfo[0].profileImageUrl ? 
-                UrlHandler.processMediaUrl(senderInfo[0].profileImageUrl, req) : null
-            } : null
+            senderInfo: senderInfo[0] || null
           };
         })
       );

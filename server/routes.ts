@@ -29,7 +29,6 @@ import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
 import axios from 'axios';
-import { UrlHandler } from './utils/url-handler';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -226,8 +225,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup Stripe payment routes
   registerStripeRoutes(app);
-
-
 
   // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
   app.get('/api/media/proxy', async (req: any, res) => {
@@ -1117,8 +1114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         role: user.role,
         points: user.points,
-        profileImageUrl: user.profileImageUrl ? UrlHandler.processMediaUrl(user.profileImageUrl, req) : null,
-        coverImageUrl: user.coverImageUrl ? UrlHandler.processMediaUrl(user.coverImageUrl, req) : null,
+        profileImageUrl: user.profileImageUrl,
         bio: user.bio,
         isStreamer: user.isStreamer,
         totalEarnings: user.totalEarnings,
@@ -1146,7 +1142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimetype: req.file.mimetype
       });
 
-      const fileUrl = UrlHandler.createApiMediaUrl(req.file.filename, req);
+      const fileUrl = `/uploads/${req.file.filename}`;
       res.json({
         success: true,
         fileUrl,
@@ -1179,7 +1175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ 
         success: true, 
-        profileImageUrl: UrlHandler.processMediaUrl(profileImageUrl, req),
+        profileImageUrl,
         message: "تم تحديث الصورة الشخصية بنجاح" 
       });
     } catch (error) {
@@ -1432,21 +1428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
-      // Convert URLs to absolute paths for proper cross-domain support
-      const memoriesWithAbsoluteUrls = memoriesWithCommentCounts.map(memory => ({
-        ...memory,
-        // Convert media URLs to absolute URLs
-        mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
-        thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
-        // Convert author profile image URL to absolute URL  
-        author: memory.author ? {
-          ...memory.author,
-          profileImageUrl: memory.author.profileImageUrl ? 
-            UrlHandler.processMediaUrl(memory.author.profileImageUrl, req) : null
-        } : null
-      }));
-
-      res.json(memoriesWithAbsoluteUrls);
+      res.json(memoriesWithCommentCounts);
     } catch (error) {
       console.error("Error fetching public memories:", error);
       res.status(500).json({ message: "Failed to fetch public memories" });
@@ -1466,21 +1448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Memory not found" });
       }
       
-      // Convert URLs to absolute paths for proper cross-domain support
-      const memoryWithAbsoluteUrls = {
-        ...memory,
-        // Convert media URLs to absolute URLs
-        mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
-        thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
-        // Convert author profile image URL to absolute URL  
-        author: memory.author ? {
-          ...memory.author,
-          profileImageUrl: memory.author.profileImageUrl ? 
-            UrlHandler.processMediaUrl(memory.author.profileImageUrl, req) : null
-        } : null
-      };
-      
-      res.json(memoryWithAbsoluteUrls);
+      res.json(memory);
     } catch (error) {
       console.error("Error fetching memory:", error);
       res.status(500).json({ message: "Failed to fetch memory" });
@@ -1632,15 +1600,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filteredUsers = filterOwnerFromUsers(usersResult);
       logOwnerProtection('user search', usersResult.length - filteredUsers.length);
       
-      // Convert profile image URLs to absolute URLs
-      const usersWithAbsoluteUrls = filteredUsers.map(user => ({
-        ...user,
-        profileImageUrl: user.profileImageUrl ? UrlHandler.processMediaUrl(user.profileImageUrl, req) : null
-      }));
+      console.log('👥 Found users:', filteredUsers.length);
       
-      console.log('👥 Found users:', usersWithAbsoluteUrls.length);
-      
-      res.json(usersWithAbsoluteUrls);
+      res.json(filteredUsers);
     } catch (error) {
       console.error('Error searching users:', error);
       res.status(500).json({ message: 'فشل في البحث عن المستخدمين' });
