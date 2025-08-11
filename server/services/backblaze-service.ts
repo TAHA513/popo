@@ -4,29 +4,40 @@ import { nanoid } from 'nanoid';
 import path from 'path';
 
 // Backblaze B2 Cloud Storage Service
-export class BackblazeB2Service {
-  private b2: B2;
+export class BackblazeService {
+  private b2: any;
   private bucketName: string;
   private bucketId: string;
   private initialized = false;
+  private downloadUrl: string = '';
+  private lastUploadedUrl: string = '';
+  private authToken: string | null = null; // Add authToken property
+  private apiUrl: string | null = null; // Add apiUrl property
 
   constructor() {
     this.bucketName = process.env.B2_BUCKET_NAME || '';
     this.bucketId = process.env.B2_BUCKET_ID || '';
-    
-    this.b2 = new B2({
-      applicationKeyId: process.env.B2_APPLICATION_KEY_ID || '',
-      applicationKey: process.env.B2_APPLICATION_KEY || ''
-    });
+
+    if (this.isAvailable()) {
+      this.b2 = new B2({
+        applicationKeyId: process.env.B2_APPLICATION_KEY_ID || '',
+        applicationKey: process.env.B2_APPLICATION_KEY || ''
+      });
+    }
   }
 
   async initialize(): Promise<void> {
-    if (this.initialized) return;
-    
+    if (this.initialized || !this.isAvailable()) return;
+
     try {
       console.log('🔄 Initializing Backblaze B2...');
-      await this.b2.authorize();
+      const authResponse = await this.b2.authorize();
+      // Assign values from authResponse
+      this.authToken = authResponse.data.authorizationToken;
+      this.apiUrl = authResponse.data.apiUrl;
+      this.downloadUrl = authResponse.data.downloadUrl || 'https://f005.backblazeb2.com'; // Provide a default or fallback
       console.log('✅ Backblaze B2 authorized successfully');
+      console.log('🔗 Download URL:', this.downloadUrl);
       this.initialized = true;
     } catch (error) {
       console.error('❌ Backblaze B2 authorization failed:', error);
@@ -35,11 +46,15 @@ export class BackblazeB2Service {
   }
 
   async uploadFile(buffer: Buffer, fileName: string, contentType: string): Promise<string> {
+    if (!this.isAvailable()) {
+      throw new Error('Backblaze B2 not configured');
+    }
+
     await this.initialize();
-    
+
     try {
       console.log(`📤 Uploading ${fileName} to Backblaze B2...`);
-      
+
       // Get upload URL
       const uploadUrlResponse = await this.b2.getUploadUrl({
         bucketId: this.bucketId
@@ -54,49 +69,53 @@ export class BackblazeB2Service {
         contentType: contentType
       });
 
-      // الحصول على download URL الصحيح من B2 مباشرة
-      console.log('📡 Getting download URL from B2 API...');
-      
-      try {
-        // الحصول على download URL باستخدام API
-        const downloadAuth = await this.b2.getDownloadAuthorization({
-          bucketId: this.bucketId,
-          fileNamePrefix: fileName,
-          validDurationInSeconds: 86400 // 24 ساعة
-        });
-        
-        // تجميع URL الصحيح
-        const publicUrl = `${downloadAuth.data.downloadUrl}/file/${this.bucketName}/${fileName}`;
-        
-        console.log(`✅ File uploaded successfully: ${fileName}`);
-        console.log(`🔗 API-verified Public URL: ${publicUrl}`);
-        return publicUrl;
-        
-      } catch (downloadError) {
-        console.warn('⚠️ Could not get download URL from API, using fallback format');
-        
-        // أسهل حل: استخدام endpoint ال API للوصول للملف
-        // هذا أكثر موثوقية من تخمين format الـ URL
-        const publicUrl = `/api/media/b2/${fileName}`;
-        
-        console.log(`✅ File uploaded successfully: ${fileName}`);
-        console.log(`🔗 API Proxy URL: ${publicUrl}`);
-        console.log(`🔍 سيتم جلب الملف عبر API proxy من Backblaze B2`);
-        return publicUrl;
-      }
-      
+      console.log('📤 Upload response:', {
+        fileName: uploadResponse.data.fileName,
+        fileId: uploadResponse.data.fileId
+      });
+
+      // إنشاء رابط التحميل المباشر
+      console.log('📡 Creating download URL...');
+      const publicUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+
+      console.log('🔗 Generated Public URL:', publicUrl);
+
+      // حفظ URL المباشر للاستخدام لاحقاً
+      this.lastUploadedUrl = publicUrl;
+
+      // إرجاع URL الداخلي للـ API proxy (أفضل للأمان)
+      return `/api/media/b2/${fileName}`;
+
     } catch (error) {
       console.error(`❌ Failed to upload ${fileName}:`, error);
       throw new Error(`Failed to upload file to Backblaze B2: ${error}`);
     }
   }
 
+  async getFileUrl(fileName: string): Promise<string> {
+    try {
+      await this.initialize();
+
+      // تكوين URL مباشرة باستخدام download URL من Backblaze
+      const directUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      console.log('🔗 Direct B2 URL:', directUrl);
+
+      return directUrl;
+    } catch (error) {
+      console.error('❌ Error getting file URL:', error);
+      // Fallback URL construction
+      return `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+    }
+  }
+
   async deleteFile(fileName: string): Promise<void> {
+    if (!this.isAvailable()) return;
+
     await this.initialize();
-    
+
     try {
       console.log(`🗑️ Deleting ${fileName} from Backblaze B2...`);
-      
+
       // Get file info first
       const listResponse = await this.b2.listFileNames({
         bucketId: this.bucketId,
@@ -112,7 +131,7 @@ export class BackblazeB2Service {
         });
         console.log(`✅ File deleted successfully: ${fileName}`);
       }
-      
+
     } catch (error) {
       console.error(`❌ Failed to delete ${fileName}:`, error);
       // Don't throw error for delete operations
@@ -124,7 +143,7 @@ export class BackblazeB2Service {
     const randomId = nanoid(8);
     const ext = path.extname(originalName);
     const baseName = path.basename(originalName, ext);
-    
+
     // Clean filename for B2 compatibility
     const cleanBaseName = baseName.replace(/[^a-zA-Z0-9_-]/g, '_');
     return `${timestamp}_${randomId}_${cleanBaseName}${ext}`;
@@ -138,6 +157,17 @@ export class BackblazeB2Service {
       process.env.B2_BUCKET_ID
     );
   }
+
+  // Expose b2 instance for direct API calls
+  get b2Instance() {
+    return this.b2;
+  }
+
+  // Get the last uploaded URL for debugging
+  get lastUrl() {
+    return this.lastUploadedUrl;
+  }
 }
 
-export const backblazeService = new BackblazeB2Service();
+// Export singleton instance
+export const backblazeService = new BackblazeService();

@@ -47,6 +47,11 @@ export class UrlHandler {
       return mediaUrl;
     }
     
+    // إذا كان رابط B2 proxy، حوله إلى API URL
+    if (mediaUrl.startsWith('/api/media/b2/')) {
+      return this.makeAbsoluteUrl(mediaUrl, req);
+    }
+    
     // إذا كان اسم ملف فقط، حوله إلى API URL
     if (mediaUrl && !mediaUrl.includes('/')) {
       return this.createApiMediaUrl(mediaUrl, req);
