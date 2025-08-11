@@ -783,17 +783,37 @@ export class DatabaseStorage implements IStorage {
       .from(memoryFragments)
       .innerJoin(users, eq(memoryFragments.authorId, users.id))
       .where(and(
+        eq(memoryFragments.isActive, true),
         eq(memoryFragments.visibilityLevel, 'public'),
         ne(users.username, 'fnnm945@gmail.com')
       ))
       .orderBy(desc(memoryFragments.createdAt))
       .limit(50);
     
-    // Flatten the data structure
-    return memories.map(({ memory, author }) => ({
-      ...memory,
-      author
-    }));
+    // Flatten the data structure and ensure media URLs are properly formatted
+    return memories.map(({ memory, author }) => {
+      // Process media URLs to ensure they work with Backblaze B2
+      let processedMediaUrls = memory.mediaUrls;
+      if (Array.isArray(processedMediaUrls)) {
+        processedMediaUrls = processedMediaUrls.map((url: string) => {
+          // If it's already a full HTTP URL, return as-is
+          if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            return url;
+          }
+          // If it's a relative path or filename, convert to API URL
+          if (url && !url.includes('/')) {
+            return `/api/media/${url}`;
+          }
+          return url;
+        });
+      }
+      
+      return {
+        ...memory,
+        mediaUrls: processedMediaUrls,
+        author
+      };
+    });
   }
 
   async getSuggestedUsers(): Promise<any[]> {
