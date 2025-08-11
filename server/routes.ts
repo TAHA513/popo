@@ -226,8 +226,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Stripe payment routes
   registerStripeRoutes(app);
 
-
-
   // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
   app.get('/api/media/proxy', async (req: any, res) => {
     try {
