@@ -91,12 +91,13 @@ export function PWAInstall() {
   return (
     <button
       onClick={handleInstallClick}
-      className="relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
-      title={isInstallable ? "تثبيت التطبيق" : "تعليمات التثبيت"}
+      className="relative flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+      title={isInstallable ? "تثبيت التطبيق مجاناً" : "تعليمات التثبيت"}
     >
-      <Download className={`w-6 h-6 ${isInstallable ? 'text-green-600' : 'text-gray-600'}`} />
+      <Download className="w-5 h-5" />
+      <span className="text-sm font-bold">تثبيت</span>
       {isInstallable && (
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+        <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></span>
       )}
     </button>
   );
