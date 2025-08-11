@@ -96,15 +96,39 @@ export class BackblazeService {
     try {
       await this.initialize();
 
-      // تكوين URL مباشرة باستخدام download URL من Backblaze
-      const directUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
-      console.log('🔗 Direct B2 URL:', directUrl);
+      // الحصول على معلومات الملف أولاً
+      const listResponse = await this.b2.listFileNames({
+        bucketId: this.bucketId,
+        startFileName: fileName,
+        maxFileCount: 5
+      });
+
+      const file = listResponse.data.files.find((f: any) => f.fileName === fileName);
+      if (!file) {
+        throw new Error(`File not found: ${fileName}`);
+      }
+
+      console.log('📁 File found in B2:', file.fileName);
+
+      // إنشاء URL موقع مع token للوصول الخاص
+      const downloadAuthResponse = await this.b2.getDownloadAuthorization({
+        bucketId: this.bucketId,
+        fileNamePrefix: fileName,
+        validDurationInSeconds: 86400 // 24 ساعة
+      });
+
+      const authToken = downloadAuthResponse.data.authorizationToken;
+      const directUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}?Authorization=${authToken}`;
+      
+      console.log('🔗 Authorized B2 URL created for:', fileName);
 
       return directUrl;
     } catch (error) {
-      console.error('❌ Error getting file URL:', error);
-      // Fallback URL construction
-      return `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      console.error('❌ Error getting authorized file URL:', error);
+      // Fallback: try direct URL without auth (may work for public files)
+      const fallbackUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      console.log('🔄 Using fallback URL:', fallbackUrl);
+      return fallbackUrl;
     }
   }
 
