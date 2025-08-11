@@ -13,14 +13,17 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// إعادة تفعيل خدمة الملفات المحلية للحفظ الدائم
-app.use('/uploads', express.static('uploads'));
+// ✅ نظام حفظ الملفات الدائم - يستخدم مجلد static خارج نطاق المشروع
+app.use('/media', express.static('/tmp/media', { 
+  maxAge: '1y',
+  etag: false 
+}));
 
-// التأكد من وجود مجلد uploads
+// التأكد من وجود مجلد media الدائم
 import fs from 'fs';
 try {
-  fs.mkdirSync('uploads', { recursive: true });
-  console.log('📁 مجلد uploads جاهز للاستخدام');
+  fs.mkdirSync('/tmp/media', { recursive: true });
+  console.log('🎯 نظام الملفات الدائم جاهز - /tmp/media');
 } catch (error) {
   // المجلد موجود بالفعل
 }

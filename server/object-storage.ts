@@ -1,26 +1,26 @@
-import path from 'path';
+import { nanoid } from 'nanoid';
 import fs from 'fs';
+import path from 'path';
 
-// استخدام مجلد uploads ثابت ودائم
-const uploadsDir = './uploads';
+// مجلد دائم خارج نطاق المشروع - لن يتأثر بـ redeploy
+const PERSISTENT_MEDIA_DIR = '/tmp/media';
 
 export interface UploadResult {
   filename: string;
   publicUrl: string;
 }
 
-// التأكد من وجود مجلد uploads
-async function ensureUploadsDir() {
+// ضمان وجود مجلد الوسائط الدائم
+async function ensurePersistentMediaDir() {
   try {
-    await fs.promises.mkdir(uploadsDir, { recursive: true });
-    console.log('📁 مجلد uploads جاهز');
+    await fs.promises.mkdir(PERSISTENT_MEDIA_DIR, { recursive: true });
   } catch (error) {
     // المجلد موجود بالفعل
   }
 }
 
 /**
- * حفظ الملف بشكل دائم
+ * حفظ الملف بشكل دائم في مجلد آمن - لن يختفي عند redeploy
  */
 export async function uploadFileToStorage(
   filePath: string, 
@@ -28,12 +28,15 @@ export async function uploadFileToStorage(
   isPublic: boolean = true
 ): Promise<UploadResult> {
   try {
-    await ensureUploadsDir();
+    await ensurePersistentMediaDir();
     
-    const finalPath = path.join(uploadsDir, fileName);
-    console.log(`💾 حفظ الملف: ${fileName}`);
+    // إنشاء اسم ملف فريد لتجنب التضارب
+    const uniqueFileName = `${nanoid()}_${fileName}`;
+    const finalPath = path.join(PERSISTENT_MEDIA_DIR, uniqueFileName);
+    
+    console.log(`🔄 نسخ الملف للمجلد الدائم: ${uniqueFileName}`);
 
-    // نسخ الملف للمكان الدائم
+    // نسخ الملف للمجلد الدائم
     await fs.promises.copyFile(filePath, finalPath);
     
     // حذف الملف المؤقت
@@ -43,11 +46,11 @@ export async function uploadFileToStorage(
       // تجاهل أخطاء التنظيف
     }
 
-    const publicUrl = `/uploads/${fileName}`;
-    console.log(`✅ تم حفظ الملف: ${publicUrl}`);
+    const publicUrl = `/media/${uniqueFileName}`;
+    console.log(`✅ تم حفظ الملف في المجلد الدائم: ${publicUrl}`);
 
     return {
-      filename: fileName,
+      filename: uniqueFileName,
       publicUrl: publicUrl
     };
 
@@ -58,7 +61,7 @@ export async function uploadFileToStorage(
 }
 
 /**
- * حفظ المحتوى مباشرة بشكل دائم
+ * حفظ المحتوى مباشرة بشكل دائم في مجلد آمن
  */
 export async function uploadBufferToStorage(
   buffer: Buffer,
@@ -67,19 +70,22 @@ export async function uploadBufferToStorage(
   isPublic: boolean = true
 ): Promise<UploadResult> {
   try {
-    await ensureUploadsDir();
+    await ensurePersistentMediaDir();
     
-    const finalPath = path.join(uploadsDir, fileName);
-    console.log(`💾 حفظ المحتوى: ${fileName}`);
+    // إنشاء اسم ملف فريد
+    const uniqueFileName = `${nanoid()}_${fileName}`;
+    const finalPath = path.join(PERSISTENT_MEDIA_DIR, uniqueFileName);
+    
+    console.log(`🔄 حفظ المحتوى في المجلد الدائم: ${uniqueFileName}`);
 
-    // كتابة المحتوى للمكان الدائم
+    // كتابة المحتوى للمجلد الدائم
     await fs.promises.writeFile(finalPath, buffer);
 
-    const publicUrl = `/uploads/${fileName}`;
-    console.log(`✅ تم حفظ المحتوى: ${publicUrl}`);
+    const publicUrl = `/media/${uniqueFileName}`;
+    console.log(`✅ تم حفظ المحتوى في المجلد الدائم: ${publicUrl}`);
 
     return {
-      filename: fileName,
+      filename: uniqueFileName,
       publicUrl: publicUrl
     };
 
@@ -90,11 +96,23 @@ export async function uploadBufferToStorage(
 }
 
 /**
- * حذف ملف من التخزين
+ * إنشاء اسم ملف فريد لتجنب التضارب
+ */
+export function generateUniqueFileName(originalName: string): string {
+  const timestamp = Date.now();
+  const randomId = nanoid(8);
+  const extension = path.extname(originalName);
+  const nameWithoutExt = path.basename(originalName, extension);
+  
+  return `${timestamp}_${randomId}_${nameWithoutExt}${extension}`;
+}
+
+/**
+ * حذف ملف من المجلد الدائم
  */
 export async function deleteFileFromStorage(fileName: string): Promise<void> {
   try {
-    const filePath = path.join(uploadsDir, fileName);
+    const filePath = path.join(PERSISTENT_MEDIA_DIR, fileName);
     await fs.promises.unlink(filePath);
     console.log(`🗑️ تم حذف الملف: ${fileName}`);
   } catch (error) {
@@ -103,25 +121,3 @@ export async function deleteFileFromStorage(fileName: string): Promise<void> {
   }
 }
 
-/**
- * التحقق من وجود ملف
- */
-export async function fileExistsInStorage(fileName: string): Promise<boolean> {
-  try {
-    const filePath = path.join(uploadsDir, fileName);
-    await fs.promises.access(filePath);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-/**
- * Generate a unique filename with timestamp and random suffix
- */
-export function generateUniqueFileName(originalName: string): string {
-  const timestamp = Date.now();
-  const ext = path.extname(originalName);
-  const randomSuffix = Math.random().toString(36).substring(7);
-  return `${timestamp}-${randomSuffix}${ext}`;
-}

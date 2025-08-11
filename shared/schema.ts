@@ -876,6 +876,19 @@ export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
   user: one(users, { fields: [userProfiles.userId], references: [users.id] }),
 }));
 
+// جدول حفظ الملفات الدائم - يحل مشكلة اختفاء الصور والفيديوهات عند redeploy
+export const mediaFiles = pgTable("media_files", {
+  id: varchar("id").primaryKey().$defaultFn(() => nanoid()),
+  filename: varchar("filename").notNull(),
+  mimeType: varchar("mime_type").notNull(),
+  data: text("data").notNull(), // Base64 encoded file data
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Media Files Types
+export type MediaFile = typeof mediaFiles.$inferSelect;
+export type InsertMediaFile = typeof mediaFiles.$inferInsert;
+
 // Private Photo Albums
 export const privateAlbums = pgTable("private_albums", {
   id: serial("id").primaryKey(),
