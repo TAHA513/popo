@@ -11,6 +11,7 @@ export class BackblazeService {
   private bucketId: string;
   private initialized = false;
   private downloadUrl: string = '';
+  private lastUploadedUrl: string = '';
 
   constructor() {
     this.bucketName = process.env.B2_BUCKET_NAME || '';
@@ -69,13 +70,16 @@ export class BackblazeService {
         fileId: uploadResponse.data.fileId
       });
 
-      // بناء URL العام الصحيح
-      const publicUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      // بناء URL المباشر بشكل صحيح
+      const directUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
       
       console.log(`✅ File uploaded successfully: ${fileName}`);
-      console.log(`🔗 Direct B2 URL: ${publicUrl}`);
+      console.log(`🔗 Direct B2 URL: ${directUrl}`);
       
-      // إرجاع URL الداخلي للـ API proxy
+      // حفظ URL المباشر للاستخدام لاحقاً
+      this.lastUploadedUrl = directUrl;
+      
+      // إرجاع URL الداخلي للـ API proxy (أفضل للأمان)
       return `/api/media/b2/${fileName}`;
       
     } catch (error) {
@@ -149,6 +153,11 @@ export class BackblazeService {
   // Expose b2 instance for direct API calls
   get b2Instance() {
     return this.b2;
+  }
+
+  // Get the last uploaded URL for debugging
+  get lastUrl() {
+    return this.lastUploadedUrl;
   }
 }
 
