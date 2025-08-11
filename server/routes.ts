@@ -357,40 +357,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
 
-    // Strategy 3: Try to proxy from other environment (experimental)
-    if (!IS_REPLIT) {
-      try {
-        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
-        const replitUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+    // Strategy 3: Try to proxy from other environment (bidirectional)
+    try {
+      let proxyUrl = '';
 
-        const response = await axios.get(replitUrl, {
-          timeout: 10000,
-          responseType: 'stream',
-          headers: {
-            'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0'
-          }
+      if (IS_REPLIT) {
+        // في Replit، جرب جلب الملف من Render
+        console.log(`🔄 محاولة الحصول على الملف من Render...`);
+        proxyUrl = `https://laabobo.onrender.com/api/media/${filename}`;
+      } else {
+        // في Render، جرب جلب الملف من Replit
+        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
+        proxyUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+      }
+
+      const response = await axios.get(proxyUrl, {
+        timeout: 15000,
+        responseType: 'stream',
+        headers: {
+          'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0',
+          'Accept': '*/*'
+        },
+        maxRedirects: 3
+      });
+
+      if (response.status === 200) {
+        const sourceEnv = IS_REPLIT ? 'Render' : 'Replit';
+        console.log(`✅ الملف مُستلم من ${sourceEnv}: ${filename}`);
+
+        res.set({
+          'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+          'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*',
+          'X-Source': `${sourceEnv.toLowerCase()}-proxy`
         });
 
-        if (response.status === 200) {
-          console.log(`✅ الملف مُستلم من Replit: ${filename}`);
-
-          res.set({
-            'Content-Type': response.headers['content-type'] || 'application/octet-stream',
-            'Cache-Control': 'public, max-age=3600',
-            'Access-Control-Allow-Origin': '*',
-            'X-Source': 'replit-proxy'
-          });
-
-          return response.data.pipe(res);
-        }
-      } catch (proxyError) {
-        console.log(`❌ فشل في proxy الملف من Replit: ${proxyError?.message}`);
+        return response.data.pipe(res);
       }
+    } catch (proxyError) {
+      const sourceEnv = IS_REPLIT ? 'Render' : 'Replit';
+      console.log(`❌ فشل في proxy الملف من ${sourceEnv}: ${proxyError?.message}`);
     }
 
     // If no file found anywhere
     console.log(`❌ الملف غير موجود في أي مكان: ${filename}`);
-    res.status(404).json({ 
+    res.status(404).json({
       error: 'File not found',
       filename: filename,
       environment: IS_REPLIT ? 'replit' : 'production',
@@ -563,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get sender's current points
       const sender = await storage.getUser(senderId);
       if (!sender || (sender.points || 0) < amount) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: `ليس لديك نقاط كافية. رصيدك الحالي: ${sender?.points || 0} نقطة`
         });
       }
@@ -661,7 +672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Unlock premium message  
+  // Unlock premium message
   app.post("/api/premium-messages/:id/unlock", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -800,16 +811,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
       }
 
+      // Check if user already has access
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      if (hasAccess) {
+        return res.status(400).json({ message: "لديك وصول للألبوم بالفعل" });
+      }
+
       // Get album details
       const album = await storage.getPremiumAlbum(albumId);
       if (!album) {
         return res.status(404).json({ message: "الألبوم غير موجود" });
       }
 
-      // Check if user already has access
-      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
-      if (hasAccess) {
-        return res.status(400).json({ message: "لديك وصول للألبوم بالفعل" });
+      if (album.creatorId === userId) {
+        return res.status(400).json({ message: "لا يمكنك شراء ألبومك الخاص" });
       }
 
       // Get gift details to calculate actual cost
@@ -823,7 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check user's points balance
       const user = await storage.getUser(userId);
       if (!user || (user.points || 0) < totalCost) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: `ليس لديك نقاط كافية. تحتاج ${totalCost} نقطة وحالياً لديك ${user.points || 0} نقطة`
         });
       }
@@ -854,8 +869,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const creator = await storage.getUser(album.creatorId);
       await storage.updateUserPoints(album.creatorId, (creator?.points || 0) + totalCost);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: "تم شراء الألبوم بنجاح",
         giftSent: {
           name: giftCharacter.name,
@@ -872,7 +887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get album media
-  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
+  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -884,52 +899,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has access to this album
       const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
       if (!hasAccess) {
-        return res.status(403).json({ message: "ليس لديك إذن لعرض محتويات هذا الألبوم" });
+        return res.status(403).json({ message: "يجب شراء الألبوم أولاً لعرض المحتوى" });
       }
 
-      // Get album media
-      const media = await storage.getPremiumAlbumMedia(albumId);
+      const media = await storage.getAlbumMedia(albumId);
       res.json(media);
     } catch (error) {
       console.error("Error fetching album media:", error);
-      res.status(500).json({ message: "فشل في جلب محتويات الألبوم" });
-    }
-  });
-
-  // Test block status endpoint  
-  app.get('/api/test-block/:userId', requireAuth, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.id;
-      const targetUserId = req.params.userId;
-
-      const [blockCheck] = await db
-        .select()
-        .from(blockedUsers)
-        .where(
-          and(
-            eq(blockedUsers.blockerId, currentUserId),
-            eq(blockedUsers.blockedId, targetUserId)
-          )
-        );
-
-      const [reverseBlockCheck] = await db
-        .select()
-        .from(blockedUsers)
-        .where(
-          and(
-            eq(blockedUsers.blockerId, targetUserId),
-            eq(blockedUsers.blockedId, currentUserId)
-          )
-        );
-
-      res.json({
-        youBlockedThem: !!blockCheck,
-        theyBlockedYou: !!reverseBlockCheck,
-        canSendMessage: !blockCheck && !reverseBlockCheck
-      });
-    } catch (error) {
-      console.error("Error checking block status:", error);
-      res.status(500).json({ message: "فشل في فحص حالة البلوك" });
+      res.status(500).json({ message: "فشل في جلب محتوى الألبوم" });
     }
   });
 
@@ -1177,7 +1154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passwordHash,
       });
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: "تم إنشاء الحساب بنجاح",
         user: {
           id: user.id,
@@ -1189,7 +1166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "بيانات غير صالحة",
           errors: error.errors.map(e => ({ field: e.path[0], message: e.message }))
         });
@@ -1232,7 +1209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })(req, res, next);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "بيانات غير صالحة",
           errors: error.errors.map(e => ({ field: e.path[0], message: e.message }))
         });
@@ -1370,10 +1347,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl: uploadResult.publicUrl }).where(eq(users.id, userId));
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         profileImageUrl: uploadResult.publicUrl,
-        message: "تم تحديث الصورة الشخصية بنجاح" 
+        message: "تم تحديث الصورة الشخصية بنجاح"
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -1412,10 +1389,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('✅ Cover image uploaded successfully for user:', userId);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         coverImageUrl: uploadResult.publicUrl,
-        message: "تم تحديث صورة الغلاف بنجاح" 
+        message: "تم تحديث صورة الغلاف بنجاح"
       });
     } catch (error) {
       console.error('❌ Error uploading cover image:', error);
@@ -1517,40 +1494,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
 
-    // Strategy 3: Try to proxy from other environment (experimental)
-    if (!IS_REPLIT) {
-      try {
-        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
-        const replitUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+    // Strategy 3: Try to proxy from other environment (bidirectional)
+    try {
+      let proxyUrl = '';
 
-        const response = await axios.get(replitUrl, {
-          timeout: 10000,
-          responseType: 'stream',
-          headers: {
-            'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0'
-          }
+      if (IS_REPLIT) {
+        // في Replit، جرب جلب الملف من Render
+        console.log(`🔄 محاولة الحصول على الملف من Render...`);
+        proxyUrl = `https://laabobo.onrender.com/api/media/${filename}`;
+      } else {
+        // في Render، جرب جلب الملف من Replit
+        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
+        proxyUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+      }
+
+      const response = await axios.get(proxyUrl, {
+        timeout: 15000,
+        responseType: 'stream',
+        headers: {
+          'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0',
+          'Accept': '*/*'
+        },
+        maxRedirects: 3
+      });
+
+      if (response.status === 200) {
+        const sourceEnv = IS_REPLIT ? 'Render' : 'Replit';
+        console.log(`✅ الملف مُستلم من ${sourceEnv}: ${filename}`);
+
+        res.set({
+          'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+          'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*',
+          'X-Source': `${sourceEnv.toLowerCase()}-proxy`
         });
 
-        if (response.status === 200) {
-          console.log(`✅ الملف مُستلم من Replit: ${filename}`);
-
-          res.set({
-            'Content-Type': response.headers['content-type'] || 'application/octet-stream',
-            'Cache-Control': 'public, max-age=3600',
-            'Access-Control-Allow-Origin': '*',
-            'X-Source': 'replit-proxy'
-          });
-
-          return response.data.pipe(res);
-        }
-      } catch (proxyError) {
-        console.log(`❌ فشل في proxy الملف من Replit: ${proxyError?.message}`);
+        return response.data.pipe(res);
       }
+    } catch (proxyError) {
+      const sourceEnv = IS_REPLIT ? 'Render' : 'Replit';
+      console.log(`❌ فشل في proxy الملف من ${sourceEnv}: ${proxyError?.message}`);
     }
 
     // If no file found anywhere
     console.log(`❌ الملف غير موجود في أي مكان: ${filename}`);
-    res.status(404).json({ 
+    res.status(404).json({
       error: 'File not found',
       filename: filename,
       environment: IS_REPLIT ? 'replit' : 'production',
@@ -1560,9 +1548,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memory fragments routes
-  app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
+  app.post('/api/memories/user/:userId', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
       const userId = req.user.id;
+      const targetUserId = req.params.userId;
+
+      if (userId !== targetUserId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
       const files = req.files as Express.Multer.File[];
 
       if (!files || files.length === 0) {
@@ -1591,12 +1585,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create memory fragment
       const memoryData = {
         authorId: userId,
-        type: files?.[0]?.mimetype?.startsWith('video') ? 'video' : 'image',
+        type: req.body.type || 'mixed',
         title: req.body.title || '',
         caption: req.body.caption || '',
         mediaUrls,
-        thumbnailUrl: mediaUrls[0] || null,
+        thumbnailUrl: mediaUrls.length > 0 ? mediaUrls[0] : null,
         memoryType: req.body.memoryType || 'star',
+        mood: req.body.mood || 'happy',
+        tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+        location: req.body.location || null,
+        isPublic: req.body.isPublic === 'true',
         visibilityLevel: req.body.visibilityLevel || 'public',
         allowComments: req.body.allowComments !== 'false',
         allowSharing: req.body.allowSharing !== 'false',
@@ -1607,6 +1605,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         likeCount: 0,
         shareCount: 0,
         giftCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       const memory = await storage.createMemoryFragment(memoryData);
@@ -1767,10 +1767,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Convert media URLs to absolute URLs
         mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
         thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
-        // Convert author profile image URL to absolute URL  
+        // Convert author profile image URL to absolute URL
         author: memory.author ? {
           ...memory.author,
-          profileImageUrl: memory.author.profileImageUrl ? 
+          profileImageUrl: memory.author.profileImageUrl ?
             UrlHandler.processMediaUrl(memory.author.profileImageUrl, req) : null
         } : null
       }));
@@ -1801,10 +1801,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Convert media URLs to absolute URLs
         mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
         thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
-        // Convert author profile image URL to absolute URL  
+        // Convert author profile image URL to absolute URL
         author: memory.author ? {
           ...memory.author,
-          profileImageUrl: memory.author.profileImageUrl ? 
+          profileImageUrl: memory.author.profileImageUrl ?
             UrlHandler.processMediaUrl(memory.author.profileImageUrl, req) : null
         } : null
       };
@@ -1840,7 +1840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Soft delete by setting isActive to false
       await db
         .update(memoryFragments)
-        .set({ 
+        .set({
           isActive: false,
           updatedAt: new Date()
         })
@@ -2519,8 +2519,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages: messageResult.rowCount || 0
       });
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         notificationsMarked: notificationResult.rowCount || 0,
         messagesMarked: messageResult.rowCount || 0
       });
@@ -3103,8 +3103,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if sender has enough points
       const sender = await storage.getUserById(senderId);
       if (!sender || (sender.points || 0) < giftCharacter.pointCost) {
-        return res.status(400).json({ 
-          message: `تحتاج إلى ${giftCharacter.pointCost} نقطة لإرسال هذه الهدية. لديك ${sender?.points || 0} نقطة فقط` 
+        return res.status(400).json({
+          message: `تحتاج إلى ${giftCharacter.pointCost} نقطة لإرسال هذه الهدية. لديك ${sender?.points || 0} نقطة فقط`
         });
       }
 
@@ -3248,10 +3248,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `استلام هدية: ${giftType}`
       });
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         gift,
-        message: "تم إرسال الهدية بنجاح" 
+        message: "تم إرسال الهدية بنجاح"
       });
     } catch (error) {
       console.error("Error sending gift:", error);
@@ -3333,10 +3333,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date()
       };
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: "تم التسجيل بنجاح! ستتم إعادة توجيهك لتسجيل الدخول",
-        user: userData 
+        user: userData
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -3380,7 +3380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("❌ Error creating stream:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: "فشل في إنشاء البث المباشر",
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -3399,10 +3399,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedStream = await storage.updateStream(streamId, req.body);
-      console.log('📝 Stream updated:', { 
-        id: streamId, 
+      console.log('📝 Stream updated:', {
+        id: streamId,
         zegoRoomId: updatedStream.zegoRoomId,
-        zegoStreamId: updatedStream.zegoStreamId 
+        zegoStreamId: updatedStream.zegoStreamId
       });
       res.json(updatedStream);
     } catch (error) {
@@ -3509,15 +3509,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      console.log("✅ Chat session completely deleted:", { 
-        streamId, 
-        userId, 
+      console.log("✅ Chat session completely deleted:", {
+        streamId,
+        userId,
         tokensCleared,
         message: "All chat data permanently removed from database"
       });
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: "تم إغلاق الدردشة وحذف جميع البيانات بشكل نهائي",
         tokensCleared: tokensCleared,
         deletedAt: new Date().toISOString()
@@ -3612,7 +3612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Decrease like count
         await db
           .update(memoryFragments)
-          .set({ 
+          .set({
             likeCount: sql`${memoryFragments.likeCount} - 1`
           })
           .where(eq(memoryFragments.id, memoryId));
@@ -3637,7 +3637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Increase like count
         await db
           .update(memoryFragments)
-          .set({ 
+          .set({
             likeCount: sql`${memoryFragments.likeCount} + 1`
           })
           .where(eq(memoryFragments.id, memoryId));
@@ -3963,9 +3963,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`✅ Deleted stream: ${stream.id}`);
       }
 
-      res.json({ 
+      res.json({
         message: 'All streams ended successfully',
-        deletedCount: userStreams.length 
+        deletedCount: userStreams.length
       });
     } catch (error) {
       console.error("Error ending streams:", error);
@@ -4451,7 +4451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isReady: true
         },
         {
-          id: "2", 
+          id: "2",
           userId: "user2",
           username: "فاطمة",
           petName: "قطة لطيفة",
@@ -4559,7 +4559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userCharacter = await storage.purchaseCharacter(userId, characterId);
 
       // Deduct points
-      await storage.updateUser(userId, { 
+      await storage.updateUser(userId, {
         points: user.points - (character.price || 0)
       });
 
@@ -4675,15 +4675,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const purchase = await storage.purchaseAlbum(purchaseData);
 
       // Deduct points from buyer
-      await storage.updateUser(userId, { 
-        points: (user.points || 0) - album.price 
+      await storage.updateUser(userId, {
+        points: (user.points || 0) - album.price
       });
 
       // Add points to seller
       const owner = await storage.getUser(album.ownerId);
       if (owner) {
-        await storage.updateUser(album.ownerId, { 
-          points: (owner.points || 0) + album.price 
+        await storage.updateUser(album.ownerId, {
+          points: (owner.points || 0) + album.price
         });
       }
 
@@ -4811,13 +4811,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (requester && recipient) {
           // Deduct points from requester
-          await storage.updateUser(request.fromUserId, { 
-            points: (requester.points || 0) - request.offeredPrice 
+          await storage.updateUser(request.fromUserId, {
+            points: (requester.points || 0) - request.offeredPrice
           });
 
           // Add points to recipient
-          await storage.updateUser(userId, { 
-            points: (recipient.points || 0) + request.offeredPrice 
+          await storage.updateUser(userId, {
+            points: (recipient.points || 0) + request.offeredPrice
           });
         }
       }
@@ -4859,7 +4859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
       console.log(`Password reset link for ${email}: ${resetLink}`);
 
-      res.json({ 
+      res.json({
         message: "تم إرسال رابط إعادة تعيين كلمة المرور",
         resetLink // Remove this in production
       });
