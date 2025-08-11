@@ -45,8 +45,8 @@ export function PWAInstall() {
         userAgent: navigator.userAgent.substring(0, 50) + '...'
       });
 
-      // Show install option if requirements are met
-      if (hasServiceWorker && hasManifest && !installed) {
+      // Show install option if requirements are met OR force show for manual install
+      if ((hasServiceWorker && hasManifest && !installed) || !installed) {
         setIsInstallable(true);
       }
     };
@@ -83,8 +83,13 @@ export function PWAInstall() {
     // Initial check
     checkInstallStatus();
 
-    // Delayed check for better reliability
-    const timeoutId = setTimeout(checkInstallStatus, 2000);
+    // Force show install option after short delay if not installed
+    const timeoutId = setTimeout(() => {
+      if (!isInstalled) {
+        console.log('[PWA] إجبار عرض خيار التثبيت');
+        setIsInstallable(true);
+      }
+    }, 2000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -155,7 +160,44 @@ export function PWAInstall() {
 
   // Don't show if already installed
   if (isInstalled) {
+    console.log('[PWA] التطبيق مثبت، إخفاء البانر');
     return null;
+  }
+
+  // Show install banner if not installed (regardless of installable state)
+  if (!isInstallable && !isInstalled) {
+    return (
+      <div className="fixed top-4 left-4 right-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-lg p-4 z-50 animate-slide-down">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center animate-pulse">
+              <div className="w-8 h-8 bg-gradient-to-br from-white to-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 font-bold text-xs">L</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-white text-lg">
+              📱 تثبيت تطبيق LaaBoBo
+            </h3>
+            <p className="text-sm text-white/90">
+              احصل على تجربة أسرع وأفضل - مجاناً تماماً!
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              onClick={handleInstallClick}
+              className="bg-white/20 backdrop-blur hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 border-0 animate-bounce"
+            >
+              <Download size={16} />
+              تثبيت
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
