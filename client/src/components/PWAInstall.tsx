@@ -69,63 +69,46 @@ export function PWAInstall() {
   }, [deferredPrompt]);
 
   const handleInstallClick = async () => {
-    console.log('PWA: تم الضغط على زر التثبيت');
-    
+    // أولاً حاول التثبيت التلقائي
     if (deferredPrompt) {
       try {
-        console.log('PWA: عرض نافذة التثبيت...');
-        // عرض نافذة التثبيت
         await deferredPrompt.prompt();
-        
-        // انتظار اختيار المستخدم
         const { outcome } = await deferredPrompt.userChoice;
-        console.log('PWA: اختيار المستخدم:', outcome);
-        
         if (outcome === 'accepted') {
-          console.log('PWA: تم قبول التثبيت');
-          alert('✅ تم تثبيت التطبيق بنجاح!');
-        } else {
-          console.log('PWA: تم رفض التثبيت');
+          alert('✅ تم التثبيت!');
+          setDeferredPrompt(null);
+          setIsInstallable(false);
+          return;
         }
-        
-        // تنظيف
-        setDeferredPrompt(null);
-        setIsInstallable(false);
       } catch (error) {
-        console.error('PWA: خطأ في تثبيت التطبيق:', error);
-        showManualInstructions();
+        console.log('فشل التثبيت التلقائي، محاولة الطريقة اليدوية');
       }
-    } else {
-      // إذا لم يكن هناك prompt، حاول التثبيت اليدوي
-      console.log('PWA: لا يوجد prompt متاح، عرض التعليمات اليدوية');
-      showManualInstructions();
     }
+    
+    // إذا لم ينجح التثبيت التلقائي، أظهر التعليمات
+    showSimpleInstructions();
   };
 
-  const showManualInstructions = () => {
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isChrome = /Chrome/i.test(navigator.userAgent);
-    const isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
+  const showSimpleInstructions = () => {
+    const userAgent = navigator.userAgent;
+    const isAndroid = /Android/i.test(userAgent);
+    const isIOS = /iPad|iPhone|iPod/i.test(userAgent);
+    const isChrome = /Chrome/i.test(userAgent);
+    const isSafari = /Safari/i.test(userAgent) && !isChrome;
     
-    let instructions = 'لتثبيت التطبيق:\n\n';
+    let message = '';
     
-    if (isMobile) {
-      if (isChrome) {
-        instructions += '📱 Android Chrome:\n1. اضغط على القائمة (⋮)\n2. اختر "إضافة إلى الشاشة الرئيسية"\n3. اضغط "إضافة"';
-      } else if (isSafari) {
-        instructions += '📱 iPhone Safari:\n1. اضغط على أيقونة المشاركة (⬆️)\n2. مرر لأسفل واختر "إضافة إلى الشاشة الرئيسية"\n3. اضغط "إضافة"';
-      } else {
-        instructions += '📱 على الهاتف:\nابحث عن خيار "إضافة إلى الشاشة الرئيسية" في قائمة المتصفح';
-      }
+    if (isIOS && isSafari) {
+      message = '📱 iPhone/iPad:\n\n1. اضغط على زر المشاركة ⬆️ (أسفل الشاشة)\n2. اختر "إضافة إلى الشاشة الرئيسية" \n3. اضغط "إضافة"\n\n✅ ستجد أيقونة التطبيق على شاشتك الرئيسية!';
+    } else if (isAndroid && isChrome) {
+      message = '📱 Android:\n\n1. اضغط على النقاط الثلاث ⋮ (أعلى يمين المتصفح)\n2. اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"\n3. اضغط "تثبيت"\n\n✅ ستجد التطبيق مثبتاً على هاتفك!';
+    } else if (isChrome) {
+      message = '💻 الكمبيوتر:\n\n1. ابحث عن أيقونة التثبيت ⬇️ في شريط العنوان\n2. اضغط عليها\n3. اختر "تثبيت"\n\nأو من القائمة ⋮ اختر "تثبيت LaaBoBo"\n\n✅ سيصبح التطبيق متاحاً كبرنامج منفصل!';
     } else {
-      if (isChrome) {
-        instructions += '💻 Chrome على الكمبيوتر:\n1. ابحث عن أيقونة التثبيت (⬇️) في شريط العنوان\n2. أو اضغط Ctrl+Shift+I واختر "تثبيت التطبيق"';
-      } else {
-        instructions += '💻 على الكمبيوتر:\nاستخدم متصفح Chrome للحصول على أفضل تجربة تثبيت';
-      }
+      message = '🌐 للحصول على أفضل تجربة تثبيت:\n\nافتح التطبيق في متصفح Chrome ثم اضغط على زر "تثبيت الآن" مرة أخرى';
     }
     
-    alert(instructions);
+    alert(message);
   };
 
   // أظهر الزر دائماً للاختبار - يمكن إزالة هذا التعليق لاحقاً
@@ -141,8 +124,8 @@ export function PWAInstall() {
     >
       <Download className="w-6 h-6" />
       <div className="text-right">
-        <div className="text-sm font-bold leading-tight">تثبيت الآن</div>
-        <div className="text-xs opacity-90 leading-tight">مجاناً</div>
+        <div className="text-sm font-bold leading-tight">تثبيت مباشر</div>
+        <div className="text-xs opacity-90 leading-tight">ضغطة واحدة</div>
       </div>
       {isInstallable && (
         <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-bounce flex items-center justify-center">
