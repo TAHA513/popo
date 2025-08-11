@@ -364,7 +364,7 @@ export default function Register() {
                     <span>{t('auth.creating_account')}</span>
                   </div>
                 ) : (
-                  "{t('auth.register')}"
+                  t('auth.register')
                 )}
               </Button>
             </form>
