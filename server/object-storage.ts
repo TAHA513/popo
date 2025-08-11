@@ -1,23 +1,26 @@
 import path from 'path';
 import fs from 'fs';
 
-// For now, use a more robust local storage approach
-// In Replit, we'll create a persistent uploads directory
-const uploadsDir = '/tmp/uploads';
-const fsPromises = fs.promises;
+// استخدام مجلد uploads ثابت ودائم
+const uploadsDir = './uploads';
 
 export interface UploadResult {
   filename: string;
   publicUrl: string;
-  privateUrl?: string;
+}
+
+// التأكد من وجود مجلد uploads
+async function ensureUploadsDir() {
+  try {
+    await fs.promises.mkdir(uploadsDir, { recursive: true });
+    console.log('📁 مجلد uploads جاهز');
+  } catch (error) {
+    // المجلد موجود بالفعل
+  }
 }
 
 /**
- * Upload a file to Object Storage
- * @param filePath - Local file path
- * @param fileName - Desired filename in storage
- * @param isPublic - Whether the file should be publicly accessible
- * @returns Upload result with URLs
+ * حفظ الملف بشكل دائم
  */
 export async function uploadFileToStorage(
   filePath: string, 
@@ -25,51 +28,37 @@ export async function uploadFileToStorage(
   isPublic: boolean = true
 ): Promise<UploadResult> {
   try {
-    // Determine the directory based on visibility
-    const directory = isPublic ? 'public' : '.private';
-    const objectPath = `/${bucketId}/${directory}/${fileName}`;
-
-    console.log(`🔄 Uploading file to Object Storage: ${objectPath}`);
-
-    // Read the file and copy to object storage path
-    const fileData = await fsPromises.readFile(filePath);
+    await ensureUploadsDir();
     
-    // Ensure directory exists
-    const dirPath = path.dirname(objectPath);
-    await fsPromises.mkdir(dirPath, { recursive: true });
+    const finalPath = path.join(uploadsDir, fileName);
+    console.log(`💾 حفظ الملف: ${fileName}`);
+
+    // نسخ الملف للمكان الدائم
+    await fs.promises.copyFile(filePath, finalPath);
     
-    // Write file to object storage
-    await fsPromises.writeFile(objectPath, fileData);
-
-    console.log(`✅ File uploaded successfully: ${objectPath}`);
-
-    // Generate public URL for Replit Object Storage
-    const publicUrl = isPublic ? 
-      `https://storage.googleapis.com${objectPath}` : 
-      '';
-
-    // Clean up local file after successful upload
+    // حذف الملف المؤقت
     try {
-      await fsPromises.unlink(filePath);
-      console.log(`🧹 Cleaned up local file: ${filePath}`);
+      await fs.promises.unlink(filePath);
     } catch (error) {
-      console.warn(`⚠️ Could not delete local file: ${filePath}`);
+      // تجاهل أخطاء التنظيف
     }
+
+    const publicUrl = `/uploads/${fileName}`;
+    console.log(`✅ تم حفظ الملف: ${publicUrl}`);
 
     return {
       filename: fileName,
-      publicUrl: publicUrl,
-      privateUrl: !isPublic ? publicUrl : undefined
+      publicUrl: publicUrl
     };
 
   } catch (error) {
-    console.error('❌ Error uploading file to Object Storage:', error);
-    throw new Error('فشل في رفع الملف إلى التخزين السحابي');
+    console.error('❌ خطأ في حفظ الملف:', error);
+    throw new Error('فشل في حفظ الملف');
   }
 }
 
 /**
- * Upload buffer directly to Object Storage
+ * حفظ المحتوى مباشرة بشكل دائم
  */
 export async function uploadBufferToStorage(
   buffer: Buffer,
@@ -78,86 +67,51 @@ export async function uploadBufferToStorage(
   isPublic: boolean = true
 ): Promise<UploadResult> {
   try {
-    const directory = isPublic ? 'public' : '.private';
-    const objectPath = `/${bucketId}/${directory}/${fileName}`;
-
-    console.log(`🔄 Uploading buffer to Object Storage: ${objectPath}`);
-
-    // Ensure directory exists
-    const dirPath = path.dirname(objectPath);
-    await fsPromises.mkdir(dirPath, { recursive: true });
+    await ensureUploadsDir();
     
-    // Write buffer to object storage
-    await fsPromises.writeFile(objectPath, buffer);
+    const finalPath = path.join(uploadsDir, fileName);
+    console.log(`💾 حفظ المحتوى: ${fileName}`);
 
-    console.log(`✅ Buffer uploaded successfully: ${objectPath}`);
+    // كتابة المحتوى للمكان الدائم
+    await fs.promises.writeFile(finalPath, buffer);
 
-    // Generate public URL for Replit Object Storage
-    const publicUrl = isPublic ? 
-      `https://storage.googleapis.com${objectPath}` : 
-      '';
+    const publicUrl = `/uploads/${fileName}`;
+    console.log(`✅ تم حفظ المحتوى: ${publicUrl}`);
 
     return {
       filename: fileName,
-      publicUrl: publicUrl,
-      privateUrl: !isPublic ? publicUrl : undefined
+      publicUrl: publicUrl
     };
 
   } catch (error) {
-    console.error('❌ Error uploading buffer to Object Storage:', error);
-    throw new Error('فشل في رفع الملف إلى التخزين السحابي');
+    console.error('❌ خطأ في حفظ المحتوى:', error);
+    throw new Error('فشل في حفظ الملف');
   }
 }
 
 /**
- * Generate a signed URL for private files
+ * حذف ملف من التخزين
  */
-async function generateSignedUrl(filePath: string, expirationMinutes: number = 60): Promise<string> {
+export async function deleteFileFromStorage(fileName: string): Promise<void> {
   try {
-    const file = bucket.file(filePath);
-    const [signedUrl] = await file.getSignedUrl({
-      action: 'read',
-      expires: Date.now() + (expirationMinutes * 60 * 1000), // Convert minutes to milliseconds
-    });
-    return signedUrl;
+    const filePath = path.join(uploadsDir, fileName);
+    await fs.promises.unlink(filePath);
+    console.log(`🗑️ تم حذف الملف: ${fileName}`);
   } catch (error) {
-    console.error('❌ Error generating signed URL:', error);
-    throw new Error('فشل في إنشاء رابط الملف');
+    console.error('❌ خطأ في حذف الملف:', error);
+    // لا نرمي خطأ في حالة فشل الحذف
   }
 }
 
 /**
- * Delete a file from Object Storage
+ * التحقق من وجود ملف
  */
-export async function deleteFileFromStorage(fileName: string, isPublic: boolean = true): Promise<void> {
+export async function fileExistsInStorage(fileName: string): Promise<boolean> {
   try {
-    const directory = isPublic ? 'public' : '.private';
-    const filePath = `${directory}/${fileName}`;
-    
-    const file = bucket.file(filePath);
-    await file.delete();
-    
-    console.log(`🗑️ File deleted from Object Storage: ${filePath}`);
+    const filePath = path.join(uploadsDir, fileName);
+    await fs.promises.access(filePath);
+    return true;
   } catch (error) {
-    console.error('❌ Error deleting file from Object Storage:', error);
-    // Don't throw error for deletion failures
-  }
-}
-
-/**
- * Check if a file exists in Object Storage
- */
-export async function fileExistsInStorage(fileName: string, isPublic: boolean = true): Promise<boolean> {
-  try {
-    const directory = isPublic ? 'public' : '.private';
-    const filePath = `${directory}/${fileName}`;
-    
-    const file = bucket.file(filePath);
-    const [exists] = await file.exists();
-    
-    return exists;
-  } catch (error) {
-    console.error('❌ Error checking file existence:', error);
     return false;
   }
 }

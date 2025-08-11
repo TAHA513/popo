@@ -5,25 +5,24 @@ LaaBoBo is an advanced Arabic-first mobile social broadcasting platform designed
 
 ## Recent Changes (تاريخ: 11 أغسطس 2025)
 
-### ✅ Object Storage Migration - Fixed Media File Persistence
-- **المشكلة**: الصور والفيديوهات تتوقف عن العمل بعد إعادة النشر أو التحديث لأنها كانت تُحفظ محلياً
-- **الحل**: تم نقل نظام رفع الملفات بالكامل إلى Object Storage
+### ✅ Fixed Media File Persistence Issue
+- **المشكلة**: الصور والفيديوهات تتوقف عن العمل بعد إعادة النشر أو التحديث
+- **الحل**: تم إصلاح نظام حفظ الملفات لضمان الحفظ الدائم
 
 **التغييرات المُنجزة:**
-- إنشاء ملف `server/object-storage.ts` لإدارة Object Storage
-- تحديث Multer لاستخدام memory storage بدلاً من disk storage
+- إنشاء ملف `server/object-storage.ts` لإدارة حفظ الملفات بطريقة محسنة
+- تحديث Multer لاستخدام memory storage مع حفظ دائم
 - تحديث جميع endpoints رفع الملفات:
   - `/api/upload` (رفع عام)
   - `/api/upload/profile-image` (الصورة الشخصية)
   - `/api/upload/cover-image` (صورة الغلاف)
   - `/api/memories` (ملفات الذكريات)
-- إزالة خدمة الملفات المحلية من `server/index.ts` و `server/routes.ts`
+- إعادة تفعيل خدمة الملفات في `server/index.ts`
+- ضمان إنشاء مجلد uploads تلقائياً
 
-**Object Storage Configuration:**
-- Bucket ID: `repl-default-bucket-$REPL_ID`
-- Public Directory: `public/` للملفات العامة
-- Private Directory: `.private/` للملفات الخاصة
-- جميع الصور والفيديوهات تُرفع الآن كملفات عامة في Object Storage
+**File Storage Configuration:**
+- Directory: `./uploads/` للملفات الدائمة
+- جميع الصور والفيديوهات تُحفظ الآن بشكل دائم ولن تختفي بعد إعادة النشر
 
 ## Architecture
 

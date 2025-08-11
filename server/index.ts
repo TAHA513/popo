@@ -13,8 +13,17 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Note: File serving now handled by Object Storage
-// No longer serving files from local uploads directory
+// إعادة تفعيل خدمة الملفات المحلية للحفظ الدائم
+app.use('/uploads', express.static('uploads'));
+
+// التأكد من وجود مجلد uploads
+import fs from 'fs';
+try {
+  fs.mkdirSync('uploads', { recursive: true });
+  console.log('📁 مجلد uploads جاهز للاستخدام');
+} catch (error) {
+  // المجلد موجود بالفعل
+}
 
 // Disable caching for all API endpoints to ensure fresh data
 app.use('/api', (req, res, next) => {
