@@ -91,13 +91,18 @@ export function PWAInstall() {
   return (
     <button
       onClick={handleInstallClick}
-      className="relative flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+      className="relative flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95"
       title={isInstallable ? "تثبيت التطبيق مجاناً" : "تعليمات التثبيت"}
     >
-      <Download className="w-5 h-5" />
-      <span className="text-sm font-bold">تثبيت</span>
+      <Download className="w-6 h-6" />
+      <div className="text-right">
+        <div className="text-sm font-bold leading-tight">تثبيت الآن</div>
+        <div className="text-xs opacity-90 leading-tight">مجاناً</div>
+      </div>
       {isInstallable && (
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></span>
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-bounce flex items-center justify-center">
+          <div className="w-2 h-2 bg-white rounded-full"></div>
+        </div>
       )}
     </button>
   );
