@@ -1,0 +1,84 @@
+
+    },
+    responseType: 'json',
+    paramsSerializer: [Function: paramsSerializer],
+    validateStatus: [Function: validateStatus],
+    errorRedactor: [Function: defaultErrorRedactor]
+  },
+  response: undefined,
+  error: FetchError: request to http://127.0.0.1:1106/credential failed, reason: connect ECONNREFUSED 127.0.0.1:1106
+      at ClientRequest.<anonymous> (/opt/render/project/src/node_modules/node-fetch/lib/index.js:1501:11)
+      at ClientRequest.emit (node:events:518:28)
+      at emitErrorEvent (node:_http_client:104:11)
+      at Socket.socketErrorListener (node:_http_client:518:5)
+      at Socket.emit (node:events:518:28)
+      at emitErrorNT (node:internal/streams/destroy:170:8)
+      at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    type: 'system',
+    errno: 'ECONNREFUSED',
+    code: 'ECONNREFUSED'
+  },
+  code: 'ECONNREFUSED',
+  [Symbol(gaxios-gaxios-error)]: '6.7.1'
+}
+🔍 طلب ملف من Object Storage: 1754924220428_yDCxwy2x_1754924220428_RDEIwg5__432280462_122177678702011163_8600468945120690091_n.jpg
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 65 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+2:58:26 PM [express] GET /api/messages/conversations 200 in 177ms :: [{"otherUser":{"id":"OFFICIAL-9…
+❌ خطأ في خدمة الملف: GaxiosError: request to http://127.0.0.1:1106/credential failed, reason: connect ECONNREFUSED 127.0.0.1:1106
+    at Gaxios._request (/opt/render/project/src/node_modules/gaxios/build/src/gaxios.js:149:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async UrlSubjectTokenSupplier.getSubjectToken (/opt/render/project/src/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/urlsubjecttokensupplier.js:54:30)
+    at async IdentityPoolClient._BaseExternalAccountClient_internalRefreshAccessTokenAsync (/opt/render/project/src/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:408:26)
+    at async IdentityPoolClient.refreshAccessTokenAsync (/opt/render/project/src/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:316:20)
+    at async IdentityPoolClient.getAccessToken (/opt/render/project/src/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:190:13)
+    at async IdentityPoolClient.getRequestHeaders (/opt/render/project/src/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:207:37)
+    at async GoogleAuth.authorizeRequest (/opt/render/project/src/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/googleauth.js:742:25)
+    at async Promise.all (index 1)
+    at async prepareRequest (file:///opt/render/project/src/node_modules/@google-cloud/storage/build/esm/src/nodejs-common/util.js:463:61) {
+  config: {
+    retry: true,
+    retryConfig: {
+      httpMethodsToRetry: [Array],
+      currentRetryAttempt: 2,
+      retry: 3,
+      noResponseRetries: 2,
+      retryDelayMultiplier: 2,
+      timeOfFirstRequest: 1754924305572,
+      totalTimeout: 9007199254740991,
+      maxRetryDelay: 9007199254740991,
+      statusCodesToRetry: [Array]
+    },
+    url: 'http://127.0.0.1:1106/credential',
+    method: 'GET',
+    headers: {
+      'User-Agent': 'google-api-nodejs-client/9.15.1',
+      'x-goog-api-client': 'gl-node/22.16.0',
+      Accept: 'application/json'
+    },
+    responseType: 'json',
+    paramsSerializer: [Function: paramsSerializer],
+    validateStatus: [Function: validateStatus],
+    errorRedactor: [Function: defaultErrorRedactor]
+  },
+  response: undefined,
+  error: FetchError: request to http://127.0.0.1:1106/credential failed, reason: connect ECONNREFUSED 127.0.0.1:1106
+      at ClientRequest.<anonymous> (/opt/render/project/src/node_modules/node-fetch/lib/index.js:1501:11)
+      at ClientRequest.emit (node:events:518:28)
+      at emitErrorEvent (node:_http_client:104:11)
+      at Socket.socketErrorListener (node:_http_client:518:5)
+      at Socket.emit (node:events:518:28)
+      at emitErrorNT (node:internal/streams/destroy:170:8)
+      at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    type: 'system',
+    errno: 'ECONNREFUSED',
+    code: 'ECONNREFUSED'
+  },
+  code: 'ECONNREFUSED',
+  [Symbol(gaxios-gaxios-error)]: '6.7.1'
+}
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 65 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+2:58:29 PM [express] GET /api/messages/conversations 200 in 186ms :: [{"otherUser":{"id":"OFFICIAL-9…
