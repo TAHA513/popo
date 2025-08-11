@@ -8,14 +8,14 @@ import { backblazeService } from './backblaze-storage';
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
 // استخدام مسار آمن للحفظ الدائم في Render
-const FALLBACK_MEDIA_DIR = process.env.NODE_ENV === 'production' 
+const FALLBACK_MEDIA_DIR = process.env.NODE_ENV === 'production'
   ? path.join(process.cwd(), 'public', 'media')
   : '/tmp/persistent-media';
 
 // نظام التخزين مع أولوية Backblaze B2
 export enum StorageType {
   BACKBLAZE_B2 = 'backblaze-b2',
-  REPLIT_OBJECT_STORAGE = 'replit-object-storage', 
+  REPLIT_OBJECT_STORAGE = 'replit-object-storage',
   LOCAL_FILES = 'local-files'
 }
 
@@ -76,67 +76,54 @@ const PRIVATE_DIR = '.private';
  * حفظ ملف buffer في النظام المتدرج: Backblaze B2 → Replit Object Storage → Local Files
  */
 export async function uploadFileToStorage(
-  buffer: Buffer, 
-  fileName: string, 
-  contentType?: string
+  buffer: Buffer,
+  originalFileName: string,
+  contentType: string
 ): Promise<UploadResult> {
-  console.log(`🔄 بدء رفع الملف: ${fileName}`);
+  const uniqueFileName = generateUniqueFileName(originalFileName);
 
-  // المحاولة الأولى: Backblaze B2 (الأولوية الأولى)
+  console.log(`🔄 Starting upload process for: ${originalFileName}`);
+  console.log(`📁 Generated unique filename: ${uniqueFileName}`);
+
+  // Strategy 1: Try Backblaze B2 first (Primary and Priority)
   if (backblazeService.isAvailable()) {
     try {
-      const uniqueFileName = backblazeService.generateFileName(fileName);
-      const publicUrl = await backblazeService.uploadFile(buffer, uniqueFileName, contentType || 'application/octet-stream');
-      console.log(`✅ تم رفع الملف بنجاح إلى Backblaze B2: ${uniqueFileName}`);
-      return { filename: uniqueFileName, publicUrl, storageType: StorageType.BACKBLAZE_B2 };
+      console.log('🥇 Attempting Backblaze B2 upload...');
+      const publicUrl = await backblazeService.uploadFile(buffer, uniqueFileName, contentType);
+
+      console.log(`✅ Backblaze B2 upload successful: ${publicUrl}`);
+      return {
+        filename: uniqueFileName,
+        publicUrl,
+        storageType: StorageType.BACKBLAZE_B2
+      };
     } catch (error) {
-      console.error('❌ خطأ في Backblaze B2، التحويل إلى Object Storage:', error);
+      console.error('❌ Backblaze B2 upload failed:', error);
+      // Fall back to local storage only if B2 fails
     }
+  } else {
+    console.log('⚠️ Backblaze B2 not configured - using local storage as fallback');
   }
 
-  // المحاولة الثانية: Replit Object Storage
-  if (IS_REPLIT && objectStorageClient) {
-    try {
-      const uniqueFileName = generateUniqueFileName(fileName);
-      const bucket = objectStorageClient.bucket(BUCKET_NAME);
-      const file = bucket.file(`${PUBLIC_DIR}/${uniqueFileName}`);
-
-      await file.save(buffer, {
-        metadata: {
-          contentType: contentType || 'application/octet-stream',
-          cacheControl: 'public, max-age=31536000',
-        }
-      });
-
-      const publicUrl = `/api/media/${uniqueFileName}`;
-      console.log(`✅ تم رفع الملف بنجاح إلى Replit Object Storage: ${uniqueFileName}`);
-      return { filename: uniqueFileName, publicUrl, storageType: StorageType.REPLIT_OBJECT_STORAGE };
-    } catch (error) {
-      console.error('❌ خطأ في Object Storage، التحويل إلى التخزين المحلي:', error);
-    }
-  }
-
-  // المحاولة الأخيرة: التخزين المحلي
+  // Strategy 2: Local file storage as fallback only
   try {
-    await ensureFallbackDir();
-    const uniqueFileName = generateUniqueFileName(fileName);
-    const targetPath = path.join(FALLBACK_MEDIA_DIR, uniqueFileName);
+    console.log('🥈 Attempting local file storage as fallback...');
 
-    console.log(`🔄 حفظ الملف محلياً: ${uniqueFileName}`);
-    await fs.writeFile(targetPath, buffer);
+    await fs.mkdir(FALLBACK_MEDIA_DIR, { recursive: true });
+    const filePath = path.join(FALLBACK_MEDIA_DIR, uniqueFileName);
+    await fs.writeFile(filePath, buffer);
 
     const publicUrl = `/api/media/${uniqueFileName}`;
-    console.log(`✅ تم حفظ الملف محلياً: ${publicUrl}`);
+    console.log(`✅ Local file storage successful: ${publicUrl}`);
 
     return {
       filename: uniqueFileName,
-      publicUrl: publicUrl,
+      publicUrl,
       storageType: StorageType.LOCAL_FILES
     };
-
   } catch (error) {
-    console.error('❌ خطأ في حفظ الملف:', error);
-    throw new Error('فشل في حفظ الملف');
+    console.error('❌ Local file storage failed:', error);
+    throw new Error(`Failed to upload file: Both Backblaze B2 and local storage failed. Last error: ${error}`);
   }
 }
 

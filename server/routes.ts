@@ -180,36 +180,15 @@ import { uploadFileToStorage, generateUniqueFileName, deleteFileFromStorage } fr
 import { Storage } from '@google-cloud/storage';
 import { UrlHandler } from './utils/url-handler';
 
-// Object Storage client for file serving (Replit only)
-const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
-let objectStorageClient: Storage | null = null;
+// Using Backblaze B2 Cloud Storage as primary storage system
+console.log('🔧 Using Backblaze B2 Cloud Storage as primary storage system');
+console.log(`📡 Backblaze B2 Available: ${backblazeService.isAvailable()}`);
 
-if (IS_REPLIT) {
-  try {
-    objectStorageClient = new Storage({
-      credentials: {
-        audience: "replit",
-        subject_token_type: "access_token",
-        token_url: "http://127.0.0.1:1106/token",
-        type: "external_account",
-        credential_source: {
-          url: "http://127.0.0.1:1106/credential",
-          format: {
-            type: "json",
-            subject_token_field_name: "access_token",
-          },
-        },
-        universe_domain: "googleapis.com",
-      },
-      projectId: "",
-    });
-    console.log('🔧 Object Storage client configured for file serving');
-  } catch (error) {
-    console.log('⚠️ Object Storage not available for file serving');
-    objectStorageClient = null;
-  }
+if (backblazeService.isAvailable()) {
+  console.log('✅ Backblaze B2 configured and ready');
 } else {
-  console.log('🔧 Using local file serving for production deployment');
+  console.log('⚠️ Backblaze B2 not configured - check environment variables');
+  console.log('📋 Required: B2_APPLICATION_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET_NAME, B2_BUCKET_ID');
 }
 
 // Configure multer for file uploads using memory storage for Object Storage
@@ -351,12 +330,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced unified media serving endpoint - Backblaze B2 Priority
+  // Unified media serving endpoint - Backblaze B2 Priority Only
   app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
     const filename = req.params.filename;
     console.log(`🔍 طلب ملف من Backblaze B2: ${filename}`);
 
-    // Strategy 1: Try Backblaze B2 first (Priority)
+    // Strategy 1: Try Backblaze B2 first (Primary)
     if (backblazeService.isAvailable()) {
       try {
         console.log(`🔄 جلب من Backblaze B2: ${filename}`);
@@ -418,33 +397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
 
-    // Strategy 2: Try Object Storage as backup (if available)
-    if (objectStorageClient) {
-      try {
-        const bucket = objectStorageClient.bucket(BUCKET_NAME);
-        const file = bucket.file(`public/${filename}`);
-
-        const [exists] = await file.exists();
-        if (exists) {
-          console.log(`✅ الملف موجود في Object Storage: ${filename}`);
-          const [metadata] = await file.getMetadata();
-          const stream = file.createReadStream();
-
-          res.set({
-            'Content-Type': metadata.contentType || 'application/octet-stream',
-            'Cache-Control': 'public, max-age=31536000',
-            'Access-Control-Allow-Origin': '*',
-            'X-Source': 'object-storage'
-          });
-
-          return stream.pipe(res);
-        }
-      } catch (error) {
-        console.error('❌ خطأ في Object Storage:', error?.message);
-      }
-    }
-
-    // Strategy 3: Local files as last resort
+    // Strategy 2: Local files as fallback only
     const possiblePaths = [
       path.join(FALLBACK_MEDIA_DIR, filename),
       path.join(process.cwd(), 'public', 'media', filename),
@@ -487,7 +440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       error: 'File not found',
       filename: filename,
       backblazeAvailable: backblazeService.isAvailable(),
-      objectStorage: !!objectStorageClient
+      searchedSources: ['backblaze-b2', 'local-files']
     });
   });
 
