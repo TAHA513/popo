@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth, getSession } from "./replitAuth";
@@ -78,6 +79,27 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
+  });
+
+  // Serve static PWA files before setting up Vite
+  app.get('/manifest.json', (req, res) => {
+    res.set('Content-Type', 'application/json');
+    res.sendFile(path.resolve('public/manifest.json'));
+  });
+  
+  app.get('/sw.js', (req, res) => {
+    res.set('Content-Type', 'application/javascript');
+    res.sendFile(path.resolve('public/sw.js'));
+  });
+  
+  app.get('/icon-192x192.png', (req, res) => {
+    res.set('Content-Type', 'image/png');
+    res.sendFile(path.resolve('public/icon-192x192.png'));
+  });
+  
+  app.get('/icon-512x512.png', (req, res) => {
+    res.set('Content-Type', 'image/png');
+    res.sendFile(path.resolve('public/icon-512x512.png'));
   });
 
   // importantly only setup vite in development and after
