@@ -860,6 +860,11 @@ export class DatabaseStorage implements IStorage {
 
   // Clear all memories (for testing)
   async clearAllMemories(): Promise<void> {
+    // Delete all memory interactions first (foreign key constraint)
+    await db.delete(memoryInteractions);
+    // Delete all fragment collections
+    await db.delete(fragmentCollections);
+    // Delete all memory fragments
     await db.delete(memoryFragments);
   }
 
