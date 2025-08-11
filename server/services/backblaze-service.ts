@@ -93,14 +93,18 @@ export class BackblazeService {
   }
 
   async getFileUrl(fileName: string): Promise<string> {
-    await this.initialize();
-
     try {
-      // بناء URL المباشر
-      return `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      await this.initialize();
+
+      // تكوين URL مباشرة باستخدام download URL من Backblaze
+      const directUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      console.log('🔗 Direct B2 URL:', directUrl);
+
+      return directUrl;
     } catch (error) {
       console.error('❌ Error getting file URL:', error);
-      throw new Error('Failed to get file URL');
+      // Fallback URL construction
+      return `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
     }
   }
 

@@ -261,81 +261,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Dedicated Backblaze B2 media endpoint - محسن
   app.get('/api/media/b2/:filename', async (req, res) => {
-    const filename = req.params.filename;
-    console.log(`🔍 طلب ملف من Backblaze B2: ${filename}`);
-
-    if (!backblazeService.isAvailable()) {
-      return res.status(503).json({ error: 'Backblaze B2 not configured' });
-    }
-
     try {
-      console.log(`🔄 جلب من Backblaze B2: ${filename}`);
-
-      // التأكد من تهيئة الخدمة
-      await backblazeService.initialize();
-
-      // بناء URL المباشر للملف
+      const { filename } = req.params;
       const directUrl = await backblazeService.getFileUrl(filename);
-      console.log(`🔗 Direct B2 URL: ${directUrl}`);
 
-      // التحقق من وجود الملف أولاً
-      const b2Instance = backblazeService.b2Instance;
-      const listResponse = await b2Instance.listFileNames({
-        bucketId: process.env.B2_BUCKET_ID,
-        startFileName: filename,
-        maxFileCount: 1
-      });
+      console.log('🖼️ Fetching image:', filename, 'from URL:', directUrl);
 
-      const file = listResponse.data.files.find((f: any) => f.fileName === filename);
-      if (!file) {
-        console.log(`❌ الملف غير موجود في Backblaze B2: ${filename}`);
-        return res.status(404).json({ error: 'File not found in Backblaze B2' });
-      }
+      // جلب الملف من B2
+      const response = await fetch(directUrl);
 
-      // جلب الملف مباشرة من Backblaze B2
-      const response = await axios.get(directUrl, {
-        responseType: 'stream',
-        timeout: 30000,
-        headers: {
-          'User-Agent': 'LaaBoBo-B2-Proxy/1.0',
-        }
-      });
-
-      if (response.status === 200) {
-        const ext = path.extname(filename).toLowerCase();
-        let contentType = 'application/octet-stream';
-        if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
-        else if (ext === '.png') contentType = 'image/png';
-        else if (ext === '.gif') contentType = 'image/gif';
-        else if (ext === '.webp') contentType = 'image/webp';
-        else if (ext === '.mp4') contentType = 'video/mp4';
-        else if (ext === '.webm') contentType = 'video/webm';
-
-        res.set({
-          'Content-Type': response.headers['content-type'] || contentType,
-          'Cache-Control': 'public, max-age=86400',
-          'Access-Control-Allow-Origin': '*',
-          'X-Source': 'backblaze-b2-direct',
-          'X-File-ID': file.fileId
-        });
-
-        console.log(`✅ إرسال الملف من B2: ${filename}`);
-        return response.data.pipe(res);
-      } else {
-        console.log(`❌ استجابة غير متوقعة: ${response.status}`);
+      if (!response.ok) {
+        console.error('❌ Failed to fetch image from B2:', response.status, response.statusText);
         return res.status(404).json({ error: 'File not found' });
       }
-    } catch (error: any) {
-      console.error('❌ خطأ في جلب الملف من Backblaze B2:', error?.message);
-      
-      if (error?.response?.status === 404) {
-        return res.status(404).json({ error: 'File not found in Backblaze B2' });
-      }
-      
-      return res.status(500).json({ 
-        error: 'Failed to fetch from Backblaze B2',
-        details: error?.message 
+
+      const buffer = await response.arrayBuffer();
+
+      res.set({
+        'Content-Type': response.headers.get('content-type') || 'image/jpeg',
+        'Cache-Control': 'public, max-age=86400',
+        'Access-Control-Allow-Origin': '*'
       });
+
+      res.send(Buffer.from(buffer));
+    } catch (error) {
+      console.error('❌ Error fetching image:', error);
+      res.status(404).json({ error: 'File not found' });
     }
   });
 
@@ -517,7 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Test initialization
       await backblazeService.initialize();
-      
+
       // Test bucket access
       const b2 = backblazeService.b2Instance;
       const listResponse = await b2.listFileNames({
