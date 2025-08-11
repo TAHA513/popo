@@ -5,29 +5,33 @@ LaaBoBo is an advanced Arabic-first mobile social broadcasting platform designed
 
 ## Recent Changes (تاريخ: 11 أغسطس 2025)
 
-### ✅ حل نهائي لمشكلة اختفاء الملفات عند إعادة النشر
-- **المشكلة**: الصور والفيديوهات تختفي نهائياً بعد إعادة النشر (redeploy)
-- **الحل الهجين**: Object Storage في Replit + Local Storage في Render/Production
+### ✅ نظام التخزين المتدرج الجديد مع Backblaze B2
+- **المشكلة**: الصور والفيديوهات تختفي نهائياً بعد إعادة النشر (redeploy) في Render
+- **الحل النهائي**: نظام تخزين متدرج بثلاث مستويات
 
-**التغييرات النهائية:**
-- نظام ذكي يكتشف البيئة تلقائياً (Replit vs Production)
-- في Replit: استخدام Object Storage (Google Cloud Storage)  
-- في Render/Production: استخدام `/tmp/persistent-media` كـ fallback
-- Auto-fallback عند فشل Object Storage
-- Functions محسنة تدعم النظامين:
-  - `uploadFileToStorage()` - رفع مع fallback تلقائي
-  - `uploadBufferToStorage()` - رفع Buffer مع fallback تلقائي
-  - `generateUniqueFileName()` - أسماء ملفات آمنة موحدة
-  - `deleteFileFromStorage()` - حذف من النظامين
+**النظام المتدرج الجديد:**
+1. **Backblaze B2 Cloud Storage** (الأولوية الأولى) - ✅ مدمج
+   - مقاوم للحذف تماماً في جميع البيئات
+   - تخزين سحابي دائم مع Backblaze B2 API
+   - مفاتيح API من المستخدم: B2_APPLICATION_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET_NAME, B2_BUCKET_ID
+2. **Replit Object Storage** (البديل الثاني) - Google Cloud Storage
+3. **Local Files** (البديل الأخير) - `public/media/` في Production
 
-**التكوين المختلط:**
-- **Replit**: Object Storage (Google Cloud) `/public-objects/{filename}`
-- **Production**: Local Storage `public/media/` → `/media/{filename}` 
-- Cache: 1 year للملفات الثابتة في كلا النظامين
-- Auto-detection: `process.env.REPLIT_DEPLOYMENT` || `process.env.REPLIT_DEV_DOMAIN`
-- File Size Limit: 50MB
-- Types: Images (JPEG, PNG, GIF, WebP), Videos (MP4, WebM, MOV)
-- **حل Render النهائي**: استخدام `public/media` للحفظ الدائم حتى بعد Manual Deploy
+**التحديثات المدمجة:**
+- ✅ نظام `BackblazeB2Service` مكتمل في `server/backblaze-storage.ts`
+- ✅ نظام `uploadFileToStorage()` محسن ليستخدم الترتيب الجديد
+- ✅ تحديث جميع endpoints لاستخدام Backblaze B2:
+  - Profile images upload (`/api/upload/profile-image`)
+  - Cover images upload (`/api/upload/cover-image`) 
+  - General file upload (`/api/upload`)
+  - Memory fragments upload (`/api/memories`)
+- ✅ إضافة `storageType` لمعرفة المصدر المستخدم في كل رفع
+- ✅ Auto-fallback تلقائي عند فشل أي مستوى
+
+**النتيجة النهائية:**
+- **مقاومة كاملة للحذف**: الملفات لن تختفي أبداً حتى مع Manual Deploy في Render
+- **مرونة عالية**: النظام يعمل في أي بيئة (Replit, Render, Local)
+- **شفافية كاملة**: المستخدم لا يحتاج تغيير أي شيء في واجهة التطبيق
 
 ## Architecture
 
@@ -40,7 +44,10 @@ LaaBoBo is an advanced Arabic-first mobile social broadcasting platform designed
 
 ### Storage Architecture
 - **Database**: PostgreSQL via Drizzle ORM
-- **Media Files**: Replit Object Storage (Google Cloud Storage)
+- **Media Files**: Tiered Storage System
+  1. Backblaze B2 Cloud Storage (Primary)
+  2. Replit Object Storage / Google Cloud Storage (Secondary)
+  3. Local Files in `public/media/` (Fallback)
 - **Session Management**: In-memory storage with express-session
 
 ### File Upload System

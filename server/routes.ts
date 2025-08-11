@@ -172,7 +172,7 @@ function cleanupUserTokens(userId: string): number {
 }
 
 // Import Object Storage utilities
-import { uploadBufferToStorage, generateUniqueFileName, deleteFileFromStorage } from './object-storage';
+import { uploadFileToStorage, generateUniqueFileName, deleteFileFromStorage } from './object-storage';
 import { Storage } from '@google-cloud/storage';
 
 // Object Storage client for file serving (Replit only)
@@ -1319,14 +1319,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uniqueFileName = generateUniqueFileName(req.file.originalname);
 
       // Upload to Object Storage
-      const uploadResult = await uploadBufferToStorage(
+      const uploadResult = await uploadFileToStorage(
         req.file.buffer,
-        uniqueFileName,
-        req.file.mimetype,
-        true // Public file
+        req.file.originalname,
+        req.file.mimetype
       );
 
-      console.log('✅ تم رفع الملف إلى التخزين السحابي:', uploadResult.publicUrl);
+      console.log(`✅ تم رفع الملف عبر ${uploadResult.storageType}:`, uploadResult.publicUrl);
 
       res.json({
         success: true,
@@ -1334,7 +1333,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filename: uploadResult.filename,
         originalName: req.file.originalname,
         size: req.file.size,
-        mimetype: req.file.mimetype
+        mimetype: req.file.mimetype,
+        storageType: uploadResult.storageType
       });
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -1342,7 +1342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Profile image upload endpoint - now uses Object Storage
+  // Profile image upload endpoint - now uses Backblaze B2 Cloud Storage
   app.post('/api/upload/profile-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -1354,18 +1354,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('🔄 رفع الصورة الشخصية للمستخدم:', userId);
 
-      // Generate unique filename
-      const uniqueFileName = generateUniqueFileName(file.originalname);
-
-      // Upload to Object Storage
-      const uploadResult = await uploadBufferToStorage(
+      // Upload to storage (Backblaze B2 → Replit Object Storage → Local Files)
+      const uploadResult = await uploadFileToStorage(
         file.buffer,
-        uniqueFileName,
-        file.mimetype,
-        true // Public file
+        file.originalname,
+        file.mimetype
       );
 
-      console.log('✅ تم رفع الصورة الشخصية:', uploadResult.publicUrl);
+      console.log(`✅ تم رفع الصورة الشخصية عبر ${uploadResult.storageType}:`, uploadResult.publicUrl);
 
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl: uploadResult.publicUrl }).where(eq(users.id, userId));
@@ -1373,6 +1369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: true, 
         profileImageUrl: uploadResult.publicUrl,
+        storageType: uploadResult.storageType,
         message: "تم تحديث الصورة الشخصية بنجاح" 
       });
     } catch (error) {
@@ -1398,14 +1395,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uniqueFileName = generateUniqueFileName(file.originalname);
 
       // Upload to Object Storage
-      const uploadResult = await uploadBufferToStorage(
+      const uploadResult = await uploadFileToStorage(
         file.buffer,
-        uniqueFileName,
-        file.mimetype,
-        true // Public file
+        file.originalname,
+        file.mimetype
       );
 
-      console.log('✅ تم رفع صورة الغلاف:', uploadResult.publicUrl);
+      console.log(`✅ تم رفع صورة الغلاف عبر ${uploadResult.storageType}:`, uploadResult.publicUrl);
 
       // Update user cover image URL in database
       await db.update(users).set({ coverImageUrl: uploadResult.publicUrl }).where(eq(users.id, userId));
@@ -1415,6 +1411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: true, 
         coverImageUrl: uploadResult.publicUrl,
+        storageType: uploadResult.storageType,
         message: "تم تحديث صورة الغلاف بنجاح" 
       });
     } catch (error) {
@@ -1576,16 +1573,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate unique filename
         const uniqueFileName = generateUniqueFileName(file.originalname);
 
-        // Upload to Object Storage
-        const uploadResult = await uploadBufferToStorage(
+        // Upload to storage (Backblaze B2 → Replit Object Storage → Local Files)
+        const uploadResult = await uploadFileToStorage(
           file.buffer,
-          uniqueFileName,
-          file.mimetype,
-          true // Public file
+          file.originalname,
+          file.mimetype
         );
 
         mediaUrls.push(uploadResult.publicUrl);
-        console.log(`✅ تم رفع ملف الذكرى: ${uploadResult.publicUrl}`);
+        console.log(`✅ تم رفع ملف الذكرى عبر ${uploadResult.storageType}: ${uploadResult.publicUrl}`);
       }
 
       // Create memory fragment

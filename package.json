@@ -61,6 +61,7 @@
     "@uppy/progress-bar": "^4.3.2",
     "@uppy/react": "^4.5.2",
     "axios": "^1.11.0",
+    "backblaze-b2": "^1.7.1",
     "bcryptjs": "^3.0.2",
     "cannon-es": "^0.20.0",
     "class-variance-authority": "^0.7.1",

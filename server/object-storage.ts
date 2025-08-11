@@ -2,8 +2,9 @@ import { nanoid } from 'nanoid';
 import { Storage, File } from '@google-cloud/storage';
 import path from 'path';
 import fs from 'fs/promises';
+import { backblazeService } from './backblaze-storage';
 
-// Object Storage Configuration - حل هجين للحفظ في Replit و Render
+// Object Storage Configuration - حل متقدم: Backblaze B2 → Replit Object Storage → Local Files
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
 // استخدام مسار آمن للحفظ الدائم في Render
@@ -11,9 +12,17 @@ const FALLBACK_MEDIA_DIR = process.env.NODE_ENV === 'production'
   ? path.join(process.cwd(), 'public', 'media')
   : '/tmp/persistent-media';
 
+// نظام التخزين المتدرج
+export enum StorageType {
+  BACKBLAZE_B2 = 'backblaze-b2',
+  REPLIT_OBJECT_STORAGE = 'replit-object-storage', 
+  LOCAL_FILES = 'local-files'
+}
+
 export interface UploadResult {
   filename: string;
   publicUrl: string;
+  storageType: StorageType;
 }
 
 // إعداد Object Storage Client (Replit only)
@@ -62,59 +71,65 @@ const PUBLIC_DIR = 'public';
 const PRIVATE_DIR = '.private';
 
 /**
- * حفظ ملف في Object Storage - حل نهائي لعدم اختفاء الملفات عند redeploy
+ * حفظ ملف buffer في النظام المتدرج: Backblaze B2 → Replit Object Storage → Local Files
  */
 export async function uploadFileToStorage(
-  filePath: string, 
+  buffer: Buffer, 
   fileName: string, 
-  isPublic: boolean = true
+  contentType?: string
 ): Promise<UploadResult> {
-  const uniqueFileName = generateUniqueFileName(fileName);
-
-  if (objectStorageClient && IS_REPLIT) {
+  console.log(`🔄 بدء رفع الملف: ${fileName}`);
+  
+  // المحاولة الأولى: Backblaze B2 (الأولوية الأولى)
+  if (backblazeService.isAvailable()) {
     try {
-      const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
-      const objectName = `${directory}/${uniqueFileName}`;
-      
-      console.log(`🔄 رفع الملف إلى Object Storage: ${objectName}`);
-
+      const uniqueFileName = backblazeService.generateFileName(fileName);
+      const publicUrl = await backblazeService.uploadFile(buffer, uniqueFileName, contentType || 'application/octet-stream');
+      console.log(`✅ تم رفع الملف بنجاح إلى Backblaze B2: ${uniqueFileName}`);
+      return { filename: uniqueFileName, publicUrl, storageType: StorageType.BACKBLAZE_B2 };
+    } catch (error) {
+      console.error('❌ خطأ في Backblaze B2، التحويل إلى Object Storage:', error);
+    }
+  }
+  
+  // المحاولة الثانية: Replit Object Storage
+  if (IS_REPLIT && objectStorageClient) {
+    try {
+      const uniqueFileName = generateUniqueFileName(fileName);
       const bucket = objectStorageClient.bucket(BUCKET_NAME);
+      const file = bucket.file(`${PUBLIC_DIR}/${uniqueFileName}`);
       
-      await bucket.upload(filePath, {
-        destination: objectName,
+      await file.save(buffer, {
         metadata: {
+          contentType: contentType || 'application/octet-stream',
           cacheControl: 'public, max-age=31536000',
         }
       });
-
+      
       const publicUrl = `/api/media/${uniqueFileName}`;
-      console.log(`✅ تم رفع الملف إلى Object Storage: ${publicUrl}`);
-
-      return {
-        filename: uniqueFileName,
-        publicUrl: publicUrl
-      };
-
+      console.log(`✅ تم رفع الملف بنجاح إلى Replit Object Storage: ${uniqueFileName}`);
+      return { filename: uniqueFileName, publicUrl, storageType: StorageType.REPLIT_OBJECT_STORAGE };
     } catch (error) {
-      console.error('❌ خطأ في Object Storage، التبديل إلى النسخ المحلي:', error);
+      console.error('❌ خطأ في Object Storage، التحويل إلى التخزين المحلي:', error);
     }
   }
-
-  // Fallback to local storage
+  
+  // المحاولة الأخيرة: التخزين المحلي
   try {
     await ensureFallbackDir();
+    const uniqueFileName = generateUniqueFileName(fileName);
     const targetPath = path.join(FALLBACK_MEDIA_DIR, uniqueFileName);
     
-    console.log(`🔄 نسخ الملف محلياً: ${uniqueFileName}`);
-    const fileContent = await fs.readFile(filePath);
-    await fs.writeFile(targetPath, fileContent);
+    console.log(`🔄 حفظ الملف محلياً: ${uniqueFileName}`);
+    await fs.writeFile(targetPath, buffer);
 
     const publicUrl = `/api/media/${uniqueFileName}`;
     console.log(`✅ تم حفظ الملف محلياً: ${publicUrl}`);
 
     return {
       filename: uniqueFileName,
-      publicUrl: publicUrl
+      publicUrl: publicUrl,
+      storageType: StorageType.LOCAL_FILES
     };
 
   } catch (error) {
@@ -161,7 +176,7 @@ export async function uploadBufferToStorage(
       console.log(`✅ تم رفع المحتوى إلى Object Storage: ${uniqueFileName}`);
 
     } catch (error) {
-      console.error('❌ خطأ في Object Storage:', error?.message);
+      console.error('❌ خطأ في Object Storage:', error);
     }
   } else {
     console.log('⚠️ Object Storage غير متوفر');
@@ -179,7 +194,7 @@ export async function uploadBufferToStorage(
     console.log(`✅ تم حفظ المحتوى محلياً: ${uniqueFileName}`);
 
   } catch (error) {
-    console.error('❌ خطأ في حفظ المحتوى محلياً:', error?.message);
+    console.error('❌ خطأ في حفظ المحتوى محلياً:', error);
   }
 
   // Determine success and return appropriate URL
@@ -190,7 +205,8 @@ export async function uploadBufferToStorage(
     
     return {
       filename: uniqueFileName,
-      publicUrl: publicUrl
+      publicUrl: publicUrl,
+      storageType: objectStorageSuccess ? StorageType.REPLIT_OBJECT_STORAGE : StorageType.LOCAL_FILES
     };
   } else {
     console.error('❌ فشل في حفظ الملف في جميع الطرق المتاحة');
