@@ -174,6 +174,7 @@ function cleanupUserTokens(userId: string): number {
 // Import Object Storage utilities
 import { uploadFileToStorage, generateUniqueFileName, deleteFileFromStorage } from './object-storage';
 import { Storage } from '@google-cloud/storage';
+import { UrlHandler } from './utils/url-handler';
 
 // Object Storage client for file serving (Replit only)
 const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;

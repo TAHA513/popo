@@ -23,6 +23,8 @@ export interface UploadResult {
   filename: string;
   publicUrl: string;
   storageType: StorageType;
+  // إضافة معرف الملف في حالة Backblaze URLs
+  originalUrl?: string;
 }
 
 // إعداد Object Storage Client (Replit only)

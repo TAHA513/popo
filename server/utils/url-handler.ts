@@ -42,9 +42,14 @@ export class UrlHandler {
   static processMediaUrl(mediaUrl: string, req: Request): string {
     if (!mediaUrl) return '';
     
-    // إذا كان رابط مطلق، تحقق من صحته
+    // إذا كان رابط مطلق من Backblaze B2 أو أي مصدر خارجي، أرجعه كما هو
     if (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://')) {
       return mediaUrl;
+    }
+    
+    // إذا كان اسم ملف فقط، حوله إلى API URL
+    if (mediaUrl && !mediaUrl.includes('/')) {
+      return this.createApiMediaUrl(mediaUrl, req);
     }
     
     // إذا كان رابط نسبي، اجعله مطلق
