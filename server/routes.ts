@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Dedicated Backblaze B2 media endpoint with authorization
+  // Dedicated Backblaze B2 media endpoint - optimized for public access
   app.get('/api/media/b2/:filename', async (req, res) => {
     try {
       const { filename } = req.params;
@@ -269,14 +269,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Backblaze B2 not available' });
       }
 
-      const authorizedUrl = await backblazeService.getFileUrl(filename);
-      console.log('🔗 Using authorized URL for:', filename);
+      // Get the public URL directly (no authorization needed for public bucket)
+      const publicUrl = await backblazeService.getFileUrl(filename);
+      console.log('🔗 Using public URL for:', filename);
 
-      // جلب الملف من B2 باستخدام URL المُوقع
-      const response = await fetch(authorizedUrl);
+      // Fetch the file from B2
+      const response = await fetch(publicUrl);
 
       if (!response.ok) {
         console.error('❌ Failed to fetch from B2:', response.status, response.statusText);
+        // If 401/403, the file might be in a private location, try with auth
+        if (response.status === 401 || response.status === 403) {
+          console.log('🔒 Trying with authorization...');
+          try {
+            const authorizedUrl = await backblazeService.getFileUrlWithAuth(filename);
+            const authResponse = await fetch(authorizedUrl);
+            
+            if (authResponse.ok) {
+              const buffer = await authResponse.arrayBuffer();
+              const ext = path.extname(filename).toLowerCase();
+              let contentType = 'application/octet-stream';
+              if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+              else if (ext === '.png') contentType = 'image/png';
+              else if (ext === '.gif') contentType = 'image/gif';
+              else if (ext === '.webp') contentType = 'image/webp';
+              else if (ext === '.mp4') contentType = 'video/mp4';
+
+              res.set({
+                'Content-Type': authResponse.headers.get('content-type') || contentType,
+                'Cache-Control': 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*',
+                'X-Source': 'backblaze-b2-auth'
+              });
+
+              console.log('✅ Successfully served B2 file with auth:', filename);
+              return res.send(Buffer.from(buffer));
+            }
+          } catch (authError) {
+            console.error('❌ Authorization also failed:', authError);
+          }
+        }
+        
         return res.status(response.status).json({ error: 'File not found or access denied' });
       }
 

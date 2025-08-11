@@ -96,36 +96,69 @@ export class BackblazeService {
     try {
       await this.initialize();
 
-      // الحصول على معلومات الملف أولاً
+      // Since the bucket is private, we need to create an authorized URL
+      const downloadAuthResponse = await this.b2.getDownloadAuthorization({
+        bucketId: this.bucketId,
+        fileNamePrefix: '', // Allow all files
+        validDurationInSeconds: 86400 // 24 hours
+      });
+
+      const authToken = downloadAuthResponse.data.authorizationToken;
+      const authorizedUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}?Authorization=${authToken}`;
+      
+      console.log('🔗 Created authorized URL for:', fileName);
+      return authorizedUrl;
+      
+    } catch (error) {
+      console.error('❌ Error getting authorized file URL:', error);
+      // Fallback: try direct URL (might work for some configurations)
+      const fallbackUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      console.log('🔄 Using fallback URL:', fallbackUrl);
+      return fallbackUrl;
+    }
+  }
+
+  async getFileUrlWithAuth(fileName: string): Promise<string> {
+    try {
+      await this.initialize();
+
+      // Check if file exists first
       const listResponse = await this.b2.listFileNames({
         bucketId: this.bucketId,
         startFileName: fileName,
-        maxFileCount: 5
+        maxFileCount: 10
       });
 
       const file = listResponse.data.files.find((f: any) => f.fileName === fileName);
       if (!file) {
-        throw new Error(`File not found: ${fileName}`);
+        console.log(`❌ File not found in B2: ${fileName}`);
+        // Try with public URL anyway (in case the file exists but isn't returned in list)
+        return `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
       }
 
       console.log('📁 File found in B2:', file.fileName);
 
-      // إنشاء URL موقع مع token للوصول الخاص
-      const downloadAuthResponse = await this.b2.getDownloadAuthorization({
-        bucketId: this.bucketId,
-        fileNamePrefix: fileName,
-        validDurationInSeconds: 86400 // 24 ساعة
-      });
+      // For private files, create authorized URL
+      try {
+        const downloadAuthResponse = await this.b2.getDownloadAuthorization({
+          bucketId: this.bucketId,
+          fileNamePrefix: fileName,
+          validDurationInSeconds: 86400 // 24 hours
+        });
 
-      const authToken = downloadAuthResponse.data.authorizationToken;
-      const directUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}?Authorization=${authToken}`;
-      
-      console.log('🔗 Authorized B2 URL created for:', fileName);
+        const authToken = downloadAuthResponse.data.authorizationToken;
+        const authorizedUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}?Authorization=${authToken}`;
+        
+        console.log('🔗 Authorized B2 URL created for:', fileName);
+        return authorizedUrl;
+      } catch (authError) {
+        console.log('⚠️ Auth failed, using public URL:', authError);
+        return `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+      }
 
-      return directUrl;
     } catch (error) {
       console.error('❌ Error getting authorized file URL:', error);
-      // Fallback: try direct URL without auth (may work for public files)
+      // Fallback: direct public URL
       const fallbackUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
       console.log('🔄 Using fallback URL:', fallbackUrl);
       return fallbackUrl;
