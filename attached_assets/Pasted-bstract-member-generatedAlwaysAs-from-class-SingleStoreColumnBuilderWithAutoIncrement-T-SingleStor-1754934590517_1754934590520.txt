@@ -1,0 +1,75 @@
+bstract member generatedAlwaysAs from class 'SingleStoreColumnBuilderWithAutoIncrement<T, SingleStoreIntConfig, ColumnBuilderExtraConfig>'.
+node_modules/drizzle-orm/singlestore-core/columns/varbinary.d.ts(14,22): error TS2515: Non-abstract class 'SingleStoreVarBinaryBuilder<T>' does not implement inherited abstract member generatedAlwaysAs from class 'SingleStoreColumnBuilder<T, SingleStoreVarbinaryOptions, object, ColumnBuilderExtraConfig>'.
+node_modules/drizzle-orm/singlestore-core/columns/varchar.d.ts(16,22): error TS2515: Non-abstract class 'SingleStoreVarCharBuilder<T>' does not implement inherited abstract member generatedAlwaysAs from class 'SingleStoreColumnBuilder<T, SingleStoreVarCharConfig<T["enumValues"], T["length"]>, { length: T["length"]; }, ColumnBuilderExtraConfig>'.
+node_modules/drizzle-orm/singlestore-core/columns/vector.d.ts(13,22): error TS2515: Non-abstract class 'SingleStoreVectorBuilder<T>' does not implement inherited abstract member generatedAlwaysAs from class 'SingleStoreColumnBuilder<T, SingleStoreVectorConfig, object, ColumnBuilderExtraConfig>'.
+node_modules/drizzle-orm/singlestore-core/columns/year.d.ts(14,22): error TS2515: Non-abstract class 'SingleStoreYearBuilder<T>' does not implement inherited abstract member generatedAlwaysAs from class 'SingleStoreColumnBuilder<T, object, object, ColumnBuilderExtraConfig>'.
+node_modules/drizzle-orm/singlestore-core/db.d.ts(1,38): error TS2307: Cannot find module 'mysql2/promise' or its corresponding type declarations.
+node_modules/drizzle-orm/singlestore-core/query-builders/delete.d.ts(36,22): error TS2420: Class 'SingleStoreDeleteBase<TTable, TQueryResult, TPreparedQueryHKT, TDynamic, TExcludedMethods>' incorrectly implements interface 'SQLWrapper'.
+  Property 'getSQL' is missing in type 'SingleStoreDeleteBase<TTable, TQueryResult, TPreparedQueryHKT, TDynamic, TExcludedMethods>' but required in type 'SQLWrapper'.
+node_modules/drizzle-orm/singlestore-core/query-builders/select.d.ts(199,262): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"session"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "for" | "unionAll" | "minus"'.
+node_modules/drizzle-orm/singlestore-core/query-builders/select.d.ts(225,265): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"session"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "for" | "unionAll" | "minus"'.
+node_modules/drizzle-orm/singlestore-core/query-builders/select.d.ts(251,266): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"session"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "for" | "unionAll" | "minus"'.
+node_modules/drizzle-orm/singlestore-core/query-builders/select.d.ts(277,263): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"session"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "for" | "unionAll" | "minus"'.
+node_modules/drizzle-orm/singlestore-core/query-builders/select.d.ts(301,262): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"session"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "for" | "unionAll" | "minus"'.
+node_modules/drizzle-orm/singlestore-core/query-builders/select.d.ts(451,22): error TS2515: Non-abstract class 'SingleStoreSelectBase<TTableName, TSelection, TSelectMode, TPreparedQueryHKT, TNullabilityMap, TDynamic, TExcludedMethods, TResult, TSelectedFields>' does not implement inherited abstract member getSQL from class 'SingleStoreSelectQueryBuilderBase<SingleStoreSelectHKT, TTableName, TSelection, TSelectMode, TPreparedQueryHKT, TNullabilityMap, TDynamic, TExcludedMethods, TResult, TSelectedFields>'.
+node_modules/drizzle-orm/singlestore-core/query-builders/select.types.d.ts(130,1185): error TS2344: Type 'SingleStoreSetOperatorExcludedMethods' does not satisfy the constraint '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "prepare" | "execute" | "iterator" | "$dynamic" | "catch" | "finally" | ... 9 more ... | "minus"'.
+  Type '"session"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "prepare" | "execute" | "iterator" | "$dynamic" | "catch" | "finally" | ... 9 more ... | "minus"'.
+node_modules/drizzle-orm/singlestore/driver.d.ts(1,100): error TS2307: Cannot find module 'mysql2' or its corresponding type declarations.
+node_modules/drizzle-orm/singlestore/driver.d.ts(2,39): error TS2307: Cannot find module 'mysql2/promise' or its corresponding type declarations.
+node_modules/drizzle-orm/singlestore/session.d.ts(1,94): error TS2307: Cannot find module 'mysql2/promise' or its corresponding type declarations.
+node_modules/drizzle-orm/sqlite-core/query-builders/query.d.ts(25,22): error TS2420: Class 'SQLiteRelationalQuery<TType, TResult>' incorrectly implements interface 'SQLWrapper'.
+  Property 'getSQL' is missing in type 'SQLiteRelationalQuery<TType, TResult>' but required in type 'SQLWrapper'.
+node_modules/drizzle-orm/sqlite-core/query-builders/select.d.ts(202,247): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"config"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "unionAll"'.
+node_modules/drizzle-orm/sqlite-core/query-builders/select.d.ts(228,250): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"config"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "unionAll"'.
+node_modules/drizzle-orm/sqlite-core/query-builders/select.d.ts(254,251): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"config"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "unionAll"'.
+node_modules/drizzle-orm/sqlite-core/query-builders/select.d.ts(280,248): error TS2344: Type 'string' does not satisfy the constraint 'keyof this & string'.
+  Type 'string' is not assignable to type 'keyof this & string'.
+    Type 'string' is not assignable to type 'keyof this'.
+      Type '"config"' is not assignable to type '"offset" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "$dynamic" | "having" | "groupBy" | "leftJoin" | "rightJoin" | "innerJoin" | "fullJoin" | "unionAll"'.
+node_modules/drizzle-orm/sqlite-core/query-builders/select.d.ts(421,22): error TS2515: Non-abstract class 'SQLiteSelectBase<TTableName, TResultType, TRunResult, TSelection, TSelectMode, TNullabilityMap, TDynamic, TExcludedMethods, TResult, TSelectedFields>' does not implement inherited abstract member getSQL from class 'SQLiteSelectQueryBuilderBase<SQLiteSelectHKT, TTableName, TResultType, TRunResult, TSelection, TSelectMode, TNullabilityMap, TDynamic, TExcludedMethods, TResult, TSelectedFields>'.
+node_modules/drizzle-orm/sqlite-core/query-builders/select.types.d.ts(122,1157): error TS2344: Type 'SQLiteSetOperatorExcludedMethods' does not satisfy the constraint '"values" | "all" | "offset" | "get" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "prepare" | "execute" | "$dynamic" | "catch" | ... 9 more ... | "run"'.
+  Type '"config"' is not assignable to type '"values" | "all" | "offset" | "get" | "_" | "getSQL" | "as" | "union" | "intersect" | "except" | "where" | "orderBy" | "limit" | "toSQL" | "prepare" | "execute" | "$dynamic" | "catch" | ... 9 more ... | "run"'.
+node_modules/vite/dist/node/index.d.ts(5,41): error TS2307: Cannot find module 'rollup/parseAst' or its corresponding type declarations.
+  There are types at '/opt/render/project/src/node_modules/rollup/dist/parseAst.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+server/db.ts(3,25): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/init-point-packages.ts(2,31): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/middleware/activityTracker.ts(2,23): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/replitAuth.ts(2,47): error TS2307: Cannot find module 'openid-client/passport' or its corresponding type declarations.
+  There are types at '/opt/render/project/src/node_modules/openid-client/build/passport.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+server/routes.ts(7,378): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/routes.ts(35,34): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', or 'nodenext'.
+server/routes.ts(893,31): error TS2339: Property 'id' does not exist on type 'User'.
+server/routes.ts(3015,38): error TS2339: Property 'getConversationMessages' does not exist on type 'DatabaseStorage'.
+server/routes.ts(5246,47): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/routes/direct-messages.ts(4,47): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/routes/group-rooms.ts(4,96): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/routes/private-rooms.ts(4,84): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/routes/simple-messages.ts(4,47): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/routes/wallet.ts(4,63): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/storage.ts(132,8): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+server/storage.ts(340,14): error TS2420: Class 'DatabaseStorage' incorrectly implements interface 'IStorage'.
+  Ty
