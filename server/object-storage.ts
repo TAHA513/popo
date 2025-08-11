@@ -6,7 +6,10 @@ import fs from 'fs/promises';
 // Object Storage Configuration - حل هجين للحفظ في Replit و Render
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
-const FALLBACK_MEDIA_DIR = process.env.NODE_ENV === 'production' ? './uploads' : '/tmp/persistent-media';
+// استخدام مسار آمن للحفظ الدائم في Render
+const FALLBACK_MEDIA_DIR = process.env.NODE_ENV === 'production' 
+  ? path.join(process.cwd(), 'public', 'media')
+  : '/tmp/persistent-media';
 
 export interface UploadResult {
   filename: string;
