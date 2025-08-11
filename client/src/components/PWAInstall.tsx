@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Download } from 'lucide-react';
+import { PWADiagnostics } from './PWADiagnostics';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -39,24 +40,61 @@ export function PWAInstall() {
 
     // تحقق متقدم من PWA readiness
     const checkPWAReadiness = async () => {
-      console.log('PWA: التحقق من جاهزية PWA...');
+      console.log('🔍 PWA: التحقق الشامل من جاهزية PWA...');
       
-      // تحقق من service worker
+      // 1. تحقق من service worker
       const hasServiceWorker = 'serviceWorker' in navigator;
-      console.log('PWA: Service Worker دعم:', hasServiceWorker);
+      console.log('📱 PWA: Service Worker دعم:', hasServiceWorker);
       
-      // تحقق من manifest
+      // 2. تحقق من manifest
       const hasManifest = document.querySelector('link[rel="manifest"]');
-      console.log('PWA: Manifest موجود:', !!hasManifest);
+      console.log('📋 PWA: Manifest موجود:', !!hasManifest);
       
-      // تحقق من عدم التثبيت المسبق
+      // 3. تحقق من HTTPS
+      const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+      console.log('🔒 PWA: اتصال آمن:', isSecure);
+      
+      // 4. تحقق من عدم التثبيت المسبق
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      console.log('PWA: مثبت مسبقاً:', isStandalone);
+      console.log('📲 PWA: مثبت مسبقاً:', isStandalone);
       
-      // إذا لم يكن مثبتاً، أظهر الزر
-      if (!isStandalone && hasServiceWorker && hasManifest) {
-        console.log('PWA: التطبيق قابل للتثبيت، عرض الزر');
+      // 5. تحقق من service worker مثبت فعلياً
+      if (hasServiceWorker) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          console.log('⚙️ PWA: Service Workers مثبتة:', registrations.length);
+          registrations.forEach((reg, index) => {
+            console.log(`   ${index + 1}. Scope: ${reg.scope}`);
+          });
+        } catch (error) {
+          console.log('⚠️ PWA: فشل في فحص Service Workers:', error);
+        }
+      }
+      
+      // 6. تحقق من Manifest محتوى
+      if (hasManifest) {
+        try {
+          const manifestHref = (hasManifest as HTMLLinkElement).href;
+          console.log('📂 PWA: Manifest URL:', manifestHref);
+        } catch (error) {
+          console.log('⚠️ PWA: فشل في قراءة Manifest URL');
+        }
+      }
+      
+      // 7. قرار النهائي للتثبيت
+      const canInstall = !isStandalone && hasServiceWorker && hasManifest && isSecure;
+      console.log('🚀 PWA: قابل للتثبيت:', canInstall);
+      
+      if (canInstall) {
+        console.log('✅ PWA: جميع المتطلبات متوفرة، عرض زر التثبيت');
         setIsInstallable(true);
+      } else {
+        console.log('❌ PWA: متطلبات ناقصة:', {
+          'مثبت مسبقاً': isStandalone,
+          'Service Worker': hasServiceWorker,
+          'Manifest': !!hasManifest,
+          'HTTPS': isSecure
+        });
       }
     };
 
@@ -164,21 +202,24 @@ ${window.location.href}
   }
 
   return (
-    <button
-      onClick={handleInstallClick}
-      className="relative flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95"
-      title={isInstallable ? "تثبيت التطبيق مجاناً" : "تعليمات التثبيت"}
-    >
-      <Download className="w-6 h-6" />
-      <div className="text-right">
-        <div className="text-sm font-bold leading-tight">تثبيت مباشر</div>
-        <div className="text-xs opacity-90 leading-tight">ضغطة واحدة</div>
-      </div>
-      {isInstallable && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-bounce flex items-center justify-center">
-          <div className="w-2 h-2 bg-white rounded-full"></div>
+    <div className="flex flex-col gap-2">
+      <button
+        onClick={handleInstallClick}
+        className="relative flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95"
+        title={isInstallable ? "تثبيت التطبيق مجاناً" : "تعليمات التثبيت"}
+      >
+        <Download className="w-6 h-6" />
+        <div className="text-right">
+          <div className="text-sm font-bold leading-tight">تثبيت مباشر</div>
+          <div className="text-xs opacity-90 leading-tight">ضغطة واحدة</div>
         </div>
-      )}
-    </button>
+        {isInstallable && (
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-bounce flex items-center justify-center">
+            <div className="w-2 h-2 bg-white rounded-full"></div>
+          </div>
+        )}
+      </button>
+      <PWADiagnostics />
+    </div>
   );
 }
