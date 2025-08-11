@@ -7,22 +7,25 @@ LaaBoBo is an advanced Arabic-first mobile social broadcasting platform designed
 
 ### ✅ حل نهائي لمشكلة اختفاء الملفات عند إعادة النشر
 - **المشكلة**: الصور والفيديوهات تختفي نهائياً بعد إعادة النشر (redeploy)
-- **الحل الجديد**: استخدام مجلد `/tmp/media` للحفظ الدائم خارج نطاق المشروع
+- **الحل النهائي**: استخدام Replit Object Storage (Google Cloud Storage) للحفظ الدائم
 
 **التغييرات النهائية:**
-- تم إعادة كتابة `server/object-storage.ts` بالكامل لاستخدام `/tmp/media`
-- إنشاء نظام ملفات دائم في `server/index.ts` يخدم الملفات من `/media/*`
+- إعادة كتابة `server/object-storage.ts` بالكامل لاستخدام Object Storage
+- إزالة الاعتماد على الملفات المحلية (`/tmp/media`) نهائياً
 - تطوير functions محسنة:
-  - `uploadFileToStorage()` - حفظ الملفات مع أسماء فريدة
-  - `uploadBufferToStorage()` - حفظ المحتوى مباشرة  
+  - `uploadFileToStorage()` - رفع الملفات إلى Object Storage
+  - `uploadBufferToStorage()` - رفع المحتوى مباشرة إلى Object Storage
   - `generateUniqueFileName()` - إنشاء أسماء ملفات آمنة
-  - `deleteFileFromStorage()` - حذف الملفات عند الحاجة
-- إزالة الاعتماد على قاعدة البيانات لحفظ الملفات
-- حل مشكلة تضارب الأسماء والوظائف المكررة
+  - `deleteFileFromStorage()` - حذف الملفات من Object Storage
+- حل مشكلة Object Storage permissions (إزالة makePublic)
+- تحديث جميع endpoints لاستخدام Object Storage
 
 **التكوين الجديد:**
-- Directory: `/tmp/media/` - مجلد دائم خارج نطاق redeploy
-- URL Pattern: `/media/{unique_filename}` 
+- Storage: Google Cloud Storage via Replit Object Storage
+- Bucket: `replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16`
+- Public Directory: `public/`
+- Private Directory: `.private/`
+- URL Pattern: `/public-objects/{unique_filename}`
 - Cache: 1 year للملفات الثابتة
 - File Size Limit: 50MB
 - Types: Images (JPEG, PNG, GIF, WebP), Videos (MP4, WebM, MOV)
@@ -59,7 +62,8 @@ LaaBoBo is an advanced Arabic-first mobile social broadcasting platform designed
 - Use Drizzle ORM for database operations
 
 ## Status Update
-- ✅ النظام الجديد يعمل بنجاح ولا توجد أخطاء
-- ✅ مجلد `/tmp/media` تم إنشاؤه وجاهز للاستخدام
-- ✅ جميع endpoints رفع الملفات تستخدم النظام الجديد
-- 🔄 **جاهز للاختبار**: رفع ملف للتأكد من عدم اختفائه بعد redeploy
+- ✅ Object Storage جاهز ومُعد بنجاح
+- ✅ حل مشكلة permissions (إزالة makePublic)
+- ✅ جميع endpoints تستخدم Object Storage للحفظ الدائم
+- ✅ النظام يعمل بنجاح ولا توجد أخطاء
+- 🔄 **جاهز للاختبار**: رفع ملف للتأكد من الحفظ الدائم في Object Storage

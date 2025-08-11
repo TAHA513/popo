@@ -53,18 +53,13 @@ export async function uploadFileToStorage(
     const bucket = objectStorageClient.bucket(BUCKET_NAME);
     const file = bucket.file(objectName);
     
-    // رفع الملف إلى Object Storage
+    // رفع الملف إلى Object Storage (private by default)
     await bucket.upload(filePath, {
       destination: objectName,
       metadata: {
         cacheControl: 'public, max-age=31536000', // cache لمدة سنة
       }
     });
-    
-    // جعل الملف عام إذا كان مطلوباً
-    if (isPublic) {
-      await file.makePublic();
-    }
 
     const publicUrl = `/public-objects/${uniqueFileName}`;
     console.log(`✅ تم رفع الملف إلى Object Storage: ${publicUrl}`);
@@ -100,18 +95,13 @@ export async function uploadBufferToStorage(
     const bucket = objectStorageClient.bucket(BUCKET_NAME);
     const file = bucket.file(objectName);
     
-    // رفع Buffer إلى Object Storage
+    // رفع Buffer إلى Object Storage (private by default)
     await file.save(buffer, {
       metadata: {
         contentType: mimeType,
         cacheControl: 'public, max-age=31536000', // cache لمدة سنة
       }
     });
-    
-    // جعل الملف عام إذا كان مطلوباً
-    if (isPublic) {
-      await file.makePublic();
-    }
 
     const publicUrl = `/public-objects/${uniqueFileName}`;
     console.log(`✅ تم رفع المحتوى إلى Object Storage: ${publicUrl}`);
