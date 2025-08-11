@@ -126,7 +126,7 @@ export default function SimpleHome() {
           <div className="relative z-10 flex items-center justify-between">
             <div className="flex-1">
               <h3 className="text-lg font-bold mb-1">📱 إضافة اختصار</h3>
-              <p className="text-sm opacity-90">ضع LaaBoBo على شاشتك الرئيسية للوصول السريع</p>
+              <p className="text-sm opacity-90">⚠️ لا يمكن تثبيت تطبيق حقيقي، لكن يمكنك إضافة اختصار للوصول السريع</p>
             </div>
             
             <AppShortcut />
