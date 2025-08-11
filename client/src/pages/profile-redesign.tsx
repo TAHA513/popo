@@ -440,8 +440,16 @@ export default function ProfileRedesign() {
               {profileUser?.coverImageUrl ? (
                 <img 
                   src={profileUser.coverImageUrl} 
-                  alt="Cover" 
+                  alt="صورة الغلاف" 
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Hide the broken image and show gradient background instead
+                    e.currentTarget.style.display = 'none';
+                    const parentDiv = e.currentTarget.parentElement;
+                    if (parentDiv) {
+                      parentDiv.innerHTML = '<div class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>' + parentDiv.innerHTML.replace(/<img[^>]*>/, '');
+                    }
+                  }}
                 />
               ) : (
                 <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
@@ -492,8 +500,16 @@ export default function ProfileRedesign() {
                       {profileUser?.profileImageUrl ? (
                         <img 
                           src={profileUser.profileImageUrl} 
-                          alt="Profile" 
+                          alt="الصورة الشخصية" 
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Hide the broken image and show fallback avatar instead
+                            e.currentTarget.style.display = 'none';
+                            const parentDiv = e.currentTarget.parentElement;
+                            if (parentDiv) {
+                              parentDiv.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100"><svg class="w-16 h-16 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>';
+                            }
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
