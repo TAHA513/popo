@@ -89,12 +89,12 @@ export async function uploadFileToStorage(
   if (backblazeService.isAvailable()) {
     try {
       console.log('🥇 Attempting Backblaze B2 upload...');
-      const publicUrl = await backblazeService.uploadFile(buffer, uniqueFileName, contentType);
+      const proxyUrl = await backblazeService.uploadFile(buffer, uniqueFileName, contentType);
 
-      console.log(`✅ Backblaze B2 upload successful: ${publicUrl}`);
+      console.log(`✅ Backblaze B2 upload successful: ${proxyUrl}`);
       return {
         filename: uniqueFileName,
-        publicUrl,
+        publicUrl: proxyUrl,
         storageType: StorageType.BACKBLAZE_B2
       };
     } catch (error) {

@@ -10,6 +10,7 @@ export class BackblazeService {
   private bucketName: string;
   private bucketId: string;
   private initialized = false;
+  private downloadUrl: string = '';
 
   constructor() {
     this.bucketName = process.env.B2_BUCKET_NAME || '';
@@ -28,8 +29,10 @@ export class BackblazeService {
     
     try {
       console.log('🔄 Initializing Backblaze B2...');
-      await this.b2.authorize();
+      const authResponse = await this.b2.authorize();
+      this.downloadUrl = authResponse.data.downloadUrl;
       console.log('✅ Backblaze B2 authorized successfully');
+      console.log('🔗 Download URL:', this.downloadUrl);
       this.initialized = true;
     } catch (error) {
       console.error('❌ Backblaze B2 authorization failed:', error);
@@ -61,16 +64,35 @@ export class BackblazeService {
         contentType: contentType
       });
 
-      // Generate public URL
-      const publicUrl = `/api/media/${fileName}`;
+      console.log('📤 Upload response:', {
+        fileName: uploadResponse.data.fileName,
+        fileId: uploadResponse.data.fileId
+      });
+
+      // بناء URL العام الصحيح
+      const publicUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
       
       console.log(`✅ File uploaded successfully: ${fileName}`);
-      console.log(`🔗 Public URL: ${publicUrl}`);
-      return publicUrl;
+      console.log(`🔗 Direct B2 URL: ${publicUrl}`);
+      
+      // إرجاع URL الداخلي للـ API proxy
+      return `/api/media/b2/${fileName}`;
       
     } catch (error) {
       console.error(`❌ Failed to upload ${fileName}:`, error);
       throw new Error(`Failed to upload file to Backblaze B2: ${error}`);
+    }
+  }
+
+  async getFileUrl(fileName: string): Promise<string> {
+    await this.initialize();
+    
+    try {
+      // بناء URL المباشر
+      return `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
+    } catch (error) {
+      console.error('❌ Error getting file URL:', error);
+      throw new Error('Failed to get file URL');
     }
   }
 
@@ -132,6 +154,3 @@ export class BackblazeService {
 
 // Export singleton instance
 export const backblazeService = new BackblazeService();
-
-// Export class for direct instantiation if needed
-export { BackblazeService as BackblazeB2Service };
