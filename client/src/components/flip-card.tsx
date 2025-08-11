@@ -342,8 +342,19 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
               alt="منشور"
               className="w-full h-full object-cover"
               onError={(e) => {
-                // Show gradient background instead of broken image
-                e.currentTarget.style.display = 'none';
+                console.error('❌ Failed to load image:', content.mediaUrls[0]);
+                // Try to reload with proxy URL if direct URL fails
+                const img = e.currentTarget;
+                if (!img.src.includes('/api/media/b2/')) {
+                  const filename = content.mediaUrls[0].split('/').pop();
+                  img.src = `/api/media/b2/${filename}`;
+                } else {
+                  // Show gradient background instead of broken image
+                  img.style.display = 'none';
+                }
+              }}
+              onLoad={() => {
+                console.log('✅ Image loaded successfully:', content.mediaUrls[0]);
               }}
             />
           )
