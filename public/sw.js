@@ -1,31 +1,42 @@
 // LaaBoBo - Enhanced Service Worker for PWA
-const CACHE_NAME = 'laababo-v3';
-const OFFLINE_PAGE = '/offline.html';
+const CACHE_NAME = 'laababo-v4';
+const STATIC_CACHE = 'laababo-static-v4';
+const DYNAMIC_CACHE = 'laababo-dynamic-v4';
 
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/icon-192x192.png',
-  '/icon-512x512.png',
-  OFFLINE_PAGE
+  '/icon-512x512.png'
+];
+
+const DYNAMIC_URLS = [
+  '/api/memories/public',
+  '/api/auth/user',
+  '/api/notifications/unread-count'
 ];
 
 // Install event - cache important resources
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing Service Worker...');
+  console.log('[SW] Installing Service Worker v4...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Opened cache:', CACHE_NAME);
-        return cache.addAll(urlsToCache.filter(url => url !== OFFLINE_PAGE));
+    Promise.all([
+      caches.open(STATIC_CACHE).then((cache) => {
+        console.log('[SW] Caching static resources');
+        return cache.addAll(urlsToCache);
+      }),
+      caches.open(CACHE_NAME).then((cache) => {
+        console.log('[SW] Creating main cache');
+        return cache.addAll(['/offline.html']);
       })
-      .then(() => {
-        console.log('[SW] Installation complete');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('[SW] Installation failed:', error);
-      })
+    ])
+    .then(() => {
+      console.log('[SW] Installation complete - PWA ready!');
+      return self.skipWaiting();
+    })
+    .catch((error) => {
+      console.error('[SW] Installation failed:', error);
+    })
   );
 });
 

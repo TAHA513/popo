@@ -101,6 +101,11 @@ app.use((req, res, next) => {
     res.set('Content-Type', 'image/png');
     res.sendFile(path.resolve('public/icon-512x512.png'));
   });
+  
+  app.get('/offline.html', (req, res) => {
+    res.set('Content-Type', 'text/html');
+    res.sendFile(path.resolve('public/offline.html'));
+  });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

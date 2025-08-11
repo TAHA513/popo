@@ -23,11 +23,17 @@ export function PWAInstall() {
       // Check if app is already installed
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isiOSStandalone = (window.navigator as any).standalone === true;
-      const installed = isStandalone || isiOSStandalone;
+      const isWinStandalone = window.matchMedia('(display-mode: window-controls-overlay)').matches;
+      const installed = isStandalone || isiOSStandalone || isWinStandalone;
       
-      setIsInstalled(installed);
+      // Also check URL params for PWA detection
+      const urlParams = new URLSearchParams(window.location.search);
+      const isLaunchedFromPWA = urlParams.get('standalone') === 'true';
       
-      if (installed) {
+      const actuallyInstalled = installed || isLaunchedFromPWA;
+      setIsInstalled(actuallyInstalled);
+      
+      if (actuallyInstalled) {
         console.log('[PWA] التطبيق مثبت مسبقاً');
         setIsInstallable(false);
         return;
@@ -36,17 +42,20 @@ export function PWAInstall() {
       // Check PWA requirements
       const hasServiceWorker = 'serviceWorker' in navigator;
       const hasManifest = document.querySelector('link[rel="manifest"]');
+      const isSecureContext = window.isSecureContext;
       
       console.log('[PWA] التحقق من متطلبات PWA:', {
         hasServiceWorker,
         hasManifest: !!hasManifest,
+        isSecureContext,
         isStandalone,
         isiOSStandalone,
+        isWinStandalone,
         userAgent: navigator.userAgent.substring(0, 50) + '...'
       });
 
-      // Show install option if requirements are met OR force show for manual install
-      if ((hasServiceWorker && hasManifest && !installed) || !installed) {
+      // Always show install option if not installed
+      if (!actuallyInstalled) {
         setIsInstallable(true);
       }
     };
