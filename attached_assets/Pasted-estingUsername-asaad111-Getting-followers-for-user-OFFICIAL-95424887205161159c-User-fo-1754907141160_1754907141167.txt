@@ -1,0 +1,49 @@
+estingUsername: 'asaad111'
+}
+🔍 Getting followers for user: OFFICIAL-95424887205161159c
+✅ User found successfully: {
+  userId: 'OFFICIAL-95424887205161159c',
+  username: 'LaaBoBo',
+  firstName: 'LaaBoBo'
+}
+🛡️ Owner protection active in followers list. Filtered 0 entries.
+✅ Found followers: 2
+11:16:57 PM [express] GET /api/users/OFFICIAL-95424887205161159c 200 in 118ms :: {"id":"OFFICIAL-9542…
+11:16:57 PM [express] GET /api/users/OFFICIAL-95424887205161159c/followers 200 in 123ms :: [{"id":"Q4…
+11:16:57 PM [express] GET /api/memories/user/OFFICIAL-95424887205161159c 200 in 142ms :: [{"id":85,"a…
+11:16:57 PM [express] GET /api/users/OFFICIAL-95424887205161159c/follow-status 200 in 373ms :: {"isFo…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:16:58 PM [express] GET /api/users/OFFICIAL-95424887205161159c/status 200 in 132ms :: {"isOnline":f…
+11:16:58 PM [express] GET /api/messages/conversations 200 in 137ms :: [{"otherUser":{"id":"Q4C26soOmX…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:01 PM [express] GET /api/messages/conversations 200 in 153ms :: [{"otherUser":{"id":"Q4C26soOmX…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:04 PM [express] GET /api/messages/conversations 200 in 138ms :: [{"otherUser":{"id":"Q4C26soOmX…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:07 PM [express] GET /api/messages/conversations 200 in 141ms :: [{"otherUser":{"id":"Q4C26soOmX…
+📊 عدد الإشعارات غير المقروءة للمستخدم 4OsJBdkrkj8RyijMOG6OR: { notifications: 0, messages: 0, total: 0 }
+11:17:10 PM [express] GET /api/notifications/unread-count 200 in 145ms :: {"count":0}
+11:17:10 PM [express] POST /api/memories/85/view 200 in 155ms :: {"success":true,"viewCount":"3"}
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:11 PM [express] GET /api/messages/conversations 200 in 380ms :: [{"otherUser":{"id":"Q4C26soOmX…
+11:17:11 PM [express] GET /api/media/1754859574762-file_00000000123c6243962b70978009aa4e.png 200 in 8…
+11:17:11 PM [express] GET /api/users/OFFICIAL-95424887205161159c/follow-status 200 in 606ms :: {"isFo…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:14 PM [express] GET /api/messages/conversations 200 in 165ms :: [{"otherUser":{"id":"Q4C26soOmX…
+11:17:14 PM [express] GET /api/media/1754859574762-file_00000000123c6243962b70978009aa4e.png 200 in 1…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:18 PM [express] GET /api/messages/conversations 200 in 155ms :: [{"otherUser":{"id":"Q4C26soOmX…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:21 PM [express] GET /api/messages/conversations 200 in 143ms :: [{"otherUser":{"id":"Q4C26soOmX…
+🔍 جلب المحادثات للمستخدم: 4OsJBdkrkj8RyijMOG6OR
+📨 وجدت 64 رسائل للمستخدم 4OsJBdkrkj8RyijMOG6OR
+11:17:24 PM [express] GET /api/messages/conversations 200 in 147ms :: [{"otherUser":{"id":"Q4C26soOmX…
+11:17:25 PM [express] POST /api/memories/85/view 200 in 326ms :: {"success":true,"viewCount":"3"}
