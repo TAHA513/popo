@@ -4096,7 +4096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Memory Fragment routes
+  // Memory Fragment routes - Updated to use Object Storage
   app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -4106,23 +4106,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'At least one media file is required' });
       }
 
-      // Process uploaded files
+      console.log(`🔄 إنشاء ذكرى جديدة للمستخدم: ${userId} مع ${files.length} ملفات`);
+
+      // Process uploaded files using Object Storage
       const mediaUrls: string[] = [];
       let thumbnailUrl = '';
 
       for (const file of files) {
-        // In a real app, you would upload to cloud storage (AWS S3, Cloudinary, etc.)
-        // For this demo, we'll create a simple file serving system
-        const fileName = `${Date.now()}-${file.originalname}`;
-        const filePath = `uploads/${fileName}`;
+        // Generate unique filename
+        const uniqueFileName = generateUniqueFileName(file.originalname);
 
-        await fs.rename(file.path, filePath);
-        const fileUrl = `/uploads/${fileName}`;
-        mediaUrls.push(fileUrl);
+        // Upload to Object Storage
+        const uploadResult = await uploadBufferToStorage(
+          file.buffer,
+          uniqueFileName,
+          file.mimetype,
+          true // Public file
+        );
+
+        mediaUrls.push(uploadResult.publicUrl);
+        console.log(`✅ تم رفع ملف الذكرى: ${uploadResult.publicUrl}`);
 
         // Use first image as thumbnail
         if (!thumbnailUrl && file.mimetype.startsWith('image/')) {
-          thumbnailUrl = fileUrl;
+          thumbnailUrl = uploadResult.publicUrl;
         }
       }
 
@@ -4142,6 +4149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const fragment = await storage.createMemoryFragment(fragmentData);
+      console.log(`✅ تم إنشاء الذكرى بنجاح: ${fragment.id}`);
       res.json(fragment);
     } catch (error) {
       console.error('Error creating memory fragment:', error);
