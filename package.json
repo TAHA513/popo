@@ -7,10 +7,11 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
-    "build:server": "tsc server/index.ts --outDir dist/server --module commonjs --target es2020 --moduleResolution node --esModuleInterop --allowSyntheticDefaultImports",
+    "build:server": "tsc --project tsconfig.server.json",
     "server": "tsx watch server/index.ts",
     "client": "vite",
-    "start": "NODE_ENV=production node dist/server/index.js",
+    "start": "NODE_ENV=production node dist/index.js",
+    "type-check": "tsc --noEmit",
     "postbuild": "mkdir -p dist/public/media && cp -r public/media/* dist/public/media/ 2>/dev/null || true"
   },
   "dependencies": {

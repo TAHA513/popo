@@ -1,20 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ES2020",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "allowJs": true,
 
     /* Bundler mode */
     "moduleResolution": "node",
-    "allowImportingTsExtensions": false,
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
 
     /* Linting */
     "strict": false,
@@ -22,13 +23,15 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
-    /* Path mapping */
+    /* Paths */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./client/src/*"],
+      "@server/*": ["./server/*"],
       "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["client/src/**/*", "server/**/*", "shared/**/*", "vite.config.ts"],
+  "exclude": ["node_modules", "dist", "build"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

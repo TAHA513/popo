@@ -198,7 +198,7 @@ export interface IStorage {
   findConversation(user1Id: string, user2Id: string): Promise<any | undefined>;
   createConversation(conversation: any): Promise<any>;
   getConversationById(id: number, userId: string): Promise<any | undefined>;
-  getConversationMessages(conversationId: number, userId: string): Promise<any[]>;
+  getConversationMessages(userId: string, otherUserId: string, page?: number, limit?: number): Promise<Message[]>;
   createDirectMessage(message: any): Promise<any>;
   updateConversationLastMessage(conversationId: number, lastMessage: string): Promise<void>;
 
@@ -243,7 +243,7 @@ export interface IStorage {
   buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory>;
   getUserInventory(userId: string): Promise<UserInventory[]>;
   visitGarden(visitorId: string, hostId: string, giftItemId?: string): Promise<GardenVisit>;
-  getFriendGarden(friendId: string): Promise<{ pet: VirtualPet; user: User } | undefined>;
+  getFriendGarden(friendId: string): Promise<{ user: User; pet: VirtualPet | null } | undefined>;
   getGardenActivities(userId: string): Promise<GardenActivity[]>;
   getPetAchievements(userId: string): Promise<PetAchievement[]>;
   getAllUsersWithPets(currentUserId: string): Promise<Array<{ user: User; pet: VirtualPet | null }>>;
@@ -305,7 +305,7 @@ export interface IStorage {
   getPremiumMessages(userId: string): Promise<any[]>;
   getPremiumMessage(messageId: number): Promise<any | null>;
   createPremiumMessage(data: any): Promise<any>;
-  processAlbumUnlock(buyerId: string, sellerId: string, messageId: number, amount: number): Promise<void>;
+  processAlbumUnlock(buyerId: string, sellerId: string, messageId: number, cost: number): Promise<void>;
 
   // Premium Album Media
   addAlbumMedia(media: InsertPremiumAlbumMedia): Promise<PremiumAlbumMedia>;
@@ -1263,7 +1263,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(memoryCollections.id, collectionId));
   }
 
-  // Virtual Pet Garden operations implementation
+  // Virtual Pet Garden operations
   async getUserPet(userId: string): Promise<VirtualPet | undefined> {
     const [pet] = await db
       .select()
@@ -1388,12 +1388,14 @@ export class DatabaseStorage implements IStorage {
     return updatedPet;
   }
 
-  async getGardenItems(): Promise<GardenItem[]> {
-    return await db
-      .select()
-      .from(gardenItems)
-      .orderBy(gardenItems.type, gardenItems.price);
-  }
+  async getGardenItems(): Promise<GardenItem[]>;
+  async buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory>;
+  async getUserInventory(userId: string): Promise<UserInventory[]>;
+  async visitGarden(visitorId: string, hostId: string, giftItemId?: string): Promise<GardenVisit>;
+  async getFriendGarden(friendId: string): Promise<{ user: User; pet: VirtualPet | null } | undefined>;
+  async getGardenActivities(userId: string): Promise<GardenActivity[]>;
+  async getPetAchievements(userId: string): Promise<PetAchievement[]>;
+  async getAllUsersWithPets(currentUserId: string): Promise<Array<{ user: User; pet: VirtualPet | null }>>;
 
   async buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory> {
     // Get item details
@@ -1488,7 +1490,7 @@ export class DatabaseStorage implements IStorage {
     return visit;
   }
 
-  async getFriendGarden(friendId: string): Promise<{ pet: VirtualPet; user: User } | undefined> {
+  async getFriendGarden(friendId: string): Promise<{ user: User; pet: VirtualPet | null } | undefined> {
     const friend = await this.getUser(friendId);
     if (!friend) {
       return undefined;
@@ -1938,6 +1940,23 @@ export class DatabaseStorage implements IStorage {
 
   async getConversationById(conversationId: number, currentUserId: string): Promise<any> {
     return null;
+  }
+
+  // جلب رسائل المحادثة
+  async getConversationMessages(userId: string, otherUserId: string, page: number = 1, limit: number = 50): Promise<Message[]> {
+    const offset = (page - 1) * limit;
+
+    return await db.select()
+      .from(messages)
+      .where(
+        or(
+          and(eq(messages.senderId, userId), eq(messages.receiverId, otherUserId)),
+          and(eq(messages.senderId, otherUserId), eq(messages.receiverId, userId))
+        )
+      )
+      .orderBy(desc(messages.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   async createDirectMessage(data: any): Promise<any> {
@@ -2391,6 +2410,17 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(premiumMessages)
       .where(eq(premiumMessages.recipientId, userId))
       .orderBy(desc(premiumMessages.createdAt));
+  }
+
+  // Delete conversation
+  async deleteConversation(userId: string, otherUserId: string): Promise<void> {
+    await db.delete(conversations)
+      .where(
+        or(
+          and(eq(conversations.userId, userId), eq(conversations.otherUserId, otherUserId)),
+          and(eq(conversations.userId, otherUserId), eq(conversations.otherUserId, userId))
+        )
+      );
   }
 }
 
