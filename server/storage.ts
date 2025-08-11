@@ -123,15 +123,9 @@ import {
   memoryViews,
   type MemoryView,
   type InsertMemoryView,
-  lockedAlbums,
-  lockedAlbumContent,
-  albumPurchases,
-  privateContentRequests,
-  messages,
-  follows,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, sql, count, ne, or, sum } from "drizzle-orm";
+import { eq, desc, asc, and, sql, count, ne, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
@@ -147,7 +141,7 @@ export interface IStorage {
   updateUserPoints(userId: string, newPoints: number): Promise<void>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByResetToken(token: string): Promise<User | undefined>;
-
+  
   // Stream operations
   createStream(stream: InsertStream): Promise<Stream>;
   getActiveStreams(): Promise<Stream[]>;
@@ -155,53 +149,40 @@ export interface IStorage {
   updateStreamViewerCount(id: number, count: number): Promise<void>;
   endStream(id: number): Promise<void>;
   deleteStream(id: number): Promise<void>;
-  updateStream(id: number, updates: Partial<Stream>): Promise<Stream>;
-
+  
   // Gift operations
   getGiftCharacters(): Promise<GiftCharacter[]>;
   getGiftCharacterById(id: number): Promise<GiftCharacter | undefined>;
   getGiftById(id: number): Promise<GiftCharacter | undefined>;
-  getGiftCharacter(id: number): Promise<GiftCharacter | undefined>;
   sendGift(giftData: InsertGift): Promise<Gift>;
   getReceivedGifts(userId: string): Promise<Gift[]>;
   getSentGifts(userId: string): Promise<Gift[]>;
   getStreamGifts(streamId: number): Promise<Gift[]>;
-
+  
   // Chat operations
   addChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getStreamChatMessages(streamId: number, limit?: number): Promise<ChatMessage[]>;
-
+  
   // Point operations
   addPointTransaction(transaction: InsertPointTransaction): Promise<PointTransaction>;
   getUserPointBalance(userId: string): Promise<number>;
-  getPointPackages(): Promise<PointPackage[]>;
-  getActivePointPackages(): Promise<PointPackage[]>;
-  getPointPackageById(id: number): Promise<PointPackage | undefined>;
-  createPointPackage(packageData: InsertPointPackage): Promise<PointPackage>;
-  createPointTransaction(transactionData: InsertPointTransaction): Promise<PointTransaction>;
-  getUserPointTransactions(userId: string, limit?: number): Promise<PointTransaction[]>;
-  getPointTransactionByStripeId(stripePaymentId: string): Promise<PointTransaction | undefined>;
-  purchasePoints(userId: string, packageId: number, stripePaymentId?: string): Promise<{ success: boolean; newBalance: number }>;
-
+  
   // Follow operations
   followUser(followerId: string, followedId: string): Promise<Follower>;
   unfollowUser(followerId: string, followedId: string): Promise<void>;
-  isFollowing(followerId: string, followedId: string): Promise<boolean>;
   getFollowCount(userId: string): Promise<number>;
-  getFollowingCount(userId: string): Promise<number>;
-  getFollowers(userId: string): Promise<any[]>;
-  getFollowing(userId: string): Promise<any[]>;
+  getSuggestedUsers(): Promise<any[]>;
   searchUsers(query: string): Promise<User[]>;
   isUserFollowing(followerId: string, followedId: string): Promise<boolean>;
-
+  
   // Conversation operations
   findConversation(user1Id: string, user2Id: string): Promise<any | undefined>;
   createConversation(conversation: any): Promise<any>;
   getConversationById(id: number, userId: string): Promise<any | undefined>;
-  getConversationMessages(userId: string, otherUserId: string, page?: number, limit?: number): Promise<Message[]>;
+  getConversationMessages(conversationId: number, userId: string): Promise<any[]>;
   createDirectMessage(message: any): Promise<any>;
   updateConversationLastMessage(conversationId: number, lastMessage: string): Promise<void>;
-
+  
   // Memory Fragment operations
   createMemoryFragment(fragment: InsertMemoryFragment): Promise<MemoryFragment>;
   getUserMemoryFragments(userId: string): Promise<MemoryFragment[]>;
@@ -211,21 +192,20 @@ export interface IStorage {
   updateMemoryFragmentEnergy(id: number, energyChange: number): Promise<void>;
   getExpiredMemoryFragments(): Promise<MemoryFragment[]>;
   deleteExpiredMemoryFragments(): Promise<void>;
-  getMemoryStats(userId: string): Promise<any>;
-
+  
   // Comments operations
   addComment(comment: InsertComment): Promise<Comment>;
   getComments(postId: number, postType: string): Promise<Comment[]>;
-
+  
   // Memory Views operations
   recordMemoryView(memoryId: number, viewerId: string): Promise<void>;
   getMemoryViewCount(memoryId: number): Promise<number>;
-
+  
   // Memory Collection operations
   createMemoryCollection(collection: InsertMemoryCollection): Promise<MemoryCollection>;
   getUserMemoryCollections(userId: string): Promise<MemoryCollection[]>;
   addFragmentToCollection(fragmentId: number, collectionId: number): Promise<void>;
-
+  
   // Admin operations
   getStreamingStats(): Promise<{
     activeUsers: number;
@@ -243,11 +223,11 @@ export interface IStorage {
   buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory>;
   getUserInventory(userId: string): Promise<UserInventory[]>;
   visitGarden(visitorId: string, hostId: string, giftItemId?: string): Promise<GardenVisit>;
-  getFriendGarden(friendId: string): Promise<{ user: User; pet: VirtualPet | null } | undefined>;
+  getFriendGarden(friendId: string): Promise<{ pet: VirtualPet; user: User } | undefined>;
   getGardenActivities(userId: string): Promise<GardenActivity[]>;
   getPetAchievements(userId: string): Promise<PetAchievement[]>;
   getAllUsersWithPets(currentUserId: string): Promise<Array<{ user: User; pet: VirtualPet | null }>>;
-
+  
   // Game system operations
   createGameRoom(gameRoom: InsertGameRoom): Promise<GameRoom>;
   joinGameRoom(roomId: string, userId: string, petId?: string): Promise<GameParticipant>;
@@ -256,7 +236,7 @@ export interface IStorage {
   updateGameRoom(roomId: string, updates: Partial<GameRoom>): Promise<GameRoom>;
   getPlayerRanking(userId: string, gameType: string): Promise<PlayerRanking | undefined>;
   updatePlayerRanking(userId: string, gameType: string, updates: Partial<PlayerRanking>): Promise<PlayerRanking>;
-
+  
   // Garden support operations
   supportGarden(support: InsertGardenSupport): Promise<GardenSupport>;
   getGardenSupport(gardenOwnerId: string): Promise<GardenSupport[]>;
@@ -269,20 +249,20 @@ export interface IStorage {
   getAlbumById(albumId: number): Promise<PrivateAlbum | undefined>;
   updateAlbum(albumId: number, updates: Partial<PrivateAlbum>): Promise<PrivateAlbum>;
   deleteAlbum(albumId: number): Promise<void>;
-
+  
   // Album Photo operations
   addPhotoToAlbum(photo: InsertAlbumPhoto): Promise<AlbumPhoto>;
   getAlbumPhotos(albumId: number): Promise<AlbumPhoto[]>;
   getPhotoById(photoId: number): Promise<AlbumPhoto | undefined>;
   updatePhoto(photoId: number, updates: Partial<AlbumPhoto>): Promise<AlbumPhoto>;
   deletePhoto(photoId: number): Promise<void>;
-
+  
   // Album Access operations
   purchaseAlbumAccess(access: InsertAlbumAccess): Promise<AlbumAccess>;
   checkAlbumAccess(buyerId: string, albumId: number): Promise<AlbumAccess | undefined>;
   checkPhotoAccess(buyerId: string, photoId: number): Promise<AlbumAccess | undefined>;
   getUserAlbumPurchases(userId: string): Promise<AlbumAccess[]>;
-
+  
   // Wallet operations
   addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction>;
   getUserTransactions(userId: string): Promise<WalletTransaction[]>;
@@ -292,7 +272,6 @@ export interface IStorage {
   blockUser(blockerId: string, blockedId: string): Promise<void>;
   unblockUser(blockerId: string, blockedId: string): Promise<void>;
   isUserBlocked(blockerId: string, blockedId: string): Promise<boolean>;
-  getBlockedUsers(userId: string): Promise<User[]>;
 
   // Premium Albums
   createPremiumAlbum(album: InsertPremiumAlbum): Promise<PremiumAlbum>;
@@ -300,41 +279,27 @@ export interface IStorage {
   getPremiumAlbum(albumId: number): Promise<PremiumAlbum | undefined>;
   updatePremiumAlbum(albumId: number, updates: Partial<InsertPremiumAlbum>): Promise<PremiumAlbum>;
   deletePremiumAlbum(albumId: number): Promise<void>;
-
+  
   // Premium Messages  
   getPremiumMessages(userId: string): Promise<any[]>;
   getPremiumMessage(messageId: number): Promise<any | null>;
   createPremiumMessage(data: any): Promise<any>;
-  processAlbumUnlock(buyerId: string, sellerId: string, messageId: number, cost: number): Promise<void>;
-
+  processAlbumUnlock(buyerId: string, sellerId: string, messageId: number, amount: number): Promise<void>;
+  
   // Premium Album Media
   addAlbumMedia(media: InsertPremiumAlbumMedia): Promise<PremiumAlbumMedia>;
   getAlbumMedia(albumId: number): Promise<PremiumAlbumMedia[]>;
   removeAlbumMedia(mediaId: number): Promise<void>;
-
+  
   // Album Purchases
   purchasePremiumAlbum(purchase: InsertPremiumAlbumPurchase): Promise<PremiumAlbumPurchase>;
   getUserPurchases(userId: string): Promise<PremiumAlbumPurchase[]>;
   checkPremiumAlbumAccess(albumId: number, userId: string): Promise<boolean>;
-
+  
   // Premium Messages
   sendPremiumMessage(message: InsertPremiumMessage): Promise<PremiumMessage>;
   unlockPremiumMessage(messageId: number, userId: string): Promise<PremiumMessage>;
   getPremiumMessages(userId: string): Promise<PremiumMessage[]>;
-
-  // Locked Albums System - تم تعطيلها مؤقتاً
-  createLockedAlbum(data: any): Promise<any>;
-  getLockedAlbumsByOwner(ownerId: string): Promise<any[]>;
-  getPublicLockedAlbums(): Promise<any[]>;
-  getAlbumContent(albumId: string): Promise<any[]>;
-  purchaseAlbum(data: any): Promise<any>;
-  hasUserPurchasedAlbum(albumId: string, userId: string): Promise<boolean>;
-
-  // Private Content Request System - تم تعطيلها مؤقتاً
-  createPrivateContentRequest(data: any): Promise<any>;
-  getPrivateContentRequests(toUserId: string): Promise<any[]>;
-  getSentContentRequests(fromUserId: string): Promise<any[]>;
-  updatePrivateContentRequestStatus(requestId: string, status: string, contentUrl?: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -393,12 +358,12 @@ export class DatabaseStorage implements IStorage {
 
   async isUsernameAvailable(username: string): Promise<boolean> {
     const { isUsernameReserved } = await import('./reserved-usernames.js');
-
+    
     // Check if username is reserved
     if (isUsernameReserved(username)) {
       return false;
     }
-
+    
     const [existingUser] = await db
       .select({ id: users.id })
       .from(users)
@@ -448,7 +413,7 @@ export class DatabaseStorage implements IStorage {
         ne(users.username, 'fnnm945@gmail.com')
       ))
       .orderBy(desc(streams.viewerCount));
-
+    
     // Flatten the data structure
     return streamsWithHosts.map(({ stream, host }) => ({
       ...stream,
@@ -479,10 +444,10 @@ export class DatabaseStorage implements IStorage {
   async deleteStream(id: number): Promise<void> {
     // Delete chat messages for this stream first
     await db.delete(chatMessages).where(eq(chatMessages.streamId, id));
-
+    
     // Delete gifts for this stream
     await db.delete(gifts).where(eq(gifts.streamId, id));
-
+    
     // Delete the stream itself
     await db.delete(streams).where(eq(streams.id, id));
   }
@@ -540,6 +505,13 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(streams);
   }
 
+  async updateUserPoints(userId: string, newPoints: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ points: newPoints })
+      .where(eq(users.id, userId));
+  }
+
   async getPremiumAlbum(albumId: number): Promise<PremiumAlbum | undefined> {
     const [album] = await db
       .select()
@@ -549,25 +521,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkPremiumAlbumAccess(albumId: number, userId: string): Promise<boolean> {
-    // Check if user is the creator
-    const [album] = await db.select({ creatorId: premiumAlbums.creatorId })
-      .from(premiumAlbums)
-      .where(eq(premiumAlbums.id, albumId));
-
-    if (album && album.creatorId === userId) {
-      return true;
-    }
-
-    // Check if user has purchased access
-    const [purchase] = await db
+    const [access] = await db
       .select()
       .from(premiumAlbumPurchases)
-      .where(and(
-        eq(premiumAlbumPurchases.albumId, albumId),
-        eq(premiumAlbumPurchases.buyerId, userId)
-      ));
-
-    return !!purchase;
+      .where(
+        and(
+          eq(premiumAlbumPurchases.albumId, albumId),
+          eq(premiumAlbumPurchases.buyerId, userId)
+        )
+      );
+    return !!access;
   }
 
   async purchasePremiumAlbum(purchaseData: any): Promise<void> {
@@ -588,13 +551,13 @@ export class DatabaseStorage implements IStorage {
       .update(premiumMessages)
       .set({ unlockedAt: new Date() })
       .where(eq(premiumMessages.id, messageId));
-
+    
     // Deduct points from user
     await db
       .update(users)
       .set({ points: sql`${users.points} - ${cost}` })
       .where(eq(users.id, userId));
-
+    
     // Add points to creator
     await db
       .update(users)
@@ -622,23 +585,23 @@ export class DatabaseStorage implements IStorage {
 
   async sendGift(giftData: InsertGift): Promise<Gift> {
     const [gift] = await db.insert(gifts).values(giftData).returning();
-
+    
     // Update points for sender and receiver
     await db
       .update(users)
       .set({ points: sql`${users.points} - ${giftData.pointCost}` })
       .where(eq(users.id, giftData.senderId));
-
+    
     // Add earning for receiver (60% of points)
     const earning = Math.floor(giftData.pointCost * 0.6);
     await db
       .update(users)
-      .set({
+      .set({ 
         points: sql`${users.points} + ${earning}`,
         totalEarnings: sql`${users.totalEarnings} + ${earning * 0.01}` // $0.01 per point
       })
       .where(eq(users.id, giftData.receiverId));
-
+    
     // Update stream gift count
     if (giftData.streamId) {
       await db
@@ -646,7 +609,7 @@ export class DatabaseStorage implements IStorage {
         .set({ totalGifts: sql`${streams.totalGifts} + 1` })
         .where(eq(streams.id, giftData.streamId));
     }
-
+    
     // Update memory gift count if it's for a memory
     if (giftData.memoryId) {
       await db
@@ -654,7 +617,7 @@ export class DatabaseStorage implements IStorage {
         .set({ giftCount: sql`${memoryFragments.giftCount} + 1` })
         .where(eq(memoryFragments.id, giftData.memoryId));
     }
-
+    
     return gift;
   }
 
@@ -715,7 +678,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
   }
-
+  
   async getUserById(userId: string): Promise<User | undefined> {
     const [user] = await db
       .select()
@@ -723,7 +686,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
     return user;
   }
-
+  
   async isFollowing(followerId: string, followedId: string): Promise<boolean> {
     const [result] = await db
       .select()
@@ -744,7 +707,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(followers.followedId, userId));
     return result.count;
   }
-
+  
   async getFollowingCount(userId: string): Promise<number> {
     const [result] = await db
       .select({ count: count() })
@@ -752,7 +715,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(followers.followerId, userId));
     return result.count;
   }
-
+  
   async getFollowers(userId: string): Promise<any[]> {
     const followersList = await db
       .select({
@@ -763,13 +726,13 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(followers.followerId, users.id))
       .where(eq(followers.followedId, userId))
       .orderBy(desc(followers.createdAt));
-
+    
     // Filter out owner account from followers list
     const filteredFollowers = followersList.filter(item => !isOwnerAccount(item.follower));
     logOwnerProtection('followers list', followersList.length - filteredFollowers.length);
     return filteredFollowers;
   }
-
+  
   async getFollowing(userId: string): Promise<any[]> {
     const followingList = await db
       .select({
@@ -780,19 +743,19 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(followers.followedId, users.id))
       .where(eq(followers.followerId, userId))
       .orderBy(desc(followers.createdAt));
-
+    
     // Filter out owner account from following list
     const filteredFollowing = followingList.filter(item => !isOwnerAccount(item.following));
     logOwnerProtection('following list', followingList.length - filteredFollowing.length);
     return filteredFollowing;
   }
-
+  
   // Message Request operations
   async createMessageRequest(data: InsertMessageRequest): Promise<MessageRequest> {
     const [request] = await db.insert(messageRequests).values(data).returning();
     return request;
   }
-
+  
   async getMessageRequest(senderId: string, receiverId: string): Promise<MessageRequest | undefined> {
     const [request] = await db
       .select()
@@ -825,7 +788,7 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(memoryFragments.createdAt))
       .limit(50);
-
+    
     // Flatten the data structure
     return memories.map(({ memory, author }) => ({
       ...memory,
@@ -899,7 +862,7 @@ export class DatabaseStorage implements IStorage {
   async createMemoryFragment(fragmentData: InsertMemoryFragment): Promise<MemoryFragment> {
     // Calculate expiration based on memory type
     let expiresAt: Date | null = null;
-
+    
     if (fragmentData.memoryType !== 'permanent') {
       expiresAt = new Date();
       switch (fragmentData.memoryType) {
@@ -923,7 +886,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
     // For 'permanent' type, expiresAt remains null (never expires)
-
+    
     const [fragment] = await db
       .insert(memoryFragments)
       .values({
@@ -985,7 +948,7 @@ export class DatabaseStorage implements IStorage {
       .from(memoryFragments)
       .leftJoin(users, eq(memoryFragments.authorId, users.id))
       .where(eq(memoryFragments.id, id));
-
+    
     return fragments.length > 0 ? fragments[0] as any : undefined;
   }
 
@@ -998,7 +961,7 @@ export class DatabaseStorage implements IStorage {
 
     // Update fragment counters and energy
     const energyBoost = interactionData.energyBoost || 1;
-
+    
     switch (interactionData.type) {
       case 'view':
         await db
@@ -1107,7 +1070,7 @@ export class DatabaseStorage implements IStorage {
           memoryId,
           viewerId,
         });
-
+      
       // Increment the view count on the memory
       await db
         .update(memoryFragments)
@@ -1127,7 +1090,7 @@ export class DatabaseStorage implements IStorage {
       .select({ count: sql<number>`count(*)` })
       .from(memoryViews)
       .where(eq(memoryViews.memoryId, memoryId));
-
+    
     return result[0]?.count || 0;
   }
 
@@ -1226,7 +1189,7 @@ export class DatabaseStorage implements IStorage {
       .select({ points: users.points })
       .from(users)
       .where(eq(users.id, userId));
-
+    
     const newBalance = updatedUser?.points || 0;
     return { success: true, newBalance };
   }
@@ -1263,7 +1226,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(memoryCollections.id, collectionId));
   }
 
-  // Virtual Pet Garden operations
+  // Virtual Pet Garden operations implementation
   async getUserPet(userId: string): Promise<VirtualPet | undefined> {
     const [pet] = await db
       .select()
@@ -1307,7 +1270,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(gardenItems)
         .where(eq(gardenItems.id, itemId));
-
+      
       if (item) {
         healthBoost += item.healthBoost || 0;
         happinessBoost += item.happinessBoost || 0;
@@ -1319,7 +1282,7 @@ export class DatabaseStorage implements IStorage {
     const newHealth = Math.min(100, pet.health + healthBoost);
     const newHappiness = Math.min(100, pet.happiness + happinessBoost);
     const newExperience = pet.experience + experienceGain;
-
+    
     // Check for level up
     const newLevel = Math.floor(newExperience / 100) + 1;
 
@@ -1388,14 +1351,12 @@ export class DatabaseStorage implements IStorage {
     return updatedPet;
   }
 
-  async getGardenItems(): Promise<GardenItem[]>;
-  async buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory>;
-  async getUserInventory(userId: string): Promise<UserInventory[]>;
-  async visitGarden(visitorId: string, hostId: string, giftItemId?: string): Promise<GardenVisit>;
-  async getFriendGarden(friendId: string): Promise<{ user: User; pet: VirtualPet | null } | undefined>;
-  async getGardenActivities(userId: string): Promise<GardenActivity[]>;
-  async getPetAchievements(userId: string): Promise<PetAchievement[]>;
-  async getAllUsersWithPets(currentUserId: string): Promise<Array<{ user: User; pet: VirtualPet | null }>>;
+  async getGardenItems(): Promise<GardenItem[]> {
+    return await db
+      .select()
+      .from(gardenItems)
+      .orderBy(gardenItems.type, gardenItems.price);
+  }
 
   async buyGardenItem(userId: string, itemId: string, quantity: number): Promise<UserInventory> {
     // Get item details
@@ -1490,7 +1451,7 @@ export class DatabaseStorage implements IStorage {
     return visit;
   }
 
-  async getFriendGarden(friendId: string): Promise<{ user: User; pet: VirtualPet | null } | undefined> {
+  async getFriendGarden(friendId: string): Promise<{ pet: VirtualPet; user: User } | undefined> {
     const friend = await this.getUser(friendId);
     if (!friend) {
       return undefined;
@@ -1546,7 +1507,7 @@ export class DatabaseStorage implements IStorage {
     if (!room) {
       throw new Error('Game room not found');
     }
-
+    
     if (room.currentPlayers >= room.maxPlayers) {
       throw new Error('Game room is full');
     }
@@ -1555,7 +1516,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(gameParticipants)
       .where(and(eq(gameParticipants.roomId, roomId), eq(gameParticipants.userId, userId)));
-
+    
     if (existingParticipant.length > 0) {
       return existingParticipant[0];
     }
@@ -1572,7 +1533,7 @@ export class DatabaseStorage implements IStorage {
 
     await db
       .update(gameRooms)
-      .set({
+      .set({ 
         currentPlayers: room.currentPlayers + 1,
         prizePool: room.prizePool + room.entryFee
       })
@@ -1596,7 +1557,7 @@ export class DatabaseStorage implements IStorage {
         .where(and(eq(gameRooms.gameType, gameType), eq(gameRooms.status, 'waiting')))
         .orderBy(desc(gameRooms.createdAt));
     }
-
+    
     return await db
       .select()
       .from(gameRooms)
@@ -1628,7 +1589,7 @@ export class DatabaseStorage implements IStorage {
 
   async updatePlayerRanking(userId: string, gameType: string, updates: Partial<PlayerRanking>): Promise<PlayerRanking> {
     const existing = await this.getPlayerRanking(userId, gameType);
-
+    
     if (existing) {
       const [ranking] = await db
         .update(playerRankings)
@@ -1651,10 +1612,10 @@ export class DatabaseStorage implements IStorage {
 
   async supportGarden(support: InsertGardenSupport): Promise<GardenSupport> {
     const [gardenSupportRecord] = await db.insert(gardenSupport).values(support).returning();
-
+    
     await db
       .update(userProfiles)
-      .set({
+      .set({ 
         totalSupportReceived: sql`${userProfiles.totalSupportReceived} + ${support.amount}`,
         updatedAt: new Date()
       })
@@ -1662,7 +1623,7 @@ export class DatabaseStorage implements IStorage {
 
     await db
       .update(userProfiles)
-      .set({
+      .set({ 
         totalSupportGiven: sql`${userProfiles.totalSupportGiven} + ${support.amount}`,
         updatedAt: new Date()
       })
@@ -1686,7 +1647,7 @@ export class DatabaseStorage implements IStorage {
 
   async upsertUserProfile(userId: string, profile: Partial<UserProfile>): Promise<UserProfile> {
     const existing = await this.getUserProfile(userId);
-
+    
     if (existing) {
       const [updated] = await db
         .update(userProfiles)
@@ -1729,7 +1690,7 @@ export class DatabaseStorage implements IStorage {
       .from(userCharacters)
       .leftJoin(gameCharacters, eq(userCharacters.characterId, gameCharacters.id))
       .where(eq(userCharacters.userId, userId));
-
+    
     return result;
   }
 
@@ -1782,13 +1743,13 @@ export class DatabaseStorage implements IStorage {
       .insert(voiceChatParticipants)
       .values({ chatRoomId, userId })
       .returning();
-
+    
     // Update participant count
     await db
       .update(voiceChatRooms)
       .set({ currentParticipants: sql`${voiceChatRooms.currentParticipants} + 1` })
       .where(eq(voiceChatRooms.id, chatRoomId));
-
+    
     return participant;
   }
 
@@ -1800,7 +1761,7 @@ export class DatabaseStorage implements IStorage {
         eq(voiceChatParticipants.chatRoomId, chatRoomId),
         eq(voiceChatParticipants.userId, userId)
       ));
-
+    
     // Update participant count
     await db
       .update(voiceChatRooms)
@@ -1826,46 +1787,228 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  // Locked Albums System - تم تعطيلها مؤقتاً
-  async getPublicLockedAlbums(): Promise<any[]> {
-    return [];
+  // Locked Albums System
+  async createLockedAlbum(album: any): Promise<any> {
+    try {
+      const [newAlbum] = await db.insert(lockedAlbums)
+        .values(album)
+        .returning();
+      return newAlbum;
+    } catch (error) {
+      console.error("Error creating locked album:", error);
+      throw error;
+    }
   }
 
   async getLockedAlbumsByOwner(ownerId: string): Promise<any[]> {
-    return [];
+    try {
+      return await db.select()
+        .from(lockedAlbums)
+        .where(and(
+          eq(lockedAlbums.ownerId, ownerId),
+          eq(lockedAlbums.isActive, true)
+        ))
+        .orderBy(desc(lockedAlbums.createdAt));
+    } catch (error) {
+      console.error("Error fetching user's locked albums:", error);
+      throw error;
+    }
   }
 
-  async createLockedAlbum(data: any): Promise<any> {
-    return { id: nanoid(), ...data };
+  async getPublicLockedAlbums(): Promise<any[]> {
+    try {
+      return await db.select({
+        id: lockedAlbums.id,
+        ownerId: lockedAlbums.ownerId,
+        title: lockedAlbums.title,
+        description: lockedAlbums.description,
+        price: lockedAlbums.price,
+        coverImage: lockedAlbums.coverImage,
+        createdAt: lockedAlbums.createdAt,
+        ownerUsername: users.username,
+        ownerProfileImage: users.profileImageUrl,
+      })
+        .from(lockedAlbums)
+        .leftJoin(users, eq(lockedAlbums.ownerId, users.id))
+        .where(eq(lockedAlbums.isActive, true))
+        .orderBy(desc(lockedAlbums.createdAt));
+    } catch (error) {
+      console.error("Error fetching public locked albums:", error);
+      throw error;
+    }
+  }
+
+  async addAlbumContent(content: any): Promise<any> {
+    try {
+      const [newContent] = await db.insert(lockedAlbumContent)
+        .values(content)
+        .returning();
+      return newContent;
+    } catch (error) {
+      console.error("Error adding album content:", error);
+      throw error;
+    }
   }
 
   async getAlbumContent(albumId: string): Promise<any[]> {
-    return [];
+    try {
+      return await db.select()
+        .from(lockedAlbumContent)
+        .where(eq(lockedAlbumContent.albumId, albumId))
+        .orderBy(lockedAlbumContent.order);
+    } catch (error) {
+      console.error("Error fetching album content:", error);
+      throw error;
+    }
   }
 
-  async purchaseAlbum(data: any): Promise<any> {
-    return { id: nanoid(), ...data };
+  async purchaseAlbum(purchase: any): Promise<any> {
+    try {
+      const [newPurchase] = await db.insert(albumPurchases)
+        .values(purchase)
+        .returning();
+      return newPurchase;
+    } catch (error) {
+      console.error("Error purchasing album:", error);
+      throw error;
+    }
   }
 
   async hasUserPurchasedAlbum(albumId: string, userId: string): Promise<boolean> {
-    return false;
+    try {
+      const [purchase] = await db.select()
+        .from(albumPurchases)
+        .where(and(
+          eq(albumPurchases.albumId, albumId),
+          eq(albumPurchases.buyerId, userId)
+        ));
+      return !!purchase;
+    } catch (error) {
+      console.error("Error checking album purchase:", error);
+      throw error;
+    }
   }
 
-  // Private Content Request System - تم تعطيلها مؤقتاً
-  async createPrivateContentRequest(data: any): Promise<any> {
-    return { id: nanoid(), ...data };
+  // Get premium album media content
+  async getPremiumAlbumMedia(albumId: number): Promise<any[]> {
+    try {
+      return await db.select()
+        .from(premiumAlbumMedia)
+        .where(eq(premiumAlbumMedia.albumId, albumId))
+        .orderBy(asc(premiumAlbumMedia.orderIndex));
+    } catch (error) {
+      console.error("Error fetching premium album media:", error);
+      throw error;
+    }
   }
 
-  async getPrivateContentRequests(toUserId: string): Promise<any[]> {
-    return [];
+  async getAlbumPurchases(albumId: string): Promise<any[]> {
+    try {
+      return await db.select({
+        id: albumPurchases.id,
+        buyerId: albumPurchases.buyerId,
+        price: albumPurchases.price,
+        purchasedAt: albumPurchases.purchasedAt,
+        buyerUsername: users.username,
+        buyerProfileImage: users.profileImageUrl,
+      })
+        .from(albumPurchases)
+        .leftJoin(users, eq(albumPurchases.buyerId, users.id))
+        .where(eq(albumPurchases.albumId, albumId))
+        .orderBy(desc(albumPurchases.purchasedAt));
+    } catch (error) {
+      console.error("Error fetching album purchases:", error);
+      throw error;
+    }
   }
 
-  async getSentContentRequests(fromUserId: string): Promise<any[]> {
-    return [];
+  // Private Content Request System
+  async createPrivateContentRequest(request: any): Promise<any> {
+    try {
+      const [newRequest] = await db.insert(privateContentRequests)
+        .values(request)
+        .returning();
+      return newRequest;
+    } catch (error) {
+      console.error("Error creating private content request:", error);
+      throw error;
+    }
+  }
+
+  async getPrivateContentRequests(userId: string): Promise<any[]> {
+    try {
+      return await db.select({
+        id: privateContentRequests.id,
+        fromUserId: privateContentRequests.fromUserId,
+        toUserId: privateContentRequests.toUserId,
+        type: privateContentRequests.type,
+        description: privateContentRequests.description,
+        offeredPrice: privateContentRequests.offeredPrice,
+        status: privateContentRequests.status,
+        createdAt: privateContentRequests.createdAt,
+        requesterUsername: users.username,
+        requesterProfileImage: users.profileImageUrl,
+      })
+        .from(privateContentRequests)
+        .leftJoin(users, eq(privateContentRequests.fromUserId, users.id))
+        .where(eq(privateContentRequests.toUserId, userId))
+        .orderBy(desc(privateContentRequests.createdAt));
+    } catch (error) {
+      console.error("Error fetching private content requests:", error);
+      throw error;
+    }
   }
 
   async updatePrivateContentRequestStatus(requestId: string, status: string, contentUrl?: string): Promise<any> {
-    return { id: requestId, status, contentUrl };
+    try {
+      const updateData: any = { 
+        status, 
+        respondedAt: new Date() 
+      };
+      
+      if (contentUrl) {
+        updateData.contentUrl = contentUrl;
+        if (status === 'completed') {
+          updateData.completedAt = new Date();
+        }
+      }
+
+      const [updatedRequest] = await db.update(privateContentRequests)
+        .set(updateData)
+        .where(eq(privateContentRequests.id, requestId))
+        .returning();
+      
+      return updatedRequest;
+    } catch (error) {
+      console.error("Error updating content request status:", error);
+      throw error;
+    }
+  }
+
+  async getSentContentRequests(userId: string): Promise<any[]> {
+    try {
+      return await db.select({
+        id: privateContentRequests.id,
+        fromUserId: privateContentRequests.fromUserId,
+        toUserId: privateContentRequests.toUserId,
+        type: privateContentRequests.type,
+        description: privateContentRequests.description,
+        offeredPrice: privateContentRequests.offeredPrice,
+        status: privateContentRequests.status,
+        contentUrl: privateContentRequests.contentUrl,
+        createdAt: privateContentRequests.createdAt,
+        respondedAt: privateContentRequests.respondedAt,
+        recipientUsername: users.username,
+        recipientProfileImage: users.profileImageUrl,
+      })
+        .from(privateContentRequests)
+        .leftJoin(users, eq(privateContentRequests.toUserId, users.id))
+        .where(eq(privateContentRequests.fromUserId, userId))
+        .orderBy(desc(privateContentRequests.createdAt));
+    } catch (error) {
+      console.error("Error fetching sent content requests:", error);
+      throw error;
+    }
   }
 
   // User search operations
@@ -1883,7 +2026,7 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(sql`${users.username} ILIKE ${searchPattern}`)
       .limit(20);
-
+    
     // Filter out owner account using protection system
     const filteredResults = filterOwnerFromUsers(searchResults);
     logOwnerProtection('user search', searchResults.length - filteredResults.length);
@@ -1903,78 +2046,102 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Conversation operations
-  async createConversation(data: { user1Id: string; user2Id: string; lastMessage?: string; lastMessageAt: Date }): Promise<any> {
-    // تم تعطيل conversations مؤقتاً - استخدام messages مباشرة
-    return {
-      id: Math.floor(Math.random() * 1000000),
-      user1Id: data.user1Id,
-      user2Id: data.user2Id,
-      lastMessage: data.lastMessage,
-      lastMessageAt: data.lastMessageAt
-    };
+  async findConversation(user1Id: string, user2Id: string): Promise<any | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(
+        sql`(${conversations.user1Id} = ${user1Id} AND ${conversations.user2Id} = ${user2Id}) OR (${conversations.user1Id} = ${user2Id} AND ${conversations.user2Id} = ${user1Id})`
+      );
+    return conversation;
   }
 
-  async findConversation(user1Id: string, user2Id: string): Promise<any> {
-    // البحث عن محادثة موجودة في الرسائل
-    const [existingMessage] = await db
-      .select()
-      .from(messages)
-      .where(
-        or(
-          and(eq(messages.senderId, user1Id), eq(messages.recipientId, user2Id)),
-          and(eq(messages.senderId, user2Id), eq(messages.recipientId, user1Id))
-        )
-      )
-      .limit(1);
+  async createConversation(conversationData: any): Promise<any> {
+    const [conversation] = await db
+      .insert(conversations)
+      .values(conversationData)
+      .returning();
+    return conversation;
+  }
 
-    if (existingMessage) {
-      return {
-        id: Math.floor(Math.random() * 1000000),
-        user1Id,
-        user2Id
-      };
+  async getConversationById(id: number, userId: string): Promise<any | undefined> {
+    const [conversation] = await db
+      .select({
+        id: conversations.id,
+        user1Id: conversations.user1Id,
+        user2Id: conversations.user2Id,
+        lastMessage: conversations.lastMessage,
+        lastMessageAt: conversations.lastMessageAt,
+        createdAt: conversations.createdAt,
+        otherUser: {
+          id: users.id,
+          username: users.username,
+          firstName: users.firstName,
+          profileImageUrl: users.profileImageUrl,
+          isOnline: users.isOnline,
+        },
+      })
+      .from(conversations)
+      .leftJoin(
+        users,
+        sql`${users.id} = CASE WHEN ${conversations.user1Id} = ${userId} THEN ${conversations.user2Id} ELSE ${conversations.user1Id} END`
+      )
+      .where(
+        and(
+          eq(conversations.id, id),
+          sql`(${conversations.user1Id} = ${userId} OR ${conversations.user2Id} = ${userId})`
+        )
+      );
+    return conversation;
+  }
+
+  async getConversationMessages(conversationId: number, userId: string): Promise<any[]> {
+    // First verify user is part of conversation
+    const conversation = await this.getConversationById(conversationId, userId);
+    if (!conversation) {
+      return [];
     }
 
-    return null;
-  }
-
-  async getConversationById(conversationId: number, currentUserId: string): Promise<any> {
-    return null;
-  }
-
-  // جلب رسائل المحادثة
-  async getConversationMessages(userId: string, otherUserId: string, page: number = 1, limit: number = 50): Promise<Message[]> {
-    const offset = (page - 1) * limit;
-
-    return await db.select()
+    const otherUserId = conversation.otherUser.id;
+    
+    return await db
+      .select({
+        id: messages.id,
+        senderId: messages.senderId,
+        content: messages.content,
+        messageType: messages.messageType,
+        isRead: messages.isRead,
+        createdAt: messages.createdAt,
+        sender: {
+          username: users.username,
+          profileImageUrl: users.profileImageUrl,
+        },
+      })
       .from(messages)
+      .leftJoin(users, eq(messages.senderId, users.id))
       .where(
-        or(
-          and(eq(messages.senderId, userId), eq(messages.receiverId, otherUserId)),
-          and(eq(messages.senderId, otherUserId), eq(messages.receiverId, userId))
-        )
+        sql`(${messages.senderId} = ${userId} AND ${messages.recipientId} = ${otherUserId}) OR (${messages.senderId} = ${otherUserId} AND ${messages.recipientId} = ${userId})`
       )
-      .orderBy(desc(messages.createdAt))
-      .limit(limit)
-      .offset(offset);
+      .orderBy(messages.createdAt);
   }
 
-  async createDirectMessage(data: any): Promise<any> {
-    const [message] = await db.insert(messages).values({
-      id: nanoid(),
-      senderId: data.senderId,
-      recipientId: data.recipientId,
-      content: data.content,
-      messageType: data.messageType || 'text',
-      isRead: false,
-      sentAt: new Date(),
-    }).returning();
-
+  async createDirectMessage(messageData: any): Promise<any> {
+    const [message] = await db
+      .insert(messages)
+      .values(messageData)
+      .returning();
     return message;
   }
 
-  async updateConversationLastMessage(conversationId: number, message: string): Promise<void> {
-    // تم تعطيلها مؤقتاً
+  async updateConversationLastMessage(conversationId: number, lastMessage: string): Promise<void> {
+    await db
+      .update(conversations)
+      .set({
+        lastMessage,
+        lastMessageAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(conversations.id, conversationId));
   }
 
   // Private Album operations
@@ -2000,16 +2167,16 @@ export class DatabaseStorage implements IStorage {
   async deleteAlbum(albumId: number): Promise<void> {
     await db.delete(privateAlbums).where(eq(privateAlbums.id, albumId));
   }
-
+  
   // Album Photo operations
   async addPhotoToAlbum(photo: InsertAlbumPhoto): Promise<AlbumPhoto> {
     const [newPhoto] = await db.insert(albumPhotos).values(photo).returning();
-
+    
     // Update album photo count
     await db.update(privateAlbums)
       .set({totalPhotos: sql`${privateAlbums.totalPhotos} + 1`, updatedAt: new Date()})
       .where(eq(privateAlbums.id, photo.albumId));
-
+    
     return newPhoto;
   }
 
@@ -2031,23 +2198,23 @@ export class DatabaseStorage implements IStorage {
     const photo = await this.getPhotoById(photoId);
     if (photo) {
       await db.delete(albumPhotos).where(eq(albumPhotos.id, photoId));
-
+      
       // Update album photo count
       await db.update(privateAlbums)
         .set({totalPhotos: sql`${privateAlbums.totalPhotos} - 1`, updatedAt: new Date()})
         .where(eq(privateAlbums.id, photo.albumId));
     }
   }
-
+  
   // Album Access operations
   async purchaseAlbumAccess(access: InsertAlbumAccess): Promise<AlbumAccess> {
     const [newAccess] = await db.insert(albumAccess).values(access).returning();
-
+    
     // Update album view count
     await db.update(privateAlbums)
       .set({totalViews: sql`${privateAlbums.totalViews} + 1`})
       .where(eq(privateAlbums.id, access.albumId));
-
+    
     return newAccess;
   }
 
@@ -2066,7 +2233,7 @@ export class DatabaseStorage implements IStorage {
   async getUserAlbumPurchases(userId: string): Promise<AlbumAccess[]> {
     return await db.select().from(albumAccess).where(eq(albumAccess.buyerId, userId)).orderBy(desc(albumAccess.purchasedAt));
   }
-
+  
   // Wallet operations
   async addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction> {
     const [newTransaction] = await db.insert(walletTransactions).values(transaction).returning();
@@ -2082,7 +2249,7 @@ export class DatabaseStorage implements IStorage {
       total: sql<number>`SUM(CASE WHEN ${walletTransactions.type} IN ('album_sale', 'photo_sale') THEN ${walletTransactions.amount} ELSE 0 END)`,
       monthly: sql<number>`SUM(CASE WHEN ${walletTransactions.type} IN ('album_sale', 'photo_sale') AND ${walletTransactions.createdAt} >= date_trunc('month', now()) THEN ${walletTransactions.amount} ELSE 0 END)`
     }).from(walletTransactions).where(eq(walletTransactions.userId, userId));
-
+    
     return {
       totalEarnings: Number(earnings[0]?.total || 0),
       monthlyEarnings: Number(earnings[0]?.monthly || 0)
@@ -2184,7 +2351,7 @@ export class DatabaseStorage implements IStorage {
   async getPremiumMessages(userId: string): Promise<any[]> {
     const senderAlias = alias(users, 'sender');
     const recipientAlias = alias(users, 'recipient');
-
+    
     const messages = await db
       .select({
         id: premiumMessages.id,
@@ -2237,7 +2404,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(premiumMessages)
       .where(eq(premiumMessages.id, messageId));
-
+    
     return message || null;
   }
 
@@ -2306,18 +2473,18 @@ export class DatabaseStorage implements IStorage {
   // Premium Album Media
   async addAlbumMedia(media: InsertPremiumAlbumMedia): Promise<PremiumAlbumMedia> {
     console.log('💾 إضافة محتوى إلى قاعدة البيانات:', media);
-
+    
     try {
       const [newMedia] = await db.insert(premiumAlbumMedia).values(media).returning();
       console.log('✅ تم إدراج المحتوى:', newMedia);
-
+      
       // Update album's total photos count
       await db.update(premiumAlbums)
         .set({ totalPhotos: sql`${premiumAlbums.totalPhotos} + 1` })
         .where(eq(premiumAlbums.id, media.albumId));
-
+      
       console.log('✅ تم تحديث عدد الصور في الألبوم');
-
+      
       return newMedia;
     } catch (error) {
       console.error('❌ فشل في إضافة المحتوى لقاعدة البيانات:', error);
@@ -2336,10 +2503,10 @@ export class DatabaseStorage implements IStorage {
     const [media] = await db.select({ albumId: premiumAlbumMedia.albumId })
       .from(premiumAlbumMedia)
       .where(eq(premiumAlbumMedia.id, mediaId));
-
+    
     if (media) {
       await db.delete(premiumAlbumMedia).where(eq(premiumAlbumMedia.id, mediaId));
-
+      
       // Update album's total photos count
       await db.update(premiumAlbums)
         .set({ totalPhotos: sql`${premiumAlbums.totalPhotos} - 1` })
@@ -2350,12 +2517,12 @@ export class DatabaseStorage implements IStorage {
   // Album Purchases
   async purchasePremiumAlbum(purchase: InsertPremiumAlbumPurchase): Promise<PremiumAlbumPurchase> {
     const [newPurchase] = await db.insert(premiumAlbumPurchases).values(purchase).returning();
-
+    
     // Update album's total views count
     await db.update(premiumAlbums)
       .set({ totalViews: sql`${premiumAlbums.totalViews} + 1` })
       .where(eq(premiumAlbums.id, purchase.albumId));
-
+    
     return newPurchase;
   }
 
@@ -2370,7 +2537,7 @@ export class DatabaseStorage implements IStorage {
     const [album] = await db.select({ creatorId: premiumAlbums.creatorId })
       .from(premiumAlbums)
       .where(eq(premiumAlbums.id, albumId));
-
+    
     if (album && album.creatorId === userId) {
       return true;
     }
@@ -2382,7 +2549,7 @@ export class DatabaseStorage implements IStorage {
         eq(premiumAlbumPurchases.albumId, albumId),
         eq(premiumAlbumPurchases.buyerId, userId)
       ));
-
+    
     return !!purchase;
   }
 
@@ -2394,9 +2561,9 @@ export class DatabaseStorage implements IStorage {
 
   async unlockPremiumMessage(messageId: number, userId: string): Promise<PremiumMessage> {
     const [updated] = await db.update(premiumMessages)
-      .set({
-        isUnlocked: true,
-        unlockedAt: new Date()
+      .set({ 
+        isUnlocked: true, 
+        unlockedAt: new Date() 
       })
       .where(and(
         eq(premiumMessages.id, messageId),
@@ -2410,17 +2577,6 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(premiumMessages)
       .where(eq(premiumMessages.recipientId, userId))
       .orderBy(desc(premiumMessages.createdAt));
-  }
-
-  // Delete conversation
-  async deleteConversation(userId: string, otherUserId: string): Promise<void> {
-    await db.delete(conversations)
-      .where(
-        or(
-          and(eq(conversations.userId, userId), eq(conversations.otherUserId, otherUserId)),
-          and(eq(conversations.userId, otherUserId), eq(conversations.otherUserId, userId))
-        )
-      );
   }
 }
 

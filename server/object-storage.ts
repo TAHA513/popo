@@ -87,7 +87,7 @@ export async function uploadFileToStorage(
         }
       });
 
-      const publicUrl = `/api/media/${uniqueFileName}`;
+      const publicUrl = `/public-objects/${uniqueFileName}`;
       console.log(`✅ تم رفع الملف إلى Object Storage: ${publicUrl}`);
 
       return {
@@ -109,7 +109,7 @@ export async function uploadFileToStorage(
     const fileContent = await fs.readFile(filePath);
     await fs.writeFile(targetPath, fileContent);
 
-    const publicUrl = `/api/media/${uniqueFileName}`;
+    const publicUrl = `/media/${uniqueFileName}`;
     console.log(`✅ تم حفظ الملف محلياً: ${publicUrl}`);
 
     return {
@@ -125,7 +125,6 @@ export async function uploadFileToStorage(
 
 /**
  * حفظ Buffer مباشرة في Object Storage - حل نهائي لعدم اختفاء الملفات
- * مع ضمان التزامن بين البيئات
  */
 export async function uploadBufferToStorage(
   buffer: Buffer,
@@ -134,13 +133,8 @@ export async function uploadBufferToStorage(
   isPublic: boolean = true
 ): Promise<UploadResult> {
   const uniqueFileName = generateUniqueFileName(fileName);
-  console.log(`🔄 بدء رفع الملف: ${uniqueFileName} في البيئة: ${IS_REPLIT ? 'Replit' : 'Production'}`);
 
-  let objectStorageSuccess = false;
-  let localStorageSuccess = false;
-
-  // Strategy 1: Try Object Storage (works in both environments if configured)
-  if (objectStorageClient) {
+  if (objectStorageClient && IS_REPLIT) {
     try {
       const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
       const objectName = `${directory}/${uniqueFileName}`;
@@ -157,44 +151,38 @@ export async function uploadBufferToStorage(
         }
       });
 
-      objectStorageSuccess = true;
-      console.log(`✅ تم رفع المحتوى إلى Object Storage: ${uniqueFileName}`);
+      const publicUrl = `/public-objects/${uniqueFileName}`;
+      console.log(`✅ تم رفع المحتوى إلى Object Storage: ${publicUrl}`);
+
+      return {
+        filename: uniqueFileName,
+        publicUrl: publicUrl
+      };
 
     } catch (error) {
-      console.error('❌ خطأ في Object Storage:', error?.message);
+      console.error('❌ خطأ في Object Storage، التبديل إلى النسخ المحلي:', error);
     }
-  } else {
-    console.log('⚠️ Object Storage غير متوفر');
   }
 
-  // Strategy 2: Always try local storage as backup/primary
+  // Fallback to local storage
   try {
     await ensureFallbackDir();
     const targetPath = path.join(FALLBACK_MEDIA_DIR, uniqueFileName);
     
     console.log(`🔄 حفظ المحتوى محلياً: ${uniqueFileName}`);
     await fs.writeFile(targetPath, buffer);
-    
-    localStorageSuccess = true;
-    console.log(`✅ تم حفظ المحتوى محلياً: ${uniqueFileName}`);
 
-  } catch (error) {
-    console.error('❌ خطأ في حفظ المحتوى محلياً:', error?.message);
-  }
+    const publicUrl = `/media/${uniqueFileName}`;
+    console.log(`✅ تم حفظ المحتوى محلياً: ${publicUrl}`);
 
-  // Determine success and return appropriate URL
-  if (objectStorageSuccess || localStorageSuccess) {
-    const publicUrl = `/api/media/${uniqueFileName}`;
-    
-    console.log(`✅ نجح رفع الملف - Object Storage: ${objectStorageSuccess}, Local: ${localStorageSuccess}`);
-    
     return {
       filename: uniqueFileName,
       publicUrl: publicUrl
     };
-  } else {
-    console.error('❌ فشل في حفظ الملف في جميع الطرق المتاحة');
-    throw new Error('فشل في حفظ المحتوى في جميع أنظمة التخزين');
+
+  } catch (error) {
+    console.error('❌ خطأ في حفظ المحتوى:', error);
+    throw new Error('فشل في حفظ المحتوى');
   }
 }
 

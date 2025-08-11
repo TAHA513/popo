@@ -4,15 +4,11 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build",
-    "build:server": "tsc --project tsconfig.server.json",
-    "server": "tsx watch server/index.ts",
-    "client": "vite",
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
-    "type-check": "tsc --noEmit",
-    "postbuild": "mkdir -p dist/public/media && cp -r public/media/* dist/public/media/ 2>/dev/null || true"
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
@@ -70,7 +66,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "concurrently": "^9.2.0",
     "connect-pg-simple": "^10.0.0",
     "date-fns": "^3.6.0",
     "drizzle-orm": "^0.39.3",
