@@ -1,21 +1,44 @@
 {
-  "name": "LaaBoBo",
+  "name": "LaaBoBo - منصة التواصل الاجتماعي",
   "short_name": "LaaBoBo",
-  "description": "منصة التواصل الاجتماعي",
+  "description": "منصة التواصل الاجتماعي العربية للذكريات والبث المباشر",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#FF7ACA",
+  "orientation": "portrait",
+  "background_color": "#000000",
   "theme_color": "#BF68FF",
+  "categories": ["social", "entertainment"],
+  "lang": "ar",
+  "dir": "rtl",
   "icons": [
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "إنشاء ذكرى",
+      "short_name": "ذكرى جديدة",
+      "description": "إنشاء ذكرى جديدة",
+      "url": "/create-memory",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "الرسائل",
+      "short_name": "رسائل",
+      "description": "فتح الرسائل",
+      "url": "/messages",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
