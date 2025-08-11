@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -108,6 +108,9 @@ export function SendPremiumAlbumModal({ recipientId, recipientName, trigger }: S
             <Gift className="w-5 h-5 text-yellow-500" />
             إرسال ألبوم مدفوع إلى {recipientName}
           </DialogTitle>
+          <DialogDescription>
+            اختر الألبوم المدفوع الذي تريد إرساله مع رسالة اختيارية
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
