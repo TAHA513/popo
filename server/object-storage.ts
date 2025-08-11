@@ -82,7 +82,7 @@ export async function uploadFileToStorage(
 ): Promise<UploadResult> {
   console.log(`🔄 بدء رفع الملف: ${fileName}`);
   
-  // المحاولة الأولى: Backblaze B2 (الأولوية الأولى)
+  // الأولوية الوحيدة: Backblaze B2 (مصدر التخزين الأساسي)
   if (backblazeService.isAvailable()) {
     try {
       const uniqueFileName = backblazeService.generateFileName(fileName);
@@ -90,53 +90,12 @@ export async function uploadFileToStorage(
       console.log(`✅ تم رفع الملف بنجاح إلى Backblaze B2: ${uniqueFileName}`);
       return { filename: uniqueFileName, publicUrl, storageType: StorageType.BACKBLAZE_B2 };
     } catch (error) {
-      console.error('❌ خطأ في Backblaze B2، التحويل إلى Object Storage:', error);
+      console.error('❌ خطأ في Backblaze B2:', error);
+      throw new Error(`فشل في رفع الملف إلى Backblaze B2: ${error.message}`);
     }
-  }
-  
-  // المحاولة الثانية: Replit Object Storage
-  if (IS_REPLIT && objectStorageClient) {
-    try {
-      const uniqueFileName = generateUniqueFileName(fileName);
-      const bucket = objectStorageClient.bucket(BUCKET_NAME);
-      const file = bucket.file(`${PUBLIC_DIR}/${uniqueFileName}`);
-      
-      await file.save(buffer, {
-        metadata: {
-          contentType: contentType || 'application/octet-stream',
-          cacheControl: 'public, max-age=31536000',
-        }
-      });
-      
-      const publicUrl = `/api/media/${uniqueFileName}`;
-      console.log(`✅ تم رفع الملف بنجاح إلى Replit Object Storage: ${uniqueFileName}`);
-      return { filename: uniqueFileName, publicUrl, storageType: StorageType.REPLIT_OBJECT_STORAGE };
-    } catch (error) {
-      console.error('❌ خطأ في Object Storage، التحويل إلى التخزين المحلي:', error);
-    }
-  }
-  
-  // المحاولة الأخيرة: التخزين المحلي
-  try {
-    await ensureFallbackDir();
-    const uniqueFileName = generateUniqueFileName(fileName);
-    const targetPath = path.join(FALLBACK_MEDIA_DIR, uniqueFileName);
-    
-    console.log(`🔄 حفظ الملف محلياً: ${uniqueFileName}`);
-    await fs.writeFile(targetPath, buffer);
-
-    const publicUrl = `/api/media/${uniqueFileName}`;
-    console.log(`✅ تم حفظ الملف محلياً: ${publicUrl}`);
-
-    return {
-      filename: uniqueFileName,
-      publicUrl: publicUrl,
-      storageType: StorageType.LOCAL_FILES
-    };
-
-  } catch (error) {
-    console.error('❌ خطأ في حفظ الملف:', error);
-    throw new Error('فشل في حفظ الملف');
+  } else {
+    console.error('❌ Backblaze B2 غير متاح - تأكد من إعداد المفاتيح');
+    throw new Error('Backblaze B2 غير متاح - يرجى إعداد مفاتيح API');
   }
 }
 
