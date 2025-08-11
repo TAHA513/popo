@@ -1,33 +1,57 @@
 import { nanoid } from 'nanoid';
 import { Storage, File } from '@google-cloud/storage';
 import path from 'path';
+import fs from 'fs/promises';
 
-// Object Storage Configuration - حل نهائي لمشكلة اختفاء الملفات
+// Object Storage Configuration - حل هجين للحفظ في Replit و Render
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
+const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
+const FALLBACK_MEDIA_DIR = '/tmp/persistent-media';
 
 export interface UploadResult {
   filename: string;
   publicUrl: string;
 }
 
-// إعداد Object Storage Client
-const objectStorageClient = new Storage({
-  credentials: {
-    audience: "replit",
-    subject_token_type: "access_token",
-    token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
-    type: "external_account",
-    credential_source: {
-      url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
-      format: {
-        type: "json",
-        subject_token_field_name: "access_token",
+// إعداد Object Storage Client (Replit only)
+let objectStorageClient: Storage | null = null;
+
+if (IS_REPLIT) {
+  try {
+    objectStorageClient = new Storage({
+      credentials: {
+        audience: "replit",
+        subject_token_type: "access_token",
+        token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
+        type: "external_account",
+        credential_source: {
+          url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
+          format: {
+            type: "json",
+            subject_token_field_name: "access_token",
+          },
+        },
+        universe_domain: "googleapis.com",
       },
-    },
-    universe_domain: "googleapis.com",
-  },
-  projectId: "",
-});
+      projectId: "",
+    });
+    console.log('🔧 Object Storage configured for Replit');
+  } catch (error) {
+    console.log('⚠️ Object Storage not available, using fallback');
+    objectStorageClient = null;
+  }
+} else {
+  console.log('🔧 Using local file storage for production deployment');
+}
+
+// Ensure fallback directory exists
+async function ensureFallbackDir() {
+  try {
+    await fs.mkdir(FALLBACK_MEDIA_DIR, { recursive: true });
+  } catch (error) {
+    // Directory already exists
+  }
+}
 
 // استخدام الـ bucket المُعد مسبقاً
 const BUCKET_NAME = 'replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16';
@@ -42,27 +66,48 @@ export async function uploadFileToStorage(
   fileName: string, 
   isPublic: boolean = true
 ): Promise<UploadResult> {
+  const uniqueFileName = generateUniqueFileName(fileName);
+
+  if (objectStorageClient && IS_REPLIT) {
+    try {
+      const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
+      const objectName = `${directory}/${uniqueFileName}`;
+      
+      console.log(`🔄 رفع الملف إلى Object Storage: ${objectName}`);
+
+      const bucket = objectStorageClient.bucket(BUCKET_NAME);
+      
+      await bucket.upload(filePath, {
+        destination: objectName,
+        metadata: {
+          cacheControl: 'public, max-age=31536000',
+        }
+      });
+
+      const publicUrl = `/public-objects/${uniqueFileName}`;
+      console.log(`✅ تم رفع الملف إلى Object Storage: ${publicUrl}`);
+
+      return {
+        filename: uniqueFileName,
+        publicUrl: publicUrl
+      };
+
+    } catch (error) {
+      console.error('❌ خطأ في Object Storage، التبديل إلى النسخ المحلي:', error);
+    }
+  }
+
+  // Fallback to local storage
   try {
-    // إنشاء اسم ملف فريد
-    const uniqueFileName = generateUniqueFileName(fileName);
-    const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
-    const objectName = `${directory}/${uniqueFileName}`;
+    await ensureFallbackDir();
+    const targetPath = path.join(FALLBACK_MEDIA_DIR, uniqueFileName);
     
-    console.log(`🔄 رفع الملف إلى Object Storage: ${objectName}`);
+    console.log(`🔄 نسخ الملف محلياً: ${uniqueFileName}`);
+    const fileContent = await fs.readFile(filePath);
+    await fs.writeFile(targetPath, fileContent);
 
-    const bucket = objectStorageClient.bucket(BUCKET_NAME);
-    const file = bucket.file(objectName);
-    
-    // رفع الملف إلى Object Storage (private by default)
-    await bucket.upload(filePath, {
-      destination: objectName,
-      metadata: {
-        cacheControl: 'public, max-age=31536000', // cache لمدة سنة
-      }
-    });
-
-    const publicUrl = `/public-objects/${uniqueFileName}`;
-    console.log(`✅ تم رفع الملف إلى Object Storage: ${publicUrl}`);
+    const publicUrl = `/media/${uniqueFileName}`;
+    console.log(`✅ تم حفظ الملف محلياً: ${publicUrl}`);
 
     return {
       filename: uniqueFileName,
@@ -70,8 +115,8 @@ export async function uploadFileToStorage(
     };
 
   } catch (error) {
-    console.error('❌ خطأ في رفع الملف إلى Object Storage:', error);
-    throw new Error('فشل في رفع الملف إلى Object Storage');
+    console.error('❌ خطأ في حفظ الملف:', error);
+    throw new Error('فشل في حفظ الملف');
   }
 }
 
@@ -84,27 +129,48 @@ export async function uploadBufferToStorage(
   mimeType: string,
   isPublic: boolean = true
 ): Promise<UploadResult> {
+  const uniqueFileName = generateUniqueFileName(fileName);
+
+  if (objectStorageClient && IS_REPLIT) {
+    try {
+      const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
+      const objectName = `${directory}/${uniqueFileName}`;
+      
+      console.log(`🔄 رفع المحتوى إلى Object Storage: ${objectName}`);
+
+      const bucket = objectStorageClient.bucket(BUCKET_NAME);
+      const file = bucket.file(objectName);
+      
+      await file.save(buffer, {
+        metadata: {
+          contentType: mimeType,
+          cacheControl: 'public, max-age=31536000',
+        }
+      });
+
+      const publicUrl = `/public-objects/${uniqueFileName}`;
+      console.log(`✅ تم رفع المحتوى إلى Object Storage: ${publicUrl}`);
+
+      return {
+        filename: uniqueFileName,
+        publicUrl: publicUrl
+      };
+
+    } catch (error) {
+      console.error('❌ خطأ في Object Storage، التبديل إلى النسخ المحلي:', error);
+    }
+  }
+
+  // Fallback to local storage
   try {
-    // إنشاء اسم ملف فريد
-    const uniqueFileName = generateUniqueFileName(fileName);
-    const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
-    const objectName = `${directory}/${uniqueFileName}`;
+    await ensureFallbackDir();
+    const targetPath = path.join(FALLBACK_MEDIA_DIR, uniqueFileName);
     
-    console.log(`🔄 رفع المحتوى إلى Object Storage: ${objectName}`);
+    console.log(`🔄 حفظ المحتوى محلياً: ${uniqueFileName}`);
+    await fs.writeFile(targetPath, buffer);
 
-    const bucket = objectStorageClient.bucket(BUCKET_NAME);
-    const file = bucket.file(objectName);
-    
-    // رفع Buffer إلى Object Storage (private by default)
-    await file.save(buffer, {
-      metadata: {
-        contentType: mimeType,
-        cacheControl: 'public, max-age=31536000', // cache لمدة سنة
-      }
-    });
-
-    const publicUrl = `/public-objects/${uniqueFileName}`;
-    console.log(`✅ تم رفع المحتوى إلى Object Storage: ${publicUrl}`);
+    const publicUrl = `/media/${uniqueFileName}`;
+    console.log(`✅ تم حفظ المحتوى محلياً: ${publicUrl}`);
 
     return {
       filename: uniqueFileName,
@@ -112,8 +178,8 @@ export async function uploadBufferToStorage(
     };
 
   } catch (error) {
-    console.error('❌ خطأ في رفع المحتوى إلى Object Storage:', error);
-    throw new Error('فشل في رفع المحتوى إلى Object Storage');
+    console.error('❌ خطأ في حفظ المحتوى:', error);
+    throw new Error('فشل في حفظ المحتوى');
   }
 }
 
@@ -133,33 +199,42 @@ export function generateUniqueFileName(originalName: string): string {
  * حذف ملف من Object Storage
  */
 export async function deleteFileFromStorage(fileName: string): Promise<void> {
+  if (objectStorageClient && IS_REPLIT) {
+    try {
+      const bucket = objectStorageClient.bucket(BUCKET_NAME);
+      
+      // البحث في المجلد العام
+      const publicFile = bucket.file(`${PUBLIC_DIR}/${fileName}`);
+      const [publicExists] = await publicFile.exists();
+      
+      if (publicExists) {
+        await publicFile.delete();
+        console.log(`🗑️ تم حذف الملف من Object Storage: ${fileName}`);
+        return;
+      }
+      
+      // البحث في المجلد الخاص
+      const privateFile = bucket.file(`${PRIVATE_DIR}/${fileName}`);
+      const [privateExists] = await privateFile.exists();
+      
+      if (privateExists) {
+        await privateFile.delete();
+        console.log(`🗑️ تم حذف الملف من Object Storage: ${fileName}`);
+        return;
+      }
+      
+    } catch (error) {
+      console.error('❌ خطأ في حذف الملف من Object Storage:', error);
+    }
+  }
+
+  // Fallback to local deletion
   try {
-    const bucket = objectStorageClient.bucket(BUCKET_NAME);
-    
-    // البحث في المجلد العام
-    const publicFile = bucket.file(`${PUBLIC_DIR}/${fileName}`);
-    const [publicExists] = await publicFile.exists();
-    
-    if (publicExists) {
-      await publicFile.delete();
-      console.log(`🗑️ تم حذف الملف من Object Storage: ${fileName}`);
-      return;
-    }
-    
-    // البحث في المجلد الخاص
-    const privateFile = bucket.file(`${PRIVATE_DIR}/${fileName}`);
-    const [privateExists] = await privateFile.exists();
-    
-    if (privateExists) {
-      await privateFile.delete();
-      console.log(`🗑️ تم حذف الملف من Object Storage: ${fileName}`);
-      return;
-    }
-    
-    console.log(`⚠️ الملف غير موجود في Object Storage: ${fileName}`);
-    
+    const localPath = path.join(FALLBACK_MEDIA_DIR, fileName);
+    await fs.unlink(localPath);
+    console.log(`🗑️ تم حذف الملف محلياً: ${fileName}`);
   } catch (error) {
-    console.error('❌ خطأ في حذف الملف من Object Storage:', error);
+    console.error('❌ خطأ في حذف الملف محلياً:', error);
     // لا نرمي خطأ في حالة فشل الحذف
   }
 }

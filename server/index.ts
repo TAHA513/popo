@@ -13,7 +13,11 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Object Storage is now handling all file storage permanently
+// Serve local files from fallback directory for production deployments
+app.use('/media', express.static('/tmp/persistent-media', { 
+  maxAge: '1y',
+  etag: false 
+}));
 
 // Disable caching for all API endpoints to ensure fresh data
 app.use('/api', (req, res, next) => {
