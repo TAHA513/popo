@@ -87,7 +87,7 @@ export async function uploadFileToStorage(
         }
       });
 
-      const publicUrl = `/public-objects/${uniqueFileName}`;
+      const publicUrl = `/api/media/${uniqueFileName}`;
       console.log(`✅ تم رفع الملف إلى Object Storage: ${publicUrl}`);
 
       return {
@@ -109,7 +109,7 @@ export async function uploadFileToStorage(
     const fileContent = await fs.readFile(filePath);
     await fs.writeFile(targetPath, fileContent);
 
-    const publicUrl = `/media/${uniqueFileName}`;
+    const publicUrl = `/api/media/${uniqueFileName}`;
     console.log(`✅ تم حفظ الملف محلياً: ${publicUrl}`);
 
     return {
@@ -151,7 +151,7 @@ export async function uploadBufferToStorage(
         }
       });
 
-      const publicUrl = `/public-objects/${uniqueFileName}`;
+      const publicUrl = `/api/media/${uniqueFileName}`;
       console.log(`✅ تم رفع المحتوى إلى Object Storage: ${publicUrl}`);
 
       return {
@@ -172,7 +172,7 @@ export async function uploadBufferToStorage(
     console.log(`🔄 حفظ المحتوى محلياً: ${uniqueFileName}`);
     await fs.writeFile(targetPath, buffer);
 
-    const publicUrl = `/media/${uniqueFileName}`;
+    const publicUrl = `/api/media/${uniqueFileName}`;
     console.log(`✅ تم حفظ المحتوى محلياً: ${publicUrl}`);
 
     return {
