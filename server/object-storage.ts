@@ -1,26 +1,41 @@
 import { nanoid } from 'nanoid';
-import fs from 'fs';
+import { Storage, File } from '@google-cloud/storage';
 import path from 'path';
 
-// مجلد دائم خارج نطاق المشروع - لن يتأثر بـ redeploy
-const PERSISTENT_MEDIA_DIR = '/tmp/media';
+// Object Storage Configuration - حل نهائي لمشكلة اختفاء الملفات
+const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
 export interface UploadResult {
   filename: string;
   publicUrl: string;
 }
 
-// ضمان وجود مجلد الوسائط الدائم
-async function ensurePersistentMediaDir() {
-  try {
-    await fs.promises.mkdir(PERSISTENT_MEDIA_DIR, { recursive: true });
-  } catch (error) {
-    // المجلد موجود بالفعل
-  }
-}
+// إعداد Object Storage Client
+const objectStorageClient = new Storage({
+  credentials: {
+    audience: "replit",
+    subject_token_type: "access_token",
+    token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
+    type: "external_account",
+    credential_source: {
+      url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
+      format: {
+        type: "json",
+        subject_token_field_name: "access_token",
+      },
+    },
+    universe_domain: "googleapis.com",
+  },
+  projectId: "",
+});
+
+// استخدام الـ bucket المُعد مسبقاً
+const BUCKET_NAME = 'replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16';
+const PUBLIC_DIR = 'public';
+const PRIVATE_DIR = '.private';
 
 /**
- * حفظ الملف بشكل دائم في مجلد آمن - لن يختفي عند redeploy
+ * حفظ ملف في Object Storage - حل نهائي لعدم اختفاء الملفات عند redeploy
  */
 export async function uploadFileToStorage(
   filePath: string, 
@@ -28,26 +43,31 @@ export async function uploadFileToStorage(
   isPublic: boolean = true
 ): Promise<UploadResult> {
   try {
-    await ensurePersistentMediaDir();
+    // إنشاء اسم ملف فريد
+    const uniqueFileName = generateUniqueFileName(fileName);
+    const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
+    const objectName = `${directory}/${uniqueFileName}`;
     
-    // إنشاء اسم ملف فريد لتجنب التضارب
-    const uniqueFileName = `${nanoid()}_${fileName}`;
-    const finalPath = path.join(PERSISTENT_MEDIA_DIR, uniqueFileName);
-    
-    console.log(`🔄 نسخ الملف للمجلد الدائم: ${uniqueFileName}`);
+    console.log(`🔄 رفع الملف إلى Object Storage: ${objectName}`);
 
-    // نسخ الملف للمجلد الدائم
-    await fs.promises.copyFile(filePath, finalPath);
+    const bucket = objectStorageClient.bucket(BUCKET_NAME);
+    const file = bucket.file(objectName);
     
-    // حذف الملف المؤقت
-    try {
-      await fs.promises.unlink(filePath);
-    } catch (error) {
-      // تجاهل أخطاء التنظيف
+    // رفع الملف إلى Object Storage
+    await bucket.upload(filePath, {
+      destination: objectName,
+      metadata: {
+        cacheControl: 'public, max-age=31536000', // cache لمدة سنة
+      }
+    });
+    
+    // جعل الملف عام إذا كان مطلوباً
+    if (isPublic) {
+      await file.makePublic();
     }
 
-    const publicUrl = `/media/${uniqueFileName}`;
-    console.log(`✅ تم حفظ الملف في المجلد الدائم: ${publicUrl}`);
+    const publicUrl = `/public-objects/${uniqueFileName}`;
+    console.log(`✅ تم رفع الملف إلى Object Storage: ${publicUrl}`);
 
     return {
       filename: uniqueFileName,
@@ -55,13 +75,13 @@ export async function uploadFileToStorage(
     };
 
   } catch (error) {
-    console.error('❌ خطأ في حفظ الملف:', error);
-    throw new Error('فشل في حفظ الملف');
+    console.error('❌ خطأ في رفع الملف إلى Object Storage:', error);
+    throw new Error('فشل في رفع الملف إلى Object Storage');
   }
 }
 
 /**
- * حفظ المحتوى مباشرة بشكل دائم في مجلد آمن
+ * حفظ Buffer مباشرة في Object Storage - حل نهائي لعدم اختفاء الملفات
  */
 export async function uploadBufferToStorage(
   buffer: Buffer,
@@ -70,19 +90,31 @@ export async function uploadBufferToStorage(
   isPublic: boolean = true
 ): Promise<UploadResult> {
   try {
-    await ensurePersistentMediaDir();
-    
     // إنشاء اسم ملف فريد
-    const uniqueFileName = `${nanoid()}_${fileName}`;
-    const finalPath = path.join(PERSISTENT_MEDIA_DIR, uniqueFileName);
+    const uniqueFileName = generateUniqueFileName(fileName);
+    const directory = isPublic ? PUBLIC_DIR : PRIVATE_DIR;
+    const objectName = `${directory}/${uniqueFileName}`;
     
-    console.log(`🔄 حفظ المحتوى في المجلد الدائم: ${uniqueFileName}`);
+    console.log(`🔄 رفع المحتوى إلى Object Storage: ${objectName}`);
 
-    // كتابة المحتوى للمجلد الدائم
-    await fs.promises.writeFile(finalPath, buffer);
+    const bucket = objectStorageClient.bucket(BUCKET_NAME);
+    const file = bucket.file(objectName);
+    
+    // رفع Buffer إلى Object Storage
+    await file.save(buffer, {
+      metadata: {
+        contentType: mimeType,
+        cacheControl: 'public, max-age=31536000', // cache لمدة سنة
+      }
+    });
+    
+    // جعل الملف عام إذا كان مطلوباً
+    if (isPublic) {
+      await file.makePublic();
+    }
 
-    const publicUrl = `/media/${uniqueFileName}`;
-    console.log(`✅ تم حفظ المحتوى في المجلد الدائم: ${publicUrl}`);
+    const publicUrl = `/public-objects/${uniqueFileName}`;
+    console.log(`✅ تم رفع المحتوى إلى Object Storage: ${publicUrl}`);
 
     return {
       filename: uniqueFileName,
@@ -90,8 +122,8 @@ export async function uploadBufferToStorage(
     };
 
   } catch (error) {
-    console.error('❌ خطأ في حفظ المحتوى:', error);
-    throw new Error('فشل في حفظ الملف');
+    console.error('❌ خطأ في رفع المحتوى إلى Object Storage:', error);
+    throw new Error('فشل في رفع المحتوى إلى Object Storage');
   }
 }
 
@@ -108,16 +140,36 @@ export function generateUniqueFileName(originalName: string): string {
 }
 
 /**
- * حذف ملف من المجلد الدائم
+ * حذف ملف من Object Storage
  */
 export async function deleteFileFromStorage(fileName: string): Promise<void> {
   try {
-    const filePath = path.join(PERSISTENT_MEDIA_DIR, fileName);
-    await fs.promises.unlink(filePath);
-    console.log(`🗑️ تم حذف الملف: ${fileName}`);
+    const bucket = objectStorageClient.bucket(BUCKET_NAME);
+    
+    // البحث في المجلد العام
+    const publicFile = bucket.file(`${PUBLIC_DIR}/${fileName}`);
+    const [publicExists] = await publicFile.exists();
+    
+    if (publicExists) {
+      await publicFile.delete();
+      console.log(`🗑️ تم حذف الملف من Object Storage: ${fileName}`);
+      return;
+    }
+    
+    // البحث في المجلد الخاص
+    const privateFile = bucket.file(`${PRIVATE_DIR}/${fileName}`);
+    const [privateExists] = await privateFile.exists();
+    
+    if (privateExists) {
+      await privateFile.delete();
+      console.log(`🗑️ تم حذف الملف من Object Storage: ${fileName}`);
+      return;
+    }
+    
+    console.log(`⚠️ الملف غير موجود في Object Storage: ${fileName}`);
+    
   } catch (error) {
-    console.error('❌ خطأ في حذف الملف:', error);
+    console.error('❌ خطأ في حذف الملف من Object Storage:', error);
     // لا نرمي خطأ في حالة فشل الحذف
   }
 }
-

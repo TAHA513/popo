@@ -5,7 +5,7 @@ import { setupAuth, getSession } from "./replitAuth";
 import { setupLocalAuth } from "./localAuth";
 import passport from "passport";
 import path from "path";
-import fs from "fs";
+
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for proper session handling
@@ -13,20 +13,7 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// ✅ نظام حفظ الملفات الدائم - يستخدم مجلد static خارج نطاق المشروع
-app.use('/media', express.static('/tmp/media', { 
-  maxAge: '1y',
-  etag: false 
-}));
-
-// التأكد من وجود مجلد media الدائم
-import fs from 'fs';
-try {
-  fs.mkdirSync('/tmp/media', { recursive: true });
-  console.log('🎯 نظام الملفات الدائم جاهز - /tmp/media');
-} catch (error) {
-  // المجلد موجود بالفعل
-}
+// Object Storage is now handling all file storage permanently
 
 // Disable caching for all API endpoints to ensure fresh data
 app.use('/api', (req, res, next) => {
