@@ -153,27 +153,57 @@ export function PWAInstall() {
     alert(instructions);
   };
 
-  // أظهر الزر دائماً للاختبار - يمكن إزالة هذا التعليق لاحقاً
-  // if (!isInstallable) {
-  //   return null;
-  // }
+  // Don't show if already installed
+  if (isInstalled) {
+    return null;
+  }
 
   return (
-    <button
-      onClick={handleInstallClick}
-      className="relative flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95"
-      title={isInstallable ? "تثبيت التطبيق مجاناً" : "تعليمات التثبيت"}
-    >
-      <Download className="w-6 h-6" />
-      <div className="text-right">
-        <div className="text-sm font-bold leading-tight">تثبيت الآن</div>
-        <div className="text-xs opacity-90 leading-tight">مجاناً</div>
-      </div>
-      {isInstallable && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-bounce flex items-center justify-center">
-          <div className="w-2 h-2 bg-white rounded-full"></div>
+    <div className="fixed top-4 left-4 right-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-lg p-4 z-50 animate-slide-down">
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center animate-pulse">
+            <div className="w-8 h-8 bg-gradient-to-br from-white to-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-purple-600 font-bold text-xs">L</span>
+            </div>
+          </div>
         </div>
-      )}
-    </button>
+        
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-white text-lg">
+            📱 تثبيت تطبيق LaaBoBo
+          </h3>
+          <p className="text-sm text-white/90">
+            احصل على تجربة أسرع وأفضل - مجاناً تماماً!
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button
+            onClick={handleInstallClick}
+            className="bg-white/20 backdrop-blur hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 border-0 animate-bounce"
+          >
+            <Download size={16} />
+            تثبيت
+          </Button>
+          <Button
+            onClick={() => {
+              // Hide the banner temporarily
+              const banner = document.querySelector('.fixed.top-4') as HTMLElement;
+              if (banner) {
+                banner.style.transform = 'translateY(-100%)';
+                banner.style.opacity = '0';
+                setTimeout(() => {
+                  banner.style.display = 'none';
+                }, 300);
+              }
+            }}
+            className="bg-white/10 hover:bg-white/20 text-white/80 px-3 py-2 rounded-lg text-sm border-0"
+          >
+            ✕
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
