@@ -783,47 +783,17 @@ export class DatabaseStorage implements IStorage {
       .from(memoryFragments)
       .innerJoin(users, eq(memoryFragments.authorId, users.id))
       .where(and(
-        eq(memoryFragments.isActive, true),
         eq(memoryFragments.visibilityLevel, 'public'),
         ne(users.username, 'fnnm945@gmail.com')
       ))
       .orderBy(desc(memoryFragments.createdAt))
       .limit(50);
     
-    // Process all media URLs to use Backblaze B2 exclusively
-    return memories.map(({ memory, author }) => {
-      let processedMediaUrls = memory.mediaUrls;
-      if (Array.isArray(processedMediaUrls)) {
-        processedMediaUrls = processedMediaUrls.map((url: string) => {
-          // If it's already a full Backblaze B2 URL, return as-is
-          if (url && url.startsWith('https://')) {
-            return url;
-          }
-          // Convert all local/relative URLs to Backblaze B2 proxy endpoint
-          if (url && url.trim()) {
-            const filename = url.split('/').pop() || url;
-            return `/api/media/b2/${filename}`;
-          }
-          return url;
-        });
-      }
-      
-      // Also process author profile image to use Backblaze B2
-      let processedProfileImage = author.profileImageUrl;
-      if (processedProfileImage && !processedProfileImage.startsWith('https://')) {
-        const filename = processedProfileImage.split('/').pop() || processedProfileImage;
-        processedProfileImage = `/api/media/b2/${filename}`;
-      }
-      
-      return {
-        ...memory,
-        mediaUrls: processedMediaUrls,
-        author: {
-          ...author,
-          profileImageUrl: processedProfileImage
-        }
-      };
-    });
+    // Flatten the data structure
+    return memories.map(({ memory, author }) => ({
+      ...memory,
+      author
+    }));
   }
 
   async getSuggestedUsers(): Promise<any[]> {
