@@ -1,12 +1,23 @@
-// LaaBoBo Live - Simple Service Worker
-// Minimal service worker to avoid network errors
+// LaaBoBo Live - Enhanced Service Worker for PWA
+const CACHE_NAME = 'laababo-live-v2';
+const urlsToCache = [
+  '/',
+  '/manifest.json',
+  '/icon-192x192.png',
+  '/icon-512x512.png'
+];
 
-const CACHE_NAME = 'laababo-live-v1';
-
-// Install event - keep it minimal
+// Install event - cache important resources
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting())
+  );
 });
 
 // Activate event - clean up old caches

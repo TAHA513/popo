@@ -37,17 +37,30 @@ export function PWAInstall() {
       console.log('PWA: App is not installed, waiting for beforeinstallprompt');
     }
 
-    // Fallback: في بعض الأحيان، beforeinstallprompt لا يتم إطلاقه فوراً
-    // إذا كان التطبيق يدعم PWA ولكن لم يتم تثبيته بعد، أظهر الزر
-    setTimeout(() => {
-      if (!deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
-        // التحقق من دعم service worker و manifest
-        if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
-          console.log('PWA: Manual check - app appears installable');
-          setIsInstallable(true);
-        }
+    // تحقق متقدم من PWA readiness
+    const checkPWAReadiness = async () => {
+      console.log('PWA: التحقق من جاهزية PWA...');
+      
+      // تحقق من service worker
+      const hasServiceWorker = 'serviceWorker' in navigator;
+      console.log('PWA: Service Worker دعم:', hasServiceWorker);
+      
+      // تحقق من manifest
+      const hasManifest = document.querySelector('link[rel="manifest"]');
+      console.log('PWA: Manifest موجود:', !!hasManifest);
+      
+      // تحقق من عدم التثبيت المسبق
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      console.log('PWA: مثبت مسبقاً:', isStandalone);
+      
+      // إذا لم يكن مثبتاً، أظهر الزر
+      if (!isStandalone && hasServiceWorker && hasManifest) {
+        console.log('PWA: التطبيق قابل للتثبيت، عرض الزر');
+        setIsInstallable(true);
       }
-    }, 2000);
+    };
+
+    setTimeout(checkPWAReadiness, 1000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -56,31 +69,63 @@ export function PWAInstall() {
   }, [deferredPrompt]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      // إذا لم يكن هناك prompt محفوظ، حاول إظهار تعليمات التثبيت اليدوي
-      alert('لتثبيت التطبيق:\n\n📱 على الهاتف: اضغط على القائمة في المتصفح واختر "إضافة إلى الشاشة الرئيسية"\n\n💻 على الكمبيوتر: ابحث عن أيقونة التثبيت في شريط العنوان');
-      return;
-    }
-
-    try {
-      // عرض نافذة التثبيت
-      await deferredPrompt.prompt();
-      
-      // انتظار اختيار المستخدم
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('PWA: المستخدم قبل تثبيت التطبيق');
-      } else {
-        console.log('PWA: المستخدم رفض تثبيت التطبيق');
+    console.log('PWA: تم الضغط على زر التثبيت');
+    
+    if (deferredPrompt) {
+      try {
+        console.log('PWA: عرض نافذة التثبيت...');
+        // عرض نافذة التثبيت
+        await deferredPrompt.prompt();
+        
+        // انتظار اختيار المستخدم
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('PWA: اختيار المستخدم:', outcome);
+        
+        if (outcome === 'accepted') {
+          console.log('PWA: تم قبول التثبيت');
+          alert('✅ تم تثبيت التطبيق بنجاح!');
+        } else {
+          console.log('PWA: تم رفض التثبيت');
+        }
+        
+        // تنظيف
+        setDeferredPrompt(null);
+        setIsInstallable(false);
+      } catch (error) {
+        console.error('PWA: خطأ في تثبيت التطبيق:', error);
+        showManualInstructions();
       }
-      
-      // تنظيف
-      setDeferredPrompt(null);
-      setIsInstallable(false);
-    } catch (error) {
-      console.error('PWA: خطأ في تثبيت التطبيق:', error);
+    } else {
+      // إذا لم يكن هناك prompt، حاول التثبيت اليدوي
+      console.log('PWA: لا يوجد prompt متاح، عرض التعليمات اليدوية');
+      showManualInstructions();
     }
+  };
+
+  const showManualInstructions = () => {
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isChrome = /Chrome/i.test(navigator.userAgent);
+    const isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
+    
+    let instructions = 'لتثبيت التطبيق:\n\n';
+    
+    if (isMobile) {
+      if (isChrome) {
+        instructions += '📱 Android Chrome:\n1. اضغط على القائمة (⋮)\n2. اختر "إضافة إلى الشاشة الرئيسية"\n3. اضغط "إضافة"';
+      } else if (isSafari) {
+        instructions += '📱 iPhone Safari:\n1. اضغط على أيقونة المشاركة (⬆️)\n2. مرر لأسفل واختر "إضافة إلى الشاشة الرئيسية"\n3. اضغط "إضافة"';
+      } else {
+        instructions += '📱 على الهاتف:\nابحث عن خيار "إضافة إلى الشاشة الرئيسية" في قائمة المتصفح';
+      }
+    } else {
+      if (isChrome) {
+        instructions += '💻 Chrome على الكمبيوتر:\n1. ابحث عن أيقونة التثبيت (⬇️) في شريط العنوان\n2. أو اضغط Ctrl+Shift+I واختر "تثبيت التطبيق"';
+      } else {
+        instructions += '💻 على الكمبيوتر:\nاستخدم متصفح Chrome للحصول على أفضل تجربة تثبيت';
+      }
+    }
+    
+    alert(instructions);
   };
 
   // أظهر الزر دائماً للاختبار - يمكن إزالة هذا التعليق لاحقاً
