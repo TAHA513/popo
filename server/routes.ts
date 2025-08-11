@@ -30,9 +30,14 @@ import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
 import axios from 'axios';
 import { UrlHandler } from './utils/url-handler';
+import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Constants for media serving
+const BUCKET_NAME = 'replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16'; // Replit's default bucket name
+const FALLBACK_MEDIA_DIR = path.join(__dirname, 'public', 'media'); // Local directory for media files
 
 // Security functions for ZegoCloud protection
 const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
@@ -67,7 +72,7 @@ function generateSecureToken(userId: string): string {
   // Generate a secure temporary token
   const token = crypto.randomBytes(32).toString('hex');
   const expires = Date.now() + (30 * 60 * 1000); // 30 minutes expiry
-  
+
   // Clean expired tokens using Array.from to fix iterator issue
   const expiredTokens: string[] = [];
   for (const [key, value] of Array.from(secureTokens.entries())) {
@@ -76,23 +81,23 @@ function generateSecureToken(userId: string): string {
     }
   }
   expiredTokens.forEach(key => secureTokens.delete(key));
-  
+
   // Store new token
   secureTokens.set(token, { token, expires, userId });
-  
+
   return token;
 }
 
 function validateSecureToken(token: string, userId: string): boolean {
   const tokenData = secureTokens.get(token);
-  
+
   if (!tokenData) return false;
   if (tokenData.expires < Date.now()) {
     secureTokens.delete(token);
     return false;
   }
   if (tokenData.userId !== userId) return false;
-  
+
   return true;
 }
 
@@ -101,7 +106,7 @@ function getSecureZegoConfig() {
   const appId = process.env.ZEGO_APP_ID;
   const appSign = process.env.ZEGO_APP_SIGN;
   const serverSecret = process.env.ZEGO_SERVER_SECRET;
-  
+
   if (!appId || !appSign || !serverSecret) {
     console.error('Missing ZegoCloud credentials:', {
       appId: !!appId,
@@ -110,9 +115,9 @@ function getSecureZegoConfig() {
     });
     throw new Error('ZegoCloud credentials not configured');
   }
-  
+
   console.log('🔒 ZegoCloud configuration loaded successfully');
-  
+
   // Only return app ID, all secrets stay on server
   return {
     appId: appId,
@@ -126,7 +131,7 @@ setInterval(() => {
   const now = Date.now();
   let cleanedCount = 0;
   const expiredTokens: string[] = [];
-  
+
   // Convert to array first to avoid iterator issues
   for (const [token, tokenData] of Array.from(secureTokens.entries())) {
     if (tokenData.expires < now) {
@@ -134,10 +139,10 @@ setInterval(() => {
       cleanedCount++;
     }
   }
-  
+
   // Delete expired tokens
   expiredTokens.forEach(token => secureTokens.delete(token));
-  
+
   if (cleanedCount > 0) {
     console.log(`🧹 Cleaned ${cleanedCount} expired security tokens`);
   }
@@ -147,7 +152,7 @@ setInterval(() => {
 function cleanupUserTokens(userId: string): number {
   let cleanedCount = 0;
   const tokensToDelete: string[] = [];
-  
+
   // Convert Map entries to array to avoid iterator issues
   for (const [token, tokenData] of Array.from(secureTokens.entries())) {
     if (tokenData.userId === userId) {
@@ -155,14 +160,14 @@ function cleanupUserTokens(userId: string): number {
       cleanedCount++;
     }
   }
-  
+
   // Delete the tokens
   tokensToDelete.forEach(token => secureTokens.delete(token));
-  
+
   if (cleanedCount > 0) {
     console.log(`🧹 Cleaned ${cleanedCount} security tokens for user ${userId}`);
   }
-  
+
   return cleanedCount;
 }
 
@@ -232,36 +237,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize point packages
   await initializePointPackages();
-  
+
   // Setup activity tracking for all authenticated routes
   app.use('/api', trackUserActivity);
-  
+
   // Setup periodic cleanup of stale online users (every 2 minutes)
   setInterval(cleanupStaleOnlineUsers, 2 * 60 * 1000);
-  
+
   // Setup message routes
   setupDirectMessageRoutes(app);
-  
+
   // Setup private room routes
   setupPrivateRoomRoutes(app);
-  
+
   // Setup group room routes
   setupGroupRoomRoutes(app);
-  
+
   // Setup wallet routes
   setupWalletRoutes(app);
 
   // Setup Stripe payment routes
   registerStripeRoutes(app);
 
+  // Enhanced CORS configuration
+  app.use(cors({
+    origin: ["http://localhost:3000", "http://localhost:5000"],
+    credentials: true,
+  }));
 
+  // URL normalization middleware for media URLs
+  app.use((req, res, next) => {
+    // Normalize old media URLs to use unified endpoint
+    if (req.path.startsWith('/public-objects/') || req.path.startsWith('/media/')) {
+      const filename = req.path.split('/').pop();
+      return res.redirect(301, `/api/media/${filename}`);
+    }
+    next();
+  });
 
+  // Enhanced unified media serving endpoint - cross-environment support
+  app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
+    const filename = req.params.filename;
+    console.log(`🔍 طلب ملف: ${filename} من البيئة: ${IS_REPLIT ? 'Replit' : 'Production'}`);
+
+    // Strategy 1: Try Object Storage first (works in any environment if configured)
+    if (objectStorageClient) {
+      try {
+        const bucket = objectStorageClient.bucket(BUCKET_NAME);
+        const file = bucket.file(`public/${filename}`);
+
+        const [exists] = await file.exists();
+        if (exists) {
+          console.log(`✅ الملف موجود في Object Storage: ${filename}`);
+          const [metadata] = await file.getMetadata();
+          const stream = file.createReadStream();
+
+          res.set({
+            'Content-Type': metadata.contentType || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=31536000',
+            'Access-Control-Allow-Origin': '*',
+            'X-Source': 'object-storage'
+          });
+
+          return stream.pipe(res);
+        } else {
+          console.log(`❌ الملف غير موجود في Object Storage: ${filename}`);
+        }
+      } catch (error) {
+        console.error('❌ خطأ في الوصول لـ Object Storage:', error?.message);
+      }
+    } else {
+      console.log('⚠️ Object Storage غير متوفر');
+    }
+
+    // Strategy 2: Try local file serving with extended paths
+    const possiblePaths = [
+      // Current environment paths
+      path.join(FALLBACK_MEDIA_DIR, filename),
+      path.join(process.cwd(), 'public', 'media', filename),
+      path.join(process.cwd(), 'uploads', filename),
+      // Legacy paths for backward compatibility
+      path.join('/tmp', 'persistent-media', filename),
+      path.join(process.cwd(), 'tmp', 'persistent-media', filename),
+      // Alternative paths
+      path.join(process.cwd(), 'dist', 'public', 'media', filename),
+      path.join(process.cwd(), 'client', 'public', 'media', filename)
+    ];
+
+    console.log(`🔍 البحث في ${possiblePaths.length} مسار محتمل...`);
+
+    for (const filePath of possiblePaths) {
+      try {
+        await fs.access(filePath);
+        const stats = await fs.stat(filePath);
+        const ext = path.extname(filename).toLowerCase();
+
+        let contentType = 'application/octet-stream';
+        if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+        else if (ext === '.gif') contentType = 'image/gif';
+        else if (ext === '.webp') contentType = 'image/webp';
+        else if (ext === '.mp4') contentType = 'video/mp4';
+        else if (ext === '.webm') contentType = 'video/webm';
+
+        console.log(`✅ الملف موجود محلياً: ${filePath}`);
+
+        res.set({
+          'Content-Type': contentType,
+          'Content-Length': stats.size.toString(),
+          'Cache-Control': 'public, max-age=31536000',
+          'Access-Control-Allow-Origin': '*',
+          'X-Source': 'local-storage'
+        });
+
+        return res.sendFile(path.resolve(filePath));
+      } catch (error) {
+        // Continue to next path
+        continue;
+      }
+    }
+
+    // Strategy 3: Try to proxy from other environment (experimental)
+    if (!IS_REPLIT) {
+      try {
+        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
+        const replitUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+
+        const response = await axios.get(replitUrl, {
+          timeout: 10000,
+          responseType: 'stream',
+          headers: {
+            'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0'
+          }
+        });
+
+        if (response.status === 200) {
+          console.log(`✅ الملف مُستلم من Replit: ${filename}`);
+
+          res.set({
+            'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+            'X-Source': 'replit-proxy'
+          });
+
+          return response.data.pipe(res);
+        }
+      } catch (proxyError) {
+        console.log(`❌ فشل في proxy الملف من Replit: ${proxyError?.message}`);
+      }
+    }
+
+    // If no file found anywhere
+    console.log(`❌ الملف غير موجود في أي مكان: ${filename}`);
+    res.status(404).json({ 
+      error: 'File not found',
+      filename: filename,
+      environment: IS_REPLIT ? 'replit' : 'production',
+      searchedPaths: possiblePaths.length,
+      objectStorage: !!objectStorageClient
+    });
+  });
 
   // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
   app.get('/api/media/proxy', async (req: any, res) => {
     try {
       const { url } = req.query;
-      
+
       if (!url || typeof url !== 'string') {
         return res.status(400).json({ error: 'عنوان URL مطلوب' });
       }
@@ -300,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('خطأ في وكيل الوسائط:', error?.message);
-      
+
       if (error?.response?.status === 404) {
         res.status(404).json({ error: 'الملف غير موجود' });
       } else if (error?.code === 'ENOTFOUND' || error?.code === 'ECONNREFUSED') {
@@ -317,12 +459,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
-      
+
       // Users can only view their own transactions
       if (userId !== requestingUserId) {
         return res.status(403).json({ message: "ليس لديك إذن لعرض هذه المعاملات" });
       }
-      
+
       // For now, return an empty array since we don't have a transactions table yet
       // In future, this would fetch from a transactions table
       res.json([]);
@@ -337,12 +479,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
-      
+
       // Users can only view their own sent gifts
       if (userId !== requestingUserId) {
         return res.status(403).json({ message: "ليس لديك إذن لعرض هذه الهدايا" });
       }
-      
+
       const sentGifts = await db.select({
         id: gifts.id,
         senderId: gifts.senderId,
@@ -362,7 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .leftJoin(users, eq(gifts.receiverId, users.id))
       .where(eq(gifts.senderId, userId))
       .orderBy(desc(gifts.sentAt));
-      
+
       res.json(sentGifts);
     } catch (error) {
       console.error("Error fetching sent gifts:", error);
@@ -375,12 +517,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
-      
+
       // Users can only view their own received gifts
       if (userId !== requestingUserId) {
         return res.status(403).json({ message: "ليس لديك إذن لعرض هذه الهدايا" });
       }
-      
+
       const receivedGifts = await db.select({
         id: gifts.id,
         senderId: gifts.senderId,
@@ -400,7 +542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .leftJoin(users, eq(gifts.senderId, users.id))
       .where(eq(gifts.receiverId, userId))
       .orderBy(desc(gifts.sentAt));
-      
+
       res.json(receivedGifts);
     } catch (error) {
       console.error("Error fetching received gifts:", error);
@@ -480,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Premium Messages API
-  
+
   // Get premium messages for current user
   app.get("/api/premium-messages", requireAuth, async (req: any, res) => {
     try {
@@ -573,7 +715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Premium Albums API Routes
-  
+
   // Create premium album
   app.post('/api/premium-albums', requireAuth, async (req: any, res) => {
     try {
@@ -632,10 +774,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user has access
       const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
-      
+
       console.log(`✅ Access result: User ${userId} has access to album ${albumId}: ${hasAccess}`);
       console.log(`📊 Album creator: ${album.creatorId}, Current user: ${userId}`);
-      
+
       const albumWithAccess = {
         ...album,
         hasAccess,
@@ -729,7 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get album media content
+  // Get album media
   app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
@@ -1011,7 +1153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/register', async (req, res) => {
     try {
       const validatedData = registerSchema.parse(req.body);
-      
+
       // Check if username is available
       const isAvailable = await storage.isUsernameAvailable(validatedData.username);
       if (!isAvailable) {
@@ -1060,7 +1202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/login', (req, res, next) => {
     try {
       const validatedData = loginSchema.parse(req.body);
-      
+
       passport.authenticate('local', (err: any, user: any, info: any) => {
         if (err) {
           return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
@@ -1068,12 +1210,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!user) {
           return res.status(401).json({ message: info?.message || "اسم المستخدم أو كلمة المرور غير صحيحة" });
         }
-        
+
         req.logIn(user, (err) => {
           if (err) {
             return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
           }
-          
+
           res.json({
             message: "تم تسجيل الدخول بنجاح",
             user: {
@@ -1124,7 +1266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!username || typeof username !== 'string') {
         return res.status(400).json({ message: "اسم المستخدم مطلوب" });
       }
-      
+
       const isAvailable = await storage.isUsernameAvailable(username);
       res.json({ available: isAvailable });
     } catch (error) {
@@ -1175,7 +1317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate unique filename
       const uniqueFileName = generateUniqueFileName(req.file.originalname);
-      
+
       // Upload to Object Storage
       const uploadResult = await uploadBufferToStorage(
         req.file.buffer,
@@ -1205,7 +1347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const file = req.file;
-      
+
       if (!file) {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
@@ -1214,7 +1356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate unique filename
       const uniqueFileName = generateUniqueFileName(file.originalname);
-      
+
       // Upload to Object Storage
       const uploadResult = await uploadBufferToStorage(
         file.buffer,
@@ -1224,10 +1366,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       console.log('✅ تم رفع الصورة الشخصية:', uploadResult.publicUrl);
-      
+
       // Update user profile image URL in database
       await db.update(users).set({ profileImageUrl: uploadResult.publicUrl }).where(eq(users.id, userId));
-      
+
       res.json({ 
         success: true, 
         profileImageUrl: uploadResult.publicUrl,
@@ -1244,9 +1386,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const file = req.file;
-      
+
       console.log('🔄 رفع صورة الغلاف للمستخدم:', userId);
-      
+
       if (!file) {
         console.log('❌ No file provided');
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
@@ -1254,7 +1396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate unique filename
       const uniqueFileName = generateUniqueFileName(file.originalname);
-      
+
       // Upload to Object Storage
       const uploadResult = await uploadBufferToStorage(
         file.buffer,
@@ -1264,12 +1406,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       console.log('✅ تم رفع صورة الغلاف:', uploadResult.publicUrl);
-      
+
       // Update user cover image URL in database
       await db.update(users).set({ coverImageUrl: uploadResult.publicUrl }).where(eq(users.id, userId));
-      
+
       console.log('✅ Cover image uploaded successfully for user:', userId);
-      
+
       res.json({ 
         success: true, 
         coverImageUrl: uploadResult.publicUrl,
@@ -1293,100 +1435,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Object Storage file serving endpoint with fallback
-  app.get('/public-objects/:filename', async (req, res) => {
+  // Enhanced unified media serving endpoint - cross-environment support
+  app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
     const filename = req.params.filename;
-    console.log(`🔍 طلب ملف: ${filename}`);
-    
-    const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
-    
-    if (objectStorageClient && IS_REPLIT) {
+    console.log(`🔍 طلب ملف: ${filename} من البيئة: ${IS_REPLIT ? 'Replit' : 'Production'}`);
+
+    // Strategy 1: Try Object Storage first (works in any environment if configured)
+    if (objectStorageClient) {
       try {
-        const bucket = objectStorageClient.bucket('replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16');
+        const bucket = objectStorageClient.bucket(BUCKET_NAME);
         const file = bucket.file(`public/${filename}`);
-        
-        // Check if file exists
+
         const [exists] = await file.exists();
-        if (!exists) {
+        if (exists) {
+          console.log(`✅ الملف موجود في Object Storage: ${filename}`);
+          const [metadata] = await file.getMetadata();
+          const stream = file.createReadStream();
+
+          res.set({
+            'Content-Type': metadata.contentType || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=31536000',
+            'Access-Control-Allow-Origin': '*',
+            'X-Source': 'object-storage'
+          });
+
+          return stream.pipe(res);
+        } else {
           console.log(`❌ الملف غير موجود في Object Storage: ${filename}`);
-          return res.status(404).json({ error: 'File not found' });
         }
-        
-        // Get file metadata
-        const [metadata] = await file.getMetadata();
-        
-        // Set appropriate headers
-        res.set({
-          'Content-Type': metadata.contentType || 'application/octet-stream',
-          'Cache-Control': 'public, max-age=31536000',
-          'Content-Length': metadata.size
-        });
-        
-        // Stream the file
-        const stream = file.createReadStream();
-        stream.on('error', (error) => {
-          console.error('❌ خطأ في streaming من Object Storage:', error);
-          if (!res.headersSent) {
-            res.status(500).json({ error: 'Error streaming file' });
-          }
-        });
-        
-        stream.pipe(res);
-        console.log(`✅ تم تقديم الملف من Object Storage: ${filename}`);
-        return;
-        
       } catch (error) {
-        console.error('❌ خطأ في Object Storage، التبديل إلى الملفات المحلية:', error);
+        console.error('❌ خطأ في الوصول لـ Object Storage:', error?.message);
+      }
+    } else {
+      console.log('⚠️ Object Storage غير متوفر');
+    }
+
+    // Strategy 2: Try local file serving with extended paths
+    const possiblePaths = [
+      // Current environment paths
+      path.join(FALLBACK_MEDIA_DIR, filename),
+      path.join(process.cwd(), 'public', 'media', filename),
+      path.join(process.cwd(), 'uploads', filename),
+      // Legacy paths for backward compatibility
+      path.join('/tmp', 'persistent-media', filename),
+      path.join(process.cwd(), 'tmp', 'persistent-media', filename),
+      // Alternative paths
+      path.join(process.cwd(), 'dist', 'public', 'media', filename),
+      path.join(process.cwd(), 'client', 'public', 'media', filename)
+    ];
+
+    console.log(`🔍 البحث في ${possiblePaths.length} مسار محتمل...`);
+
+    for (const filePath of possiblePaths) {
+      try {
+        await fs.access(filePath);
+        const stats = await fs.stat(filePath);
+        const ext = path.extname(filename).toLowerCase();
+
+        let contentType = 'application/octet-stream';
+        if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+        else if (ext === '.gif') contentType = 'image/gif';
+        else if (ext === '.webp') contentType = 'image/webp';
+        else if (ext === '.mp4') contentType = 'video/mp4';
+        else if (ext === '.webm') contentType = 'video/webm';
+
+        console.log(`✅ الملف موجود محلياً: ${filePath}`);
+
+        res.set({
+          'Content-Type': contentType,
+          'Content-Length': stats.size.toString(),
+          'Cache-Control': 'public, max-age=31536000',
+          'Access-Control-Allow-Origin': '*',
+          'X-Source': 'local-storage'
+        });
+
+        return res.sendFile(path.resolve(filePath));
+      } catch (error) {
+        // Continue to next path
+        continue;
       }
     }
-    
-    // Fallback: redirect to local media endpoint
-    console.log(`🔄 إعادة توجيه إلى الملفات المحلية: ${filename}`);
-    res.redirect(`/media/${filename}`);
+
+    // Strategy 3: Try to proxy from other environment (experimental)
+    if (!IS_REPLIT) {
+      try {
+        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
+        const replitUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+
+        const response = await axios.get(replitUrl, {
+          timeout: 10000,
+          responseType: 'stream',
+          headers: {
+            'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0'
+          }
+        });
+
+        if (response.status === 200) {
+          console.log(`✅ الملف مُستلم من Replit: ${filename}`);
+
+          res.set({
+            'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+            'X-Source': 'replit-proxy'
+          });
+
+          return response.data.pipe(res);
+        }
+      } catch (proxyError) {
+        console.log(`❌ فشل في proxy الملف من Replit: ${proxyError?.message}`);
+      }
+    }
+
+    // If no file found anywhere
+    console.log(`❌ الملف غير موجود في أي مكان: ${filename}`);
+    res.status(404).json({ 
+      error: 'File not found',
+      filename: filename,
+      environment: IS_REPLIT ? 'replit' : 'production',
+      searchedPaths: possiblePaths.length,
+      objectStorage: !!objectStorageClient
+    });
   });
 
   // Memory fragments routes
   app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { title, caption, memoryType, visibilityLevel, allowComments, allowSharing, allowGifts } = req.body;
-      
+      const files = req.files as Express.Multer.File[];
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: 'At least one media file is required' });
+      }
+
       // Process uploaded files using Object Storage
       const mediaUrls: string[] = [];
-      const files = req.files as Express.Multer.File[];
-      
-      if (files && files.length > 0) {
-        console.log(`🔄 رفع ${files.length} ملف للذكرى`);
-        
-        for (const file of files) {
-          // Generate unique filename
-          const uniqueFileName = generateUniqueFileName(file.originalname);
-          
-          // Upload to Object Storage
-          const uploadResult = await uploadBufferToStorage(
-            file.buffer,
-            uniqueFileName,
-            file.mimetype,
-            true // Public file
-          );
-          
-          mediaUrls.push(uploadResult.publicUrl);
-          console.log(`✅ تم رفع ملف الذكرى: ${uploadResult.publicUrl}`);
-        }
+
+      for (const file of files) {
+        // Generate unique filename
+        const uniqueFileName = generateUniqueFileName(file.originalname);
+
+        // Upload to Object Storage
+        const uploadResult = await uploadBufferToStorage(
+          file.buffer,
+          uniqueFileName,
+          file.mimetype,
+          true // Public file
+        );
+
+        mediaUrls.push(uploadResult.publicUrl);
+        console.log(`✅ تم رفع ملف الذكرى: ${uploadResult.publicUrl}`);
       }
 
       // Create memory fragment
       const memoryData = {
         authorId: userId,
         type: files?.[0]?.mimetype?.startsWith('video') ? 'video' : 'image',
-        title: title || '',
-        caption: caption || '',
+        title: req.body.title || '',
+        caption: req.body.caption || '',
         mediaUrls,
         thumbnailUrl: mediaUrls[0] || null,
-        memoryType: memoryType || 'star',
-        visibilityLevel: visibilityLevel || 'public',
-        allowComments: allowComments !== 'false',
-        allowSharing: allowSharing !== 'false',
-        allowGifts: allowGifts !== 'false',
+        memoryType: req.body.memoryType || 'star',
+        visibilityLevel: req.body.visibilityLevel || 'public',
+        allowComments: req.body.allowComments !== 'false',
+        allowSharing: req.body.allowSharing !== 'false',
+        allowGifts: req.body.allowGifts !== 'false',
         currentEnergy: 100,
         initialEnergy: 100,
         viewCount: 0,
@@ -1409,7 +1623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(400).json({ message: "User ID required" });
       }
-      
+
       // Get user memories with comment counts
       const memoriesWithCounts = await db
         .select({
@@ -1462,7 +1676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               eq(comments.postId, memory.id),
               eq(comments.postType, 'memory')
             ));
-          
+
           return {
             ...memory,
             commentCount: commentCountResult.count || 0
@@ -1484,7 +1698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
-      
+
       // Get memories with author info and comment counts
       const memoriesWithCounts = await db
         .select({
@@ -1539,7 +1753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               eq(comments.postId, memory.id),
               eq(comments.postType, 'memory')
             ));
-          
+
           return {
             ...memory,
             commentCount: commentCountResult.count || 0
@@ -1575,12 +1789,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(memoryId)) {
         return res.status(400).json({ message: "Invalid memory ID" });
       }
-      
+
       const memory = await storage.getMemoryFragmentById(memoryId);
       if (!memory) {
         return res.status(404).json({ message: "Memory not found" });
       }
-      
+
       // Convert URLs to absolute paths for proper cross-domain support
       const memoryWithAbsoluteUrls = {
         ...memory,
@@ -1594,7 +1808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             UrlHandler.processMediaUrl(memory.author.profileImageUrl, req) : null
         } : null
       };
-      
+
       res.json(memoryWithAbsoluteUrls);
     } catch (error) {
       console.error("Error fetching memory:", error);
@@ -1607,22 +1821,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const memoryId = parseInt(req.params.memoryId);
       const userId = req.user.id;
-      
+
       if (isNaN(memoryId)) {
         return res.status(400).json({ message: "معرف المنشور غير صحيح" });
       }
-      
+
       // First, check if memory exists and get its author
       const memory = await storage.getMemoryFragmentById(memoryId);
       if (!memory) {
         return res.status(404).json({ message: "المنشور غير موجود" });
       }
-      
+
       // Check if user is the author of the memory
       if (memory.authorId !== userId) {
         return res.status(403).json({ message: "غير مسموح لك بحذف هذا المنشور" });
       }
-      
+
       // Soft delete by setting isActive to false
       await db
         .update(memoryFragments)
@@ -1631,7 +1845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedAt: new Date()
         })
         .where(eq(memoryFragments.id, memoryId));
-      
+
       console.log(`Memory ${memoryId} deleted by user ${userId}`);
       res.json({ message: "تم حذف المنشور بنجاح" });
     } catch (error) {
@@ -1647,7 +1861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(memoryId)) {
         return res.status(400).json({ message: "Invalid memory ID" });
       }
-      
+
       const memoryGifts = await db
         .select({
           id: gifts.id,
@@ -1673,7 +1887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .leftJoin(users, eq(gifts.senderId, users.id))
         .where(eq(gifts.memoryId, memoryId))
         .orderBy(desc(gifts.sentAt));
-      
+
       res.json(memoryGifts);
     } catch (error) {
       console.error("Error fetching memory gifts:", error);
@@ -1686,14 +1900,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const memoryId = parseInt(req.params.memoryId);
       const userId = req.user.id;
-      
+
       if (isNaN(memoryId)) {
         return res.status(400).json({ message: "معرف المنشور غير صحيح" });
       }
-      
+
       await storage.recordMemoryView(memoryId, userId);
       const viewCount = await storage.getMemoryViewCount(memoryId);
-      
+
       res.json({ success: true, viewCount });
     } catch (error) {
       console.error("Error recording memory view:", error);
@@ -1705,11 +1919,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/memories/:memoryId/views', async (req, res) => {
     try {
       const memoryId = parseInt(req.params.memoryId);
-      
+
       if (isNaN(memoryId)) {
         return res.status(400).json({ message: "معرف المنشور غير صحيح" });
       }
-      
+
       const viewCount = await storage.getMemoryViewCount(memoryId);
       res.json({ viewCount });
     } catch (error) {
@@ -1723,13 +1937,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.q as string || '';
-      
+
       console.log('🔍 Searching users for gifts:', {
         currentUserId: req.user?.id,
         limit,
         search
       });
-      
+
       // Get users excluding the current user
       const usersResult = await db
         .select({
@@ -1742,19 +1956,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(users)
         .where(ne(users.id, req.user.id))
         .limit(limit);
-      
+
       // Filter out owner account using protection system
       const filteredUsers = filterOwnerFromUsers(usersResult);
       logOwnerProtection('user search', usersResult.length - filteredUsers.length);
-      
+
       // Convert profile image URLs to absolute URLs
       const usersWithAbsoluteUrls = filteredUsers.map(user => ({
         ...user,
         profileImageUrl: user.profileImageUrl ? UrlHandler.processMediaUrl(user.profileImageUrl, req) : null
       }));
-      
+
       console.log('👥 Found users:', usersWithAbsoluteUrls.length);
-      
+
       res.json(usersWithAbsoluteUrls);
     } catch (error) {
       console.error('Error searching users:', error);
@@ -1777,7 +1991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/verify-user', requireAuth, checkSuperAdmin, async (req: any, res) => {
     try {
       const { userId, verifiedEmail, verificationBadge } = req.body;
-      
+
       if (!userId || !verifiedEmail) {
         return res.status(400).json({ message: "معرف المستخدم والايميل مطلوبان" });
       }
@@ -1802,7 +2016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/unverify-user', requireAuth, checkSuperAdmin, async (req: any, res) => {
     try {
       const { userId } = req.body;
-      
+
       if (!userId) {
         return res.status(400).json({ message: "معرف المستخدم مطلوب" });
       }
@@ -1909,33 +2123,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestingUser: req.user?.id,
         requestingUsername: req.user?.username
       });
-      
+
       // Validate userId parameter
       if (!userId || userId.trim() === '') {
         console.log('❌ Invalid user ID provided');
         return res.status(400).json({ message: "معرف المستخدم غير صحيح" });
       }
-      
+
       const user = await storage.getUserById(userId);
-      
+
       if (!user) {
         console.log('❌ User not found:', userId);
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
-      
+
       // Check if requested user is the protected owner account
       if (isOwnerAccount(user)) {
         console.log('🛡️ Owner account access blocked for user:', req.user?.username);
         logOwnerProtection('user profile access', 1);
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
-      
+
       console.log('✅ User found successfully:', {
         userId: user.id,
         username: user.username,
         firstName: user.firstName
       });
-      
+
       res.json(user);
     } catch (error) {
       console.error("❌ Error fetching user:", error);
@@ -1977,17 +2191,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "خطأ في جلب حالة المستخدم" });
     }
   });
-  
+
   // Check if following
   app.get('/api/users/:userId/follow-status', requireAuth, async (req: any, res) => {
     try {
       const followerId = req.user.id;
       const followedId = req.params.userId;
-      
+
       if (followerId === followedId) {
         return res.json({ isFollowing: false });
       }
-      
+
       const isFollowing = await storage.isFollowing(followerId, followedId);
       res.json({ isFollowing });
     } catch (error) {
@@ -2001,7 +2215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const followerId = req.user.id;
       const followedId = req.params.userId;
-      
+
       const isFollowing = await storage.isFollowing(followerId, followedId);
       res.json({ isFollowing });
     } catch (error) {
@@ -2009,16 +2223,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to check follow status" });
     }
   });
-  
+
   // Get user followers
   app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       console.log('🔍 Getting followers for user:', userId);
-      
+
       const followers = await storage.getFollowers(userId);
       console.log('✅ Found followers:', followers.length);
-      
+
       // Transform the data to match the expected format
       const transformedFollowers = followers.map(item => ({
         id: item.follower.id,
@@ -2027,23 +2241,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profileImageUrl: item.follower.profileImageUrl,
         followedAt: item.followedAt
       }));
-      
+
       res.json(transformedFollowers);
     } catch (error) {
       console.error("❌ Error getting followers:", error);
       res.status(500).json({ message: "فشل في جلب المتابعين" });
     }
   });
-  
+
   // Get user following
   app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       console.log('🔍 Getting following for user:', userId);
-      
+
       const following = await storage.getFollowing(userId);
       console.log('✅ Found following:', following.length);
-      
+
       // Transform the data to match the expected format
       const transformedFollowing = following.map(item => ({
         id: item.following.id,
@@ -2052,32 +2266,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profileImageUrl: item.following.profileImageUrl,
         followedAt: item.followedAt
       }));
-      
+
       res.json(transformedFollowing);
     } catch (error) {
       console.error("❌ Error getting following:", error);
       res.status(500).json({ message: "فشل في جلب المتابَعين" });
     }
   });
-  
+
   // Follow/Unfollow user (toggle)
   app.post('/api/users/:userId/follow', requireAuth, async (req: any, res) => {
     try {
       const followerId = req.user.id;
       const followedId = req.params.userId;
-      
+
       if (followerId === followedId) {
         return res.status(400).json({ message: "Cannot follow yourself" });
       }
-      
+
       const isFollowing = await storage.isFollowing(followerId, followedId);
-      
+
       if (isFollowing) {
         await storage.unfollowUser(followerId, followedId);
         res.json({ success: true, isFollowing: false, message: "تم إلغاء المتابعة" });
       } else {
         await storage.followUser(followerId, followedId);
-        
+
         // Send notification to followed user
         await createNotification({
           userId: followedId,
@@ -2088,7 +2302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           relatedId: 0,
           relatedType: 'follow'
         });
-        
+
         res.json({ success: true, isFollowing: true, message: "تم المتابعة بنجاح" });
       }
     } catch (error) {
@@ -2101,7 +2315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const followerId = req.user.id;
       const followedId = req.params.userId;
-      
+
       await storage.unfollowUser(followerId, followedId);
       res.json({ success: true });
     } catch (error) {
@@ -2115,7 +2329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id; // The user being followed (removing their follower)
       const followerId = req.params.userId; // The follower to be removed
-      
+
       // Remove the follower relationship (followerId follows userId)
       await storage.unfollowUser(followerId, userId);
       res.json({ success: true, message: "تم إزالة المتابع بنجاح" });
@@ -2130,11 +2344,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const blockerId = req.user.id;
       const blockedId = req.params.userId;
-      
+
       if (blockerId === blockedId) {
         return res.status(400).json({ message: "لا يمكن حظر نفسك" });
       }
-      
+
       await storage.blockUser(blockerId, blockedId);
       res.json({ success: true, message: "تم حظر المستخدم بنجاح" });
     } catch (error) {
@@ -2148,7 +2362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const blockerId = req.user.id;
       const blockedId = req.params.userId;
-      
+
       await storage.unblockUser(blockerId, blockedId);
       res.json({ success: true, message: "تم إلغاء حظر المستخدم" });
     } catch (error) {
@@ -2162,7 +2376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const blockerId = req.user.id;
       const blockedId = req.params.userId;
-      
+
       const isBlocked = await storage.isUserBlocked(blockerId, blockedId);
       res.json({ isBlocked });
     } catch (error) {
@@ -2172,14 +2386,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // NOTIFICATIONS API
-  
+
   // Get user notifications
   app.get('/api/notifications', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const limit = parseInt(req.query.limit) || 20;
       const offset = parseInt(req.query.offset) || 0;
-      
+
       const userNotifications = await db
         .select({
           id: notifications.id,
@@ -2203,14 +2417,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(desc(notifications.createdAt))
         .limit(limit)
         .offset(offset);
-      
+
       res.json(userNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       res.status(500).json({ message: "فشل في جلب الإشعارات" });
     }
   });
-  
+
   // Get unread notifications count (includes unread messages)
   app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
     try {
@@ -2218,9 +2432,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
-      
+
       const userId = req.user.id;
-      
+
       // Count unread notifications
       const [notificationResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -2229,7 +2443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(notifications.userId, userId),
           eq(notifications.isRead, false)
         ));
-      
+
       // Count unread messages from other users (imported from messages table)
       const [messageResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -2238,30 +2452,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(messages.recipientId, userId),
           eq(messages.isRead, false)
         ));
-      
+
       const notificationCount = parseInt(notificationResult.count.toString()) || 0;
       const messageCount = parseInt(messageResult.count.toString()) || 0;
       const totalCount = notificationCount + messageCount;
-      
+
       console.log(`📊 عدد الإشعارات غير المقروءة للمستخدم ${userId}:`, {
         notifications: notificationCount,
         messages: messageCount,
         total: totalCount
       });
-      
+
       res.json({ count: totalCount });
     } catch (error) {
       console.error("Error getting unread count:", error);
       res.status(500).json({ message: "فشل في جلب عدد الإشعارات غير المقروءة" });
     }
   });
-  
+
   // Mark notification as read
   app.patch('/api/notifications/:id/read', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const notificationId = parseInt(req.params.id);
-      
+
       await db
         .update(notifications)
         .set({ isRead: true })
@@ -2269,19 +2483,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(notifications.id, notificationId),
           eq(notifications.userId, userId)
         ));
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error marking notification as read:", error);
       res.status(500).json({ message: "فشل في تحديث حالة الإشعار" });
     }
   });
-  
+
   // Mark all notifications and messages as read
   app.patch('/api/notifications/mark-all-read', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
+
       // Mark all notifications as read
       const notificationResult = await db
         .update(notifications)
@@ -2320,12 +2534,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/notifications/clear-all', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
+
       await db
         .update(notifications)
         .set({ isRead: true })
         .where(eq(notifications.userId, userId));
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
@@ -2337,11 +2551,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users/search/:query', requireAuth, async (req: any, res) => {
     try {
       const query = req.params.query;
-      
+
       if (!query || query.length < 2) {
         return res.json([]);
       }
-      
+
       const users = await storage.searchUsers(query);
       res.json(users);
     } catch (error) {
@@ -2351,12 +2565,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Private Albums API endpoints
-  
+
   // Create new private album
   app.post('/api/albums', requireAuth, async (req: any, res) => {
     try {
       const { title, description, albumType, giftRequired, accessPrice } = req.body;
-      
+
       const album = await storage.createPrivateAlbum({
         userId: req.user.id,
         title,
@@ -2365,7 +2579,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         giftRequired,
         accessPrice: accessPrice || 0,
       });
-      
+
       res.json(album);
     } catch (error) {
       console.error("Error creating album:", error);
@@ -2378,12 +2592,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.params.userId;
       const currentUserId = req.user.id;
-      
+
       const albums = await storage.getUserAlbums(userId);
-      
+
       // Filter albums based on access
       const accessibleAlbums = [];
-      
+
       for (const album of albums) {
         // Owner can see all their albums
         if (album.userId === currentUserId) {
@@ -2402,7 +2616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       res.json(accessibleAlbums);
     } catch (error) {
       console.error("Error fetching albums:", error);
@@ -2415,20 +2629,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const albumId = parseInt(req.params.albumId);
       const currentUserId = req.user.id;
-      
+
       const album = await storage.getAlbumById(albumId);
       if (!album) {
         return res.status(404).json({ message: "الألبوم غير موجود" });
       }
-      
+
       const isOwner = album.userId === currentUserId;
       let hasAccess = isOwner;
-      
+
       if (!isOwner) {
         const access = await storage.checkAlbumAccess(currentUserId, albumId);
         hasAccess = !!access;
       }
-      
+
       if (!hasAccess && album.albumType === 'locked_album') {
         return res.json({
           ...album,
@@ -2438,12 +2652,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           requiresPayment: true
         });
       }
-      
+
       const photos = await storage.getAlbumPhotos(albumId);
-      
+
       // Filter photos based on access for individual photo albums
       const accessiblePhotos = [];
-      
+
       if (album.albumType === 'individual_photos' && !isOwner) {
         for (const photo of photos) {
           const photoAccess = await storage.checkPhotoAccess(currentUserId, photo.id);
@@ -2460,7 +2674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           requiresPayment: false
         })));
       }
-      
+
       res.json({
         ...album,
         photos: accessiblePhotos,
@@ -2479,12 +2693,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const albumId = parseInt(req.params.albumId);
       const { imageUrl, caption, giftRequired, accessPrice } = req.body;
-      
+
       const album = await storage.getAlbumById(albumId);
       if (!album || album.userId !== req.user.id) {
         return res.status(403).json({ message: "ليس لديك صلاحية لإضافة صور لهذا الألبوم" });
       }
-      
+
       const photo = await storage.addPhotoToAlbum({
         albumId,
         imageUrl,
@@ -2492,7 +2706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         giftRequired,
         accessPrice: accessPrice || 0,
       });
-      
+
       res.json(photo);
     } catch (error) {
       console.error("Error adding photo:", error);
@@ -2506,28 +2720,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const albumId = parseInt(req.params.albumId);
       const currentUserId = req.user.id;
       const { giftPaid } = req.body;
-      
+
       const album = await storage.getAlbumById(albumId);
       if (!album) {
         return res.status(404).json({ message: "الألبوم غير موجود" });
       }
-      
+
       if (album.userId === currentUserId) {
         return res.status(400).json({ message: "لا يمكنك شراء ألبومك الخاص" });
       }
-      
+
       // Check if already purchased
       const existingAccess = await storage.checkAlbumAccess(currentUserId, albumId);
       if (existingAccess) {
         return res.status(400).json({ message: "لديك حق الوصول لهذا الألبوم بالفعل" });
       }
-      
+
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
       if (!user || user.points < album.accessPrice) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
-      
+
       // Process purchase
       const access = await storage.purchaseAlbumAccess({
         albumId,
@@ -2537,12 +2751,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         giftPaid,
         amountPaid: album.accessPrice,
       });
-      
+
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
         points: user.points - album.accessPrice
       });
-      
+
       // Add earnings to seller (40% profit)
       const sellerEarnings = Math.floor(album.accessPrice * 0.4);
       const seller = await storage.getUser(album.userId);
@@ -2552,7 +2766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalEarnings: Number(seller.totalEarnings) + sellerEarnings
         });
       }
-      
+
       // Record transactions
       await storage.addWalletTransaction({
         userId: currentUserId,
@@ -2562,7 +2776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         relatedUserId: album.userId,
         relatedAlbumId: albumId,
       });
-      
+
       await storage.addWalletTransaction({
         userId: album.userId,
         type: 'album_sale',
@@ -2571,7 +2785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         relatedUserId: currentUserId,
         relatedAlbumId: albumId,
       });
-      
+
       res.json({ success: true, access });
     } catch (error) {
       console.error("Error purchasing album:", error);
@@ -2585,29 +2799,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const photoId = parseInt(req.params.photoId);
       const currentUserId = req.user.id;
       const { giftPaid } = req.body;
-      
+
       const photo = await storage.getPhotoById(photoId);
       if (!photo) {
         return res.status(404).json({ message: "الصورة غير موجودة" });
       }
-      
+
       const album = await storage.getAlbumById(photo.albumId);
       if (!album || album.userId === currentUserId) {
         return res.status(400).json({ message: "لا يمكنك شراء صورتك الخاصة" });
       }
-      
+
       // Check if already purchased
       const existingAccess = await storage.checkPhotoAccess(currentUserId, photoId);
       if (existingAccess) {
         return res.status(400).json({ message: "لديك حق الوصول لهذه الصورة بالفعل" });
       }
-      
+
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
       if (!user || user.points < photo.accessPrice) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
-      
+
       // Process purchase
       const access = await storage.purchaseAlbumAccess({
         albumId: photo.albumId,
@@ -2618,12 +2832,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         giftPaid,
         amountPaid: photo.accessPrice,
       });
-      
+
       // Deduct points from buyer
       await storage.updateUser(currentUserId, {
         points: user.points - photo.accessPrice
       });
-      
+
       // Add earnings to seller (40% profit)
       const sellerEarnings = Math.floor(photo.accessPrice * 0.4);
       const seller = await storage.getUser(album.userId);
@@ -2633,7 +2847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalEarnings: Number(seller.totalEarnings) + sellerEarnings
         });
       }
-      
+
       // Record transactions
       await storage.addWalletTransaction({
         userId: currentUserId,
@@ -2643,7 +2857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         relatedUserId: album.userId,
         relatedPhotoId: photoId,
       });
-      
+
       await storage.addWalletTransaction({
         userId: album.userId,
         type: 'photo_sale',
@@ -2652,14 +2866,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         relatedUserId: currentUserId,
         relatedPhotoId: photoId,
       });
-      
+
       res.json({ success: true, access });
     } catch (error) {
       console.error("Error purchasing photo:", error);
       res.status(500).json({ message: "فشل في شراء الصورة" });
     }
   });
-  
+
   // Get user followers
   app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
     try {
@@ -2671,7 +2885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch followers" });
     }
   });
-  
+
   // Get user following
   app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
     try {
@@ -2683,26 +2897,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch following" });
     }
   });
-  
+
   // Send message request
   app.post('/api/messages/request', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { receiverId, message } = req.body;
-      
+
       // Check if request already exists
       const existingRequest = await storage.getMessageRequest(senderId, receiverId);
       if (existingRequest) {
         return res.status(400).json({ message: "لقد أرسلت رسالة لهذا المستخدم بالفعل" });
       }
-      
+
       // Create message request
       await storage.createMessageRequest({
         senderId,
         receiverId,
         initialMessage: message
       });
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error sending message request:", error);
@@ -2717,7 +2931,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!query || query.trim().length < 2) {
         return res.json([]);
       }
-      
+
       const users = await storage.searchUsers(query.trim());
       // Remove current user from results
       const filteredFromCurrentUser = users.filter((user: any) => user.id !== req.user?.id);
@@ -2736,21 +2950,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { otherUserId } = req.body;
       const currentUserId = req.user?.id;
-      
+
       if (!currentUserId || !otherUserId) {
         return res.status(400).json({ message: "معرف المستخدم مطلوب" });
       }
-      
+
       if (currentUserId === otherUserId) {
         return res.status(400).json({ message: "لا يمكنك إنشاء محادثة مع نفسك" });
       }
-      
+
       // Check if conversation already exists
       const existingConversation = await storage.findConversation(currentUserId, otherUserId);
       if (existingConversation) {
         return res.json(existingConversation);
       }
-      
+
       // Create new conversation
       const conversation = await storage.createConversation({
         user1Id: currentUserId,
@@ -2758,7 +2972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastMessage: null,
         lastMessageAt: new Date()
       });
-      
+
       res.json(conversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -2771,16 +2985,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const conversationId = parseInt(req.params.id);
       const currentUserId = req.user?.id;
-      
+
       if (!currentUserId || isNaN(conversationId)) {
         return res.status(400).json({ message: "معرف المحادثة غير صحيح" });
       }
-      
+
       const conversation = await storage.getConversationById(conversationId, currentUserId);
       if (!conversation) {
         return res.status(404).json({ message: "المحادثة غير موجودة" });
       }
-      
+
       res.json(conversation);
     } catch (error) {
       console.error("Error fetching conversation:", error);
@@ -2793,11 +3007,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const conversationId = parseInt(req.params.id);
       const currentUserId = req.user?.id;
-      
+
       if (!currentUserId || isNaN(conversationId)) {
         return res.status(400).json({ message: "معرف المحادثة غير صحيح" });
       }
-      
+
       const messages = await storage.getConversationMessages(conversationId, currentUserId);
       res.json(messages);
     } catch (error) {
@@ -2811,17 +3025,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.params.userId;
       const user = await storage.getUserById(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
-      
+
       // Check if requested user is the protected owner account
       if (isOwnerAccount(user)) {
         logOwnerProtection('user profile access', 1);
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
-      
+
       res.json({
         id: user.id,
         username: user.username,
@@ -2841,15 +3055,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const currentUserId = req.user?.id;
       const targetUserId = req.params.userId;
-      
+
       if (!currentUserId || !targetUserId) {
         return res.status(400).json({ message: "معرف المستخدم مطلوب" });
       }
-      
+
       if (currentUserId === targetUserId) {
         return res.json({ isFollowing: true }); // المستخدم يتابع نفسه افتراضياً
       }
-      
+
       const isFollowing = await storage.isUserFollowing(currentUserId, targetUserId);
       res.json({ isFollowing });
     } catch (error) {
@@ -2875,7 +3089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const senderId = req.user?.id;
       const { receiverId, characterId, message, streamId, memoryId } = req.body;
       console.log('🎁 Gift send request data:', { receiverId, characterId, message, streamId, memoryId });
-      
+
       if (!senderId || !receiverId || !characterId) {
         return res.status(400).json({ message: "بيانات الهدية غير مكتملة" });
       }
@@ -2922,7 +3136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('🎁 Creating gift notification comment for memory:', memoryId);
         const giftCommentContent = `🎁 ${sender.firstName || sender.username} أرسل ${giftCharacter.emoji} ${giftCharacter.name} (@${sender.username})`;
         console.log('🎁 Comment content:', giftCommentContent);
-        
+
         try {
           const comment = await storage.addComment({
             content: giftCommentContent,
@@ -2998,17 +3212,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const senderId = req.user?.id;
       const { recipientId, giftType, amount, message } = req.body;
-      
+
       if (!senderId || !recipientId || !giftType || !amount) {
         return res.status(400).json({ message: "بيانات الهدية غير مكتملة" });
       }
-      
+
       // التحقق من الرصيد
       const senderBalance = await storage.getUserPointBalance(senderId);
       if (senderBalance < amount) {
         return res.status(400).json({ message: "رصيدك غير كافي لإرسال هذه الهدية" });
       }
-      
+
       // إرسال الهدية
       const gift = await storage.sendGift({
         senderId,
@@ -3017,7 +3231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pointCost: amount,
         streamId: null
       });
-      
+
       // خصم النقاط من المرسل
       await storage.addPointTransaction({
         userId: senderId,
@@ -3025,7 +3239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'gift_sent',
         description: `إرسال هدية: ${giftType}`
       });
-      
+
       // إضافة النقاط للمستقبل
       await storage.addPointTransaction({
         userId: recipientId,
@@ -3033,7 +3247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'gift_received',
         description: `استلام هدية: ${giftType}`
       });
-      
+
       res.json({ 
         success: true, 
         gift,
@@ -3051,20 +3265,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = parseInt(req.params.id);
       const currentUserId = req.user?.id;
       const { content, messageType = 'text' } = req.body;
-      
+
       if (!currentUserId || isNaN(conversationId) || !content?.trim()) {
         return res.status(400).json({ message: "بيانات الرسالة غير صحيحة" });
       }
-      
+
       // Verify user is part of this conversation
       const conversation = await storage.getConversationById(conversationId, currentUserId);
       if (!conversation) {
         return res.status(403).json({ message: "غير مسموح لك بإرسال رسائل في هذه المحادثة" });
       }
-      
+
       // Get other user ID
       const otherUserId = conversation.otherUser.id;
-      
+
       // Create message
       const message = await storage.createDirectMessage({
         senderId: currentUserId,
@@ -3073,10 +3287,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messageType,
         isRead: false
       });
-      
+
       // Update conversation's last message
       await storage.updateConversationLastMessage(conversationId, content.trim());
-      
+
       res.json(message);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -3088,12 +3302,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/register', async (req, res) => {
     try {
       const { firstName, lastName, email, username, password, registrationType } = req.body;
-      
+
       // Validation
       if (!firstName || firstName.trim().length === 0) {
         return res.status(400).json({ message: "اسمك مطلوب" });
       }
-      
+
       if (registrationType === 'email') {
         if (!email || !email.includes('@')) {
           return res.status(400).json({ message: "إيميل غير صحيح" });
@@ -3103,7 +3317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "اسم المستخدم قصير" });
         }
       }
-      
+
       if (!password || password.length < 6) {
         return res.status(400).json({ message: "كلمة المرور قصيرة" });
       }
@@ -3141,7 +3355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("🎥 Creating new stream for user:", req.user.id);
       console.log("📊 Stream data:", req.body);
-      
+
       const streamData = {
         title: req.body.title || 'بث مباشر',
         description: req.body.description || '',
@@ -3153,12 +3367,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         viewerCount: 0,
         startedAt: new Date()
       };
-      
+
       console.log("📋 Final stream data:", streamData);
-      
+
       const stream = await storage.createStream(streamData);
       console.log("✅ Stream created successfully:", stream);
-      
+
       res.json({
         success: true,
         data: stream,
@@ -3179,7 +3393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const streamId = parseInt(req.params.id);
       const stream = await storage.getStreamById(streamId);
-      
+
       if (!stream || stream.hostId !== req.user.id) {
         return res.status(403).json({ message: "غير مسموح بتعديل هذا البث" });
       }
@@ -3201,12 +3415,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const streamId = parseInt(req.params.id);
       console.log("🔍 Fetching stream with ID:", streamId);
-      
+
       if (isNaN(streamId)) {
         console.error("❌ Invalid stream ID:", req.params.id);
         return res.status(400).json({ message: "معرف البث غير صحيح" });
       }
-      
+
       const stream = await storage.getStreamById(streamId);
       if (!stream) {
         console.log("⚠️ Stream not found:", streamId);
@@ -3219,7 +3433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...stream,
         hostName: host ? `${host.firstName} ${host.lastName}`.trim() || host.username : 'مضيف غير معروف'
       };
-      
+
       console.log("✅ Stream found:", {
         id: stream.id,
         title: stream.title,
@@ -3227,7 +3441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hostId: stream.hostId,
         hostName: streamWithHost.hostName
       });
-      
+
       res.json(streamWithHost);
     } catch (error) {
       console.error("❌ Error fetching stream:", error);
@@ -3239,7 +3453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/streams', async (req, res) => {
     try {
       const streams = await storage.getStreams();
-      
+
       // Add host information to each stream
       const streamsWithHosts = await Promise.all(
         streams.map(async (stream) => {
@@ -3251,7 +3465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         })
       );
-      
+
       res.json(streamsWithHosts);
     } catch (error) {
       console.error("❌ Error fetching streams:", error);
@@ -3264,25 +3478,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const streamId = parseInt(req.params.id);
       const userId = req.user.id;
       console.log("🛑 Starting complete deletion of chat session:", { streamId, userId });
-      
+
       const stream = await storage.getStreamById(streamId);
-      
+
       if (!stream || stream.hostId !== userId) {
         return res.status(403).json({ message: "غير مصرح لك بإنهاء هذه الدردشة" });
       }
-      
+
       console.log("🗑️ Deleting chat session and all related data:", {
         title: stream.title,
         startedAt: stream.startedAt,
         duration: stream.startedAt ? Date.now() - new Date(stream.startedAt).getTime() : 0
       });
-      
+
       // 1. Clean up security tokens for this user
       const tokensCleared = cleanupUserTokens(userId);
-      
+
       // 2. Delete the entire chat session from database (includes messages, gifts, etc.)
       await storage.deleteStream(streamId);
-      
+
       // 3. Broadcast chat session ended to all connected clients
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
@@ -3294,14 +3508,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }));
         }
       });
-      
+
       console.log("✅ Chat session completely deleted:", { 
         streamId, 
         userId, 
         tokensCleared,
         message: "All chat data permanently removed from database"
       });
-      
+
       res.json({ 
         success: true, 
         message: "تم إغلاق الدردشة وحذف جميع البيانات بشكل نهائي",
@@ -3322,7 +3536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/memories/:id', async (req, res) => {
     try {
       const memoryId = parseInt(req.params.id);
-      
+
       const [memory] = await db
         .select({
           id: memoryFragments.id,
@@ -3475,7 +3689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/memories/:id/comments', async (req, res) => {
     try {
       const memoryId = parseInt(req.params.id);
-      
+
       // Get comments from database
       const commentsResult = await db
         .select({
@@ -3507,7 +3721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const memoryId = parseInt(req.params.id);
       const { content } = req.body;
-      
+
       if (!content?.trim()) {
         return res.status(400).json({ message: "Content is required" });
       }
@@ -3580,24 +3794,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/comments/:id', requireAuth, async (req: any, res) => {
     try {
       const commentId = parseInt(req.params.id);
-      
+
       // Check if comment exists and user owns it
       const [existingComment] = await db
         .select()
         .from(comments)
         .where(eq(comments.id, commentId));
-      
+
       if (!existingComment) {
         return res.status(404).json({ message: "التعليق غير موجود" });
       }
-      
+
       if (existingComment.authorId !== req.user.id) {
         return res.status(403).json({ message: "لا يمكنك حذف تعليق شخص آخر" });
       }
-      
+
       // Delete comment
       await db.delete(comments).where(eq(comments.id, commentId));
-      
+
       res.json({ success: true, message: "تم حذف التعليق بنجاح" });
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -3609,7 +3823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const postId = parseInt(req.params.id);
       const { content } = req.body;
-      
+
       if (!content?.trim()) {
         return res.status(400).json({ message: "Content is required" });
       }
@@ -3650,7 +3864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/streams/:id/messages', async (req, res) => {
     try {
       const streamId = parseInt(req.params.id);
-      
+
       if (isNaN(streamId)) {
         return res.status(400).json({ message: "Invalid stream ID" });
       }
@@ -3685,11 +3899,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const streamId = parseInt(req.params.id);
       const { message } = req.body;
-      
+
       if (isNaN(streamId)) {
         return res.status(400).json({ message: "Invalid stream ID" });
       }
-      
+
       if (!message?.trim()) {
         return res.status(400).json({ message: "Message is required" });
       }
@@ -3738,17 +3952,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       console.log(`🗑️ Ending all streams for user: ${userId}`);
-      
+
       // Get all active streams for this user
       const allStreams = await storage.getActiveStreams();
       const userStreams = allStreams.filter((stream: any) => stream.hostId === userId);
-      
+
       // Delete each stream
       for (const stream of userStreams) {
         await storage.deleteStream(stream.id);
         console.log(`✅ Deleted stream: ${stream.id}`);
       }
-      
+
       res.json({ 
         message: 'All streams ended successfully',
         deletedCount: userStreams.length 
@@ -3790,7 +4004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const followCount = await storage.getFollowCount(userId);
       res.json({ ...user, followers: followCount });
     } catch (error) {
@@ -3805,7 +4019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'super_admin') {
         return res.status(403).send(`
           <html dir="rtl" lang="ar">
@@ -3832,7 +4046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           </html>
         `);
       }
-      
+
       // Serve the admin panel from React app
       res.redirect('/#/admin');
     } catch (error) {
@@ -3846,7 +4060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'super_admin') {
         return res.status(403).send(`
           <html dir="rtl" lang="ar">
@@ -3873,7 +4087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           </html>
         `);
       }
-      
+
       // Redirect to admin panel in React app
       res.redirect('/#/admin');
     } catch (error) {
@@ -3887,7 +4101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
-      
+
       if (!files || files.length === 0) {
         return res.status(400).json({ message: 'At least one media file is required' });
       }
@@ -3901,11 +4115,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For this demo, we'll create a simple file serving system
         const fileName = `${Date.now()}-${file.originalname}`;
         const filePath = `uploads/${fileName}`;
-        
+
         await fs.rename(file.path, filePath);
         const fileUrl = `/uploads/${fileName}`;
         mediaUrls.push(fileUrl);
-        
+
         // Use first image as thumbnail
         if (!thumbnailUrl && file.mimetype.startsWith('image/')) {
           thumbnailUrl = fileUrl;
@@ -3939,7 +4153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const targetUserId = req.params.userId;
       const currentUserId = req.user.id;
-      
+
       // Users can only view their own memories for now
       if (targetUserId !== currentUserId) {
         return res.status(403).json({ message: 'Access denied' });
@@ -3985,7 +4199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header('Access-Control-Allow-Origin', '*');
     next();
   });
-  
+
   const express = await import('express');
   app.use('/uploads', express.static('uploads'));
 
@@ -3994,14 +4208,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const targetUserId = req.params.userId;
       const currentUserId = req.user.id;
-      
+
       if (targetUserId !== currentUserId) {
         return res.status(403).json({ message: 'Access denied' });
       }
 
       // Calculate user stats from memory fragments
       const memories = await storage.getUserMemoryFragments(targetUserId);
-      
+
       const stats = {
         totalViews: memories.reduce((sum, m) => sum + (m.viewCount || 0), 0),
         totalLikes: memories.reduce((sum, m) => sum + (m.likeCount || 0), 0),
@@ -4020,25 +4234,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/make-admin', async (req, res) => {
     try {
       const { email, code } = req.body;
-      
+
       if (!email || !code) {
         return res.status(400).json({ message: 'Email and code required' });
       }
-      
+
       if (code !== process.env.ADMIN_PROMO_CODE) {
         return res.status(403).json({ message: 'Invalid code' });
       }
-      
+
       // Update user role to super_admin
       const result = await db.update(users)
         .set({ role: 'super_admin' })
         .where(eq(users.email, email))
         .returning();
-      
+
       if (result.length === 0) {
         return res.status(404).json({ message: 'User not found' });
       }
-      
+
       res.json({ message: 'User promoted to super_admin', user: result[0] });
     } catch (error) {
       console.error('Error promoting user:', error);
@@ -4047,19 +4261,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Virtual Pet Garden Routes
-  
+
   // Get user's virtual pet
   app.get("/api/garden/pet", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const pet = await storage.getUserPet(userId);
-      
+
       if (!pet) {
         // Create a new pet for the user
         const newPet = await storage.createPet(userId);
         return res.json(newPet);
       }
-      
+
       res.json(pet);
     } catch (error) {
       console.error("Error fetching user pet:", error);
@@ -4072,7 +4286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const { itemId } = req.body;
-      
+
       const result = await storage.feedPet(userId, itemId);
       res.json(result);
     } catch (error) {
@@ -4085,7 +4299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/garden/pet/play", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
+
       const result = await storage.playWithPet(userId);
       res.json(result);
     } catch (error) {
@@ -4110,7 +4324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const { itemId, quantity = 1 } = req.body;
-      
+
       const result = await storage.buyGardenItem(userId, itemId, quantity);
       res.json(result);
     } catch (error) {
@@ -4137,7 +4351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { friendId } = req.params;
       const { giftItemId } = req.body;
-      
+
       const result = await storage.visitGarden(userId, friendId, giftItemId);
       res.json(result);
     } catch (error) {
@@ -4213,7 +4427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { roomId } = req.params;
       const { petId } = req.body;
-      
+
       const participant = await storage.joinGameRoom(roomId, userId, petId);
       res.json(participant);
     } catch (error: any) {
@@ -4274,7 +4488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profile = await storage.getUserProfile(userId);
       const user = await storage.getUser(userId);
       const pet = await storage.getUserPet(userId);
-      
+
       res.json({
         profile,
         user,
@@ -4343,7 +4557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Purchase character
       const userCharacter = await storage.purchaseCharacter(userId, characterId);
-      
+
       // Deduct points
       await storage.updateUser(userId, { 
         points: user.points - (character.price || 0)
@@ -4457,7 +4671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         buyerId: userId,
         price: album.price,
       };
-      
+
       const purchase = await storage.purchaseAlbum(purchaseData);
 
       // Deduct points from buyer
@@ -4488,7 +4702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user owns or purchased the album
       const albums = await storage.getPublicLockedAlbums();
       const album = albums.find(a => a.id === albumId);
-      
+
       if (!album) {
         return res.status(404).json({ message: "الألبوم غير موجود" });
       }
@@ -4579,7 +4793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user owns this request
       const requests = await storage.getPrivateContentRequests(userId);
       const request = requests.find(r => r.id === requestId);
-      
+
       if (!request) {
         return res.status(404).json({ message: "الطلب غير موجود" });
       }
@@ -4619,7 +4833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/forgot-password', async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ message: "البريد الإلكتروني مطلوب" });
       }
@@ -4644,7 +4858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For demo purposes, return the reset link (in production, send via email)
       const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
       console.log(`Password reset link for ${email}: ${resetLink}`);
-      
+
       res.json({ 
         message: "تم إرسال رابط إعادة تعيين كلمة المرور",
         resetLink // Remove this in production
@@ -4659,7 +4873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/reset-password', async (req, res) => {
     try {
       const { token, password } = req.body;
-      
+
       if (!token || !password) {
         return res.status(400).json({ message: "الرمز وكلمة المرور الجديدة مطلوبان" });
       }
@@ -4856,22 +5070,22 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           streamId: message.streamId,
           clientId: clientId
         });
-        
+
         client.streamId = message.streamId;
         client.userId = message.userId;
-        
+
         // Update viewer count
         if (message.streamId) {
           const currentCount = Array.from(connectedClients.values())
             .filter(c => c.streamId === message.streamId).length;
-          
+
           console.log("👥 Updating viewer count:", {
             streamId: message.streamId,
             newCount: currentCount
           });
-          
+
           await storage.updateStreamViewerCount(message.streamId, currentCount);
-          
+
           broadcastToStream(message.streamId, {
             type: 'viewer_count_update',
             count: currentCount,
@@ -4885,18 +5099,18 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           streamId: client.streamId,
           clientId: clientId
         });
-        
+
         if (client.streamId) {
           const currentCount = Array.from(connectedClients.values())
             .filter(c => c.streamId === client.streamId).length - 1;
-            
+
           console.log("👥 Updating viewer count after leave:", {
             streamId: client.streamId,
             newCount: Math.max(0, currentCount)
           });
-          
+
           await storage.updateStreamViewerCount(client.streamId, Math.max(0, currentCount));
-          
+
           broadcastToStream(client.streamId, {
             type: 'viewer_count_update',
             count: Math.max(0, currentCount),
@@ -4911,7 +5125,7 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           userId: client.userId,
           streamerData: message.streamerData
         });
-        
+
         // إشعار جميع المشاهدين ببدء البث
         broadcastToStream(message.streamId, {
           type: 'stream_started',
@@ -4925,7 +5139,7 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           userId: client.userId,
           streamId: client.streamId
         });
-        
+
         if (client.streamId) {
           broadcastToStream(client.streamId, {
             type: 'stream_ended',
@@ -4940,10 +5154,10 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           userId: message.userId,
           role: message.role
         });
-        
+
         client.streamId = message.streamId;
         client.userId = message.userId;
-        
+
         // إرسال بيانات البث للمشاهد الجديد
         client.ws.send(JSON.stringify({
           type: 'live_stream_data',
@@ -4957,7 +5171,7 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           userId: client.userId,
           streamId: client.streamId
         });
-        
+
         client.streamId = undefined;
         client.userId = undefined;
         break;
@@ -4969,14 +5183,14 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           messageLength: message.text?.length,
           hasUser: !!message.user
         });
-        
+
         if (client.streamId && client.userId && message.text) {
           const chatMessage = await storage.addChatMessage({
             streamId: client.streamId,
             userId: client.userId,
             message: message.text,
           });
-          
+
           broadcastToStream(client.streamId, {
             type: 'chat_message',
             message: chatMessage,
@@ -4990,7 +5204,7 @@ async function handleWebSocketMessage(clientId: string, message: any) {
           });
         }
         break;
-        
+
       default:
         console.warn("⚠️ Unknown WebSocket message type:", message.type);
         break;
@@ -5009,7 +5223,7 @@ async function handleWebSocketMessage(clientId: string, message: any) {
 function broadcastToStream(streamId: number, message: any) {
   const streamClients = Array.from(connectedClients.values())
     .filter(client => client.streamId === streamId && client.ws.readyState === WebSocket.OPEN);
-  
+
   const messageStr = JSON.stringify(message);
   streamClients.forEach(client => {
     client.ws.send(messageStr);
@@ -5022,7 +5236,7 @@ async function initializeGiftCharacters() {
     if (existingCharacters.length === 0) {
       const { db } = await import("./db");
       const { giftCharacters } = await import("@shared/schema");
-      
+
       const characters = [
         { name: 'BoBo Love', emoji: '🐰💕', description: 'Rabbit with flying hearts', pointCost: 100, animationType: 'hearts' },
         { name: 'BoFire', emoji: '🐲🔥', description: 'Dragon with neon fire', pointCost: 500, animationType: 'fire' },
@@ -5030,7 +5244,7 @@ async function initializeGiftCharacters() {
         { name: 'Dodo Splash', emoji: '🦆💦', description: 'Duck with bubbles', pointCost: 250, animationType: 'bubbles' },
         { name: 'Meemo Wink', emoji: '🐱🌈', description: 'Cat with rainbow', pointCost: 750, animationType: 'rainbow_wave' },
       ];
-      
+
       for (const character of characters) {
         await db.insert(giftCharacters).values(character);
         console.log('Initialize gift character:', character.name);
