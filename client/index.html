@@ -7,35 +7,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LaaBoBo">
-    <meta name="application-name" content="LaaBoBo">
-    <meta name="msapplication-TileColor" content="#BF68FF">
-    <meta name="theme-color" content="#BF68FF">
-    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#ec4899">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png">
-    <link rel="shortcut icon" href="/icon-192x192.png">
     <title>LaaBoBo</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- Service Worker Registration for PWA -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js')
-            .then(function(registration) {
-              console.log('SW registered: ', registration);
-            })
-            .catch(function(registrationError) {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-    </script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>

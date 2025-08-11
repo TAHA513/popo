@@ -1,67 +1,27 @@
 {
-  "name": "LaaBoBo - منصة التواصل الاجتماعي والبث المباشر",
-  "short_name": "LaaBoBo",
-  "description": "منصة التواصل الاجتماعي العربية للذكريات والبث المباشر مع الهدايا والشخصيات المتحركة",
-  "id": "/",
+  "name": "LaaBoBo Live - Live Streaming Platform",
+  "short_name": "LaaBoBo Live",
+  "description": "منصة البث المباشر مع الهدايا والشخصيات المتحركة",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#000000",
-  "theme_color": "#BF68FF",
-  "categories": ["social", "entertainment", "communication"],
-  "lang": "ar",
-  "dir": "rtl",
-  "prefer_related_applications": false,
+  "background_color": "#ffffff",
+  "theme_color": "#FF69B4",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icon-512x512.png",
+      "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "إنشاء ذكرى",
-      "short_name": "ذكرى جديدة",
-      "description": "إنشاء ذكرى جديدة",
-      "url": "/create-memory",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "الرسائل",
-      "short_name": "رسائل",
-      "description": "فتح الرسائل",
-      "url": "/messages",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "البث المباشر",
-      "short_name": "البث",
-      "description": "مشاهدة البث المباشر",
-      "url": "/live-streams",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    }
-  ],
-  "protocol_handlers": [],
-  "file_handlers": []
+  "categories": ["entertainment", "social", "communication"],
+  "lang": "ar",
+  "dir": "rtl"
 }

@@ -10,7 +10,6 @@ import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
 import NotificationBell from "@/components/notification-bell";
-import { PWAInstall } from "@/components/PWAInstall";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -70,8 +69,7 @@ export default function SimpleHome() {
             </div>
             
             {/* Action Buttons - Right Side */}
-            <div className="flex items-center gap-2">{/* PWA moved to advertisements section */}
-              
+            <div className="flex items-center gap-2">
               {/* Search Button */}
               <button 
                 onClick={() => setLocation('/search')}
@@ -117,28 +115,8 @@ export default function SimpleHome() {
         <div className="h-0.5 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-60"></div>
       </div>
 
-      {/* PWA Install Advertisement */}
+      {/* Promotional Banner */}
       <div className="max-w-sm mx-auto px-2 pt-4">
-        <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 rounded-xl p-4 shadow-lg mb-4 text-white relative overflow-hidden">
-          {/* Background animation */}
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 animate-pulse"></div>
-          
-          <div className="relative z-10 flex items-center justify-between">
-            <div className="flex-1">
-              <h3 className="text-lg font-bold mb-1">📱 تثبيت التطبيق</h3>
-              <p className="text-sm opacity-90">احصل على تجربة أفضل وإشعارات فورية</p>
-            </div>
-            
-            <PWAInstall />
-          </div>
-          
-          <div className="mt-3 flex items-center gap-2 text-sm opacity-80">
-            <span>✨ تجربة أسرع</span>
-            <span>🔔 إشعارات فورية</span>
-            <span>📱 عمل بدون إنترنت</span>
-          </div>
-        </div>
-        
         <PromotionalBanner />
       </div>
 
