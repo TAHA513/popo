@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,9 +116,6 @@ export function InvitePeopleModal({ isOpen, onClose, currentChatUserId }: Invite
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">دعوة أشخاص</DialogTitle>
-          <DialogDescription className="text-center">
-            ابحث عن الأشخاص الذين تريد دعوتهم للمحادثة
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

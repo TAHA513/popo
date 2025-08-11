@@ -5,9 +5,9 @@ import path from 'path';
 
 // Backblaze B2 Cloud Storage Service
 export class BackblazeB2Service {
-  private b2: B2;
-  private bucketName: string;
-  private bucketId: string;
+  public b2: B2;
+  public bucketName: string;
+  public bucketId: string;
   private initialized = false;
 
   constructor() {
@@ -130,6 +130,72 @@ export class BackblazeB2Service {
     return `${timestamp}_${randomId}_${cleanBaseName}${ext}`;
   }
 
+  async getFileUrl(fileName: string): Promise<string | null> {
+    await this.initialize();
+    
+    try {
+      console.log(`🔍 البحث عن الملف في Backblaze B2: ${fileName}`);
+      
+      // List files to find the exact filename
+      const listResponse = await this.b2.listFileNames({
+        bucketId: this.bucketId,
+        startFileName: fileName,
+        maxFileCount: 100
+      });
+
+      const file = listResponse.data.files.find((f: any) => 
+        f.fileName.includes(fileName) || fileName.includes(f.fileName)
+      );
+      
+      if (file) {
+        // Get download URL
+        const downloadAuth = await this.b2.getDownloadAuthorization({
+          bucketId: this.bucketId,
+          fileNamePrefix: file.fileName,
+          validDurationInSeconds: 3600 // 1 hour
+        });
+        
+        const downloadUrl = `${downloadAuth.data.downloadUrl}/file/${this.bucketName}/${file.fileName}`;
+        console.log(`✅ تم العثور على الملف: ${downloadUrl}`);
+        return downloadUrl;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`❌ خطأ في البحث عن الملف: ${error}`);
+      return null;
+    }
+  }
+
+  async getFileInfo(fileName: string): Promise<any | null> {
+    await this.initialize();
+    
+    try {
+      console.log(`🔍 البحث عن معلومات الملف: ${fileName}`);
+      
+      // List files to find the exact filename
+      const listResponse = await this.b2.listFileNames({
+        bucketId: this.bucketId,
+        startFileName: fileName,
+        maxFileCount: 100
+      });
+
+      const file = listResponse.data.files.find((f: any) => 
+        f.fileName.includes(fileName) || fileName.includes(f.fileName)
+      );
+      
+      if (file) {
+        console.log(`✅ تم العثور على معلومات الملف: ${file.fileName}`);
+        return file;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`❌ خطأ في البحث عن معلومات الملف: ${error}`);
+      return null;
+    }
+  }
+
   isAvailable(): boolean {
     return !!(
       process.env.B2_APPLICATION_KEY_ID &&
@@ -137,6 +203,19 @@ export class BackblazeB2Service {
       process.env.B2_BUCKET_NAME &&
       process.env.B2_BUCKET_ID
     );
+  }
+
+  // Expose properties for routes.ts
+  get b2() {
+    return this.b2;
+  }
+
+  get bucketId() {
+    return this.bucketId;
+  }
+
+  get bucketName() {
+    return this.bucketName;
   }
 }
 
