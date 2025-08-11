@@ -4,3 +4,7 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Keep uploads directory but ignore its contents for production persistence
+uploads/*
+!uploads/.gitkeep

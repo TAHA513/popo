@@ -14,7 +14,8 @@ app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Serve local files from fallback directory for production deployments
-app.use('/media', express.static('/tmp/persistent-media', { 
+const mediaDir = process.env.NODE_ENV === 'production' ? './uploads' : '/tmp/persistent-media';
+app.use('/media', express.static(mediaDir, { 
   maxAge: '1y',
   etag: false 
 }));

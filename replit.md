@@ -22,11 +22,12 @@ LaaBoBo is an advanced Arabic-first mobile social broadcasting platform designed
 
 **التكوين المختلط:**
 - **Replit**: Object Storage (Google Cloud) `/public-objects/{filename}`
-- **Production**: Local Storage `/media/{filename}` 
+- **Production**: Local Storage `./uploads/` → `/media/{filename}` 
 - Cache: 1 year للملفات الثابتة في كلا النظامين
 - Auto-detection: `process.env.REPLIT_DEPLOYMENT` || `process.env.REPLIT_DEV_DOMAIN`
 - File Size Limit: 50MB
 - Types: Images (JPEG, PNG, GIF, WebP), Videos (MP4, WebM, MOV)
+- **حل Render**: استخدام `./uploads` بدلاً من `/tmp` للحفظ الدائم
 
 ## Architecture
 
