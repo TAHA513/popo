@@ -1556,10 +1556,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Remove test endpoint after successful testing
-  /*
-  // Test upload endpoint (no auth required)
-  app.post('/api/test-upload', upload.single('file'), async (req: any, res) => {
+  // Test upload endpoint (no auth required) - temporarily enabled for testing
+  app.post('/api/test-upload-direct', upload.single('file'), async (req: any, res) => {
     console.log('🔄 تم استلام طلب اختبار رفع ملف');
     
     try {
@@ -1597,7 +1595,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "فشل في رفع الملف: " + error.message });
     }
   });
-  */
 
   // Clear all memories (for testing purposes)
   app.delete('/api/memories/clear-all', requireAuth, async (req: any, res) => {
