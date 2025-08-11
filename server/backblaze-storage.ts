@@ -14,6 +14,13 @@ export class BackblazeB2Service {
     this.bucketName = process.env.B2_BUCKET_NAME || '';
     this.bucketId = process.env.B2_BUCKET_ID || '';
     
+    console.log('🔧 Backblaze B2 Constructor:', {
+      bucketName: this.bucketName || 'MISSING',
+      bucketId: this.bucketId ? this.bucketId.slice(0, 10) + '...' : 'MISSING',
+      keyId: process.env.B2_APPLICATION_KEY_ID ? 'PRESENT' : 'MISSING',
+      key: process.env.B2_APPLICATION_KEY ? 'PRESENT' : 'MISSING'
+    });
+    
     this.b2 = new B2({
       applicationKeyId: process.env.B2_APPLICATION_KEY_ID || '',
       applicationKey: process.env.B2_APPLICATION_KEY || ''
@@ -54,9 +61,11 @@ export class BackblazeB2Service {
         contentType: contentType
       });
 
-      const publicUrl = `https://f${this.bucketId.slice(0, 3)}.backblazeb2.com/file/${this.bucketName}/${fileName}`;
+      // استخدام الرابط المُرجع من Backblaze بدلاً من تكوينه يدوياً
+      const publicUrl = uploadResponse.data.downloadUrl || 
+        `https://f${this.bucketId.slice(0, 3)}.backblazeb2.com/file/${this.bucketName}/${fileName}`;
       
-      console.log(`✅ File uploaded successfully: ${fileName}`);
+      console.log(`✅ File uploaded successfully: ${fileName} -> ${publicUrl}`);
       return publicUrl;
       
     } catch (error) {
@@ -105,12 +114,28 @@ export class BackblazeB2Service {
   }
 
   isAvailable(): boolean {
-    return !!(
+    const available = !!(
       process.env.B2_APPLICATION_KEY_ID &&
       process.env.B2_APPLICATION_KEY &&
       process.env.B2_BUCKET_NAME &&
       process.env.B2_BUCKET_ID
     );
+    
+    if (!available) {
+      console.log('🚫 Backblaze B2 not available - missing credentials:', {
+        keyId: !!process.env.B2_APPLICATION_KEY_ID,
+        key: !!process.env.B2_APPLICATION_KEY,
+        bucketName: !!process.env.B2_BUCKET_NAME,
+        bucketId: !!process.env.B2_BUCKET_ID
+      });
+    } else {
+      console.log('✅ Backblaze B2 credentials available:', {
+        bucketName: this.bucketName,
+        bucketId: this.bucketId ? this.bucketId.slice(0, 10) + '...' : 'undefined'
+      });
+    }
+    
+    return available;
   }
 }
 

@@ -175,6 +175,10 @@ function cleanupUserTokens(userId: string): number {
 import { uploadFileToStorage, generateUniqueFileName, deleteFileFromStorage } from './object-storage';
 import { Storage } from '@google-cloud/storage';
 import { UrlHandler } from './utils/url-handler';
+import { backblazeService } from './backblaze-storage';
+import pkg from 'pg';
+const { Pool } = pkg;
+
 
 // Object Storage client for file serving (Replit only)
 const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
@@ -1555,6 +1559,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       searchedPaths: possiblePaths.length,
       objectStorage: !!objectStorageClient
     });
+  });
+
+  // Debug endpoint to check memory data structure
+  app.get('/api/debug-memory/:id', async (req, res) => {
+    try {
+      const memoryId = parseInt(req.params.id);
+      const memory = await storage.getMemoryFragmentById(memoryId);
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.json({
+        id: memory?.id,
+        raw_mediaUrls: memory?.mediaUrls || [],
+        raw_thumbnailUrl: memory?.thumbnailUrl || null,
+        processed_mediaUrls: memory?.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
+        processed_thumbnailUrl: memory?.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
+        backblaze_status: {
+          available: backblazeService.isAvailable(),
+          bucket_name: process.env.B2_BUCKET_NAME || 'undefined',
+          bucket_id: process.env.B2_BUCKET_ID ? process.env.B2_BUCKET_ID.slice(0, 10) + '...' : 'undefined'
+        },
+        has_undefined_urls: memory?.mediaUrls?.some(url => url.includes('undefined/file/')) || 
+                        (memory?.thumbnailUrl && memory.thumbnailUrl.includes('undefined/file/')) || false
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // إصلاح ذكرية محددة تحتوي على undefined URLs
+  app.post('/api/debug/fix-memory/:id', async (req, res) => {
+    try {
+      const memoryId = parseInt(req.params.id);
+      console.log(`🔧 بدء إصلاح Memory ID ${memoryId}...`);
+      
+      const memory = await storage.getMemoryFragmentById(memoryId);
+      if (!memory) {
+        return res.status(404).json({ error: 'Memory not found' });
+      }
+      
+      let needsUpdate = false;
+      let newMediaUrls = [...(memory.mediaUrls || [])];
+      let newThumbnailUrl = memory.thumbnailUrl;
+      
+      // إصلاح mediaUrls
+      for (let i = 0; i < newMediaUrls.length; i++) {
+        if (newMediaUrls[i].includes('undefined/file/laabobo/')) {
+          const filename = newMediaUrls[i].split('/').pop();
+          if (filename) {
+            newMediaUrls[i] = `https://fb49.backblazeb2.com/file/laabobo/${filename}`;
+            needsUpdate = true;
+            console.log(`✅ Fixed mediaUrl[${i}]: ${filename}`);
+          }
+        }
+      }
+      
+      // إصلاح thumbnailUrl
+      if (newThumbnailUrl && newThumbnailUrl.includes('undefined/file/laabobo/')) {
+        const filename = newThumbnailUrl.split('/').pop();
+        if (filename) {
+          newThumbnailUrl = `https://fb49.backblazeb2.com/file/laabobo/${filename}`;
+          needsUpdate = true;
+          console.log(`✅ Fixed thumbnailUrl: ${filename}`);
+        }
+      }
+      
+      if (needsUpdate) {
+        // تحديث الذكرية باستخدام SQL مباشر
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+        
+        await pool.query(
+          'UPDATE memory_fragments SET media_urls = $1, thumbnail_url = $2, updated_at = NOW() WHERE id = $3',
+          [JSON.stringify(newMediaUrls), newThumbnailUrl, memory.id]
+        );
+        
+        await pool.end();
+        
+        res.json({
+          success: true,
+          message: `تم إصلاح Memory ID ${memoryId}`,
+          before: {
+            mediaUrls: memory.mediaUrls,
+            thumbnailUrl: memory.thumbnailUrl
+          },
+          after: {
+            mediaUrls: newMediaUrls,
+            thumbnailUrl: newThumbnailUrl
+          }
+        });
+      } else {
+        res.json({
+          success: false,
+          message: `Memory ID ${memoryId} لا يحتاج إصلاح`,
+          urls: {
+            mediaUrls: memory.mediaUrls,
+            thumbnailUrl: memory.thumbnailUrl
+          }
+        });
+      }
+    } catch (error) {
+      console.error('❌ خطأ في إصلاح Memory:', error);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // Test upload endpoint (no auth required) - temporarily enabled for testing
