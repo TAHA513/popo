@@ -170,24 +170,37 @@ function cleanupUserTokens(userId: string): number {
 import { uploadBufferToStorage, generateUniqueFileName, deleteFileFromStorage } from './object-storage';
 import { Storage } from '@google-cloud/storage';
 
-// Object Storage client for file serving
-const objectStorageClient = new Storage({
-  credentials: {
-    audience: "replit",
-    subject_token_type: "access_token",
-    token_url: "http://127.0.0.1:1106/token",
-    type: "external_account",
-    credential_source: {
-      url: "http://127.0.0.1:1106/credential",
-      format: {
-        type: "json",
-        subject_token_field_name: "access_token",
+// Object Storage client for file serving (Replit only)
+const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
+let objectStorageClient: Storage | null = null;
+
+if (IS_REPLIT) {
+  try {
+    objectStorageClient = new Storage({
+      credentials: {
+        audience: "replit",
+        subject_token_type: "access_token",
+        token_url: "http://127.0.0.1:1106/token",
+        type: "external_account",
+        credential_source: {
+          url: "http://127.0.0.1:1106/credential",
+          format: {
+            type: "json",
+            subject_token_field_name: "access_token",
+          },
+        },
+        universe_domain: "googleapis.com",
       },
-    },
-    universe_domain: "googleapis.com",
-  },
-  projectId: "",
-});
+      projectId: "",
+    });
+    console.log('🔧 Object Storage client configured for file serving');
+  } catch (error) {
+    console.log('⚠️ Object Storage not available for file serving');
+    objectStorageClient = null;
+  }
+} else {
+  console.log('🔧 Using local file serving for production deployment');
+}
 
 // Configure multer for file uploads using memory storage for Object Storage
 const upload = multer({
@@ -1279,48 +1292,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Object Storage file serving endpoint
+  // Object Storage file serving endpoint with fallback
   app.get('/public-objects/:filename', async (req, res) => {
-    try {
-      const filename = req.params.filename;
-      console.log(`🔍 طلب ملف من Object Storage: ${filename}`);
-      
-      const bucket = objectStorageClient.bucket('replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16');
-      const file = bucket.file(`public/${filename}`);
-      
-      // Check if file exists
-      const [exists] = await file.exists();
-      if (!exists) {
-        console.log(`❌ الملف غير موجود: ${filename}`);
-        return res.status(404).json({ error: 'File not found' });
-      }
-      
-      // Get file metadata
-      const [metadata] = await file.getMetadata();
-      
-      // Set appropriate headers
-      res.set({
-        'Content-Type': metadata.contentType || 'application/octet-stream',
-        'Cache-Control': 'public, max-age=31536000',
-        'Content-Length': metadata.size
-      });
-      
-      // Stream the file
-      const stream = file.createReadStream();
-      stream.on('error', (error) => {
-        console.error('❌ خطأ في streaming الملف:', error);
-        if (!res.headersSent) {
-          res.status(500).json({ error: 'Error streaming file' });
+    const filename = req.params.filename;
+    console.log(`🔍 طلب ملف: ${filename}`);
+    
+    const IS_REPLIT = process.env.REPLIT_DEPLOYMENT === "1" || process.env.REPLIT_DEV_DOMAIN;
+    
+    if (objectStorageClient && IS_REPLIT) {
+      try {
+        const bucket = objectStorageClient.bucket('replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16');
+        const file = bucket.file(`public/${filename}`);
+        
+        // Check if file exists
+        const [exists] = await file.exists();
+        if (!exists) {
+          console.log(`❌ الملف غير موجود في Object Storage: ${filename}`);
+          return res.status(404).json({ error: 'File not found' });
         }
-      });
-      
-      stream.pipe(res);
-      console.log(`✅ تم تقديم الملف بنجاح: ${filename}`);
-      
-    } catch (error) {
-      console.error('❌ خطأ في خدمة الملف:', error);
-      res.status(500).json({ error: 'Internal server error' });
+        
+        // Get file metadata
+        const [metadata] = await file.getMetadata();
+        
+        // Set appropriate headers
+        res.set({
+          'Content-Type': metadata.contentType || 'application/octet-stream',
+          'Cache-Control': 'public, max-age=31536000',
+          'Content-Length': metadata.size
+        });
+        
+        // Stream the file
+        const stream = file.createReadStream();
+        stream.on('error', (error) => {
+          console.error('❌ خطأ في streaming من Object Storage:', error);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Error streaming file' });
+          }
+        });
+        
+        stream.pipe(res);
+        console.log(`✅ تم تقديم الملف من Object Storage: ${filename}`);
+        return;
+        
+      } catch (error) {
+        console.error('❌ خطأ في Object Storage، التبديل إلى الملفات المحلية:', error);
+      }
     }
+    
+    // Fallback: redirect to local media endpoint
+    console.log(`🔄 إعادة توجيه إلى الملفات المحلية: ${filename}`);
+    res.redirect(`/media/${filename}`);
   });
 
   // Memory fragments routes
