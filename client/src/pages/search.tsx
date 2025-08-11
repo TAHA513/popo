@@ -205,18 +205,7 @@ export default function SearchPage() {
                                   <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
                                       {user.profileImageUrl ? (
-                                        <img 
-                                          src={user.profileImageUrl} 
-                                          alt={user.username || "صورة المستخدم"} 
-                                          className="w-full h-full object-cover"
-                                          onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            const parentDiv = e.currentTarget.parentElement;
-                                            if (parentDiv) {
-                                              parentDiv.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-purple-100"><svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path></svg></div>';
-                                            }
-                                          }}
-                                        />
+                                        <img src={user.profileImageUrl} alt={user.username} className="w-full h-full object-cover" />
                                       ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-purple-100">
                                           <Users className="w-6 h-6 text-purple-500" />
@@ -308,18 +297,7 @@ export default function SearchPage() {
                             <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
                                 {user.profileImageUrl ? (
-                                  <img 
-                                    src={user.profileImageUrl} 
-                                    alt={user.username || "صورة المستخدم"} 
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                      const parentDiv = e.currentTarget.parentElement;
-                                      if (parentDiv) {
-                                        parentDiv.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-purple-100"><svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path></svg></div>';
-                                      }
-                                    }}
-                                  />
+                                  <img src={user.profileImageUrl} alt={user.username} className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-purple-100">
                                     <Users className="w-6 h-6 text-purple-500" />
