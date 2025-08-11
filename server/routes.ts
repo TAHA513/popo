@@ -275,18 +275,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Unified media serving endpoint - works for both environments
+  // Enhanced unified media serving endpoint - cross-environment support
   app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
     const filename = req.params.filename;
+    console.log(`🔍 طلب ملف: ${filename} من البيئة: ${IS_REPLIT ? 'Replit' : 'Production'}`);
 
-    // Try Object Storage first (Replit)
-    if (objectStorageClient && IS_REPLIT) {
+    // Strategy 1: Try Object Storage first (works in any environment if configured)
+    if (objectStorageClient) {
       try {
         const bucket = objectStorageClient.bucket(BUCKET_NAME);
         const file = bucket.file(`public/${filename}`);
 
         const [exists] = await file.exists();
         if (exists) {
+          console.log(`✅ الملف موجود في Object Storage: ${filename}`);
           const [metadata] = await file.getMetadata();
           const stream = file.createReadStream();
 
@@ -298,18 +300,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           return stream.pipe(res);
+        } else {
+          console.log(`❌ الملف غير موجود في Object Storage: ${filename}`);
         }
       } catch (error) {
-        console.error('Error accessing Object Storage:', error);
+        console.error('❌ خطأ في الوصول لـ Object Storage:', error?.message);
       }
+    } else {
+      console.log('⚠️ Object Storage غير متوفر');
     }
 
-    // Fallback to local file serving (Render or local development)
+    // Strategy 2: Try local file serving with extended paths
     const possiblePaths = [
+      // Current environment paths
       path.join(FALLBACK_MEDIA_DIR, filename),
       path.join(process.cwd(), 'public', 'media', filename),
-      path.join(process.cwd(), 'uploads', filename)
+      path.join(process.cwd(), 'uploads', filename),
+      // Legacy paths for backward compatibility
+      path.join('/tmp', 'persistent-media', filename),
+      path.join(process.cwd(), 'tmp', 'persistent-media', filename),
+      // Alternative paths
+      path.join(process.cwd(), 'dist', 'public', 'media', filename),
+      path.join(process.cwd(), 'client', 'public', 'media', filename)
     ];
+
+    console.log(`🔍 البحث في ${possiblePaths.length} مسار محتمل...`);
 
     for (const filePath of possiblePaths) {
       try {
@@ -325,6 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         else if (ext === '.mp4') contentType = 'video/mp4';
         else if (ext === '.webm') contentType = 'video/webm';
 
+        console.log(`✅ الملف موجود محلياً: ${filePath}`);
+
         res.set({
           'Content-Type': contentType,
           'Content-Length': stats.size.toString(),
@@ -335,13 +352,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.sendFile(path.resolve(filePath));
       } catch (error) {
-        continue; // Try next path
+        // Continue to next path
+        continue;
+      }
+    }
+
+    // Strategy 3: Try to proxy from other environment (experimental)
+    if (!IS_REPLIT) {
+      try {
+        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
+        const replitUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+
+        const response = await axios.get(replitUrl, {
+          timeout: 10000,
+          responseType: 'stream',
+          headers: {
+            'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0'
+          }
+        });
+
+        if (response.status === 200) {
+          console.log(`✅ الملف مُستلم من Replit: ${filename}`);
+
+          res.set({
+            'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+            'X-Source': 'replit-proxy'
+          });
+
+          return response.data.pipe(res);
+        }
+      } catch (proxyError) {
+        console.log(`❌ فشل في proxy الملف من Replit: ${proxyError?.message}`);
       }
     }
 
     // If no file found anywhere
-    console.log(`📁 File not found in any location: ${filename}`);
-    res.status(404).json({ error: 'File not found' });
+    console.log(`❌ الملف غير موجود في أي مكان: ${filename}`);
+    res.status(404).json({ 
+      error: 'File not found',
+      filename: filename,
+      environment: IS_REPLIT ? 'replit' : 'production',
+      searchedPaths: possiblePaths.length,
+      objectStorage: !!objectStorageClient
+    });
   });
 
   // Media Proxy Route - حل مشكلة CORS للوسائط الخارجية
@@ -816,7 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get album media content
+  // Get album media
   app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
@@ -1380,18 +1435,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Object Storage file serving endpoint with fallback
-  // Unified media serving endpoint - works for both environments
+  // Enhanced unified media serving endpoint - cross-environment support
   app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
     const filename = req.params.filename;
+    console.log(`🔍 طلب ملف: ${filename} من البيئة: ${IS_REPLIT ? 'Replit' : 'Production'}`);
 
-    // Try Object Storage first (Replit)
-    if (objectStorageClient && IS_REPLIT) {
+    // Strategy 1: Try Object Storage first (works in any environment if configured)
+    if (objectStorageClient) {
       try {
         const bucket = objectStorageClient.bucket(BUCKET_NAME);
         const file = bucket.file(`public/${filename}`);
 
         const [exists] = await file.exists();
         if (exists) {
+          console.log(`✅ الملف موجود في Object Storage: ${filename}`);
           const [metadata] = await file.getMetadata();
           const stream = file.createReadStream();
 
@@ -1403,18 +1460,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           return stream.pipe(res);
+        } else {
+          console.log(`❌ الملف غير موجود في Object Storage: ${filename}`);
         }
       } catch (error) {
-        console.error('Error accessing Object Storage:', error);
+        console.error('❌ خطأ في الوصول لـ Object Storage:', error?.message);
       }
+    } else {
+      console.log('⚠️ Object Storage غير متوفر');
     }
 
-    // Fallback to local file serving (Render or local development)
+    // Strategy 2: Try local file serving with extended paths
     const possiblePaths = [
+      // Current environment paths
       path.join(FALLBACK_MEDIA_DIR, filename),
       path.join(process.cwd(), 'public', 'media', filename),
-      path.join(process.cwd(), 'uploads', filename)
+      path.join(process.cwd(), 'uploads', filename),
+      // Legacy paths for backward compatibility
+      path.join('/tmp', 'persistent-media', filename),
+      path.join(process.cwd(), 'tmp', 'persistent-media', filename),
+      // Alternative paths
+      path.join(process.cwd(), 'dist', 'public', 'media', filename),
+      path.join(process.cwd(), 'client', 'public', 'media', filename)
     ];
+
+    console.log(`🔍 البحث في ${possiblePaths.length} مسار محتمل...`);
 
     for (const filePath of possiblePaths) {
       try {
@@ -1430,6 +1500,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         else if (ext === '.mp4') contentType = 'video/mp4';
         else if (ext === '.webm') contentType = 'video/webm';
 
+        console.log(`✅ الملف موجود محلياً: ${filePath}`);
+
         res.set({
           'Content-Type': contentType,
           'Content-Length': stats.size.toString(),
@@ -1440,13 +1512,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.sendFile(path.resolve(filePath));
       } catch (error) {
-        continue; // Try next path
+        // Continue to next path
+        continue;
+      }
+    }
+
+    // Strategy 3: Try to proxy from other environment (experimental)
+    if (!IS_REPLIT) {
+      try {
+        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
+        const replitUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+
+        const response = await axios.get(replitUrl, {
+          timeout: 10000,
+          responseType: 'stream',
+          headers: {
+            'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0'
+          }
+        });
+
+        if (response.status === 200) {
+          console.log(`✅ الملف مُستلم من Replit: ${filename}`);
+
+          res.set({
+            'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+            'X-Source': 'replit-proxy'
+          });
+
+          return response.data.pipe(res);
+        }
+      } catch (proxyError) {
+        console.log(`❌ فشل في proxy الملف من Replit: ${proxyError?.message}`);
       }
     }
 
     // If no file found anywhere
-    console.log(`📁 File not found in any location: ${filename}`);
-    res.status(404).json({ error: 'File not found' });
+    console.log(`❌ الملف غير موجود في أي مكان: ${filename}`);
+    res.status(404).json({ 
+      error: 'File not found',
+      filename: filename,
+      environment: IS_REPLIT ? 'replit' : 'production',
+      searchedPaths: possiblePaths.length,
+      objectStorage: !!objectStorageClient
+    });
   });
 
   // Memory fragments routes
@@ -1461,7 +1571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Process uploaded files using Object Storage
       const mediaUrls: string[] = [];
-      
+
       for (const file of files) {
         // Generate unique filename
         const uniqueFileName = generateUniqueFileName(file.originalname);
