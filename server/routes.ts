@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
 import { sql } from "drizzle-orm";
-import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema, messages, blockedUsers } from "@shared/schema";
+import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema, messages } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, desc, ne } from "drizzle-orm";
 import { db } from "./db";
@@ -31,7 +31,6 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { UrlHandler } from './utils/url-handler';
 import cors from 'cors';
-import { BackblazeService } from './services/backblaze-service';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,9 +38,6 @@ const __dirname = dirname(__filename);
 // Constants for media serving
 const BUCKET_NAME = 'replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16'; // Replit's default bucket name
 const FALLBACK_MEDIA_DIR = path.join(__dirname, 'public', 'media'); // Local directory for media files
-
-// Initialize Backblaze Service
-const backblazeService = new BackblazeService();
 
 // Security functions for ZegoCloud protection
 const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
@@ -280,74 +276,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Enhanced unified media serving endpoint - Backblaze B2 Priority
+  // Enhanced unified media serving endpoint - cross-environment support
   app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
     const filename = req.params.filename;
-    console.log(`🔍 طلب ملف من Backblaze B2: ${filename}`);
+    console.log(`🔍 طلب ملف: ${filename} من البيئة: ${IS_REPLIT ? 'Replit' : 'Production'}`);
 
-    // Strategy 1: Try Backblaze B2 first (Priority)
-    if (backblazeService.isAvailable()) {
-      try {
-        console.log(`🔄 جلب من Backblaze B2: ${filename}`);
-
-        // Try to get file info from Backblaze B2
-        await backblazeService.initialize();
-        const b2 = backblazeService.b2;
-
-        // List files to find the exact filename
-        const listResponse = await b2.listFileNames({
-          bucketId: process.env.B2_BUCKET_ID,
-          startFileName: filename,
-          maxFileCount: 10
-        });
-
-        const file = listResponse.data.files.find((f: any) => f.fileName === filename);
-        if (file) {
-          console.log(`✅ الملف موجود في Backblaze B2: ${filename}`);
-
-          // Get download URL
-          const downloadAuth = await b2.getDownloadAuthorization({
-            bucketId: process.env.B2_BUCKET_ID,
-            fileNamePrefix: filename,
-            validDurationInSeconds: 3600 // 1 hour
-          });
-
-          const b2Url = `${downloadAuth.data.downloadUrl}/file/${process.env.B2_BUCKET_NAME}/${filename}`;
-
-          // Proxy the file from Backblaze B2
-          const response = await axios.get(b2Url, {
-            responseType: 'stream',
-            timeout: 30000
-          });
-
-          if (response.status === 200) {
-            const ext = path.extname(filename).toLowerCase();
-            let contentType = 'application/octet-stream';
-            if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
-            else if (ext === '.png') contentType = 'image/png';
-            else if (ext === '.gif') contentType = 'image/gif';
-            else if (ext === '.webp') contentType = 'image/webp';
-            else if (ext === '.mp4') contentType = 'video/mp4';
-            else if (ext === '.webm') contentType = 'video/webm';
-
-            res.set({
-              'Content-Type': response.headers['content-type'] || contentType,
-              'Cache-Control': 'public, max-age=86400',
-              'Access-Control-Allow-Origin': '*',
-              'X-Source': 'backblaze-b2'
-            });
-
-            return response.data.pipe(res);
-          }
-        } else {
-          console.log(`❌ الملف غير موجود في Backblaze B2: ${filename}`);
-        }
-      } catch (error) {
-        console.error('❌ خطأ في Backblaze B2:', error?.message);
-      }
-    }
-
-    // Strategy 2: Try Object Storage as backup (if available)
+    // Strategy 1: Try Object Storage first (works in any environment if configured)
     if (objectStorageClient) {
       try {
         const bucket = objectStorageClient.bucket(BUCKET_NAME);
@@ -367,18 +301,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           return stream.pipe(res);
+        } else {
+          console.log(`❌ الملف غير موجود في Object Storage: ${filename}`);
         }
       } catch (error) {
-        console.error('❌ خطأ في Object Storage:', error?.message);
+        console.error('❌ خطأ في الوصول لـ Object Storage:', error?.message);
       }
+    } else {
+      console.log('⚠️ Object Storage غير متوفر');
     }
 
-    // Strategy 3: Local files as last resort
+    // Strategy 2: Try local file serving with extended paths
     const possiblePaths = [
+      // Current environment paths
       path.join(FALLBACK_MEDIA_DIR, filename),
       path.join(process.cwd(), 'public', 'media', filename),
-      path.join(process.cwd(), 'uploads', filename)
+      path.join(process.cwd(), 'uploads', filename),
+      // Legacy paths for backward compatibility
+      path.join('/tmp', 'persistent-media', filename),
+      path.join(process.cwd(), 'tmp', 'persistent-media', filename),
+      // Alternative paths
+      path.join(process.cwd(), 'dist', 'public', 'media', filename),
+      path.join(process.cwd(), 'client', 'public', 'media', filename)
     ];
+
+    console.log(`🔍 البحث في ${possiblePaths.length} مسار محتمل...`);
 
     for (const filePath of possiblePaths) {
       try {
@@ -406,16 +353,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.sendFile(path.resolve(filePath));
       } catch (error) {
+        // Continue to next path
         continue;
       }
     }
 
+    // Strategy 3: Try to proxy from other environment (experimental)
+    if (!IS_REPLIT) {
+      try {
+        console.log(`🔄 محاولة الحصول على الملف من Replit...`);
+        const replitUrl = `https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/${filename}`;
+
+        const response = await axios.get(replitUrl, {
+          timeout: 10000,
+          responseType: 'stream',
+          headers: {
+            'User-Agent': 'LaaBoBo-Cross-Environment-Proxy/1.0'
+          }
+        });
+
+        if (response.status === 200) {
+          console.log(`✅ الملف مُستلم من Replit: ${filename}`);
+
+          res.set({
+            'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+            'X-Source': 'replit-proxy'
+          });
+
+          return response.data.pipe(res);
+        }
+      } catch (proxyError) {
+        console.log(`❌ فشل في proxy الملف من Replit: ${proxyError?.message}`);
+      }
+    }
+
     // If no file found anywhere
-    console.log(`❌ الملف غير موجود في جميع أنظمة التخزين: ${filename}`);
+    console.log(`❌ الملف غير موجود في أي مكان: ${filename}`);
     res.status(404).json({ 
       error: 'File not found',
       filename: filename,
-      backblazeAvailable: backblazeService.isAvailable(),
+      environment: IS_REPLIT ? 'replit' : 'production',
+      searchedPaths: possiblePaths.length,
       objectStorage: !!objectStorageClient
     });
   });
@@ -821,16 +801,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "معرف الألبوم غير صحيح" });
       }
 
-      // Check if user already has access
-      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
-      if (hasAccess) {
-        return res.status(400).json({ message: "لديك وصول للألبوم بالفعل" });
-      }
-
       // Get album details
       const album = await storage.getPremiumAlbum(albumId);
       if (!album) {
         return res.status(404).json({ message: "الألبوم غير موجود" });
+      }
+
+      // Check if user already has access
+      const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
+      if (hasAccess) {
+        return res.status(400).json({ message: "لديك وصول للألبوم بالفعل" });
       }
 
       // Get gift details to calculate actual cost
@@ -893,7 +873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get album media
-  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req, res) => {
+  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -905,7 +885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has access to this album
       const hasAccess = await storage.checkPremiumAlbumAccess(albumId, userId);
       if (!hasAccess) {
-        return res.status(403).json({ message: "يجب شراء الألبوم أولاً لعرض المحتوى" });
+        return res.status(403).json({ message: "ليس لديك إذن لعرض محتويات هذا الألبوم" });
       }
 
       // Get album media
@@ -914,6 +894,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching album media:", error);
       res.status(500).json({ message: "فشل في جلب محتويات الألبوم" });
+    }
+  });
+
+  // Test block status endpoint  
+  app.get('/api/test-block/:userId', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.id;
+      const targetUserId = req.params.userId;
+
+      const [blockCheck] = await db
+        .select()
+        .from(blockedUsers)
+        .where(
+          and(
+            eq(blockedUsers.blockerId, currentUserId),
+            eq(blockedUsers.blockedId, targetUserId)
+          )
+        );
+
+      const [reverseBlockCheck] = await db
+        .select()
+        .from(blockedUsers)
+        .where(
+          and(
+            eq(blockedUsers.blockerId, targetUserId),
+            eq(blockedUsers.blockedId, currentUserId)
+          )
+        );
+
+      res.json({
+        youBlockedThem: !!blockCheck,
+        theyBlockedYou: !!reverseBlockCheck,
+        canSendMessage: !blockCheck && !reverseBlockCheck
+      });
+    } catch (error) {
+      console.error("Error checking block status:", error);
+      res.status(500).json({ message: "فشل في فحص حالة البلوك" });
     }
   });
 
@@ -1544,27 +1561,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/media/b2/:filename', async (req, res) => {
     const filename = req.params.filename;
     console.log(`🔍 طلب ملف Backblaze B2: ${filename}`);
-
+    
     try {
       if (backblazeService.isAvailable()) {
         // بناء URL الصحيح للـ B2
         const b2Url = `https://f${process.env.B2_BUCKET_ID?.slice(0, 3)}.backblazeb2.com/file/${process.env.B2_BUCKET_NAME}/${filename}`;
-
+        
         console.log(`🔗 جلب من B2: ${b2Url}`);
-
+        
         // Proxy request to B2
         const response = await fetch(b2Url);
         if (response.ok) {
           const contentType = response.headers.get('content-type') || 'application/octet-stream';
           res.set('Content-Type', contentType);
           res.set('Cache-Control', 'public, max-age=86400'); // 24 hours
-
+          
           const buffer = await response.arrayBuffer();
           res.send(Buffer.from(buffer));
           return;
         }
       }
-
+      
       res.status(404).json({ error: 'File not found in Backblaze B2' });
     } catch (error) {
       console.error(`❌ خطأ في جلب ملف B2: ${filename}`, error);
@@ -1575,17 +1592,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test upload endpoint (no auth required) - temporarily enabled for testing
   app.post('/api/test-upload-direct', upload.single('file'), async (req: any, res) => {
     console.log('🔄 تم استلام طلب اختبار رفع ملف');
-
+    
     try {
       const file = req.file;
-
+      
       if (!file) {
         console.log('❌ لم يتم رفع أي ملف');
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
       console.log(`🔄 اختبار رفع ملف: ${file.originalname}, الحجم: ${file.size} bytes`);
-
+      
       // Upload to storage (Backblaze B2 → Replit Object Storage → Local Files)
       const uploadResult = await uploadFileToStorage(
         file.buffer,
@@ -1594,7 +1611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       console.log(`✅ تم اختبار رفع الملف بنجاح عبر ${uploadResult.storageType}: ${uploadResult.publicUrl}`);
-
+      
       const response = {
         success: true,
         filename: uploadResult.filename,
@@ -1602,10 +1619,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storageType: uploadResult.storageType,
         message: `تم رفع الملف بنجاح عبر ${uploadResult.storageType}`
       };
-
+      
       console.log('📤 إرسال الرد:', JSON.stringify(response, null, 2));
       res.json(response);
-
+      
     } catch (error) {
       console.error('❌ خطأ في اختبار رفع الملف:', error);
       res.status(500).json({ message: "فشل في رفع الملف: " + error.message });
@@ -1616,7 +1633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/memories/clear-all', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-
+      
       // Only allow admin or specific user to clear all memories
       if (userId === 'Q4C26soOmXkaJSnbrRGXi') {
         await storage.clearAllMemories();
@@ -2888,7 +2905,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check user has enough points
       const user = await storage.getUser(currentUserId);
-      if (!user || !user.points || user.points < photo.accessPrice) {
+      if (!user || user.points < photo.accessPrice) {
         return res.status(400).json({ message: "ليس لديك نقاط كافية" });
       }
 
