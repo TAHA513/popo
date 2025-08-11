@@ -31,7 +31,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { UrlHandler } from './utils/url-handler';
 import cors from 'cors';
-import { BackblazeService } from './services/backblaze-service'; // Import BackblazeService
+import { BackblazeService } from './services/backblaze-service';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
