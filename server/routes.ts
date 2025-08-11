@@ -1556,6 +1556,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Clear all memories (for testing purposes)
+  app.delete('/api/memories/clear-all', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Only allow admin or specific user to clear all memories
+      if (userId === 'Q4C26soOmXkaJSnbrRGXi') {
+        await storage.clearAllMemories();
+        res.json({ success: true, message: 'تم حذف جميع الذكريات بنجاح' });
+      } else {
+        res.status(403).json({ message: 'غير مسموح' });
+      }
+    } catch (error) {
+      console.error('Error clearing memories:', error);
+      res.status(500).json({ message: 'خطأ في حذف الذكريات' });
+    }
+  });
+
   // Memory fragments routes
   app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {

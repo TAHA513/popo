@@ -858,6 +858,11 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // Clear all memories (for testing)
+  async clearAllMemories(): Promise<void> {
+    await db.delete(memoryFragments);
+  }
+
   // Memory Fragment operations
   async createMemoryFragment(fragmentData: InsertMemoryFragment): Promise<MemoryFragment> {
     // Calculate expiration based on memory type
