@@ -10,7 +10,7 @@ import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
 import NotificationBell from "@/components/notification-bell";
-import { PWAInstall } from "@/components/PWAInstall";
+import { AppShortcut } from "@/components/AppShortcut";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -129,7 +129,7 @@ export default function SimpleHome() {
               <p className="text-sm opacity-90">احصل على تجربة أفضل وإشعارات فورية</p>
             </div>
             
-            <PWAInstall />
+            <AppShortcut />
           </div>
           
           <div className="mt-3 flex items-center gap-2 text-sm opacity-80">
