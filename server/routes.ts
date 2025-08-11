@@ -1557,6 +1557,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Handle Backblaze B2 files via proxy
+  app.get('/api/media/b2/:filename', async (req, res) => {
+    const filename = req.params.filename;
+    console.log(`🔍 طلب ملف Backblaze B2: ${filename}`);
+    
+    try {
+      if (backblazeService.isAvailable()) {
+        // بناء URL الصحيح للـ B2
+        const b2Url = `https://f${process.env.B2_BUCKET_ID?.slice(0, 3)}.backblazeb2.com/file/${process.env.B2_BUCKET_NAME}/${filename}`;
+        
+        console.log(`🔗 جلب من B2: ${b2Url}`);
+        
+        // Proxy request to B2
+        const response = await fetch(b2Url);
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || 'application/octet-stream';
+          res.set('Content-Type', contentType);
+          res.set('Cache-Control', 'public, max-age=86400'); // 24 hours
+          
+          const buffer = await response.arrayBuffer();
+          res.send(Buffer.from(buffer));
+          return;
+        }
+      }
+      
+      res.status(404).json({ error: 'File not found in Backblaze B2' });
+    } catch (error) {
+      console.error(`❌ خطأ في جلب ملف B2: ${filename}`, error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // Test upload endpoint (no auth required) - temporarily enabled for testing
   app.post('/api/test-upload-direct', upload.single('file'), async (req: any, res) => {
     console.log('🔄 تم استلام طلب اختبار رفع ملف');

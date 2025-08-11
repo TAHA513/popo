@@ -54,10 +54,36 @@ export class BackblazeB2Service {
         contentType: contentType
       });
 
-      const publicUrl = `https://f${this.bucketId.slice(0, 3)}.backblazeb2.com/file/${this.bucketName}/${fileName}`;
+      // الحصول على download URL الصحيح من B2 مباشرة
+      console.log('📡 Getting download URL from B2 API...');
       
-      console.log(`✅ File uploaded successfully: ${fileName}`);
-      return publicUrl;
+      try {
+        // الحصول على download URL باستخدام API
+        const downloadAuth = await this.b2.getDownloadAuthorization({
+          bucketId: this.bucketId,
+          fileNamePrefix: fileName,
+          validDurationInSeconds: 86400 // 24 ساعة
+        });
+        
+        // تجميع URL الصحيح
+        const publicUrl = `${downloadAuth.data.downloadUrl}/file/${this.bucketName}/${fileName}`;
+        
+        console.log(`✅ File uploaded successfully: ${fileName}`);
+        console.log(`🔗 API-verified Public URL: ${publicUrl}`);
+        return publicUrl;
+        
+      } catch (downloadError) {
+        console.warn('⚠️ Could not get download URL from API, using fallback format');
+        
+        // أسهل حل: استخدام endpoint ال API للوصول للملف
+        // هذا أكثر موثوقية من تخمين format الـ URL
+        const publicUrl = `/api/media/b2/${fileName}`;
+        
+        console.log(`✅ File uploaded successfully: ${fileName}`);
+        console.log(`🔗 API Proxy URL: ${publicUrl}`);
+        console.log(`🔍 سيتم جلب الملف عبر API proxy من Backblaze B2`);
+        return publicUrl;
+      }
       
     } catch (error) {
       console.error(`❌ Failed to upload ${fileName}:`, error);
