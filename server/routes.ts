@@ -31,7 +31,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { UrlHandler } from './utils/url-handler';
 import cors from 'cors';
-import { BackblazeService } from './services/backblaze-b2';
+import { BackblazeB2Service } from './backblaze-storage';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,7 +42,7 @@ const FALLBACK_MEDIA_DIR = path.join(__dirname, 'public', 'media'); // Local dir
 const PUBLIC_DIR = 'public'; // Directory for publicly accessible files
 
 // Initialize Backblaze B2 service
-const backblazeService = new BackblazeService();
+const backblazeService = new BackblazeB2Service();
 
 // Security functions for ZegoCloud protection
 const secureTokens = new Map<string, { token: string; expires: number; userId: string }>();
