@@ -13,41 +13,8 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Serve uploaded files statically
-app.use('/uploads', express.static('uploads'));
-
-// Serve media files with API endpoint (for production compatibility)
-app.get('/api/media/:filename', (req, res) => {
-  const filename = req.params.filename;
-  const filePath = path.join(process.cwd(), 'uploads', filename);
-  
-  // Check if file exists
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: 'File not found' });
-  }
-  
-  // Get file extension and set content type
-  const ext = path.extname(filename).toLowerCase();
-  
-  const mimeTypes: Record<string, string> = {
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.png': 'image/png',
-    '.gif': 'image/gif',
-    '.webp': 'image/webp',
-    '.mp4': 'video/mp4',
-    '.webm': 'video/webm',
-    '.mov': 'video/quicktime'
-  };
-  
-  const contentType = mimeTypes[ext] || 'application/octet-stream';
-  
-  res.setHeader('Content-Type', contentType);
-  res.setHeader('Cache-Control', 'public, max-age=3600');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  res.sendFile(filePath);
-});
+// Note: File serving now handled by Object Storage
+// No longer serving files from local uploads directory
 
 // Disable caching for all API endpoints to ensure fresh data
 app.use('/api', (req, res, next) => {

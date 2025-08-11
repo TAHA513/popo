@@ -166,18 +166,12 @@ function cleanupUserTokens(userId: string): number {
   return cleanedCount;
 }
 
-// Configure multer for file uploads with better filename generation
+// Import Object Storage utilities
+import { uploadBufferToStorage, generateUniqueFileName, deleteFileFromStorage } from './object-storage';
+
+// Configure multer for file uploads using memory storage for Object Storage
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: 'uploads/',
-    filename: (req, file, cb) => {
-      // Generate unique filename with timestamp
-      const timestamp = Date.now();
-      const ext = path.extname(file.originalname);
-      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}${ext}`;
-      cb(null, filename);
-    }
-  }),
+  storage: multer.memoryStorage(), // Use memory storage for Object Storage
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -1132,36 +1126,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // General file upload endpoint
+  // General file upload endpoint - now uses Object Storage
   app.post('/api/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      console.log('✅ تم رفع الملف:', {
-        filename: req.file.filename,
+      console.log('🔄 تم استلام الملف للرفع:', {
         originalname: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
       });
 
-      const fileUrl = UrlHandler.createApiMediaUrl(req.file.filename, req);
+      // Generate unique filename
+      const uniqueFileName = generateUniqueFileName(req.file.originalname);
+      
+      // Upload to Object Storage
+      const uploadResult = await uploadBufferToStorage(
+        req.file.buffer,
+        uniqueFileName,
+        req.file.mimetype,
+        true // Public file
+      );
+
+      console.log('✅ تم رفع الملف إلى التخزين السحابي:', uploadResult.publicUrl);
+
       res.json({
         success: true,
-        fileUrl,
-        filename: req.file.filename,
+        fileUrl: uploadResult.publicUrl,
+        filename: uploadResult.filename,
         originalName: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
       });
     } catch (error) {
       console.error("Error uploading file:", error);
-      res.status(500).json({ message: "فشل في رفع الملف" });
+      res.status(500).json({ message: "فشل في رفع الملف إلى التخزين السحابي" });
     }
   });
 
-  // Profile image upload endpoint
+  // Profile image upload endpoint - now uses Object Storage
   app.post('/api/upload/profile-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -1171,57 +1176,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // The file is already saved by multer, just use its filename
-      const profileImageUrl = `/uploads/${file.filename}`;
+      console.log('🔄 رفع الصورة الشخصية للمستخدم:', userId);
+
+      // Generate unique filename
+      const uniqueFileName = generateUniqueFileName(file.originalname);
+      
+      // Upload to Object Storage
+      const uploadResult = await uploadBufferToStorage(
+        file.buffer,
+        uniqueFileName,
+        file.mimetype,
+        true // Public file
+      );
+
+      console.log('✅ تم رفع الصورة الشخصية:', uploadResult.publicUrl);
       
       // Update user profile image URL in database
-      await db.update(users).set({ profileImageUrl }).where(eq(users.id, userId));
+      await db.update(users).set({ profileImageUrl: uploadResult.publicUrl }).where(eq(users.id, userId));
       
       res.json({ 
         success: true, 
-        profileImageUrl: UrlHandler.processMediaUrl(profileImageUrl, req),
+        profileImageUrl: uploadResult.publicUrl,
         message: "تم تحديث الصورة الشخصية بنجاح" 
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
-      res.status(500).json({ message: "خطأ في رفع الصورة" });
+      res.status(500).json({ message: "خطأ في رفع الصورة إلى التخزين السحابي" });
     }
   });
 
-  // Cover image upload endpoint
+  // Cover image upload endpoint - now uses Object Storage
   app.post('/api/upload/cover-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const file = req.file;
       
-      console.log('🔄 Cover image upload request:', {
-        userId,
-        file: file ? { filename: file.filename, originalname: file.originalname, size: file.size } : null
-      });
+      console.log('🔄 رفع صورة الغلاف للمستخدم:', userId);
       
       if (!file) {
         console.log('❌ No file provided');
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
       }
 
-      // The file is already saved by multer, just use its filename
-      const coverImageUrl = `/uploads/${file.filename}`;
+      // Generate unique filename
+      const uniqueFileName = generateUniqueFileName(file.originalname);
       
-      console.log('📝 Updating database with coverImageUrl:', coverImageUrl);
+      // Upload to Object Storage
+      const uploadResult = await uploadBufferToStorage(
+        file.buffer,
+        uniqueFileName,
+        file.mimetype,
+        true // Public file
+      );
+
+      console.log('✅ تم رفع صورة الغلاف:', uploadResult.publicUrl);
       
       // Update user cover image URL in database
-      await db.update(users).set({ coverImageUrl: coverImageUrl }).where(eq(users.id, userId));
+      await db.update(users).set({ coverImageUrl: uploadResult.publicUrl }).where(eq(users.id, userId));
       
       console.log('✅ Cover image uploaded successfully for user:', userId);
       
       res.json({ 
         success: true, 
-        coverImageUrl,
+        coverImageUrl: uploadResult.publicUrl,
         message: "تم تحديث صورة الغلاف بنجاح" 
       });
     } catch (error) {
       console.error('❌ Error uploading cover image:', error);
-      res.status(500).json({ message: "خطأ في رفع صورة الغلاف" });
+      res.status(500).json({ message: "خطأ في رفع صورة الغلاف إلى التخزين السحابي" });
     }
   });
 
@@ -1242,20 +1264,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { title, caption, memoryType, visibilityLevel, allowComments, allowSharing, allowGifts } = req.body;
       
-      // Process uploaded files
+      // Process uploaded files using Object Storage
       const mediaUrls: string[] = [];
       const files = req.files as Express.Multer.File[];
       
       if (files && files.length > 0) {
+        console.log(`🔄 رفع ${files.length} ملف للذكرى`);
+        
         for (const file of files) {
-          // In production, you'd upload to cloud storage (AWS S3, Cloudinary, etc.)
-          // For now, we'll just use the local file path
-          const fileName = `${Date.now()}-${file.originalname}`;
-          const filePath = path.join('uploads', fileName);
+          // Generate unique filename
+          const uniqueFileName = generateUniqueFileName(file.originalname);
           
-          // Move file to permanent location
-          await fs.rename(file.path, filePath);
-          mediaUrls.push(`/uploads/${fileName}`);
+          // Upload to Object Storage
+          const uploadResult = await uploadBufferToStorage(
+            file.buffer,
+            uniqueFileName,
+            file.mimetype,
+            true // Public file
+          );
+          
+          mediaUrls.push(uploadResult.publicUrl);
+          console.log(`✅ تم رفع ملف الذكرى: ${uploadResult.publicUrl}`);
         }
       }
 
@@ -3017,15 +3046,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Serve uploaded files
-  await fs.mkdir('uploads', { recursive: true });
-  app.use('/uploads', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    next();
-  });
-  
-  const expressModule = await import('express');
-  app.use('/uploads', expressModule.static('uploads'));
+  // Note: File serving now handled by Object Storage
+  // Local uploads directory no longer needed
 
 
 
