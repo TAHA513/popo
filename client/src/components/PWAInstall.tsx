@@ -1,72 +1,97 @@
 import { useState, useEffect } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Smartphone, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  platforms: string[];
 }
 
 export function PWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [userAgent, setUserAgent] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('PWA: beforeinstallprompt event fired');
-      // منع ظهور النافذة التلقائية
-      e.preventDefault();
-      // احفظ الحدث للاستخدام لاحقاً
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
-    };
+    setUserAgent(navigator.userAgent);
 
-    const handleAppInstalled = () => {
-      console.log('PWA: تم تثبيت التطبيق');
-      setDeferredPrompt(null);
-      setIsInstallable(false);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    // تحقق من حالة التثبيت الحالية
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('PWA: App is already installed');
-      setIsInstallable(false);
-    } else {
-      console.log('PWA: App is not installed, waiting for beforeinstallprompt');
-    }
-
-    // تحقق متقدم من PWA readiness
-    const checkPWAReadiness = async () => {
-      console.log('PWA: التحقق من جاهزية PWA...');
-      
-      // تحقق من service worker
-      const hasServiceWorker = 'serviceWorker' in navigator;
-      console.log('PWA: Service Worker دعم:', hasServiceWorker);
-      
-      // تحقق من manifest
-      const hasManifest = document.querySelector('link[rel="manifest"]');
-      console.log('PWA: Manifest موجود:', !!hasManifest);
-      
-      // تحقق من عدم التثبيت المسبق
+    const checkInstallStatus = () => {
+      // Check if app is already installed
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      console.log('PWA: مثبت مسبقاً:', isStandalone);
+      const isiOSStandalone = (window.navigator as any).standalone === true;
+      const installed = isStandalone || isiOSStandalone;
       
-      // إذا لم يكن مثبتاً، أظهر الزر
-      if (!isStandalone && hasServiceWorker && hasManifest) {
-        console.log('PWA: التطبيق قابل للتثبيت، عرض الزر');
+      setIsInstalled(installed);
+      
+      if (installed) {
+        console.log('[PWA] التطبيق مثبت مسبقاً');
+        setIsInstallable(false);
+        return;
+      }
+
+      // Check PWA requirements
+      const hasServiceWorker = 'serviceWorker' in navigator;
+      const hasManifest = document.querySelector('link[rel="manifest"]');
+      
+      console.log('[PWA] التحقق من متطلبات PWA:', {
+        hasServiceWorker,
+        hasManifest: !!hasManifest,
+        isStandalone,
+        isiOSStandalone,
+        userAgent: navigator.userAgent.substring(0, 50) + '...'
+      });
+
+      // Show install option if requirements are met
+      if (hasServiceWorker && hasManifest && !installed) {
         setIsInstallable(true);
       }
     };
 
-    setTimeout(checkPWAReadiness, 1000);
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('[PWA] beforeinstallprompt حدث تم إطلاقه');
+      e.preventDefault();
+      const promptEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(promptEvent);
+      setIsInstallable(true);
+      
+      toast({
+        title: "يمكن تثبيت التطبيق!",
+        description: "يمكنك الآن إضافة LaaBoBo إلى شاشتك الرئيسية"
+      });
+    };
+
+    const handleAppInstalled = () => {
+      console.log('[PWA] تم تثبيت التطبيق بنجاح');
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+      setIsInstalled(true);
+      
+      toast({
+        title: "تم التثبيت بنجاح! 🎉",
+        description: "تم إضافة LaaBoBo إلى شاشتك الرئيسية"
+      });
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Initial check
+    checkInstallStatus();
+
+    // Delayed check for better reliability
+    const timeoutId = setTimeout(checkInstallStatus, 2000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearTimeout(timeoutId);
     };
-  }, [deferredPrompt]);
+  }, [toast]);
 
   const handleInstallClick = async () => {
     console.log('PWA: تم الضغط على زر التثبيت');

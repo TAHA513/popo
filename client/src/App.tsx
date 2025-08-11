@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
+import { PWAInstall } from "@/components/PWAInstall";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -164,6 +165,7 @@ function AppContent() {
     <div className="min-h-screen">
       <Router />
       <LiveStreamIndicator />
+      <PWAInstall />
       <Toaster />
     </div>
   );
