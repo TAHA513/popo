@@ -125,17 +125,17 @@ export default function SimpleHome() {
           
           <div className="relative z-10 flex items-center justify-between">
             <div className="flex-1">
-              <h3 className="text-lg font-bold mb-1">📱 تثبيت التطبيق</h3>
-              <p className="text-sm opacity-90">احصل على تجربة أفضل وإشعارات فورية</p>
+              <h3 className="text-lg font-bold mb-1">📱 إضافة اختصار</h3>
+              <p className="text-sm opacity-90">ضع LaaBoBo على شاشتك الرئيسية للوصول السريع</p>
             </div>
             
             <AppShortcut />
           </div>
           
           <div className="mt-3 flex items-center gap-2 text-sm opacity-80">
-            <span>✨ تجربة أسرع</span>
-            <span>🔔 إشعارات فورية</span>
-            <span>📱 عمل بدون إنترنت</span>
+            <span>🚀 وصول سريع</span>
+            <span>📱 من الشاشة الرئيسية</span>
+            <span>⭐ سهولة الاستخدام</span>
           </div>
         </div>
         
