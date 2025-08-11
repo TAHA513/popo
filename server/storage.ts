@@ -790,28 +790,38 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(memoryFragments.createdAt))
       .limit(50);
     
-    // Flatten the data structure and ensure media URLs are properly formatted
+    // Process all media URLs to use Backblaze B2 exclusively
     return memories.map(({ memory, author }) => {
-      // Process media URLs to ensure they work with Backblaze B2
       let processedMediaUrls = memory.mediaUrls;
       if (Array.isArray(processedMediaUrls)) {
         processedMediaUrls = processedMediaUrls.map((url: string) => {
-          // If it's already a full HTTP URL, return as-is
-          if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+          // If it's already a full Backblaze B2 URL, return as-is
+          if (url && url.startsWith('https://')) {
             return url;
           }
-          // If it's a relative path or filename, convert to API URL
-          if (url && !url.includes('/')) {
-            return `/api/media/${url}`;
+          // Convert all local/relative URLs to Backblaze B2 proxy endpoint
+          if (url && url.trim()) {
+            const filename = url.split('/').pop() || url;
+            return `/api/media/b2/${filename}`;
           }
           return url;
         });
       }
       
+      // Also process author profile image to use Backblaze B2
+      let processedProfileImage = author.profileImageUrl;
+      if (processedProfileImage && !processedProfileImage.startsWith('https://')) {
+        const filename = processedProfileImage.split('/').pop() || processedProfileImage;
+        processedProfileImage = `/api/media/b2/${filename}`;
+      }
+      
       return {
         ...memory,
         mediaUrls: processedMediaUrls,
-        author
+        author: {
+          ...author,
+          profileImageUrl: processedProfileImage
+        }
       };
     });
   }

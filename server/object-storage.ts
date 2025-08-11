@@ -12,7 +12,7 @@ const FALLBACK_MEDIA_DIR = process.env.NODE_ENV === 'production'
   ? path.join(process.cwd(), 'public', 'media')
   : '/tmp/persistent-media';
 
-// نظام التخزين المتدرج
+// نظام التخزين مع أولوية Backblaze B2
 export enum StorageType {
   BACKBLAZE_B2 = 'backblaze-b2',
   REPLIT_OBJECT_STORAGE = 'replit-object-storage', 
@@ -47,6 +47,95 @@ if (IS_REPLIT) {
         },
         universe_domain: "googleapis.com",
       },
+
+
+// Upload file with Backblaze B2 priority
+export async function uploadFileToStorage(
+  buffer: Buffer,
+  filename: string,
+  contentType: string
+): Promise<UploadResult> {
+  console.log(`📤 بدء رفع الملف: ${filename}`);
+
+  // Strategy 1: Try Backblaze B2 first (PRIORITY)
+  if (backblazeService.isAvailable()) {
+    try {
+      console.log('🎯 محاولة الرفع إلى Backblaze B2...');
+      const generatedFilename = backblazeService.generateFileName(filename);
+      const publicUrl = await backblazeService.uploadFile(buffer, generatedFilename, contentType);
+      
+      console.log(`✅ تم الرفع بنجاح إلى Backblaze B2: ${generatedFilename}`);
+      return {
+        filename: generatedFilename,
+        publicUrl,
+        storageType: StorageType.BACKBLAZE_B2
+      };
+    } catch (error) {
+      console.error('❌ فشل الرفع إلى Backblaze B2:', error);
+    }
+  }
+
+  // Strategy 2: Fallback to Replit Object Storage
+  if (IS_REPLIT) {
+    try {
+      console.log('🔄 محاولة الرفع إلى Replit Object Storage...');
+      const timestamp = Date.now();
+      const randomId = nanoid(8);
+      const ext = path.extname(filename);
+      const baseName = path.basename(filename, ext);
+      const cleanBaseName = baseName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const generatedFilename = `${timestamp}_${randomId}_${cleanBaseName}${ext}`;
+
+      const response = await fetch(`${REPLIT_SIDECAR_ENDPOINT}/objects/${generatedFilename}`, {
+        method: 'PUT',
+        body: buffer,
+        headers: {
+          'Content-Type': contentType,
+        },
+      });
+
+      if (response.ok) {
+        const publicUrl = `/api/media/${generatedFilename}`;
+        console.log(`✅ تم الرفع بنجاح إلى Replit Object Storage: ${generatedFilename}`);
+        return {
+          filename: generatedFilename,
+          publicUrl,
+          storageType: StorageType.REPLIT_OBJECT_STORAGE
+        };
+      }
+    } catch (error) {
+      console.error('❌ فشل الرفع إلى Replit Object Storage:', error);
+    }
+  }
+
+  // Strategy 3: Final fallback to local files
+  try {
+    console.log('📁 محاولة الحفظ محلياً...');
+    await fs.mkdir(FALLBACK_MEDIA_DIR, { recursive: true });
+    
+    const timestamp = Date.now();
+    const randomId = nanoid(8);
+    const ext = path.extname(filename);
+    const baseName = path.basename(filename, ext);
+    const cleanBaseName = baseName.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const generatedFilename = `${timestamp}_${randomId}_${cleanBaseName}${ext}`;
+    
+    const filePath = path.join(FALLBACK_MEDIA_DIR, generatedFilename);
+    await fs.writeFile(filePath, buffer);
+    
+    const publicUrl = `/api/media/${generatedFilename}`;
+    console.log(`✅ تم الحفظ محلياً: ${generatedFilename}`);
+    return {
+      filename: generatedFilename,
+      publicUrl,
+      storageType: StorageType.LOCAL_FILES
+    };
+  } catch (error) {
+    console.error('❌ فشل الحفظ محلياً:', error);
+    throw new Error('فشل في رفع الملف إلى جميع أنظمة التخزين');
+  }
+}
+
       projectId: "",
     });
     console.log('🔧 Object Storage configured for Replit');

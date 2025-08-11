@@ -280,6 +280,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Dedicated Backblaze B2 media endpoint
+  app.get('/api/media/b2/:filename', async (req, res) => {
+    const filename = req.params.filename;
+    console.log(`🔍 طلب ملف من Backblaze B2: ${filename}`);
+
+    if (!backblazeService.isAvailable()) {
+      return res.status(503).json({ error: 'Backblaze B2 not configured' });
+    }
+
+    try {
+      console.log(`🔄 جلب من Backblaze B2: ${filename}`);
+
+      // Initialize Backblaze B2
+      await backblazeService.initialize();
+      const b2 = backblazeService.b2Instance;
+
+      // List files to find the exact filename
+      const listResponse = await b2.listFileNames({
+        bucketId: process.env.B2_BUCKET_ID,
+        startFileName: filename,
+        maxFileCount: 10
+      });
+
+      const file = listResponse.data.files.find((f: any) => f.fileName === filename);
+      if (!file) {
+        console.log(`❌ الملف غير موجود في Backblaze B2: ${filename}`);
+        return res.status(404).json({ error: 'File not found in Backblaze B2' });
+      }
+
+      console.log(`✅ الملف موجود في Backblaze B2: ${filename}`);
+
+      // Get download URL
+      const downloadAuth = await b2.getDownloadAuthorization({
+        bucketId: process.env.B2_BUCKET_ID,
+        fileNamePrefix: filename,
+        validDurationInSeconds: 3600 // 1 hour
+      });
+
+      const b2Url = `${downloadAuth.data.downloadUrl}/file/${process.env.B2_BUCKET_NAME}/${filename}`;
+
+      // Proxy the file from Backblaze B2
+      const response = await axios.get(b2Url, {
+        responseType: 'stream',
+        timeout: 30000
+      });
+
+      if (response.status === 200) {
+        const ext = path.extname(filename).toLowerCase();
+        let contentType = 'application/octet-stream';
+        if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+        else if (ext === '.png') contentType = 'image/png';
+        else if (ext === '.gif') contentType = 'image/gif';
+        else if (ext === '.webp') contentType = 'image/webp';
+        else if (ext === '.mp4') contentType = 'video/mp4';
+        else if (ext === '.webm') contentType = 'video/webm';
+
+        res.set({
+          'Content-Type': response.headers['content-type'] || contentType,
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*',
+          'X-Source': 'backblaze-b2-exclusive'
+        });
+
+        return response.data.pipe(res);
+      }
+    } catch (error) {
+      console.error('❌ خطأ في جلب الملف من Backblaze B2:', error);
+      return res.status(500).json({ error: 'Failed to fetch from Backblaze B2' });
+    }
+  });
+
   // Enhanced unified media serving endpoint - Backblaze B2 Priority
   app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
     const filename = req.params.filename;
