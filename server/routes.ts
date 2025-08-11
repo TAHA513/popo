@@ -1556,6 +1556,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Remove test endpoint after successful testing
+  /*
+  // Test upload endpoint (no auth required)
+  app.post('/api/test-upload', upload.single('file'), async (req: any, res) => {
+    console.log('🔄 تم استلام طلب اختبار رفع ملف');
+    
+    try {
+      const file = req.file;
+      
+      if (!file) {
+        console.log('❌ لم يتم رفع أي ملف');
+        return res.status(400).json({ message: "لم يتم رفع أي ملف" });
+      }
+
+      console.log(`🔄 اختبار رفع ملف: ${file.originalname}, الحجم: ${file.size} bytes`);
+      
+      // Upload to storage (Backblaze B2 → Replit Object Storage → Local Files)
+      const uploadResult = await uploadFileToStorage(
+        file.buffer,
+        file.originalname,
+        file.mimetype
+      );
+
+      console.log(`✅ تم اختبار رفع الملف بنجاح عبر ${uploadResult.storageType}: ${uploadResult.publicUrl}`);
+      
+      const response = {
+        success: true,
+        filename: uploadResult.filename,
+        publicUrl: uploadResult.publicUrl,
+        storageType: uploadResult.storageType,
+        message: `تم رفع الملف بنجاح عبر ${uploadResult.storageType}`
+      };
+      
+      console.log('📤 إرسال الرد:', JSON.stringify(response, null, 2));
+      res.json(response);
+      
+    } catch (error) {
+      console.error('❌ خطأ في اختبار رفع الملف:', error);
+      res.status(500).json({ message: "فشل في رفع الملف: " + error.message });
+    }
+  });
+  */
+
   // Clear all memories (for testing purposes)
   app.delete('/api/memories/clear-all', requireAuth, async (req: any, res) => {
     try {
