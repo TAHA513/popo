@@ -14,13 +14,6 @@ export class BackblazeB2Service {
     this.bucketName = process.env.B2_BUCKET_NAME || '';
     this.bucketId = process.env.B2_BUCKET_ID || '';
     
-    console.log('🔧 Backblaze B2 Constructor:', {
-      bucketName: this.bucketName || 'MISSING',
-      bucketId: this.bucketId ? this.bucketId.slice(0, 10) + '...' : 'MISSING',
-      keyId: process.env.B2_APPLICATION_KEY_ID ? 'PRESENT' : 'MISSING',
-      key: process.env.B2_APPLICATION_KEY ? 'PRESENT' : 'MISSING'
-    });
-    
     this.b2 = new B2({
       applicationKeyId: process.env.B2_APPLICATION_KEY_ID || '',
       applicationKey: process.env.B2_APPLICATION_KEY || ''
@@ -61,12 +54,36 @@ export class BackblazeB2Service {
         contentType: contentType
       });
 
-      // استخدام الرابط المُرجع من Backblaze بدلاً من تكوينه يدوياً
-      const publicUrl = uploadResponse.data.downloadUrl || 
-        `https://f${this.bucketId.slice(0, 3)}.backblazeb2.com/file/${this.bucketName}/${fileName}`;
+      // الحصول على download URL الصحيح من B2 مباشرة
+      console.log('📡 Getting download URL from B2 API...');
       
-      console.log(`✅ File uploaded successfully: ${fileName} -> ${publicUrl}`);
-      return publicUrl;
+      try {
+        // الحصول على download URL باستخدام API
+        const downloadAuth = await this.b2.getDownloadAuthorization({
+          bucketId: this.bucketId,
+          fileNamePrefix: fileName,
+          validDurationInSeconds: 86400 // 24 ساعة
+        });
+        
+        // تجميع URL الصحيح
+        const publicUrl = `${downloadAuth.data.downloadUrl}/file/${this.bucketName}/${fileName}`;
+        
+        console.log(`✅ File uploaded successfully: ${fileName}`);
+        console.log(`🔗 API-verified Public URL: ${publicUrl}`);
+        return publicUrl;
+        
+      } catch (downloadError) {
+        console.warn('⚠️ Could not get download URL from API, using fallback format');
+        
+        // أسهل حل: استخدام endpoint ال API للوصول للملف
+        // هذا أكثر موثوقية من تخمين format الـ URL
+        const publicUrl = `/api/media/b2/${fileName}`;
+        
+        console.log(`✅ File uploaded successfully: ${fileName}`);
+        console.log(`🔗 API Proxy URL: ${publicUrl}`);
+        console.log(`🔍 سيتم جلب الملف عبر API proxy من Backblaze B2`);
+        return publicUrl;
+      }
       
     } catch (error) {
       console.error(`❌ Failed to upload ${fileName}:`, error);
@@ -114,28 +131,12 @@ export class BackblazeB2Service {
   }
 
   isAvailable(): boolean {
-    const available = !!(
+    return !!(
       process.env.B2_APPLICATION_KEY_ID &&
       process.env.B2_APPLICATION_KEY &&
       process.env.B2_BUCKET_NAME &&
       process.env.B2_BUCKET_ID
     );
-    
-    if (!available) {
-      console.log('🚫 Backblaze B2 not available - missing credentials:', {
-        keyId: !!process.env.B2_APPLICATION_KEY_ID,
-        key: !!process.env.B2_APPLICATION_KEY,
-        bucketName: !!process.env.B2_BUCKET_NAME,
-        bucketId: !!process.env.B2_BUCKET_ID
-      });
-    } else {
-      console.log('✅ Backblaze B2 credentials available:', {
-        bucketName: this.bucketName,
-        bucketId: this.bucketId ? this.bucketId.slice(0, 10) + '...' : 'undefined'
-      });
-    }
-    
-    return available;
   }
 }
 
