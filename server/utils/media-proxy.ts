@@ -18,6 +18,7 @@ export class MediaProxy {
   private static readonly CACHE_TTL = 3600000; // ساعة واحدة
   private static readonly MAX_CACHE_SIZE = 100; // حد أقصى 100 ملف مخزن
   private static readonly SUPPORTED_DOMAINS = [
+    'laabobo.com',
     'cdn.laabob.com',
     'storage.laabob.com',
     'media.laabob.com',
@@ -32,6 +33,8 @@ export class MediaProxy {
       const urlObj = new URL(url);
       return this.SUPPORTED_DOMAINS.includes(urlObj.hostname) || 
              urlObj.hostname.endsWith('.laabob.com') ||
+             urlObj.hostname === 'laabobo.com' ||
+             urlObj.hostname.endsWith('.laabobo.com') ||
              urlObj.protocol === 'https:';
     } catch {
       return false;

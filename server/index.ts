@@ -11,6 +11,44 @@ app.set('etag', false); // Disable ETags to prevent 304 responses for API endpoi
 app.use(express.json({ limit: '10mb' })); // Increase limit for voice messages
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Setup CORS for production domain
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'https://laabobo.com',
+    'http://localhost:5000',
+    'http://localhost:3000',
+    'https://localhost:5000',
+    'https://localhost:3000'
+  ];
+  
+  // Check if REPLIT_DOMAINS is available and add it to allowed origins
+  if (process.env.REPLIT_DOMAINS) {
+    const replitDomains = process.env.REPLIT_DOMAINS.split(',').map(domain => domain.trim());
+    replitDomains.forEach(domain => {
+      if (!allowedOrigins.includes(`https://${domain}`)) {
+        allowedOrigins.push(`https://${domain}`);
+      }
+    });
+  }
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
+  
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 200;
+    res.end();
+    return;
+  }
+  
+  next();
+});
+
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
 
