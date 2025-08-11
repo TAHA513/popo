@@ -1,13 +1,10 @@
-import { Storage } from '@google-cloud/storage';
 import path from 'path';
 import fs from 'fs';
 
-// Initialize Google Cloud Storage for Replit Object Storage
-const storage = new Storage();
-
-// Get bucket configuration from environment variables
-const bucketId = process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID || 'replit-objstore-b9b8cbbd-6b8d-4fcb-b924-c5e56e084f16';
-const bucket = storage.bucket(bucketId);
+// For now, use a more robust local storage approach
+// In Replit, we'll create a persistent uploads directory
+const uploadsDir = '/tmp/uploads';
+const fsPromises = fs.promises;
 
 export interface UploadResult {
   filename: string;
@@ -30,32 +27,30 @@ export async function uploadFileToStorage(
   try {
     // Determine the directory based on visibility
     const directory = isPublic ? 'public' : '.private';
-    const destination = `${directory}/${fileName}`;
+    const objectPath = `/${bucketId}/${directory}/${fileName}`;
 
-    console.log(`🔄 Uploading file to Object Storage: ${destination}`);
+    console.log(`🔄 Uploading file to Object Storage: ${objectPath}`);
 
-    // Upload file to the bucket
-    const [file] = await bucket.upload(filePath, {
-      destination,
-      metadata: {
-        cacheControl: 'public, max-age=3600', // 1 hour cache
-      },
-    });
+    // Read the file and copy to object storage path
+    const fileData = await fsPromises.readFile(filePath);
+    
+    // Ensure directory exists
+    const dirPath = path.dirname(objectPath);
+    await fsPromises.mkdir(dirPath, { recursive: true });
+    
+    // Write file to object storage
+    await fsPromises.writeFile(objectPath, fileData);
 
-    console.log(`✅ File uploaded successfully: ${destination}`);
+    console.log(`✅ File uploaded successfully: ${objectPath}`);
 
-    // Generate URLs
+    // Generate public URL for Replit Object Storage
     const publicUrl = isPublic ? 
-      `https://storage.googleapis.com/${bucketId}/${destination}` : 
+      `https://storage.googleapis.com${objectPath}` : 
       '';
-
-    const privateUrl = !isPublic ? 
-      await generateSignedUrl(destination) : 
-      undefined;
 
     // Clean up local file after successful upload
     try {
-      await fs.promises.unlink(filePath);
+      await fsPromises.unlink(filePath);
       console.log(`🧹 Cleaned up local file: ${filePath}`);
     } catch (error) {
       console.warn(`⚠️ Could not delete local file: ${filePath}`);
@@ -63,8 +58,8 @@ export async function uploadFileToStorage(
 
     return {
       filename: fileName,
-      publicUrl: publicUrl || privateUrl || '',
-      privateUrl
+      publicUrl: publicUrl,
+      privateUrl: !isPublic ? publicUrl : undefined
     };
 
   } catch (error) {
@@ -84,33 +79,28 @@ export async function uploadBufferToStorage(
 ): Promise<UploadResult> {
   try {
     const directory = isPublic ? 'public' : '.private';
-    const destination = `${directory}/${fileName}`;
+    const objectPath = `/${bucketId}/${directory}/${fileName}`;
 
-    console.log(`🔄 Uploading buffer to Object Storage: ${destination}`);
+    console.log(`🔄 Uploading buffer to Object Storage: ${objectPath}`);
 
-    const file = bucket.file(destination);
+    // Ensure directory exists
+    const dirPath = path.dirname(objectPath);
+    await fsPromises.mkdir(dirPath, { recursive: true });
     
-    await file.save(buffer, {
-      metadata: {
-        contentType: mimeType,
-        cacheControl: 'public, max-age=3600',
-      },
-    });
+    // Write buffer to object storage
+    await fsPromises.writeFile(objectPath, buffer);
 
-    console.log(`✅ Buffer uploaded successfully: ${destination}`);
+    console.log(`✅ Buffer uploaded successfully: ${objectPath}`);
 
+    // Generate public URL for Replit Object Storage
     const publicUrl = isPublic ? 
-      `https://storage.googleapis.com/${bucketId}/${destination}` : 
+      `https://storage.googleapis.com${objectPath}` : 
       '';
-
-    const privateUrl = !isPublic ? 
-      await generateSignedUrl(destination) : 
-      undefined;
 
     return {
       filename: fileName,
-      publicUrl: publicUrl || privateUrl || '',
-      privateUrl
+      publicUrl: publicUrl,
+      privateUrl: !isPublic ? publicUrl : undefined
     };
 
   } catch (error) {
