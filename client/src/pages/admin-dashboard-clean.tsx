@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -495,9 +495,6 @@ export default function AdminDashboard() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>توثيق المستخدم: {selectedUser.username}</DialogTitle>
-              <DialogDescription>
-                قم بتوثيق هذا المستخدم عبر إدخال البريد الإلكتروني وشارة التوثيق
-              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>

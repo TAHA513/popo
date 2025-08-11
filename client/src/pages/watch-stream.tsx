@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Heart, MessageCircle, Share, Gift, Users, ArrowLeft, Volume2, VolumeX, Send, X, CheckCircle, Trash2, Mic, MicOff, Play, Pause, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
@@ -793,12 +793,6 @@ export default function WatchStreamPage() {
         {/* نافذة حوار إغلاق البث الاحترافية */}
         <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
           <DialogContent className="max-w-md mx-auto bg-gradient-to-br from-gray-900 via-gray-800 to-black border-2 border-red-500/30 shadow-2xl">
-            <DialogHeader>
-              <DialogTitle className="sr-only">تأكيد إغلاق الدردشة</DialogTitle>
-              <DialogDescription className="sr-only">
-                نافذة تأكيد لإغلاق الدردشة الحالية وحذف جميع الرسائل
-              </DialogDescription>
-            </DialogHeader>
             <div className="text-center p-6">
               {/* شعار LaaBoBo مع الأرنب */}
               <div className="mb-6">

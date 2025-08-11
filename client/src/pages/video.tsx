@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -955,9 +955,6 @@ export default function VideoPage() {
               <DialogTitle className="text-center text-xl font-bold mb-4">
                 اختر هدية 🎁
               </DialogTitle>
-              <DialogDescription className="text-center text-gray-300">
-                اختر هدية لإرسالها للمحتوى الذي تشاهده
-              </DialogDescription>
               <Button
                 variant="ghost"
                 size="sm"

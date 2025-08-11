@@ -1197,9 +1197,6 @@ export default function ChatPage() {
                       <span className="text-yellow-500">💰</span>
                     </div>
                   </DialogTitle>
-                  <DialogDescription className="text-center">
-                    اختر ألبوماً مدفوعاً لإرساله في المحادثة
-                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {premiumAlbums.length === 0 ? (
