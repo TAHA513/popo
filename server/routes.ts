@@ -242,27 +242,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       icons: [
         {
           src: "/laabo-rabbit-logo.svg",
+          sizes: "any",
+          type: "image/svg+xml",
+          purpose: "any"
+        },
+        {
+          src: "/rabbit-icon-192.svg",
           sizes: "192x192",
           type: "image/svg+xml",
           purpose: "any"
         },
         {
-          src: "/laabo-rabbit-logo.svg", 
+          src: "/rabbit-icon-512.svg",
           sizes: "512x512",
           type: "image/svg+xml",
           purpose: "any"
-        },
-        {
-          src: "/icon-192.png",
-          sizes: "192x192",
-          type: "image/png",
-          purpose: "maskable"
-        },
-        {
-          src: "/icon-512.png",
-          sizes: "512x512",
-          type: "image/png", 
-          purpose: "maskable"
         }
       ]
     };

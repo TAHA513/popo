@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإصلاح الطارئ لـ PWA - LaaBoBo Live</title>
+    <link rel="manifest" href="/manifest.json?emergency=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ec4899, #9333ea);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+        }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 2.2em; }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: #9333ea;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover { background: #f0f0f0; }
+        .log {
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 350px;
+            overflow-y: auto;
+            direction: ltr;
+            text-align: left;
+        }
+        .critical { 
+            background: rgba(255,0,0,0.2);
+            border: 2px solid #ff4444;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 الإصلاح الطارئ لـ PWA</h1>
+        
+        <div class="critical">
+            <h3>⚠️ مشكلة حرجة تم رصدها</h3>
+            <p>PWA لا يظهر في المتصفح مطلقاً</p>
+        </div>
+        
+        <button onclick="emergencyDiagnostic()">🔍 تشخيص طارئ شامل</button>
+        <button onclick="forceRegisterSW()">⚙️ إجبار تسجيل Service Worker</button>
+        <button onclick="testInstallability()">📱 اختبار قابلية التثبيت</button>
+        <button onclick="emergencyReset()">💥 إعادة تعيين طارئة</button>
+        
+        <div class="log" id="emergencyLog">🚨 نظام الإصلاح الطارئ جاهز...</div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <p>إذا لم تنجح هذه الطرق، فالمشكلة في HTTPS أو إعدادات المتصفح</p>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('emergencyLog');
+        let deferredPrompt = null;
+
+        function logMsg(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const icons = { success: '✅', error: '❌', warning: '⚠️', info: '📝', critical: '🚨' };
+            log.textContent += `${time} ${icons[type]} ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Critical: Listen for beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            logMsg('🎉 BEFOREINSTALLPROMPT EVENT CAPTURED!', 'success');
+            logMsg('PWA is installable! Browser will show install option.', 'success');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            logMsg('🎊 APP SUCCESSFULLY INSTALLED!', 'success');
+            deferredPrompt = null;
+        });
+
+        async function emergencyDiagnostic() {
+            logMsg('🚨 Starting emergency diagnostic...', 'critical');
+            
+            // Test 1: Protocol
+            const protocol = window.location.protocol;
+            logMsg(`Protocol: ${protocol}`, protocol === 'https:' ? 'success' : 'error');
+            if (protocol !== 'https:') {
+                logMsg('CRITICAL: PWA requires HTTPS!', 'error');
+            }
+            
+            // Test 2: Service Worker support
+            const swSupported = 'serviceWorker' in navigator;
+            logMsg(`Service Worker supported: ${swSupported}`, swSupported ? 'success' : 'error');
+            
+            // Test 3: Manifest link
+            const manifestLink = document.querySelector('link[rel="manifest"]');
+            logMsg(`Manifest link exists: ${!!manifestLink}`, manifestLink ? 'success' : 'error');
+            
+            // Test 4: Fetch manifest
+            try {
+                const manifestResponse = await fetch('/manifest.json?t=' + Date.now(), {
+                    cache: 'no-cache'
+                });
+                
+                if (manifestResponse.ok) {
+                    const manifest = await manifestResponse.json();
+                    logMsg(`✅ Manifest loaded: "${manifest.name}"`, 'success');
+                    logMsg(`Display mode: ${manifest.display}`, 'info');
+                    logMsg(`Start URL: ${manifest.start_url}`, 'info');
+                    logMsg(`Icons count: ${manifest.icons.length}`, 'info');
+                    
+                    // Test icons
+                    for (const icon of manifest.icons) {
+                        try {
+                            const iconResponse = await fetch(icon.src, { 
+                                method: 'HEAD',
+                                cache: 'no-cache' 
+                            });
+                            const status = iconResponse.ok ? 'success' : 'error';
+                            logMsg(`Icon ${icon.sizes}: HTTP ${iconResponse.status}`, status);
+                        } catch (e) {
+                            logMsg(`Icon ${icon.sizes}: FAILED - ${e.message}`, 'error');
+                        }
+                    }
+                    
+                    // Check PWA criteria
+                    const criteria = {
+                        'Valid manifest': true,
+                        'HTTPS': protocol === 'https:',
+                        'Service Worker': swSupported,
+                        'Display standalone': manifest.display === 'standalone',
+                        'Start URL': !!manifest.start_url,
+                        'Icons >= 192px': manifest.icons.some(icon => 
+                            icon.sizes.includes('192') || icon.sizes === 'any'
+                        )
+                    };
+                    
+                    let passedCount = 0;
+                    for (const [check, passed] of Object.entries(criteria)) {
+                        if (passed) passedCount++;
+                        logMsg(`${passed ? '✅' : '❌'} ${check}`, passed ? 'success' : 'error');
+                    }
+                    
+                    logMsg(`PWA Criteria: ${passedCount}/${Object.keys(criteria).length}`, 
+                        passedCount === Object.keys(criteria).length ? 'success' : 'warning');
+                    
+                } else {
+                    logMsg(`❌ Manifest HTTP ${manifestResponse.status}`, 'error');
+                }
+            } catch (error) {
+                logMsg(`❌ Manifest error: ${error.message}`, 'error');
+            }
+            
+            logMsg('🏁 Emergency diagnostic complete', 'info');
+        }
+
+        async function forceRegisterSW() {
+            logMsg('⚙️ Force registering Service Worker...', 'info');
+            
+            if (!('serviceWorker' in navigator)) {
+                logMsg('❌ Service Worker not supported', 'error');
+                return;
+            }
+            
+            try {
+                // Unregister existing
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    logMsg(`🗑️ Unregistered: ${registration.scope}`, 'info');
+                }
+                
+                // Register fresh
+                const registration = await navigator.serviceWorker.register('/sw.js?force=' + Date.now(), {
+                    scope: '/',
+                    updateViaCache: 'none'
+                });
+                
+                logMsg('✅ Service Worker registered!', 'success');
+                
+                // Wait for activation
+                if (registration.installing) {
+                    logMsg('⏳ Waiting for SW installation...', 'info');
+                    await new Promise((resolve) => {
+                        registration.installing.addEventListener('statechange', () => {
+                            if (registration.installing.state === 'activated') {
+                                resolve();
+                            }
+                        });
+                        setTimeout(resolve, 5000); // timeout
+                    });
+                }
+                
+                await navigator.serviceWorker.ready;
+                logMsg('🎯 Service Worker ready!', 'success');
+                
+                // Force update
+                if (registration.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    logMsg('🔄 Activated waiting SW', 'info');
+                }
+                
+            } catch (error) {
+                logMsg(`❌ SW registration failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInstallability() {
+            logMsg('📱 Testing PWA installability...', 'info');
+            
+            // Wait a moment for install prompt
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            if (deferredPrompt) {
+                logMsg('🎉 Install prompt available!', 'success');
+                
+                try {
+                    const result = await deferredPrompt.prompt();
+                    logMsg('🎯 Install prompt shown', 'success');
+                    
+                    const outcome = await result.userChoice;
+                    if (outcome.outcome === 'accepted') {
+                        logMsg('✅ User accepted installation!', 'success');
+                    } else {
+                        logMsg('⏸️ User dismissed installation', 'info');
+                    }
+                    deferredPrompt = null;
+                } catch (error) {
+                    logMsg(`❌ Install prompt error: ${error.message}`, 'error');
+                }
+            } else {
+                logMsg('❌ No install prompt captured', 'error');
+                logMsg('💡 Possible reasons:', 'info');
+                logMsg('- PWA criteria not met', 'info');
+                logMsg('- App already installed', 'info');
+                logMsg('- Browser doesn\'t support PWA', 'info');
+                logMsg('- Need to wait longer or refresh', 'info');
+            }
+        }
+
+        async function emergencyReset() {
+            logMsg('💥 EMERGENCY RESET INITIATED', 'critical');
+            
+            try {
+                // Nuclear option: clear everything
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let reg of registrations) {
+                        await reg.unregister();
+                    }
+                    logMsg('💣 All service workers destroyed', 'critical');
+                }
+                
+                const cacheNames = await caches.keys();
+                for (let name of cacheNames) {
+                    await caches.delete(name);
+                }
+                logMsg('💣 All caches destroyed', 'critical');
+                
+                localStorage.clear();
+                sessionStorage.clear();
+                logMsg('💣 All storage cleared', 'critical');
+                
+                logMsg('🔄 Forcing hard reload in 2 seconds...', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/?pwa_emergency_reset=1&t=' + Date.now();
+                }, 2000);
+                
+            } catch (error) {
+                logMsg(`💥 Emergency reset failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            logMsg('🚨 Emergency PWA fix system loaded', 'critical');
+            logMsg('📋 Start with "Emergency Diagnostic"', 'info');
+        });
+    </script>
+</body>
+</html>

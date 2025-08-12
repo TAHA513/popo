@@ -1,45 +1,45 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="gradient512" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#9333ea;stop-opacity:1" />
     </linearGradient>
   </defs>
   
   <!-- Background circle -->
-  <circle cx="256" cy="256" r="220" fill="url(#gradient)" />
+  <circle cx="256" cy="256" r="220" fill="url(#gradient512)" />
   
   <!-- Rabbit ears -->
-  <ellipse cx="200" cy="150" rx="20" ry="65" fill="white" transform="rotate(-20 200 150)" />
-  <ellipse cx="312" cy="150" rx="20" ry="65" fill="white" transform="rotate(20 312 150)" />
+  <ellipse cx="190" cy="160" rx="20" ry="65" fill="white" transform="rotate(-20 190 160)" />
+  <ellipse cx="322" cy="160" rx="20" ry="65" fill="white" transform="rotate(20 322 160)" />
   
   <!-- Inner ears -->
-  <ellipse cx="200" cy="150" rx="10" ry="45" fill="#fbb6ce" transform="rotate(-20 200 150)" />
-  <ellipse cx="312" cy="150" rx="10" ry="45" fill="#fbb6ce" transform="rotate(20 312 150)" />
+  <ellipse cx="190" cy="160" rx="10" ry="42" fill="#fbb6ce" transform="rotate(-20 190 160)" />
+  <ellipse cx="322" cy="160" rx="10" ry="42" fill="#fbb6ce" transform="rotate(20 322 160)" />
   
   <!-- Head -->
   <circle cx="256" cy="256" r="95" fill="white" />
   
   <!-- Eyes -->
-  <circle cx="225" cy="235" r="10" fill="black" />
-  <circle cx="287" cy="235" r="10" fill="black" />
-  <circle cx="228" cy="230" r="4" fill="white" />
-  <circle cx="290" cy="230" r="4" fill="white" />
+  <circle cx="226" cy="230" r="12" fill="black" />
+  <circle cx="286" cy="230" r="12" fill="black" />
+  <circle cx="229" cy="225" r="4" fill="white" />
+  <circle cx="289" cy="225" r="4" fill="white" />
   
   <!-- Nose -->
   <ellipse cx="256" cy="270" rx="8" ry="6" fill="#ec4899" />
   
   <!-- Mouth -->
-  <path d="M 256 278 Q 240 290 230 278" stroke="black" stroke-width="4" fill="none" stroke-linecap="round" />
-  <path d="M 256 278 Q 272 290 282 278" stroke="black" stroke-width="4" fill="none" stroke-linecap="round" />
+  <path d="M 256 278 Q 242 290 230 278" stroke="black" stroke-width="4" fill="none" stroke-linecap="round" />
+  <path d="M 256 278 Q 270 290 282 278" stroke="black" stroke-width="4" fill="none" stroke-linecap="round" />
   
   <!-- Whiskers -->
-  <line x1="180" y1="256" x2="210" y2="254" stroke="black" stroke-width="3" stroke-linecap="round" />
-  <line x1="180" y1="270" x2="210" y2="270" stroke="black" stroke-width="3" stroke-linecap="round" />
-  <line x1="302" y1="254" x2="332" y2="256" stroke="black" stroke-width="3" stroke-linecap="round" />
-  <line x1="302" y1="270" x2="332" y2="270" stroke="black" stroke-width="3" stroke-linecap="round" />
+  <line x1="180" y1="250" x2="210" y2="248" stroke="black" stroke-width="3" stroke-linecap="round" />
+  <line x1="180" y1="265" x2="210" y2="265" stroke="black" stroke-width="3" stroke-linecap="round" />
+  <line x1="302" y1="248" x2="332" y2="250" stroke="black" stroke-width="3" stroke-linecap="round" />
+  <line x1="302" y1="265" x2="332" y2="265" stroke="black" stroke-width="3" stroke-linecap="round" />
   
   <!-- Cheeks -->
-  <circle cx="175" cy="290" r="20" fill="#fbb6ce" opacity="0.6" />
-  <circle cx="337" cy="290" r="20" fill="#fbb6ce" opacity="0.6" />
+  <circle cx="170" cy="290" r="22" fill="#fbb6ce" opacity="0.6" />
+  <circle cx="342" cy="290" r="22" fill="#fbb6ce" opacity="0.6" />
 </svg>
