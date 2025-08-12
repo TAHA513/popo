@@ -39,16 +39,9 @@ export function PWAInstallButton() {
     }
   };
 
-  // Show success icon if already installed
+  // Don't show anything if already installed
   if (isInstalled) {
-    return (
-      <div className="flex justify-center">
-        <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-          <Check className="w-4 h-4" />
-          مثبت
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Show install button if PWA can be installed
