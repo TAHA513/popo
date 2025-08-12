@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
+import { requireFastAuth, optionalFastAuth, FastSessionManager } from "./fastSessions";
+import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
 import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema, messages, blockedUsers } from "@shared/schema";
 import { z } from "zod";
@@ -1211,37 +1213,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/login', (req, res, next) => {
+  // Fast login route - much faster than old passport sessions
+  app.post('/api/login', async (req, res) => {
     try {
-      const validatedData = loginSchema.parse(req.body);
+      const { username, password } = loginSchema.parse(req.body);
+      
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        return res.status(401).json({ message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+      }
+      
+      if (!user.passwordHash) {
+        return res.status(401).json({ message: 'هذا الحساب لا يحتوي على كلمة مرور محلية' });
+      }
 
-      passport.authenticate('local', (err: any, user: any, info: any) => {
-        if (err) {
-          return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
-        }
-        if (!user) {
-          return res.status(401).json({ message: info?.message || "اسم المستخدم أو كلمة المرور غير صحيحة" });
-        }
+      const isValid = await bcrypt.compare(password, user.passwordHash);
+      
+      if (!isValid) {
+        return res.status(401).json({ message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+      }
 
-        req.logIn(user, (err) => {
-          if (err) {
-            return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
-          }
+      // Create fast session
+      const { sessionId, token } = FastSessionManager.createSession(user);
+      
+      // Set auth token cookie for seamless authentication
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: false, // Set to true in production with HTTPS
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+        sameSite: 'lax',
+      });
 
-          res.json({
-            message: "تم تسجيل الدخول بنجاح",
-            user: {
-              id: user.id,
-              username: user.username,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              email: user.email,
-              role: user.role,
-              points: user.points,
-            }
-          });
-        });
-      })(req, res, next);
+      res.json({ 
+        message: 'تم تسجيل الدخول بنجاح', 
+        user: {
+          id: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          points: user.points,
+        },
+        token, // Also send token for API usage
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1249,28 +1265,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errors: error.errors.map(e => ({ field: e.path[0], message: e.message }))
         });
       }
-      res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'حدث خطأ أثناء تسجيل الدخول' });
     }
   });
 
-  app.post('/api/logout', (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
+  // Fast logout - clear session tokens  
+  const handleLogout = (req: any, res: any) => {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '') || 
+                    req.cookies?.authToken ||
+                    req.headers['x-auth-token'];
+      
+      if (token) {
+        const tokenStore = (FastSessionManager as any).tokenStore;
+        if (tokenStore && tokenStore.get) {
+          const sessionId = tokenStore.get(token);
+          if (sessionId) {
+            FastSessionManager.destroySession(sessionId);
+          }
+        }
       }
+      
+      res.clearCookie('authToken');
       res.json({ message: "تم تسجيل الخروج بنجاح" });
-    });
-  });
+    } catch (error) {
+      res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
+    }
+  };
 
-  // Also support GET logout for direct URL access
-  app.get('/api/logout', (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
-      }
-      res.json({ message: "تم تسجيل الخروج بنجاح" });
-    });
-  });
+  app.post('/api/logout', handleLogout);
+  app.get('/api/logout', handleLogout);
 
   app.get('/api/check-username', async (req, res) => {
     try {
@@ -1287,8 +1312,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth routes
-  app.get('/api/auth/user', requireAuth, async (req: any, res) => {
+  // Fast auth route - instant user data
+  app.get('/api/auth/user', optionalFastAuth, async (req: any, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });
+    }
     try {
       const user = req.user;
       res.json({

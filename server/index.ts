@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth, getSession } from "./replitAuth";
 import { setupLocalAuth } from "./localAuth";
+import { setupFastAuth } from "./fastSessions";
 import passport from "passport";
 import path from "path";
 
@@ -42,6 +43,7 @@ app.use('/api', (req, res, next) => {
 
 // Setup unified authentication system (both Replit and local)
 setupLocalAuth(app);
+setupFastAuth(app);
 
 app.use((req, res, next) => {
   const start = Date.now();
