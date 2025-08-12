@@ -1,5 +1,21 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+
+// Type augmentation for req.user
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      username: string;
+      role?: string | null;
+      points?: number | null;
+      email?: string | null;
+      firstName?: string | null;
+      lastName?: string | null;
+      [key: string]: any;
+    }
+  }
+}
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
@@ -178,7 +194,10 @@ function cleanupUserTokens(userId: string): number {
 // Import Object Storage utilities
 import { uploadFileToStorage, generateUniqueFileName, deleteFileFromStorage } from './object-storage';
 import { Storage } from '@google-cloud/storage';
-import { UrlHandler } from './utils/url-handler';
+
+// Environment and storage configuration
+const IS_REPLIT = process.env.REPLIT_ENVIRONMENT === 'production' || process.env.REPLIT_DEPLOYMENT === '1' || !!process.env.REPL_ID;
+const objectStorageClient = IS_REPLIT && process.env.GOOGLE_CLOUD_PROJECT ? new Storage() : null;
 
 // Using Backblaze B2 Cloud Storage as primary storage system
 console.log('🔧 Using Backblaze B2 Cloud Storage as primary storage system');
