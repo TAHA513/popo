@@ -72,6 +72,49 @@ export function PWAInstallButton() {
     };
   }, [deferredPrompt]);
 
+  const getBrowserName = () => {
+    const userAgent = navigator.userAgent;
+    if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome';
+    if (userAgent.includes('Edg')) return 'Edge';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+    return 'Other';
+  };
+
+  const getInstallInstructions = (browser: string) => {
+    const instructions: Record<string, string> = {
+      Chrome: `
+        🔸 ابحث عن أيقونة التثبيت في شريط العنوان (بجانب النجمة ⭐)
+        🔸 أو اضغط النقاط الثلاث (⋮) واختر "تثبيت LaaBoBo"
+        🔸 إذا لم تظهر، حدّث الصفحة واستخدم التصفح العادي
+      `,
+      Edge: `
+        🔸 ابحث عن أيقونة + في شريط العنوان
+        🔸 أو النقاط الثلاث (⋯) ← "التطبيقات" ← "تثبيت الموقع"
+        🔸 أو Settings ← Apps ← "Install this site as an app"
+      `,
+      Firefox: `
+        🔸 ابحث عن أيقونة التثبيت في شريط العنوان
+        🔸 أو قائمة Firefox ← "Install this site as an app"
+        🔸 أو اضغط Alt لإظهار القائمة ← Tools ← Install
+      `,
+      Safari: `
+        📱 **على الآيفون/آيباد:**
+        🔸 اضغط زر المشاركة 📤 في الأسفل
+        🔸 مرر لأسفل ← "إضافة إلى الشاشة الرئيسية"
+        
+        💻 **على Mac:**
+        🔸 قائمة File ← "Add to Dock"
+      `,
+      Other: `
+        🔸 ابحث عن "تثبيت" أو "Install" في قائمة المتصفح
+        🔸 أو أيقونة + أو 📥 في شريط العنوان
+        🔸 أو Settings ← Apps/Applications
+      `
+    };
+    return instructions[browser];
+  };
+
   const handleInstallClick = async () => {
     console.log('🔘 Install button clicked', { deferredPrompt: !!deferredPrompt });
     
@@ -133,39 +176,73 @@ export function PWAInstallButton() {
     // No native prompt available - show simple message to install from browser
     console.log('💡 No install prompt, showing browser install message');
     
-    // Simple alert telling user to install from browser
-    const alertDiv = document.createElement('div');
-    alertDiv.innerHTML = `
+    // Show smart install modal with better instructions
+    const browserName = getBrowserName();
+    const modalDiv = document.createElement('div');
+    modalDiv.innerHTML = `
       <div style="
         position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         z-index: 10000;
-        font-family: Arial, sans-serif;
-        text-align: right;
-        direction: rtl;
-        max-width: 300px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       ">
-        <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">
-          🔍 للتثبيت من المتصفح:
-        </div>
-        <div style="font-size: 12px; line-height: 1.4;">
-          Chrome: النقاط الثلاث ← "تثبيت"<br/>
-          Edge: أيقونة + في شريط العنوان<br/>
-          Firefox: أيقونة التثبيت بجانب العنوان
+        <div style="
+          background: linear-gradient(135deg, #ec4899, #8b5cf6);
+          color: white;
+          padding: 25px;
+          border-radius: 15px;
+          max-width: 85%;
+          max-height: 80%;
+          overflow-y: auto;
+          text-align: center;
+          direction: rtl;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+          position: relative;
+        ">
+          <button onclick="this.closest('div').remove()" style="
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+          ">×</button>
+          
+          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
+            📱 تثبيت LaaBoBo
+          </div>
+          
+          <div style="font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            ${getInstallInstructions(browserName)}
+          </div>
+          
+          <button onclick="this.closest('div').remove()" style="
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+          ">
+            حسناً
+          </button>
         </div>
       </div>
     `;
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-      alertDiv.remove();
-    }, 4000);
+    document.body.appendChild(modalDiv);
   };
 
   // Check if already installed

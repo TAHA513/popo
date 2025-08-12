@@ -5,6 +5,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait",
   "prefer_related_applications": false,
   "background_color": "#e879f9",
@@ -72,8 +73,6 @@
     }
   ],
 
-  "prefer_related_applications": false,
-  "related_applications": [],
   "id": "laababo-pwa-2025",
   "shortcuts": [
     {
