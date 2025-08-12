@@ -1,5 +1,5 @@
 // LaaBoBo PWA - Advanced Service Worker
-const CACHE_NAME = 'laababo-v2.0';
+const CACHE_NAME = 'laababo-pwa-v3.0';
 const API_CACHE = 'laababo-api-v1';
 const MEDIA_CACHE = 'laababo-media-v1';
 

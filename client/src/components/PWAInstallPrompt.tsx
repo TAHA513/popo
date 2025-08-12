@@ -10,22 +10,30 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = () => {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    console.log('🎯 PWA Install Prompt component mounted');
+    
     // Check if running as standalone app
-    setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    setIsStandalone(standalone);
+    console.log('📱 Is standalone:', standalone);
     
     // Detect iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsIOS(iOS);
+    console.log('🍎 Is iOS:', iOS);
 
     // Listen for beforeinstallprompt event (Android)
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🚀 beforeinstallprompt event triggered!');
       e.preventDefault();
       setDeferredPrompt(e);
       
       // Show install prompt after a delay if not dismissed
       setTimeout(() => {
         const dismissed = localStorage.getItem('pwa-install-dismissed');
-        if (!dismissed && !isStandalone) {
+        console.log('📋 PWA install dismissed previously:', dismissed);
+        if (!dismissed && !standalone) {
+          console.log('✅ Showing PWA install prompt');
           setShowInstallPrompt(true);
         }
       }, 3000);
