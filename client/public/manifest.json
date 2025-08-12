@@ -13,25 +13,25 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "icon-192x192.png",
+      "src": "icon-192x192-real.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "icon-512x512-real.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-192x192.png",
+      "src": "icon-192x192-real.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "icon-512x512-real.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -61,7 +61,7 @@
       "url": "/?shortcut=live",
       "icons": [
         {
-          "src": "icon-192x192.png",
+          "src": "icon-192x192-real.png",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -74,7 +74,7 @@
       "url": "/?shortcut=memories",
       "icons": [
         {
-          "src": "icon-192x192.png",
+          "src": "icon-192x192-real.png",
           "sizes": "192x192",
           "type": "image/png"
         }
