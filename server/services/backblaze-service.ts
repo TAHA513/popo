@@ -32,15 +32,39 @@ export class BackblazeService {
     try {
       console.log('🔄 Initializing Backblaze B2...');
       const authResponse = await this.b2.authorize();
+      
+      // Check for transaction cap exceeded
+      if (authResponse.status === 403 && authResponse.data?.code === 'transaction_cap_exceeded') {
+        console.error('💰 B2 Transaction cap exceeded - service temporarily unavailable');
+        this.initialized = false;
+        throw new Error('B2_TRANSACTION_CAP_EXCEEDED');
+      }
+      
       // Assign values from authResponse
       this.authToken = authResponse.data.authorizationToken;
       this.apiUrl = authResponse.data.apiUrl;
-      this.downloadUrl = authResponse.data.downloadUrl || 'https://f005.backblazeb2.com'; // Provide a default or fallback
+      this.downloadUrl = authResponse.data.downloadUrl || 'https://f005.backblazeb2.com';
       console.log('✅ Backblaze B2 authorized successfully');
       console.log('🔗 Download URL:', this.downloadUrl);
       this.initialized = true;
     } catch (error) {
       console.error('❌ Backblaze B2 authorization failed:', error);
+      
+      // Check if it's a transaction cap error
+      if (error instanceof Error && error.message === 'B2_TRANSACTION_CAP_EXCEEDED') {
+        this.initialized = false;
+        throw new Error('B2_TRANSACTION_CAP_EXCEEDED');
+      }
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const responseError = error as any;
+        if (responseError.response?.data?.code === 'transaction_cap_exceeded') {
+          this.initialized = false;
+          throw new Error('B2_TRANSACTION_CAP_EXCEEDED');
+        }
+      }
+      
+      this.initialized = false;
       throw new Error('Failed to initialize Backblaze B2');
     }
   }
@@ -50,7 +74,15 @@ export class BackblazeService {
       throw new Error('Backblaze B2 not configured');
     }
 
-    await this.initialize();
+    try {
+      await this.initialize();
+    } catch (error) {
+      if (error instanceof Error && error.message === 'B2_TRANSACTION_CAP_EXCEEDED') {
+        console.log('💰 B2 transaction cap exceeded - falling back to local storage');
+        throw new Error('B2_TRANSACTION_CAP_EXCEEDED');
+      }
+      throw error;
+    }
 
     try {
       console.log(`📤 Uploading ${fileName} to Backblaze B2...`);
@@ -74,12 +106,21 @@ export class BackblazeService {
         fileId: uploadResponse.data.fileId
       });
 
-      // إرجاع URL الداخلي للـ API proxy مباشرة (أفضل للأمان)
       console.log('✅ File uploaded successfully:', fileName);
       return `/api/media/b2/${fileName}`;
 
     } catch (error) {
       console.error(`❌ Failed to upload ${fileName}:`, error);
+      
+      // Check for transaction cap exceeded during upload
+      if (error && typeof error === 'object' && 'response' in error) {
+        const responseError = error as any;
+        if (responseError.response?.data?.code === 'transaction_cap_exceeded') {
+          console.log('💰 B2 transaction cap exceeded during upload - falling back');
+          throw new Error('B2_TRANSACTION_CAP_EXCEEDED');
+        }
+      }
+      
       throw new Error(`Failed to upload file to Backblaze B2: ${error}`);
     }
   }
@@ -199,7 +240,24 @@ export class BackblazeService {
   }
 
   isAvailable(): boolean {
-    return !!(
+    const hasCredentials = !!(
+      process.env.B2_APPLICATION_KEY_ID &&
+      process.env.B2_APPLICATION_KEY &&
+      process.env.B2_BUCKET_NAME &&
+      process.env.B2_BUCKET_ID
+    );
+    
+    // If we previously failed with transaction cap, mark as unavailable
+    if (hasCredentials && this.initialized === false) {
+      return false;
+    }
+    
+    return hasCredentials;
+  }
+
+  // Method to check if B2 is temporarily unavailable due to transaction cap
+  isTransactionCapExceeded(): boolean {
+    return this.initialized === false && !!(
       process.env.B2_APPLICATION_KEY_ID &&
       process.env.B2_APPLICATION_KEY &&
       process.env.B2_BUCKET_NAME &&
