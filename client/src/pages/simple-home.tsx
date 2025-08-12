@@ -10,7 +10,6 @@ import BottomNavigation from "@/components/bottom-navigation";
 import FlipCard from "@/components/flip-card";
 import PromotionalBanner from "@/components/promotional-banner";
 import NotificationBell from "@/components/notification-bell";
-import { PWAInstallButton } from "@/components/PWAInstallButton";
 
 export default function SimpleHome() {
   const { user } = useAuth();
@@ -119,11 +118,6 @@ export default function SimpleHome() {
       {/* Promotional Banner */}
       <div className="max-w-sm mx-auto px-2 pt-4">
         <PromotionalBanner />
-      </div>
-
-      {/* PWA Install Button */}
-      <div className="max-w-sm mx-auto px-2 pt-2">
-        <PWAInstallButton />
       </div>
 
       <div className="max-w-sm mx-auto">
