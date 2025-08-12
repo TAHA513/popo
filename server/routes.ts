@@ -1759,15 +1759,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get public memory fragments for homepage
+  // Get public memory fragments for homepage - OPTIMIZED for performance
   app.get('/api/memories/public', async (req, res) => {
     try {
-      // Disable caching to ensure fresh data is always served
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
+      // Enable aggressive caching for better performance
+      res.set('Cache-Control', 'public, max-age=30, s-maxage=30');
+      
+      // OPTIMIZATION 1: Limit results for better performance
+      const limit = parseInt(req.query.limit as string) || 30; // Default 30 posts
+      const offset = parseInt(req.query.offset as string) || 0;
 
-      // Get memories with author info and comment counts
+      // OPTIMIZATION 2: Get memories with author info in a single query with JOIN
       const memoriesWithCounts = await db
         .select({
           id: memoryFragments.id,
@@ -1809,33 +1811,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(memoryFragments.isActive, true),
           eq(memoryFragments.isPublic, true)
         ))
-        .orderBy(desc(memoryFragments.createdAt));
+        .orderBy(desc(memoryFragments.createdAt))
+        .limit(limit)
+        .offset(offset);
 
-      // Get comment counts for each memory
-      const memoriesWithCommentCounts = await Promise.all(
-        memoriesWithCounts.map(async (memory) => {
-          const [commentCountResult] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(comments)
-            .where(and(
-              eq(comments.postId, memory.id),
-              eq(comments.postType, 'memory')
-            ));
-
-          return {
-            ...memory,
-            commentCount: commentCountResult.count || 0
-          };
+      // OPTIMIZATION 3: Get ALL comment counts in a single query
+      const memoryIds = memoriesWithCounts.map(m => m.id);
+      const commentCounts = memoryIds.length > 0 ? await db
+        .select({
+          postId: comments.postId,
+          count: sql<number>`count(*)::int`
         })
+        .from(comments)
+        .where(and(
+          sql`${comments.postId} = ANY(${memoryIds})`,
+          eq(comments.postType, 'memory')
+        ))
+        .groupBy(comments.postId) : [];
+
+      // Create a map for quick lookup
+      const commentCountMap = new Map(
+        commentCounts.map(cc => [cc.postId, cc.count])
       );
 
-      // Convert URLs to absolute paths for proper cross-domain support
-      const memoriesWithAbsoluteUrls = memoriesWithCommentCounts.map(memory => ({
+      // OPTIMIZATION 4: Bulk process URLs and combine data
+      const memoriesWithCommentCounts = memoriesWithCounts.map(memory => ({
         ...memory,
-        // Convert media URLs to absolute URLs
+        commentCount: commentCountMap.get(memory.id) || 0,
+        // Process URLs inline for better performance
         mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
         thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
-        // Convert author profile image URL to absolute URL  
         author: memory.author ? {
           ...memory.author,
           profileImageUrl: memory.author.profileImageUrl ? 
@@ -1843,7 +1848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       }));
 
-      res.json(memoriesWithAbsoluteUrls);
+      res.json(memoriesWithCommentCounts);
     } catch (error) {
       console.error("Error fetching public memories:", error);
       res.status(500).json({ message: "Failed to fetch public memories" });

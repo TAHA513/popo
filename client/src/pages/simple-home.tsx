@@ -17,24 +17,25 @@ export default function SimpleHome() {
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // Public posts only (no streams) - optimized for speed
+  // OPTIMIZED: Public posts with fast loading
   const { data: memories = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 15000, // تقليل تحديث البيانات من 10 إلى 15 ثانية
-    staleTime: 30000, // البيانات تبقى صالحة لـ 30 ثانية
-    gcTime: 300000, // تنظيف الكاش بعد 5 دقائق
+    refetchInterval: 60000, // تحديث كل دقيقة بدلاً من 15 ثانية
+    staleTime: 45000, // البيانات تبقى صالحة لـ 45 ثانية
+    gcTime: 600000, // تنظيف الكاش بعد 10 دقائق
     retry: 1, // محاولة واحدة فقط
     refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
     refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
   });
 
-
-
-  // Get conversations to check for unread messages
+  // OPTIMIZED: Less frequent message checking
   const { data: conversations } = useQuery<any[]>({
     queryKey: ['/api/messages/conversations'],
-    refetchInterval: 30000,
-    staleTime: 15000,
+    refetchInterval: 60000, // تحديث كل دقيقة بدلاً من 30 ثانية
+    staleTime: 45000, // البيانات تبقى صالحة لـ 45 ثانية
+    refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
+    refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
+    retry: 1, // محاولة واحدة فقط
   });
 
   // Calculate unread messages count based on conversations with unread messages
