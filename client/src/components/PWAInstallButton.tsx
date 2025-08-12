@@ -45,15 +45,23 @@ export function PWAInstallButton() {
       return;
     }
 
-    // Always show button for PWA installation
-    setShowButton(true);
+    // Show button only if not installed and potentially installable
+    if (isStandalone) {
+      console.log('📱 App is already installed');
+      setShowButton(false);
+    } else {
+      console.log('📱 App not installed, showing install button');
+      setShowButton(true);
+    }
     
-    // Check if install prompt is available after delay
+    // Force browser to recognize PWA after delay
     setTimeout(() => {
-      if (!deferredPrompt) {
-        console.log('⚠️ No install prompt detected, using manual installation guide');
+      if (!deferredPrompt && !isStandalone) {
+        console.log('🔄 Attempting to trigger install prompt conditions...');
+        // Try to trigger the browser to show install prompt
+        window.dispatchEvent(new Event('load'));
       }
-    }, 2000);
+    }, 3000);
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -143,8 +151,13 @@ export function PWAInstallButton() {
         direction: rtl;
         max-width: 300px;
       ">
-        <div style="font-size: 14px; font-weight: bold;">
-          للتثبيت: ابحث عن أيقونة التثبيت في شريط المتصفح أو القائمة
+        <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">
+          🔍 للتثبيت من المتصفح:
+        </div>
+        <div style="font-size: 12px; line-height: 1.4;">
+          Chrome: النقاط الثلاث ← "تثبيت"<br/>
+          Edge: أيقونة + في شريط العنوان<br/>
+          Firefox: أيقونة التثبيت بجانب العنوان
         </div>
       </div>
     `;
@@ -170,10 +183,10 @@ export function PWAInstallButton() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed top-4 right-4 z-50">
       <button
         onClick={handleInstallClick}
-        className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
+        className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
         title="تثبيت تطبيق LaaBoBo كتطبيق مستقل"
       >
         <Download className="h-4 w-4" />
