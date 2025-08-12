@@ -1,53 +1,41 @@
-<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#e879f9"/>
+    <radialGradient id="bg512" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#f0abfc"/>
       <stop offset="100%" style="stop-color:#8b5cf6"/>
-    </linearGradient>
+    </radialGradient>
   </defs>
   
-  <!-- Background -->
-  <rect width="512" height="512" fill="url(#bg)" rx="80"/>
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg512)"/>
   
-  <!-- Rabbit design centered -->
-  <g transform="translate(256,256)">
-    <!-- Head -->
-    <ellipse cx="0" cy="0" rx="80" ry="70" fill="#9ca3af" stroke="#4b5563" stroke-width="6"/>
+  <!-- Cute rabbit silhouette -->
+  <g transform="translate(256, 256) scale(2.5)">
+    <!-- Rabbit body -->
+    <ellipse cx="0" cy="15" rx="25" ry="30" fill="#6b7280"/>
     
-    <!-- Left ear -->
-    <ellipse cx="-40" cy="-60" rx="20" ry="50" fill="#9ca3af" stroke="#4b5563" stroke-width="4"/>
-    <ellipse cx="-40" cy="-50" rx="12" ry="30" fill="#fbbf24"/>
+    <!-- Rabbit head -->
+    <circle cx="0" cy="-15" r="22" fill="#6b7280"/>
     
-    <!-- Right ear -->
-    <ellipse cx="40" cy="-60" rx="20" ry="50" fill="#9ca3af" stroke="#4b5563" stroke-width="4"/>
-    <ellipse cx="40" cy="-50" rx="12" ry="30" fill="#fbbf24"/>
+    <!-- Long ears -->
+    <ellipse cx="-12" cy="-35" rx="6" ry="18" fill="#6b7280" transform="rotate(-20)"/>
+    <ellipse cx="12" cy="-35" rx="6" ry="18" fill="#6b7280" transform="rotate(20)"/>
     
-    <!-- Face -->
-    <ellipse cx="0" cy="20" rx="45" ry="35" fill="white" stroke="#4b5563" stroke-width="3"/>
+    <!-- Inner ears -->
+    <ellipse cx="-10" cy="-32" rx="3" ry="12" fill="#e879f9" transform="rotate(-20)"/>
+    <ellipse cx="10" cy="-32" rx="3" ry="12" fill="#e879f9" transform="rotate(20)"/>
     
     <!-- Eyes -->
-    <ellipse cx="-20" cy="-10" rx="8" ry="12" fill="#4b5563"/>
-    <ellipse cx="20" cy="-10" rx="8" ry="12" fill="#4b5563"/>
-    <circle cx="-18" cy="-15" r="3" fill="white"/>
-    <circle cx="22" cy="-15" r="3" fill="white"/>
+    <circle cx="-8" cy="-18" r="3" fill="white"/>
+    <circle cx="8" cy="-18" r="3" fill="white"/>
+    <circle cx="-7" cy="-18" r="2" fill="black"/>
+    <circle cx="9" cy="-18" r="2" fill="black"/>
     
     <!-- Nose -->
-    <ellipse cx="0" cy="15" rx="6" ry="4" fill="#4b5563"/>
+    <ellipse cx="0" cy="-10" rx="2" ry="1.5" fill="#e879f9"/>
     
-    <!-- Mouth -->
-    <path d="M 0 25 Q -10 35 -15 25" stroke="#4b5563" stroke-width="3" fill="none"/>
-    <path d="M 0 25 Q 10 35 15 25" stroke="#4b5563" stroke-width="3" fill="none"/>
-    <ellipse cx="0" cy="30" rx="6" ry="3" fill="#f87171"/>
-    
-    <!-- Whiskers -->
-    <line x1="-60" y1="-5" x2="-75" y2="-10" stroke="#4b5563" stroke-width="2"/>
-    <line x1="-60" y1="5" x2="-75" y2="5" stroke="#4b5563" stroke-width="2"/>
-    <line x1="-60" y1="15" x2="-75" y2="20" stroke="#4b5563" stroke-width="2"/>
-    <line x1="60" y1="-5" x2="75" y2="-10" stroke="#4b5563" stroke-width="2"/>
-    <line x1="60" y1="5" x2="75" y2="5" stroke="#4b5563" stroke-width="2"/>
-    <line x1="60" y1="15" x2="75" y2="20" stroke="#4b5563" stroke-width="2"/>
+    <!-- Cute tail -->
+    <circle cx="0" cy="40" r="8" fill="#6b7280"/>
   </g>
-  
-  <!-- App name -->
-  <text x="256" y="450" text-anchor="middle" fill="white" font-size="32" font-family="Arial" font-weight="bold">LaaBoBo</text>
 </svg>

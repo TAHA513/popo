@@ -13,21 +13,44 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "pwa-icon.svg",
-      "sizes": "any",
+      "src": "icon-192x192.svg",
+      "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "pwa-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml", 
+      "src": "icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
       "purpose": "maskable"
     },
     {
       "src": "favicon.ico",
-      "sizes": "32x32",
-      "type": "image/x-icon",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     }
   ],
@@ -43,8 +66,8 @@
       "url": "/?shortcut=live",
       "icons": [
         {
-          "src": "pwa-icon.svg",
-          "sizes": "any",
+          "src": "icon-192x192.svg",
+          "sizes": "192x192",
           "type": "image/svg+xml"
         }
       ]
@@ -56,8 +79,8 @@
       "url": "/?shortcut=memories",
       "icons": [
         {
-          "src": "pwa-icon.svg",
-          "sizes": "any",
+          "src": "icon-192x192.svg",
+          "sizes": "192x192",
           "type": "image/svg+xml"
         }
       ]
