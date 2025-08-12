@@ -86,7 +86,7 @@ export async function uploadFileToStorage(
   console.log(`📁 Generated unique filename: ${uniqueFileName}`);
 
   // Strategy 1: Try Backblaze B2 first (Primary and Priority)
-  if (backblazeService.isAvailable() && !backblazeService.isTransactionCapExceeded()) {
+  if (backblazeService.isAvailable()) {
     try {
       console.log('🥇 Attempting Backblaze B2 upload...');
       const proxyUrl = await backblazeService.uploadFile(buffer, uniqueFileName, contentType);
@@ -99,14 +99,8 @@ export async function uploadFileToStorage(
       };
     } catch (error) {
       console.error('❌ Backblaze B2 upload failed:', error);
-      
-      // Check if it's a transaction cap error
-      if (error instanceof Error && error.message === 'B2_TRANSACTION_CAP_EXCEEDED') {
-        console.log('💰 B2 transaction cap exceeded - falling back to local storage');
-      }
+      // Fall back to local storage only if B2 fails
     }
-  } else if (backblazeService.isTransactionCapExceeded()) {
-    console.log('💰 B2 transaction cap exceeded - skipping B2 upload attempt');
   } else {
     console.log('⚠️ Backblaze B2 not configured - using local storage as fallback');
   }

@@ -259,20 +259,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Enhanced media endpoint with comprehensive fallback system
+  // Dedicated Backblaze B2 media endpoint - optimized for public access
   app.get('/api/media/b2/:filename', async (req, res) => {
     try {
       const { filename } = req.params;
-      console.log('🖼️ Fetching media file:', filename);
+      console.log('🖼️ Fetching B2 image:', filename);
 
-      // Set CORS headers first
-      res.set({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      });
+      if (!backblazeService.isAvailable()) {
+        return res.status(503).json({ error: 'Backblaze B2 not available' });
+      }
 
-      // Determine content type from file extension
+      // Get the public URL directly (no authorization needed for public bucket)
+      const publicUrl = await backblazeService.getFileUrl(filename);
+      console.log('🔗 Using public URL for:', filename);
+
+      // Fetch the file from B2
+      const response = await fetch(publicUrl);
+
+      if (!response.ok) {
+        console.error('❌ Failed to fetch from B2:', response.status, response.statusText);
+        // If 401/403, the file might be in a private location, try with auth
+        if (response.status === 401 || response.status === 403) {
+          console.log('🔒 Trying with authorization...');
+          try {
+            const authorizedUrl = await backblazeService.getFileUrlWithAuth(filename);
+            const authResponse = await fetch(authorizedUrl);
+            
+            if (authResponse.ok) {
+              const buffer = await authResponse.arrayBuffer();
+              const ext = path.extname(filename).toLowerCase();
+              let contentType = 'application/octet-stream';
+              if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+              else if (ext === '.png') contentType = 'image/png';
+              else if (ext === '.gif') contentType = 'image/gif';
+              else if (ext === '.webp') contentType = 'image/webp';
+              else if (ext === '.mp4') contentType = 'video/mp4';
+
+              res.set({
+                'Content-Type': authResponse.headers.get('content-type') || contentType,
+                'Cache-Control': 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*',
+                'X-Source': 'backblaze-b2-auth'
+              });
+
+              console.log('✅ Successfully served B2 file with auth:', filename);
+              return res.send(Buffer.from(buffer));
+            }
+          } catch (authError) {
+            console.error('❌ Authorization also failed:', authError);
+          }
+        }
+        
+        return res.status(response.status).json({ error: 'File not found or access denied' });
+      }
+
+      const buffer = await response.arrayBuffer();
+
+      // تحديد نوع المحتوى بناءً على امتداد الملف
       const ext = path.extname(filename).toLowerCase();
       let contentType = 'application/octet-stream';
       if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
@@ -281,92 +324,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (ext === '.webp') contentType = 'image/webp';
       else if (ext === '.mp4') contentType = 'video/mp4';
 
-      // Strategy 1: Try Backblaze B2 if available and not at transaction cap
-      if (backblazeService.isAvailable() && !backblazeService.isTransactionCapExceeded()) {
-        try {
-          console.log('🔗 Attempting B2 download for:', filename);
-          const publicUrl = await backblazeService.getFileUrl(filename);
-          const response = await fetch(publicUrl);
-          
-          if (response.ok) {
-            const buffer = await response.arrayBuffer();
-            
-            res.set({
-              'Content-Type': response.headers.get('content-type') || contentType,
-              'Cache-Control': 'public, max-age=86400',
-              'X-Source': 'backblaze-b2',
-            });
-
-            console.log('✅ Successfully served from B2:', filename);
-            return res.send(Buffer.from(buffer));
-          } else {
-            console.log('⚠️ B2 public URL failed, status:', response.status);
-          }
-        } catch (b2Error) {
-          console.log('⚠️ B2 access failed:', b2Error);
-        }
-      } else if (backblazeService.isTransactionCapExceeded()) {
-        console.log('💰 B2 transaction cap exceeded - skipping B2 attempt');
-      }
-
-      // Strategy 2: Try local file system as fallback
-      try {
-        const { readFileSync, existsSync } = await import('fs');
-        const localPath = path.join(process.cwd(), 'public', 'media', filename);
-        console.log('📁 Checking local file:', localPath);
-        
-        if (existsSync(localPath)) {
-          const buffer = readFileSync(localPath);
-          
-          res.set({
-            'Content-Type': contentType,
-            'Cache-Control': 'public, max-age=3600',
-            'X-Source': 'local-filesystem',
-          });
-
-          console.log('✅ Successfully served from local filesystem:', filename);
-          return res.send(buffer);
-        } else {
-          console.log('❌ File not found in local filesystem:', localPath);
-        }
-      } catch (localError) {
-        console.log('⚠️ Local file access failed:', localError);
-      }
-
-      // Strategy 3: Return a proper 404 with helpful information
-      console.error('❌ File not found in any storage:', filename);
-      return res.status(404).json({ 
-        error: 'Media file not found',
-        filename: filename,
-        message: 'File not available in any storage location',
-        storageStatus: {
-          backblaze: backblazeService.isAvailable() ? 
-            (backblazeService.isTransactionCapExceeded() ? 'transaction_cap_exceeded' : 'available') : 
-            'not_configured',
-          localStorage: 'checked'
-        }
+      res.set({
+        'Content-Type': response.headers.get('content-type') || contentType,
+        'Cache-Control': 'public, max-age=86400',
+        'Access-Control-Allow-Origin': '*',
+        'X-Source': 'backblaze-b2'
       });
 
+      console.log('✅ Successfully served B2 file:', filename);
+      res.send(Buffer.from(buffer));
     } catch (error) {
-      console.error('❌ Error in media endpoint:', error);
-      res.status(500).json({ 
-        error: 'Internal server error while fetching media',
-        filename: req.params.filename 
-      });
+      console.error('❌ Error fetching B2 image:', error);
+      res.status(404).json({ error: 'File not found in Backblaze B2' });
     }
   });
 
-  // Unified media serving endpoint - Enhanced with transaction cap awareness
+  // Unified media serving endpoint - Redirect to specialized B2 endpoint
   app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
     const filename = req.params.filename;
     console.log(`🔍 طلب ملف: ${filename}`);
 
-    // Strategy 1: Try B2 if available and not at transaction cap
-    if (backblazeService.isAvailable() && !backblazeService.isTransactionCapExceeded()) {
+    // Strategy 1: Try Backblaze B2 first (Primary) - Redirect to dedicated endpoint
+    if (backblazeService.isAvailable()) {
       console.log(`🔄 إعادة توجيه إلى B2 endpoint: ${filename}`);
       return res.redirect(`/api/media/b2/${filename}`);
-    } else if (backblazeService.isTransactionCapExceeded()) {
-      console.log(`💰 B2 transaction cap exceeded - serving from local storage: ${filename}`);
     }
 
     // Strategy 2: Local files as fallback only
