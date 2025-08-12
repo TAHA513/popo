@@ -1658,7 +1658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memory fragments routes
-  app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
+  app.post('/api/memories', requireFastAuth, upload.array('media', 5), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
@@ -4194,7 +4194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memory Fragment routes
-  app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
+  app.post('/api/memories', requireFastAuth, upload.array('media', 5), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
