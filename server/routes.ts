@@ -1762,12 +1762,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get public memory fragments for homepage
   app.get('/api/memories/public', async (req, res) => {
     try {
-      // Enable short-term caching for performance
-      res.set('Cache-Control', 'public, max-age=30'); // 30 ثانية cache
-      res.set('Pragma', 'public');
+      // Disable caching to ensure fresh data is always served
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
 
-      // Get memories with author info and comment counts in one optimized query
-      const memoriesWithCommentCounts = await db
+      // Get memories with author info and comment counts
+      const memoriesWithCounts = await db
         .select({
           id: memoryFragments.id,
           authorId: memoryFragments.authorId,
@@ -1792,7 +1793,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           location: memoryFragments.location,
           createdAt: memoryFragments.createdAt,
           updatedAt: memoryFragments.updatedAt,
-          commentCount: sql<number>`COALESCE(COUNT(DISTINCT ${comments.id}), 0)::int`,
           author: {
             id: users.id,
             username: users.username,
@@ -1805,48 +1805,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .from(memoryFragments)
         .leftJoin(users, eq(memoryFragments.authorId, users.id))
-        .leftJoin(comments, and(
-          eq(comments.postId, memoryFragments.id),
-          eq(comments.postType, 'memory')
-        ))
         .where(and(
           eq(memoryFragments.isActive, true),
           eq(memoryFragments.isPublic, true)
         ))
-        .groupBy(
-          memoryFragments.id,
-          memoryFragments.authorId,
-          memoryFragments.type,
-          memoryFragments.title,
-          memoryFragments.caption,
-          memoryFragments.mediaUrls,
-          memoryFragments.thumbnailUrl,
-          memoryFragments.viewCount,
-          memoryFragments.likeCount,
-          memoryFragments.shareCount,
-          memoryFragments.giftCount,
-          memoryFragments.currentEnergy,
-          memoryFragments.memoryType,
-          memoryFragments.mood,
-          memoryFragments.isActive,
-          memoryFragments.isPublic,
-          memoryFragments.visibilityLevel,
-          memoryFragments.allowComments,
-          memoryFragments.allowSharing,
-          memoryFragments.allowGifts,
-          memoryFragments.location,
-          memoryFragments.createdAt,
-          memoryFragments.updatedAt,
-          users.id,
-          users.username,
-          users.firstName,
-          users.profileImageUrl,
-          users.isStreamer,
-          users.isVerified,
-          users.verificationBadge
-        )
-        .orderBy(desc(memoryFragments.createdAt))
-        .limit(20); // حد أقصى 20 منشور لسرعة أكبر
+        .orderBy(desc(memoryFragments.createdAt));
+
+      // Get comment counts for each memory
+      const memoriesWithCommentCounts = await Promise.all(
+        memoriesWithCounts.map(async (memory) => {
+          const [commentCountResult] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(comments)
+            .where(and(
+              eq(comments.postId, memory.id),
+              eq(comments.postType, 'memory')
+            ));
+
+          return {
+            ...memory,
+            commentCount: commentCountResult.count || 0
+          };
+        })
+      );
 
       // Convert URLs to absolute paths for proper cross-domain support
       const memoriesWithAbsoluteUrls = memoriesWithCommentCounts.map(memory => ({
