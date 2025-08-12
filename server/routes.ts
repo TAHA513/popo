@@ -224,30 +224,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header('Expires', '0');
     
     const manifest = {
-      name: "LaaBoBo - منصة البث المباشر",
-      short_name: "LaaBoBo",
-      description: "منصة البث المباشر والتواصل الاجتماعي العربية",
+      name: "LaaBoBo Live - منصة البث المباشر والتواصل الاجتماعي",
+      short_name: "LaaBoBo Live",
+      description: "منصة البث المباشر والتواصل الاجتماعي العربية مع الهدايا والشخصيات المتحركة",
       start_url: "/",
       scope: "/",
       display: "standalone",
-      orientation: "portrait-primary",
+      orientation: "portrait-primary", 
       background_color: "#ec4899",
       theme_color: "#9333ea",
       lang: "ar",
       dir: "rtl",
-      categories: ["social", "entertainment"],
+      categories: ["social", "entertainment", "communication"],
+      prefer_related_applications: false,
       icons: [
+        {
+          src: "/laabo-rabbit-logo.svg",
+          sizes: "192x192",
+          type: "image/svg+xml",
+          purpose: "any"
+        },
+        {
+          src: "/laabo-rabbit-logo.svg", 
+          sizes: "512x512",
+          type: "image/svg+xml",
+          purpose: "any"
+        },
         {
           src: "/icon-192.png",
           sizes: "192x192",
           type: "image/png",
-          purpose: "any maskable"
+          purpose: "maskable"
         },
         {
           src: "/icon-512.png",
-          sizes: "512x512", 
-          type: "image/png",
-          purpose: "any maskable"
+          sizes: "512x512",
+          type: "image/png", 
+          purpose: "maskable"
         }
       ]
     };
