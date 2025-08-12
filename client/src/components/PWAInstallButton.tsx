@@ -72,6 +72,179 @@ export function PWAInstallButton() {
     };
   }, [deferredPrompt]);
 
+  const showSuccessMessage = () => {
+    const successDiv = document.createElement('div');
+    successDiv.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        z-index: 10000;
+        font-family: Arial, sans-serif;
+        text-align: right;
+        direction: rtl;
+      ">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div>
+            <div style="font-size: 16px; font-weight: bold;">✅ تم التثبيت بنجاح!</div>
+            <div style="font-size: 14px; opacity: 0.9;">يمكنك الآن فتح LaaBoBo من قائمة التطبيقات</div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+      successDiv.remove();
+    }, 4000);
+  };
+
+  const showForcedInstallModal = () => {
+    const browserName = getBrowserName();
+    const installUrl = window.location.href;
+    
+    // Create a more aggressive install prompt
+    const modalDiv = document.createElement('div');
+    modalDiv.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      ">
+        <div style="
+          background: linear-gradient(135deg, #ec4899, #8b5cf6);
+          color: white;
+          padding: 30px;
+          border-radius: 20px;
+          max-width: 90%;
+          text-align: center;
+          direction: rtl;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+          position: relative;
+          animation: slideIn 0.3s ease-out;
+        ">
+          <style>
+            @keyframes slideIn {
+              from { transform: scale(0.8); opacity: 0; }
+              to { transform: scale(1); opacity: 1; }
+            }
+          </style>
+          
+          <button onclick="this.closest('div').remove()" style="
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+          ">×</button>
+          
+          <div style="font-size: 22px; font-weight: bold; margin-bottom: 20px;">
+            🚀 تثبيت LaaBoBo الآن
+          </div>
+          
+          <div style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">
+            <strong>طرق التثبيت حسب متصفحك:</strong>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: right;">
+            ${getDetailedInstallInstructions(browserName)}
+          </div>
+          
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="window.open('${installUrl}', '_blank'); this.closest('div').remove();" style="
+              background: rgba(255,255,255,0.2);
+              color: white;
+              border: 1px solid rgba(255,255,255,0.3);
+              padding: 12px 24px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 14px;
+              font-weight: bold;
+            ">
+              فتح في نافذة جديدة
+            </button>
+            <button onclick="this.closest('div').remove()" style="
+              background: rgba(255,255,255,0.2);
+              color: white;
+              border: 1px solid rgba(255,255,255,0.3);
+              padding: 12px 24px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 14px;
+            ">
+              حسناً
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modalDiv);
+  };
+
+  const getDetailedInstallInstructions = (browser: string) => {
+    const instructions: Record<string, string> = {
+      Chrome: `
+        <strong>Chrome:</strong><br/>
+        1️⃣ ابحث عن أيقونة 📥 أو ➕ في شريط العنوان<br/>
+        2️⃣ اضغط النقاط الثلاث ⋮ ← "تثبيت LaaBoBo"<br/>
+        3️⃣ أو: المزيد من الأدوات ← "إنشاء اختصار"<br/>
+        4️⃣ إذا لم تجدها: حدث الصفحة بـ F5 أو Ctrl+R
+      `,
+      Edge: `
+        <strong>Edge:</strong><br/>
+        1️⃣ ابحث عن أيقونة ➕ في شريط العنوان<br/>
+        2️⃣ أو: النقاط الثلاث ⋯ ← "التطبيقات" ← "تثبيت"<br/>
+        3️⃣ أو: Settings ← Apps ← "Install LaaBoBo as an app"<br/>
+        4️⃣ أو: إعدادات ← التطبيقات ← تثبيت الموقع
+      `,
+      Firefox: `
+        <strong>Firefox:</strong><br/>
+        1️⃣ ابحث عن أيقونة التثبيت في شريط العنوان<br/>
+        2️⃣ قائمة Firefox ← "Install this site as an app"<br/>
+        3️⃣ اضغط Alt ← Tools ← Install<br/>
+        4️⃣ أو: ⋮ ← "Install as app"
+      `,
+      Safari: `
+        <strong>Safari:</strong><br/>
+        📱 <strong>على الآيفون/آيباد:</strong><br/>
+        1️⃣ اضغط زر المشاركة 📤 (في الأسفل)<br/>
+        2️⃣ مرر للأسفل ← "إضافة إلى الشاشة الرئيسية"<br/>
+        3️⃣ اكتب "LaaBoBo" كاسم واضغط "إضافة"<br/><br/>
+        
+        💻 <strong>على Mac:</strong><br/>
+        1️⃣ قائمة File ← "Add to Dock"<br/>
+        2️⃣ أو Dock ← Right click ← "Keep in Dock"
+      `,
+      Other: `
+        <strong>تعليمات عامة:</strong><br/>
+        1️⃣ ابحث عن "تثبيت" أو "Install" في قائمة المتصفح<br/>
+        2️⃣ أو أيقونة ➕ أو 📥 في شريط العنوان<br/>
+        3️⃣ أو Settings ← Apps ← Install<br/>
+        4️⃣ أو إعدادات ← التطبيقات ← تثبيت
+      `
+    };
+    return instructions[browser] || instructions.Other;
+  };
+
   const getBrowserName = () => {
     const userAgent = navigator.userAgent;
     if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome';
@@ -118,138 +291,55 @@ export function PWAInstallButton() {
   const handleInstallClick = async () => {
     console.log('🔘 Install button clicked', { deferredPrompt: !!deferredPrompt });
     
+    // Try multiple installation methods
     if (deferredPrompt) {
-      // We have the native install prompt - use it directly
+      // Method 1: Native install prompt
       try {
         console.log('🎯 Triggering native install prompt...');
         await deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        console.log('📊 User choice:', outcome);
         
         if (outcome === 'accepted') {
           console.log('✅ تم تثبيت التطبيق بنجاح!');
           setShowButton(false);
-          
-          // Show success message
-          const successDiv = document.createElement('div');
-          successDiv.innerHTML = `
-            <div style="
-              position: fixed;
-              top: 20px;
-              right: 20px;
-              background: linear-gradient(135deg, #10b981, #059669);
-              color: white;
-              padding: 20px;
-              border-radius: 12px;
-              box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-              z-index: 10000;
-              font-family: Arial, sans-serif;
-              text-align: right;
-              direction: rtl;
-            ">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="/laababo-icon.png" style="width: 32px; height: 32px; border-radius: 50%;" />
-                <div>
-                  <div style="font-size: 16px; font-weight: bold;">✅ تم التثبيت بنجاح!</div>
-                  <div style="font-size: 14px; opacity: 0.9;">يمكنك الآن فتح LaaBoBo من قائمة التطبيقات</div>
-                </div>
-              </div>
-            </div>
-          `;
-          document.body.appendChild(successDiv);
-          
-          setTimeout(() => {
-            successDiv.remove();
-          }, 4000);
-          
-        } else {
-          console.log('❌ User dismissed the install prompt');
+          showSuccessMessage();
         }
         
         setDeferredPrompt(null);
+        return;
       } catch (error) {
-        console.error('❌ Install prompt failed:', error);
+        console.error('❌ Native install failed:', error);
       }
+    }
+    
+    // Method 2: Force trigger beforeinstallprompt
+    try {
+      const event = new Event('beforeinstallprompt') as any;
+      event.platforms = ['web'];
+      event.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
+      event.prompt = async () => {
+        console.log('🚀 Forcing install...');
+        // Try to trigger browser install
+        if ('getInstalledRelatedApps' in navigator) {
+          const relatedApps = await (navigator as any).getInstalledRelatedApps();
+          if (relatedApps.length === 0) {
+            showForcedInstallModal();
+          }
+        } else {
+          showForcedInstallModal();
+        }
+      };
+      
+      window.dispatchEvent(event);
+      await event.prompt();
       return;
+    } catch (error) {
+      console.error('❌ Force install failed:', error);
     }
 
-    // No native prompt available - show simple message to install from browser
-    console.log('💡 No install prompt, showing browser install message');
-    
-    // Show smart install modal with better instructions
-    const browserName = getBrowserName();
-    const modalDiv = document.createElement('div');
-    modalDiv.innerHTML = `
-      <div style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      ">
-        <div style="
-          background: linear-gradient(135deg, #ec4899, #8b5cf6);
-          color: white;
-          padding: 25px;
-          border-radius: 15px;
-          max-width: 85%;
-          max-height: 80%;
-          overflow-y: auto;
-          text-align: center;
-          direction: rtl;
-          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-          position: relative;
-        ">
-          <button onclick="this.closest('div').remove()" style="
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 16px;
-          ">×</button>
-          
-          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
-            📱 تثبيت LaaBoBo كتطبيق
-          </div>
-          
-          <div style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; text-align: right;">
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-              <strong>لتثبيت LaaBoBo كتطبيق مستقل:</strong><br/>
-              ${getInstallInstructions(browserName)}
-            </div>
-            
-            <div style="font-size: 12px; opacity: 0.9; text-align: center;">
-              بعد التثبيت ستحصل على تطبيق مستقل بدون شريط المتصفح وأداء أفضل ⚡
-            </div>
-          </div>
-          
-          <button onclick="this.closest('div').remove()" style="
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-          ">
-            حسناً
-          </button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modalDiv);
+    // Method 3: Show enhanced install modal
+    console.log('💡 No native install available, showing enhanced install modal');
+    showForcedInstallModal();
   };
 
   // Check if already installed
