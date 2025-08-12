@@ -1,0 +1,43 @@
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754962313184_cfeA9fUj_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754957101239_CmM8HPXT_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754957168059_lsOBwyAI_065da869c34d3f794078ef747fc423ad.jpg
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754957050494_OSkjlElC_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754956801684_m-6eK8a1_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754956448751_fiILtXy-_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:67 🎁 Gift data status: {showQuickGifts: false, giftCharacters: Array(0), length: 0, loading: false, firstGift: undefined, …}
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754956405467_Mqoep5-X_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754953735520_9ce3GpN8_065da869c34d3f794078ef747fc423ad.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754955527363_CHP3LQ1B_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754956336503_t8HuESs5_065da869c34d3f794078ef747fc423ad.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754952542024_kOMhonRi_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754952393299_ZFd1yoE9_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754952064172_eG52MUdQ_065da869c34d3f794078ef747fc423ad.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754951073294_XdhDrl7T_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754950764613_fnCyeWxc_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754950493967_cFIvjMWS_065da869c34d3f794078ef747fc423ad.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754952179048_57apxQQG_065da869c34d3f794078ef747fc423ad.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754950005450_I7iPyZO1_432280462_122177678702011163_8600468945120690091_n.jpg
+flip-card.tsx:357 ✅ Image loaded successfully: https://617f9402-3c68-4da7-9c19-a3c88da03abf-00-2skomkci4x2ov.worf.replit.dev/api/media/b2/1754949245889_HhEYr4F2_065da869c34d3f794078ef747fc423ad.jpg
