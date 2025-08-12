@@ -74,16 +74,8 @@ export class BackblazeService {
         fileId: uploadResponse.data.fileId
       });
 
-      // إنشاء رابط التحميل المباشر
-      console.log('📡 Creating download URL...');
-      const publicUrl = `${this.downloadUrl}/file/${this.bucketName}/${fileName}`;
-
-      console.log('🔗 Generated Public URL:', publicUrl);
-
-      // حفظ URL المباشر للاستخدام لاحقاً
-      this.lastUploadedUrl = publicUrl;
-
-      // إرجاع URL الداخلي للـ API proxy (أفضل للأمان)
+      // إرجاع URL الداخلي للـ API proxy مباشرة (أفضل للأمان)
+      console.log('✅ File uploaded successfully:', fileName);
       return `/api/media/b2/${fileName}`;
 
     } catch (error) {

@@ -42,8 +42,27 @@ export class UrlHandler {
   static processMediaUrl(mediaUrl: string, req: Request): string {
     if (!mediaUrl) return '';
     
+    // إصلاح الروابط المكسورة التي تحتوي على undefined
+    if (mediaUrl.includes('undefined/file/laabobo/')) {
+      const fileName = mediaUrl.replace('undefined/file/laabobo/', '');
+      return this.makeAbsoluteUrl(`/api/media/b2/${fileName}`, req);
+    }
+    
+    // إصلاح الروابط المكسورة التي تحتوي على null أو empty paths أخرى
+    if (mediaUrl.includes('null/file/laabobo/')) {
+      const fileName = mediaUrl.replace('null/file/laabobo/', '');
+      return this.makeAbsoluteUrl(`/api/media/b2/${fileName}`, req);
+    }
+    
     // إذا كان رابط مطلق من Backblaze B2 أو أي مصدر خارجي، أرجعه كما هو
     if (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://')) {
+      // خاص: إذا كان رابط B2 مباشر، حوله إلى API proxy لضمان التفويض
+      if (mediaUrl.includes('/file/laabobo/')) {
+        const fileName = mediaUrl.split('/file/laabobo/')[1];
+        if (fileName) {
+          return this.makeAbsoluteUrl(`/api/media/b2/${fileName}`, req);
+        }
+      }
       return mediaUrl;
     }
     
@@ -52,9 +71,10 @@ export class UrlHandler {
       return this.makeAbsoluteUrl(mediaUrl, req);
     }
     
-    // إذا كان اسم ملف فقط، حوله إلى API URL
+    // إذا كان اسم ملف فقط، حوله إلى API URL مع B2 endpoint
     if (mediaUrl && !mediaUrl.includes('/')) {
-      return this.createApiMediaUrl(mediaUrl, req);
+      const currentDomain = this.getCurrentDomain(req);
+      return `${currentDomain}/api/media/b2/${mediaUrl}`;
     }
     
     // إذا كان رابط نسبي، اجعله مطلق
