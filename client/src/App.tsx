@@ -61,7 +61,7 @@ import PrivacyPolicyPage from "@/pages/privacy-policy";
 import AdminDashboardPage from "@/pages/admin-dashboard";
 import OwnerWelcomePage from "@/pages/owner-welcome";
 import SearchPage from "@/pages/search";
-
+import PWAInstallPrompt from "@/components/pwa-install-prompt";
 
 
 function Router() {
@@ -165,6 +165,7 @@ function AppContent() {
       <Router />
       <LiveStreamIndicator />
       <Toaster />
+      <PWAInstallPrompt />
     </div>
   );
 }
