@@ -1,21 +1,36 @@
 {
-  "name": "LaaBoBo",
+  "name": "LaaBoBo - منصة التواصل الاجتماعي",
   "short_name": "LaaBoBo",
-  "description": "منصة التواصل الاجتماعي",
+  "description": "منصة التواصل الاجتماعي العربية الأولى للبث المباشر والذكريات",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#FF7ACA",
   "theme_color": "#BF68FF",
+  "categories": ["social", "entertainment", "lifestyle"],
+  "lang": "ar",
+  "dir": "rtl",
   "icons": [
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
     }
   ]
 }
