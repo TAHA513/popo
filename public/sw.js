@@ -1,61 +1,34 @@
-// LaaBoBo PWA Service Worker
-const CACHE_NAME = 'laababo-live-pwa-v9.0';
+// LaaBoBo Live - Simple Service Worker
+// Minimal service worker to avoid network errors
 
-// Critical assets for PWA
-const CRITICAL_ASSETS = [
-  '/',
-  '/manifest.json',
-  '/laabo-rabbit-logo.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/rabbit-icon-192.svg', 
-  '/rabbit-icon-512.svg'
-];
+const CACHE_NAME = 'laababo-live-v1';
 
-// Additional cache names
-const API_CACHE = 'laababo-api-v9.0';
-const MEDIA_CACHE = 'laababo-media-v9.0';
-
-// Install event - cache critical assets
+// Install event - keep it minimal
 self.addEventListener('install', (event) => {
-  console.log('🔧 LaaBoBo PWA Service Worker installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('💾 Caching critical assets');
-      return cache.addAll(CRITICAL_ASSETS);
-    }).then(() => {
-      console.log('✅ Critical assets cached');
-      self.skipWaiting();
-    })
-  );
+  console.log('Service Worker installing...');
+  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('🚀 LaaBoBo PWA Service Worker activated');
-  const cacheWhitelist = [CACHE_NAME, API_CACHE, MEDIA_CACHE];
-  
+  console.log('Service Worker activated');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            console.log('🗑️ Deleting old cache:', cacheName);
+          if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => {
-      console.log('🎯 All clients now controlled by new SW');
-      self.clients.claim();
     })
   );
+  self.clients.claim();
 });
 
-// Fetch event - advanced caching strategies
+// Fetch event - simple network-first strategy
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
   
   // Skip WebSocket and non-GET requests
   if (request.url.includes('ws://') || 
@@ -64,148 +37,36 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Strategy 1: Critical media files from B2 - Cache First
-  if (request.url.includes('/api/media/b2/')) {
-    event.respondWith(
-      caches.open(MEDIA_CACHE).then(cache => {
-        return cache.match(request).then(response => {
-          if (response) {
-            // Return cached version and update in background
-            fetch(request).then(fetchResponse => {
-              if (fetchResponse.ok) {
-                cache.put(request, fetchResponse.clone());
-              }
-            }).catch(() => {});
-            return response;
-          }
-          // Not in cache, fetch and cache
-          return fetch(request).then(fetchResponse => {
-            if (fetchResponse.ok) {
-              cache.put(request, fetchResponse.clone());
-            }
-            return fetchResponse;
-          }).catch(() => {
-            return new Response('Media offline', { status: 503 });
-          });
-        });
-      })
-    );
-    return;
-  }
-  
-  // Strategy 2: API requests - Network First with fallback
+  // For API requests, always go to network
   if (request.url.includes('/api/')) {
     event.respondWith(
-      caches.open(API_CACHE).then(cache => {
-        return fetch(request).then(response => {
-          if (response.ok && request.url.includes('memories')) {
-            // Cache memories API for offline access
-            cache.put(request, response.clone());
+      fetch(request).catch(() => {
+        return new Response(
+          JSON.stringify({ error: 'Network unavailable' }),
+          { 
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
           }
-          return response;
-        }).catch(() => {
-          // Try cache for GET requests
-          if (request.method === 'GET') {
-            return cache.match(request).then(response => {
-              if (response) {
-                return response;
-              }
-              return new Response(
-                JSON.stringify({ 
-                  error: 'لا يوجد اتصال بالإنترنت',
-                  offline: true 
-                }),
-                { 
-                  status: 503,
-                  headers: { 'Content-Type': 'application/json' }
-                }
-              );
-            });
-          }
-          
-          return new Response(
-            JSON.stringify({ error: 'Network unavailable' }),
-            { 
-              status: 503,
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
-        });
+        );
       })
     );
     return;
   }
   
-  // Strategy 3: Static assets - Cache First 
+  // For static assets, try network first, then cache
   event.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.match(request).then(response => {
-        if (response) {
-          return response;
-        }
-        
-        return fetch(request).then(fetchResponse => {
-          // Cache successful responses
-          if (fetchResponse.ok) {
-            cache.put(request, fetchResponse.clone());
-          }
-          return fetchResponse;
-        }).catch(() => {
-          // For HTML requests, return cached index
-          if (request.headers.get('accept').includes('text/html')) {
-            return cache.match('/') || new Response('Offline', { status: 503 });
-          }
-          return new Response('Resource not available offline', { status: 503 });
+    fetch(request)
+      .then((response) => {
+        // Clone the response to store in cache
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, responseClone);
         });
-      });
-    })
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try cache
+        return caches.match(request);
+      })
   );
 });
-
-// Background sync for failed requests
-self.addEventListener('sync', (event) => {
-  console.log('🔄 Background sync:', event.tag);
-  if (event.tag === 'retry-api-calls') {
-    event.waitUntil(retryFailedRequests());
-  }
-});
-
-// Push notifications support
-self.addEventListener('push', (event) => {
-  console.log('🔔 Push notification received');
-  
-  const options = {
-    body: event.data ? event.data.text() : 'إشعار جديد من LaaBoBo',
-    icon: '/laabo-rabbit-logo.svg',
-    badge: '/favicon.ico',
-    vibrate: [200, 100, 200],
-    tag: 'laababo-notification',
-    actions: [
-      {
-        action: 'open',
-        title: 'فتح التطبيق',
-        icon: '/laabo-rabbit-logo.svg'
-      }
-    ]
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification('LaaBoBo', options)
-  );
-});
-
-// Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
-  console.log('🔔 Notification clicked:', event.action);
-  event.notification.close();
-  
-  event.waitUntil(
-    clients.openWindow('/')
-  );
-});
-
-// Retry failed requests
-async function retryFailedRequests() {
-  // Implementation for retrying failed API calls
-  console.log('🔄 Retrying failed requests...');
-}

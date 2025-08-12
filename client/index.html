@@ -1,93 +1,21 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
-    <!-- PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LaaBoBo">
-    <meta name="application-name" content="LaaBoBo">
-    
-    <!-- Theme and Colors -->
-    <meta name="theme-color" content="#9333ea">
-    <meta name="msapplication-TileColor" content="#ec4899">
-    <meta name="msapplication-navbutton-color" content="#9333ea">
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="منصة البث المباشر والتواصل الاجتماعي العربية - لعبوبو">
-    <meta name="keywords" content="بث مباشر, تواصل اجتماعي, عربي, لعبوبو, LaaBoBo">
-    <meta name="author" content="LaaBoBo Team">
-    
-    <!-- Open Graph / Social Media -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="LaaBoBo - لعبوبو">
-    <meta property="og:description" content="منصة البث المباشر والتواصل الاجتماعي العربية">
-    <meta property="og:image" content="/laabo-rabbit-logo.svg">
-    <meta property="og:locale" content="ar_AR">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json?v=9.0&t=1754959600&force_new=true">
-    
-    <!-- Favicon and Icons -->
-    <link rel="icon" type="image/svg+xml" href="/laabo-rabbit-logo.svg">
-    <link rel="apple-touch-icon" href="/laabo-rabbit-logo.svg">
-    <link rel="mask-icon" href="/laabo-rabbit-logo.svg" color="#ec4899">
-    <link rel="apple-touch-icon" href="/rabbit-icon-192.svg">
-    <link rel="apple-touch-icon" sizes="192x192" href="/rabbit-icon-192.svg">
-    <link rel="apple-touch-icon" sizes="512x512" href="/rabbit-icon-512.svg">
-    
-    <!-- Windows Tile -->
-    <meta name="msapplication-TileImage" content="/rabbit-icon-192.svg">
-    
-    <title>LaaBoBo - لعبوبو | منصة البث المباشر العربية</title>
+    <meta name="theme-color" content="#ec4899">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192x192.png">
+    <title>LaaBoBo</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- PWA Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async () => {
-          try {
-            // Clear old service workers first
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (let registration of registrations) {
-              await registration.unregister();
-              console.log('🗑️ Unregistered old service worker');
-            }
-            
-            // Clear all caches
-            if ('caches' in window) {
-              const cacheNames = await caches.keys();
-              await Promise.all(
-                cacheNames.map(cacheName => {
-                  console.log('🗑️ Deleting cache:', cacheName);
-                  return caches.delete(cacheName);
-                })
-              );
-            }
-            
-            // Register fresh service worker
-            const registration = await navigator.serviceWorker.register('/sw.js?v=8.0&t=1754955600');
-            console.log('✅ Fresh PWA Service Worker registered:', registration.scope);
-            
-            // Check for updates
-            registration.addEventListener('updatefound', () => {
-              console.log('🔄 PWA update found, installing...');
-            });
-          } catch (error) {
-            console.error('❌ Service Worker registration failed:', error);
-          }
-        });
-      }
-    </script>
-    
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
-
   </body>
 </html>

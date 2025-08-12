@@ -216,53 +216,6 @@ interface ConnectedClient {
 const connectedClients = new Map<string, ConnectedClient>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // PWA Manifest endpoint - dynamic with proper headers
-  app.get('/manifest.json', (req, res) => {
-    res.header('Content-Type', 'application/manifest+json');
-    res.header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-    res.header('Pragma', 'no-cache');
-    res.header('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
-    res.header('Last-Modified', new Date().toUTCString());
-    res.header('ETag', '"' + Date.now() + '"');
-    
-    const manifest = {
-      name: "LaaBoBo Live - منصة البث المباشر والتواصل الاجتماعي",
-      short_name: "LaaBoBo Live",
-      description: "منصة البث المباشر والتواصل الاجتماعي العربية مع الهدايا والشخصيات المتحركة",
-      start_url: "/",
-      scope: "/",
-      display: "standalone",
-      orientation: "portrait-primary", 
-      background_color: "#ec4899",
-      theme_color: "#9333ea",
-      lang: "ar",
-      dir: "rtl",
-      categories: ["social", "entertainment", "communication"],
-      prefer_related_applications: false,
-      icons: [
-        {
-          src: "/laabo-rabbit-logo.svg",
-          sizes: "any",
-          type: "image/svg+xml",
-          purpose: "any"
-        },
-        {
-          src: "/rabbit-icon-192.svg",
-          sizes: "192x192",
-          type: "image/svg+xml",
-          purpose: "any"
-        },
-        {
-          src: "/rabbit-icon-512.svg",
-          sizes: "512x512",
-          type: "image/svg+xml",
-          purpose: "any"
-        }
-      ]
-    };
-    
-    res.json(manifest);
-  });
   // Initialize gift characters
   await initializeGiftCharacters();
 

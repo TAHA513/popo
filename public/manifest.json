@@ -1,0 +1,21 @@
+{
+  "name": "LaaBoBo",
+  "short_name": "LaaBoBo",
+  "description": "منصة التواصل الاجتماعي",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FF7ACA",
+  "theme_color": "#BF68FF",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
