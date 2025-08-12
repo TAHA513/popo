@@ -16,12 +16,14 @@ export function PWAInstallButton() {
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
+      console.log('🔥 PWA Install Prompt Available!', e);
       e.preventDefault();
       setDeferredPrompt(e);
       setShowButton(true);
     };
 
     const handleAppInstalled = () => {
+      console.log('✅ PWA Successfully Installed!');
       setShowButton(false);
       setDeferredPrompt(null);
     };
@@ -30,10 +32,27 @@ export function PWAInstallButton() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
                         (window.navigator as any).standalone === true;
     
+    console.log('🔍 PWA Status Check:', {
+      isStandalone,
+      hasServiceWorker: 'serviceWorker' in navigator,
+      displayMode: window.matchMedia('(display-mode: standalone)').matches,
+      userAgent: navigator.userAgent
+    });
+    
     if (isStandalone) {
+      console.log('📱 App is already running in standalone mode');
       setShowButton(false);
       return;
     }
+
+    // Try to detect if PWA is installable manually
+    setTimeout(() => {
+      if (!deferredPrompt) {
+        console.log('⚠️ No install prompt detected after 3 seconds');
+        // Force show button for testing
+        setShowButton(true);
+      }
+    }, 3000);
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -42,16 +61,27 @@ export function PWAInstallButton() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [deferredPrompt]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    console.log('🔘 Install button clicked', { deferredPrompt: !!deferredPrompt });
     
-    setDeferredPrompt(null);
-    setShowButton(false);
+    if (!deferredPrompt) {
+      // Manual installation guide for browsers without beforeinstallprompt
+      alert('للتثبيت:\n\n• Chrome/Edge: اضغط على أيقونة التثبيت في شريط العنوان\n• Safari: Share → Add to Home Screen\n• Firefox: Menu → Install');
+      return;
+    }
+
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('📊 User choice:', outcome);
+      
+      setDeferredPrompt(null);
+      setShowButton(false);
+    } catch (error) {
+      console.error('❌ Install prompt failed:', error);
+    }
   };
 
   if (!showButton || !deferredPrompt) {

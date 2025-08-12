@@ -1,11 +1,21 @@
-// LaaBoBo PWA Service Worker - Optimized for PWA Installation
-const CACHE_NAME = 'laababo-v3';
+// LaaBoBo PWA Service Worker - Advanced PWA Support
+const CACHE_NAME = 'laababo-v4';
+const RUNTIME_CACHE = 'laababo-runtime-v4';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/icon-192x192.png',
-  '/icon-512x512.png'
+  '/icon-512x512.png',
+  '/sw.js'
 ];
+
+// Advanced PWA features for standalone experience
+const OFFLINE_PAGE = '/';
+const CACHE_STRATEGIES = {
+  images: 'cache-first',
+  api: 'network-first',
+  static: 'cache-first'
+};
 
 // Install event - required for PWA
 self.addEventListener('install', (event) => {
@@ -45,47 +55,83 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - network-first strategy for better performance
+// Advanced fetch strategy for PWA experience
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
+  const url = new URL(request.url);
+
   // Skip WebSocket and non-GET requests
   if (request.url.includes('ws://') || 
       request.url.includes('wss://') || 
       request.method !== 'GET') {
     return;
   }
-  
-  // For API requests, always go to network
-  if (request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return new Response(
-          JSON.stringify({ error: 'Network unavailable' }),
-          { 
-            status: 503,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
-      })
-    );
+
+  // Handle API requests with network-first strategy
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirst(request));
     return;
   }
-  
-  // For static assets, try network first, then cache
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(request);
-      })
-  );
+
+  // Handle images with cache-first strategy
+  if (request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  // Handle static assets with cache-first strategy
+  if (url.pathname.match(/\.(js|css|json|html)$/i) || STATIC_ASSETS.includes(url.pathname)) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  // Default: network-first for everything else
+  event.respondWith(networkFirst(request));
 });
+
+// Network-first strategy
+async function networkFirst(request) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    // Return offline page for navigation requests
+    if (request.mode === 'navigate') {
+      return caches.match(OFFLINE_PAGE);
+    }
+    return new Response('Service Unavailable', { 
+      status: 503, 
+      statusText: 'Service Unavailable' 
+    });
+  }
+}
+
+// Cache-first strategy
+async function cacheFirst(request) {
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    return new Response('Resource not available offline', {
+      status: 503,
+      statusText: 'Service Unavailable'
+    });
+  }
+}

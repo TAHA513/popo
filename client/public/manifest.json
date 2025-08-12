@@ -2,7 +2,7 @@
   "name": "LaaBoBo - منصة التواصل الاجتماعي",
   "short_name": "LaaBoBo",
   "description": "منصة التواصل الاجتماعي العربية الأولى للبث المباشر والذكريات",
-  "start_url": "/",
+  "start_url": "/?utm_source=pwa&display=standalone",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -42,7 +42,18 @@
       "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "narrow",
+      "label": "الصفحة الرئيسية للعبوبو"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "منصة البث المباشر"
     }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "id": "/?utm_source=pwa"
 }
