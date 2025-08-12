@@ -1759,16 +1759,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get public memory fragments for homepage
+  // Get public memory fragments for homepage - ULTRA FAST VERSION
   app.get('/api/memories/public', async (req, res) => {
     try {
-      // Disable caching to ensure fresh data is always served
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
+      // Enable aggressive caching for better performance
+      res.set('Cache-Control', 'public, max-age=60');
 
-      // Get memories with author info and comment counts
-      const memoriesWithCounts = await db
+      // Get memories without comment counts for ultra-fast loading
+      const memories = await db
         .select({
           id: memoryFragments.id,
           authorId: memoryFragments.authorId,
@@ -1809,29 +1807,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(memoryFragments.isActive, true),
           eq(memoryFragments.isPublic, true)
         ))
-        .orderBy(desc(memoryFragments.createdAt));
+        .orderBy(desc(memoryFragments.createdAt))
+        .limit(15); // Limit to 15 posts for faster loading
 
-      // Get comment counts for each memory
-      const memoriesWithCommentCounts = await Promise.all(
-        memoriesWithCounts.map(async (memory) => {
-          const [commentCountResult] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(comments)
-            .where(and(
-              eq(comments.postId, memory.id),
-              eq(comments.postType, 'memory')
-            ));
-
-          return {
-            ...memory,
-            commentCount: commentCountResult.count || 0
-          };
-        })
-      );
-
-      // Convert URLs to absolute paths for proper cross-domain support
-      const memoriesWithAbsoluteUrls = memoriesWithCommentCounts.map(memory => ({
+      // Add default comment count to avoid frontend errors
+      const memoriesWithDefaults = memories.map(memory => ({
         ...memory,
+        commentCount: 0, // Load instantly, comments can be fetched later
         // Convert media URLs to absolute URLs
         mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
         thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
@@ -1843,7 +1825,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       }));
 
-      res.json(memoriesWithAbsoluteUrls);
+      res.json(memoriesWithDefaults);
     } catch (error) {
       console.error("Error fetching public memories:", error);
       res.status(500).json({ message: "Failed to fetch public memories" });

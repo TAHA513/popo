@@ -17,15 +17,16 @@ export default function SimpleHome() {
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // Public posts only (no streams) - optimized for speed
+  // Public posts optimized for instant loading
   const { data: memories = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 15000, // تقليل تحديث البيانات من 10 إلى 15 ثانية
-    staleTime: 30000, // البيانات تبقى صالحة لـ 30 ثانية
-    gcTime: 300000, // تنظيف الكاش بعد 5 دقائق
+    refetchInterval: 30000, // تقليل تحديث البيانات إلى 30 ثانية
+    staleTime: 60000, // البيانات تبقى صالحة لـ 60 ثانية
+    gcTime: 600000, // تنظيف الكاش بعد 10 دقائق
     retry: 1, // محاولة واحدة فقط
     refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
     refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
+    networkMode: 'offlineFirst', // استخدام البيانات المخزنة أولاً
   });
 
 
@@ -97,9 +98,9 @@ export default function SimpleHome() {
                 )}
               </button>
 
-              {/* Create Memory Button */}
+              {/* Create Memory Button - Fast Version */}
               <button 
-                onClick={() => setLocation('/create-memory')}
+                onClick={() => setLocation('/create-memory-fast')}
                 className="flex items-center justify-center gap-1 w-[55px] h-[28px] bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
                 title={t('memory.create')}
               >
