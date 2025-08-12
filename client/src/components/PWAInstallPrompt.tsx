@@ -85,9 +85,8 @@ export function PWAInstallPrompt() {
     localStorage.setItem('pwa-install-dismissed', 'true');
   };
 
-  if (!showPrompt || dismissed || !deferredPrompt) {
-    return null;
-  }
+  // إخفاء الرسالة الكبيرة لصالح الزر الصغير
+  return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg shadow-lg p-4 animate-slide-up">

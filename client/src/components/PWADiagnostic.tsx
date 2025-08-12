@@ -92,17 +92,7 @@ export function PWADiagnostic() {
   };
 
   if (!showDiagnostic) {
-    return (
-      <Button
-        onClick={() => setShowDiagnostic(true)}
-        variant="outline"
-        size="sm"
-        className="fixed bottom-20 right-4 z-50 bg-white/90 backdrop-blur-sm"
-      >
-        <Settings className="h-4 w-4 mr-2" />
-        تشخيص PWA
-      </Button>
-    );
+    return null; // إخفاء الزر بالكامل
   }
 
   return (
