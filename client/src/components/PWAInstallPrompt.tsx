@@ -59,6 +59,14 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = () => {
           setShowInstallPrompt(true);
         }
       }, 3000);
+    } 
+    
+    // Force show PWA prompt for testing (remove this line later)
+    if (!isStandalone) {
+      setTimeout(() => {
+        console.log('🔧 Force showing PWA prompt for testing');
+        setShowInstallPrompt(true);
+      }, 5000);
     }
 
     return () => {

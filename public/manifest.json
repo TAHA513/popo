@@ -3,27 +3,20 @@
   "short_name": "LaaBoBo",
   "description": "منصة البث المباشر والتواصل الاجتماعي العربية",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ec4899",
   "theme_color": "#9333ea",
   "lang": "ar",
   "dir": "rtl",
-  "categories": ["social", "entertainment", "communication"],
-  "screenshots": [
-    {
-      "src": "/laabo-rabbit-logo.svg",
-      "sizes": "300x200",
-      "type": "image/svg+xml",
-      "form_factor": "wide"
-    }
-  ],
+  "categories": ["social", "entertainment"],
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "32x32",
-      "type": "image/x-icon",
-      "purpose": "any"
+      "src": "/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
       "src": "/rabbit-icon-192.svg",
@@ -36,27 +29,6 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/laabo-rabbit-logo.svg",
-      "sizes": "300x200", 
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "الذكريات العامة",
-      "short_name": "ذكريات",
-      "url": "/",
-      "icons": [{"src": "/rabbit-icon-192.svg", "sizes": "192x192"}]
-    },
-    {
-      "name": "الرسائل",
-      "short_name": "رسائل", 
-      "url": "/messages",
-      "icons": [{"src": "/rabbit-icon-192.svg", "sizes": "192x192"}]
-    }
-  ],
-  "prefer_related_applications": false
+  ]
 }
