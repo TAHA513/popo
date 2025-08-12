@@ -430,7 +430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Backblaze B2 test endpoint
-  app.get('/api/test/backblaze', requireAuth, async (req: any, res) => {
+  app.get('/api/test/backblaze', requireFastAuth, async (req: any, res) => {
     try {
       if (!backblazeService.isAvailable()) {
         return res.json({
@@ -1103,7 +1103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send premium message with album
-  app.post('/api/premium-messages/send', requireAuth, async (req: any, res) => {
+  app.post('/api/premium-messages/send', requireFastAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, albumId, message } = req.body;
@@ -1134,7 +1134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get premium messages for user
-  app.get('/api/premium-messages', requireAuth, async (req: any, res) => {
+  app.get('/api/premium-messages', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const messages = await storage.getPremiumMessages(userId);
@@ -1146,7 +1146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Unlock premium message
-  app.post('/api/premium-messages/:messageId/unlock', requireAuth, async (req: any, res) => {
+  app.post('/api/premium-messages/:messageId/unlock', requireFastAuth, async (req: any, res) => {
     try {
       const messageId = parseInt(req.params.messageId);
       const userId = req.user.id;
@@ -1344,7 +1344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // General file upload endpoint - now uses Object Storage
-  app.post('/api/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+  app.post('/api/upload', requireFastAuth, upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
@@ -1384,7 +1384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Profile image upload endpoint - now uses Backblaze B2 Cloud Storage
-  app.post('/api/upload/profile-image', requireAuth, upload.single('image'), async (req: any, res) => {
+  app.post('/api/upload/profile-image', requireFastAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const file = req.file;
@@ -1420,7 +1420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cover image upload endpoint - now uses Object Storage
-  app.post('/api/upload/cover-image', requireAuth, upload.single('image'), async (req: any, res) => {
+  app.post('/api/upload/cover-image', requireFastAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const file = req.file;
@@ -1640,7 +1640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Clear all memories (for testing purposes)
-  app.delete('/api/memories/clear-all', requireAuth, async (req: any, res) => {
+  app.delete('/api/memories/clear-all', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
 
@@ -1914,7 +1914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete memory fragment by ID (only by author)
-  app.delete('/api/memories/:memoryId', requireAuth, async (req: any, res) => {
+  app.delete('/api/memories/:memoryId', requireFastAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.memoryId);
       const userId = req.user.id;
@@ -2030,7 +2030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search users endpoint
-  app.get('/api/users/search', requireAuth, async (req: any, res) => {
+  app.get('/api/users/search', requireFastAuth, async (req: any, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.q as string || '';
@@ -3681,7 +3681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Like/Unlike memory
-  app.post('/api/memories/:id/like', requireAuth, async (req: any, res) => {
+  app.post('/api/memories/:id/like', requireFastAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.id);
       const userId = req.user.id;
@@ -3814,7 +3814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/memories/:id/comments', requireAuth, async (req: any, res) => {
+  app.post('/api/memories/:id/comments', requireFastAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.id);
       const { content } = req.body;
@@ -4264,7 +4264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/memories/:id/interact', requireAuth, async (req: any, res) => {
+  app.post('/api/memories/:id/interact', requireFastAuth, async (req: any, res) => {
     try {
       const fragmentId = parseInt(req.params.id);
       const userId = req.user.id;
