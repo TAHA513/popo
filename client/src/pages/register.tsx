@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PWAInstallButton } from "@/components/PWAInstallButton";
 
 // Use the centralized schema from shared folder
 import { registerSchema } from "@/../../shared/schema";
@@ -137,6 +138,11 @@ export default function Register() {
         <div className="absolute bottom-32 right-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
       </div>
       
+      {/* PWA Install Button - Top Left */}
+      <div className="absolute top-4 left-4 z-50">
+        <PWAInstallButton />
+      </div>
+
       {/* Language Switcher - Top Right */}
       <div className="absolute top-4 right-4 z-50">
         <DropdownMenu>
