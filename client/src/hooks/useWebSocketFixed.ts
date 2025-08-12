@@ -15,56 +15,99 @@ class WebSocketManager {
   connect() {
     if (this.ws?.readyState === WebSocket.OPEN) return;
 
+    this.cleanup();
+
     try {
-      // تحسين اتصال WebSocket لتجنب الأخطاء
+      // تحسين اتصال WebSocket للعمل في بيئة Replit
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const isDev = window.location.hostname === 'localhost';
-      
+      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
       let wsUrl;
       if (isDev) {
+        // للتطوير المحلي
         wsUrl = 'ws://localhost:5000/ws';
       } else {
-        // For production Replit environment - ensure we have a valid host
-        const host = window.location.host || window.location.hostname;
+        // لبيئة Replit الإنتاجية
+        const host = window.location.host;
         if (!host) {
-          console.error('❌ Unable to determine WebSocket host');
+          console.warn('⚠️ Unable to determine WebSocket host, skipping connection');
           return;
         }
         wsUrl = `${protocol}//${host}/ws`;
       }
-      
-      console.log('WebSocket connecting to:', wsUrl);
-      
+
+      console.log('🔗 WebSocket connecting to:', wsUrl);
+
       this.ws = new WebSocket(wsUrl);
-      
+
       this.ws.onopen = () => {
-        console.log('WebSocket connected successfully');
+        console.log('✅ WebSocket connected successfully');
         this.reconnectAttempts = 0;
       };
-      
+
       this.ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
           this.handleMessage(message);
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
+          console.error('❌ Failed to parse WebSocket message:', error);
         }
       };
-      
+
       this.ws.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
-        if (event.code !== 1000) { // Not a normal closure
+        console.log('🔌 WebSocket disconnected:', event.code, event.reason);
+        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.attemptReconnect();
         }
       };
-      
+
       this.ws.onerror = (error) => {
-        console.warn('WebSocket error - attempting reconnect:', error);
+        console.warn('⚠️ WebSocket error - will attempt reconnect if needed:', error);
       };
+
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      console.error('❌ Failed to create WebSocket connection:', error);
       this.attemptReconnect();
     }
+  }
+
+  private cleanup() {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
+    if (this.ws) {
+      this.ws.onopen = null;
+      this.ws.onmessage = null;
+      this.ws.onclose = null;
+      this.ws.onerror = null;
+
+      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+        this.ws.close();
+      }
+      this.ws = null;
+    }
+  }
+
+  private attemptReconnect() {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.warn('⚠️ Max WebSocket reconnect attempts reached - continuing without real-time features');
+      return;
+    }
+
+    this.reconnectAttempts++;
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+
+    console.log(`🔄 WebSocket reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
+
+    this.reconnectTimeout = setTimeout(() => {
+      this.connect();
+    }, delay);
+  }
+
+  disconnect() {
+    this.cleanup();
   }
 
   private handleMessage(message: WebSocketMessage) {
@@ -73,37 +116,9 @@ class WebSocketManager {
       try {
         handler(message.data);
       } catch (error) {
-        console.error('Error handling WebSocket message:', error);
+        console.error('❌ Error handling WebSocket message:', error);
       }
     });
-  }
-
-  private attemptReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max WebSocket reconnect attempts reached');
-      return;
-    }
-
-    this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    
-    console.log(`WebSocket reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
-    
-    this.reconnectTimeout = setTimeout(() => {
-      this.connect();
-    }, delay);
-  }
-
-  disconnect() {
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
-      this.reconnectTimeout = null;
-    }
-
-    if (this.ws) {
-      this.ws.close(1000, 'Manual disconnect');
-      this.ws = null;
-    }
   }
 
   send(message: any) {
@@ -112,11 +127,11 @@ class WebSocketManager {
         this.ws.send(JSON.stringify(message));
         return true;
       } catch (error) {
-        console.error('Failed to send WebSocket message:', error);
+        console.error('❌ Failed to send WebSocket message:', error);
         return false;
       }
     }
-    console.warn('WebSocket not connected, cannot send message');
+    console.warn('⚠️ WebSocket not connected, cannot send message');
     return false;
   }
 
@@ -150,7 +165,7 @@ export function useWebSocket() {
 
   useEffect(() => {
     const ws = wsRef.current;
-    
+
     // محاولة الاتصال
     try {
       ws.connect();
