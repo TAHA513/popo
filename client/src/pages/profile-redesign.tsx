@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   User, 
   Plus,
@@ -55,6 +55,25 @@ export default function ProfileRedesign() {
   const [memoryToDelete, setMemoryToDelete] = useState<any>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+
+  // إعادة تحميل البيانات عند تحميل صفحة الملف الشخصي
+  useEffect(() => {
+    if (profileUserId) {
+      const refreshProfileData = async () => {
+        await queryClient.invalidateQueries({ queryKey: ['/api/users', profileUserId] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/memories/user', profileUserId] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/albums/user', profileUserId] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/followers`] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/users/${profileUserId}/following`] });
+        // إجبار إعادة تحميل فورية
+        await queryClient.refetchQueries({ queryKey: ['/api/users', profileUserId] });
+        await queryClient.refetchQueries({ queryKey: ['/api/memories/user', profileUserId] });
+      };
+      
+      refreshProfileData();
+    }
+  }, [profileUserId, queryClient]);
   
   // Image upload refs
   const profileImageRef = useRef<HTMLInputElement>(null);
@@ -64,6 +83,9 @@ export default function ProfileRedesign() {
   const { data: profileUser, isLoading: userLoading } = useQuery({
     queryKey: ['/api/users', profileUserId],
     enabled: !!profileUserId,
+    staleTime: 0, // البيانات تصبح قديمة فوراً
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     queryFn: async () => {
       const response = await fetch(`/api/users/${profileUserId}`, {
         credentials: 'include'
@@ -77,6 +99,9 @@ export default function ProfileRedesign() {
   const { data: memories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/user', profileUserId],
     enabled: !!profileUserId,
+    staleTime: 0, // البيانات تصبح قديمة فوراً
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     queryFn: async () => {
       const response = await fetch(`/api/memories/user/${profileUserId}`, {
         credentials: 'include'

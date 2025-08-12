@@ -18,11 +18,31 @@ export default function SimpleHome() {
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
-  // إعادة تحميل البيانات عند تحميل المكون
+  // إعادة تحميل البيانات عند تحميل المكون أو العودة للصفحة
   useEffect(() => {
     // إعادة تحميل فورية للبيانات المهمة
-    queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+    const refreshData = async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+      // إجبار إعادة تحميل فورية
+      await queryClient.refetchQueries({ queryKey: ['/api/memories/public'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/messages/conversations'] });
+    };
+    
+    refreshData();
+  }, [queryClient]);
+
+  // إعادة تحميل البيانات عند كل دخول للصفحة
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [queryClient]);
   
   // Public posts optimized for instant loading
