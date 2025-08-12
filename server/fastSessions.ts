@@ -15,7 +15,7 @@ const sessionStore = new Map<string, {
 const tokenStore = new Map<string, string>(); // token -> sessionId
 
 // Clean expired sessions every 30 minutes
-const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 1 week
+const SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days (much longer)
 const CLEANUP_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
 setInterval(() => {
