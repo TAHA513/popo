@@ -1,12 +1,12 @@
 import type { Express } from "express";
-import { requireFastAuth } from "../fastSessions";
+import { requireAuth } from "../localAuth";
 import { db } from "../db";
 import { messages, users, conversations, messageRequests } from "@shared/schema";
 import { eq, and, or, desc, sql } from "drizzle-orm";
 
 export function setupMessageRoutes(app: Express) {
   // Get user conversations
-  app.get('/api/messages/conversations', requireFastAuth, async (req: any, res) => {
+  app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       
@@ -73,7 +73,7 @@ export function setupMessageRoutes(app: Express) {
   });
 
   // Get messages for a specific conversation
-  app.get('/api/messages/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/messages/:userId', requireAuth, async (req: any, res) => {
     try {
       const currentUserId = req.user.id;
       const otherUserId = req.params.userId;
@@ -112,7 +112,7 @@ export function setupMessageRoutes(app: Express) {
   });
 
   // Send message to specific user (direct endpoint)
-  app.post('/api/messages/:userId', requireFastAuth, async (req: any, res) => {
+  app.post('/api/messages/:userId', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const recipientId = req.params.userId;
@@ -198,7 +198,7 @@ export function setupMessageRoutes(app: Express) {
   });
 
   // Send message
-  app.post('/api/messages/send', requireFastAuth, async (req: any, res) => {
+  app.post('/api/messages/send', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, content } = req.body;
@@ -350,7 +350,7 @@ export function setupMessageRoutes(app: Express) {
   });
 
   // Mark messages as read
-  app.put('/api/messages/:userId/read', requireFastAuth, async (req: any, res) => {
+  app.put('/api/messages/:userId/read', requireAuth, async (req: any, res) => {
     try {
       const currentUserId = req.user.id;
       const otherUserId = req.params.userId;
@@ -378,7 +378,7 @@ export function setupMessageRoutes(app: Express) {
   });
 
   // Get message requests (incoming and outgoing)
-  app.get('/api/messages/requests', requireFastAuth, async (req: any, res) => {
+  app.get('/api/messages/requests', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       
@@ -430,7 +430,7 @@ export function setupMessageRoutes(app: Express) {
   });
 
   // Respond to message request (accept, reject, block)
-  app.post('/api/messages/requests/:requestId/respond', requireFastAuth, async (req: any, res) => {
+  app.post('/api/messages/requests/:requestId/respond', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const requestId = parseInt(req.params.requestId);

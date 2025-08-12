@@ -19,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PWAInstallButton } from "@/components/PWAInstallButton";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -96,11 +95,6 @@ export default function Login() {
         <div className="absolute bottom-20 left-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
       </div>
       
-      {/* PWA Install Button - Top Left */}
-      <div className="absolute top-4 left-4 z-50">
-        <PWAInstallButton />
-      </div>
-
       {/* Language Switcher - Top Right */}
       <div className="absolute top-4 right-4 z-50 flex flex-col items-center">
         <DropdownMenu>
