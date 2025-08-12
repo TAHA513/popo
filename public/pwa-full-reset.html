@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعادة تعيين PWA الكامل - LaaBoBo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(45deg, #ec4899, #9333ea);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: white;
+            color: #9333ea;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            width: 100%;
+            max-width: 400px;
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+        .log {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: right;
+        }
+        .step {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-right: 5px solid white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 إعادة تعيين PWA الشامل</h1>
+        <p>هذه العملية ستقوم بحل مشكلة "لا يمكن تثبيت هذا التطبيق" نهائياً</p>
+        
+        <div class="step">
+            <h3>الخطوة 1: مسح شامل</h3>
+            <button onclick="performFullReset()">🗑️ مسح شامل للبيانات</button>
+        </div>
+        
+        <div class="step">
+            <h3>الخطوة 2: إعادة التحميل</h3>
+            <button onclick="forceReload()">🔄 إعادة تحميل مع تجاهل Cache</button>
+        </div>
+        
+        <div class="step">
+            <h3>الخطوة 3: اختبار PWA</h3>
+            <button onclick="testPWAFunctionality()">🧪 اختبار تثبيت PWA</button>
+        </div>
+        
+        <div class="step">
+            <h3>الخطوة 4: العودة للتطبيق</h3>
+            <button onclick="goToAppFresh()">🏠 العودة للتطبيق الرئيسي</button>
+        </div>
+        
+        <div class="log" id="log">جاهز للبدء...</div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: rgba(255,0,0,0.2); border-radius: 10px;">
+            <strong>⚠️ تعليمات مهمة:</strong><br>
+            - اتبع الخطوات بالترتيب<br>
+            - انتظر انتهاء كل خطوة قبل الانتقال للتالية<br>
+            - بعد الخطوة 4، اذهب للإعدادات → تثبيت LaaBoBo
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('ar');
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : '📝';
+            log.textContent += `${timestamp} ${icon} ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+            console.log(`${icon} ${message}`);
+        }
+
+        async function performFullReset() {
+            addLog('🚀 بدء المسح الشامل للبيانات...');
+            
+            try {
+                // 1. Unregister ALL service workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    addLog(`وجدت ${registrations.length} service workers`);
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        addLog(`✅ تم إلغاء تسجيل: ${registration.scope}`, 'success');
+                    }
+                    
+                    // Force update any remaining service workers
+                    const controller = navigator.serviceWorker.controller;
+                    if (controller) {
+                        controller.postMessage({ action: 'skipWaiting' });
+                        addLog('✅ تم إجبار تحديث service worker', 'success');
+                    }
+                }
+                
+                // 2. Clear ALL caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    addLog(`وجدت ${cacheNames.length} caches`);
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        addLog(`✅ تم حذف cache: ${cacheName}`, 'success');
+                    }
+                }
+                
+                // 3. Clear ALL storage
+                localStorage.clear();
+                sessionStorage.clear();
+                addLog('✅ تم مسح جميع البيانات المحلية', 'success');
+                
+                // 4. Clear IndexedDB
+                if ('indexedDB' in window) {
+                    try {
+                        // This clears common IndexedDB databases
+                        const databases = ['workbox-background-sync', 'workbox-precache'];
+                        for (const dbName of databases) {
+                            indexedDB.deleteDatabase(dbName);
+                        }
+                        addLog('✅ تم مسح IndexedDB', 'success');
+                    } catch (e) {
+                        addLog('⚠️ تعذر مسح IndexedDB: ' + e.message, 'warning');
+                    }
+                }
+                
+                addLog('🎉 تم المسح الشامل بنجاح!', 'success');
+                addLog('👆 الآن اضغط الخطوة 2', 'success');
+                
+            } catch (error) {
+                addLog('❌ خطأ في المسح: ' + error.message, 'error');
+            }
+        }
+        
+        async function forceReload() {
+            addLog('🔄 إجبار إعادة تحميل الصفحة...');
+            
+            // Force reload bypassing cache
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 1000);
+        }
+        
+        async function testPWAFunctionality() {
+            addLog('🧪 اختبار وظائف PWA...');
+            
+            try {
+                // Test manifest
+                const manifestResponse = await fetch('/manifest.json?v=' + Date.now(), {
+                    cache: 'no-cache'
+                });
+                
+                if (manifestResponse.ok) {
+                    const manifest = await manifestResponse.json();
+                    addLog(`✅ تم تحميل Manifest: ${manifest.name}`, 'success');
+                    addLog(`📱 الأيقونات: ${manifest.icons.length} أيقونة`, 'success');
+                    
+                    // Check icons availability
+                    for (const icon of manifest.icons) {
+                        try {
+                            const iconResponse = await fetch(icon.src, { cache: 'no-cache' });
+                            if (iconResponse.ok) {
+                                addLog(`✅ أيقونة ${icon.sizes}: موجودة`, 'success');
+                            } else {
+                                addLog(`❌ أيقونة ${icon.sizes}: مفقودة`, 'error');
+                            }
+                        } catch (e) {
+                            addLog(`❌ خطأ في أيقونة ${icon.sizes}: ${e.message}`, 'error');
+                        }
+                    }
+                } else {
+                    addLog('❌ فشل تحميل Manifest: ' + manifestResponse.status, 'error');
+                }
+                
+                // Test service worker
+                if ('serviceWorker' in navigator) {
+                    addLog('✅ Service Worker مدعوم', 'success');
+                    
+                    try {
+                        // Register fresh service worker
+                        const registration = await navigator.serviceWorker.register('/sw.js?v=' + Date.now(), {
+                            scope: '/',
+                            updateViaCache: 'none'
+                        });
+                        
+                        addLog('✅ تم تسجيل Service Worker جديد', 'success');
+                        
+                        // Wait for installation
+                        if (registration.installing) {
+                            addLog('⏳ انتظار تثبيت Service Worker...', 'info');
+                            registration.installing.addEventListener('statechange', () => {
+                                if (registration.installing.state === 'installed') {
+                                    addLog('✅ تم تثبيت Service Worker', 'success');
+                                }
+                            });
+                        }
+                        
+                        // Check PWA criteria
+                        setTimeout(() => {
+                            addLog('🎯 PWA جاهز للتثبيت!', 'success');
+                            addLog('👆 اضغط الخطوة 4 للذهاب للتطبيق', 'success');
+                        }, 2000);
+                        
+                    } catch (error) {
+                        addLog('❌ فشل تسجيل Service Worker: ' + error.message, 'error');
+                    }
+                } else {
+                    addLog('❌ Service Worker غير مدعوم', 'error');
+                }
+                
+            } catch (error) {
+                addLog('❌ خطأ في اختبار PWA: ' + error.message, 'error');
+            }
+        }
+        
+        function goToAppFresh() {
+            addLog('🏠 الانتقال للتطبيق الرئيسي...');
+            // Force navigate with no cache
+            window.location.href = '/?pwa_ready=1&t=' + Date.now();
+        }
+        
+        // Auto-start message
+        window.addEventListener('load', () => {
+            addLog('🎯 صفحة إعادة التعيين الشامل محملة');
+            addLog('📋 اتبع الخطوات بالترتيب لحل مشكلة PWA');
+        });
+    </script>
+</body>
+</html>
