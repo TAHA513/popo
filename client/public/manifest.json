@@ -2,12 +2,12 @@
   "name": "LaaBoBo - منصة التواصل الاجتماعي",
   "short_name": "LaaBoBo",
   "description": "منصة التواصل الاجتماعي العربية الأولى للبث المباشر والذكريات",
-  "start_url": "/?utm_source=pwa&display=standalone",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#FF7ACA",
-  "theme_color": "#BF68FF",
+  "orientation": "any",
+  "background_color": "#ec4899",
+  "theme_color": "#ec4899",
   "categories": ["social", "entertainment", "lifestyle"],
   "lang": "ar",
   "dir": "rtl",
@@ -67,5 +67,5 @@
   ],
   "prefer_related_applications": false,
   "related_applications": [],
-  "id": "/?utm_source=pwa"
+  "id": "laababo-pwa-2025"
 }
