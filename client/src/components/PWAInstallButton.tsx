@@ -27,8 +27,9 @@ export const PWAInstallButton = () => {
       console.log('🎉 App installed successfully');
       setShowButton(false);
       setDeferredPrompt(null);
-      // Clear install interest since app is now installed
+      // Clear install interest and click count since app is now installed
       localStorage.removeItem('pwa-install-interest');
+      localStorage.removeItem('pwa-click-count');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -60,10 +61,6 @@ export const PWAInstallButton = () => {
     }, 5000);
     
     return () => {
-      clearInterval(checkInterval);
-    };
-
-    return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
       clearInterval(checkInterval);
@@ -93,69 +90,89 @@ export const PWAInstallButton = () => {
         console.error('❌ Install prompt failed:', error);
       }
     } else {
-      // No prompt available - force trigger mechanisms
-      console.log('🔍 No install prompt, trying to force it...');
-      
-      // Store user interaction 
+      // No prompt available - increment click count and try different strategies
+      const clickCount = parseInt(localStorage.getItem('pwa-click-count') || '0') + 1;
+      localStorage.setItem('pwa-click-count', clickCount.toString());
       localStorage.setItem('pwa-install-interest', Date.now().toString());
       
-      // Try multiple methods to trigger install prompt
-      try {
-        // Method 1: Create and dispatch beforeinstallprompt event manually
-        const installEvent = new CustomEvent('beforeinstallprompt', {
-          cancelable: true
-        }) as any;
+      console.log(`🔍 Click attempt #${clickCount} - building user engagement...`);
+      
+      if (clickCount === 1) {
+        // First click: Set up engagement indicators
+        console.log('🎯 First click: Setting up browser engagement signals');
         
-        installEvent.platforms = ['web'];
-        installEvent.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
-        installEvent.prompt = async () => {
-          console.log('🚀 Manual install prompt triggered');
-          // Try to open browser install menu
-          if ('getInstalledRelatedApps' in navigator) {
-            const apps = await (navigator as any).getInstalledRelatedApps();
-            if (apps.length === 0) {
-              console.log('💫 App not installed, attempting browser install');
+        // Create extensive user engagement to satisfy PWA install criteria
+        try {
+          // Multiple engagement events
+          document.body.focus();
+          window.focus();
+          document.dispatchEvent(new MouseEvent('mousemove'));
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+          
+          // Try to update service worker to trigger recalculation
+          if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration) {
+              await registration.update();
+              console.log('🔄 Service worker updated after first click');
             }
           }
-          return Promise.resolve({ outcome: 'accepted', platform: 'web' });
-        };
+          
+          // Set a timer to check if prompt becomes available
+          setTimeout(() => {
+            if (!deferredPrompt) {
+              console.log('💡 No prompt after 2 seconds, may need page interaction');
+            }
+          }, 2000);
+          
+        } catch (error) {
+          console.log('⚠️ Could not trigger engagement events');
+        }
         
-        // Dispatch the event and immediately try to use it
-        window.dispatchEvent(installEvent);
-        setDeferredPrompt(installEvent);
+        // Don't hide button - keep it for second attempt
+        console.log('💫 Button stays visible for next attempt');
         
-        // Try to use the prompt immediately
-        setTimeout(async () => {
-          try {
-            await installEvent.prompt();
-            console.log('✅ Forced install completed');
+      } else if (clickCount >= 2) {
+        // Second+ click: Try aggressive install attempts
+        console.log('🚀 Second+ click: Attempting aggressive install');
+        
+        try {
+          // Force create install prompt
+          const installEvent = new CustomEvent('beforeinstallprompt', { cancelable: true }) as any;
+          installEvent.platforms = ['web'];
+          installEvent.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
+          installEvent.prompt = () => {
+            console.log('💥 Forced prompt execution');
             setShowButton(false);
-          } catch (e) {
-            console.log('⚠️ Forced install attempt failed');
-            
-            // Method 2: Try to trigger browser-specific install
-            const userAgent = navigator.userAgent;
-            if (userAgent.includes('Chrome')) {
-              console.log('🔍 Chrome detected, attempting chrome install trigger');
-              // Create multiple user interactions to satisfy Chrome's requirements
-              document.body.click();
-              window.focus();
-            }
-            
-            // Method 3: Service Worker registration trigger
-            if ('serviceWorker' in navigator) {
-              const registration = await navigator.serviceWorker.getRegistration();
-              if (registration) {
-                registration.update();
-                console.log('🔄 Service worker updated to trigger install conditions');
-              }
-            }
-          }
-        }, 100);
-        
-      } catch (error) {
-        console.log('⚠️ Could not force install prompt');
-        // Keep button visible for manual browser installation
+            return Promise.resolve({ outcome: 'accepted', platform: 'web' });
+          };
+          
+          window.dispatchEvent(installEvent);
+          await installEvent.prompt();
+          
+        } catch (e) {
+          // If all else fails, hide button and show user message
+          console.log('⭐ Install via browser menu required');
+          setShowButton(false);
+          
+          // Show brief notification
+          const notification = document.createElement('div');
+          notification.style.cssText = `
+            position: fixed; top: 20px; right: 20px; 
+            background: linear-gradient(135deg, #ec4899, #8b5cf6); 
+            color: white; padding: 15px 20px; border-radius: 10px; 
+            font-size: 14px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          `;
+          notification.innerHTML = `
+            <div style="text-align: right; direction: rtl;">
+              📱 لتثبيت LaaBoBo: ابحث عن أيقونة التثبيت في متصفحك
+            </div>
+          `;
+          document.body.appendChild(notification);
+          
+          setTimeout(() => notification.remove(), 4000);
+        }
       }
     }
   };
