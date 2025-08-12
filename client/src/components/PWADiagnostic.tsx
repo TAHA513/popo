@@ -8,8 +8,8 @@ interface PWACheck {
 }
 
 export function PWADiagnostic() {
-  const [checks, setChecks] = useState<PWACheck[]>([]);
-  const [isVisible, setIsVisible] = useState(false);
+  // Hide PWA diagnostic as requested by user
+  return null;
 
   useEffect(() => {
     runDiagnostics();
