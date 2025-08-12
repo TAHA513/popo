@@ -4993,14 +4993,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           id: memoryFragments.id,
           title: memoryFragments.title,
-          description: memoryFragments.description,
-          mediaType: memoryFragments.mediaType,
-          mediaUrl: memoryFragments.mediaUrl,
+          caption: memoryFragments.caption,
+          type: memoryFragments.type,
+          mediaUrls: memoryFragments.mediaUrls,
           thumbnailUrl: memoryFragments.thumbnailUrl,
           createdAt: memoryFragments.createdAt,
           expiresAt: memoryFragments.expiresAt,
           memoryType: memoryFragments.memoryType,
-          userId: memoryFragments.userId,
+          authorId: memoryFragments.authorId,
           viewCount: memoryFragments.viewCount,
           username: users.username,
           firstName: users.firstName,
@@ -5009,8 +5009,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationBadge: users.verificationBadge
         })
         .from(memoryFragments)
-        .leftJoin(users, eq(memoryFragments.userId, users.id))
-        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.description} ILIKE ${searchTerm}`)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .where(sql`${memoryFragments.title} ILIKE ${searchTerm} OR ${memoryFragments.caption} ILIKE ${searchTerm}`)
         .orderBy(desc(memoryFragments.createdAt))
         .limit(50);
 
@@ -5039,11 +5039,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bio: users.bio,
           isVerified: users.isVerified,
           verificationBadge: users.verificationBadge,
-          followersCount: users.followersCount
+          isAdmin: users.isAdmin
         })
         .from(users)
         .where(sql`${users.username} ILIKE ${searchTerm} OR ${users.firstName} ILIKE ${searchTerm} OR ${users.lastName} ILIKE ${searchTerm}`)
-        .orderBy(desc(users.followersCount))
+        .orderBy(desc(users.createdAt))
         .limit(30);
 
       // Filter out owner account using protection system
