@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { requireAuth } from "../localAuth";
+import { requireFastAuth } from "../fastSessions";
 import { db } from "../db";
 import { users, groupRooms, groupRoomParticipants, groupRoomMessages, pointTransactions } from "@shared/schema";
 import { eq, and, desc, gt } from "drizzle-orm";
@@ -7,7 +7,7 @@ import { eq, and, desc, gt } from "drizzle-orm";
 export function setupGroupRoomRoutes(app: Express) {
   
   // Create group room
-  app.post('/api/group-rooms/create', requireAuth, async (req: any, res) => {
+  app.post('/api/group-rooms/create', requireFastAuth, async (req: any, res) => {
     try {
       const hostId = req.user.id;
       const { title, description, giftRequired, entryPrice, maxParticipants, duration } = req.body;
@@ -63,7 +63,7 @@ export function setupGroupRoomRoutes(app: Express) {
   });
 
   // Get available group rooms
-  app.get('/api/group-rooms/available', requireAuth, async (req: any, res) => {
+  app.get('/api/group-rooms/available', requireFastAuth, async (req: any, res) => {
     try {
       const now = new Date();
       
@@ -105,7 +105,7 @@ export function setupGroupRoomRoutes(app: Express) {
   });
 
   // Join group room (pay gift and enter)
-  app.post('/api/group-rooms/:roomId/join', requireAuth, async (req: any, res) => {
+  app.post('/api/group-rooms/:roomId/join', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const roomId = parseInt(req.params.roomId);
@@ -252,7 +252,7 @@ export function setupGroupRoomRoutes(app: Express) {
   });
 
   // Get group room details with participants
-  app.get('/api/group-rooms/:roomId', requireAuth, async (req: any, res) => {
+  app.get('/api/group-rooms/:roomId', requireFastAuth, async (req: any, res) => {
     try {
       const roomId = parseInt(req.params.roomId);
       const userId = req.user.id;
@@ -334,7 +334,7 @@ export function setupGroupRoomRoutes(app: Express) {
   });
 
   // Get group room messages
-  app.get('/api/group-rooms/:roomId/messages', requireAuth, async (req: any, res) => {
+  app.get('/api/group-rooms/:roomId/messages', requireFastAuth, async (req: any, res) => {
     try {
       const roomId = parseInt(req.params.roomId);
       const userId = req.user.id;
@@ -383,7 +383,7 @@ export function setupGroupRoomRoutes(app: Express) {
   });
 
   // Send message to group room
-  app.post('/api/group-rooms/:roomId/messages', requireAuth, async (req: any, res) => {
+  app.post('/api/group-rooms/:roomId/messages', requireFastAuth, async (req: any, res) => {
     try {
       const roomId = parseInt(req.params.roomId);
       const userId = req.user.id;
@@ -435,7 +435,7 @@ export function setupGroupRoomRoutes(app: Express) {
   });
 
   // Delete group room (only host can delete)
-  app.delete('/api/group-rooms/:roomId', requireAuth, async (req: any, res) => {
+  app.delete('/api/group-rooms/:roomId', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const roomId = parseInt(req.params.roomId);

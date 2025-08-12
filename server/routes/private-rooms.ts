@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { requireAuth } from "../localAuth";
+import { requireFastAuth } from "../fastSessions";
 import { db } from "../db";
 import { users, privateRooms, roomInvitations, followers, pointTransactions } from "@shared/schema";
 import { eq, and, desc, gt } from "drizzle-orm";
@@ -7,7 +7,7 @@ import { eq, and, desc, gt } from "drizzle-orm";
 export function setupPrivateRoomRoutes(app: Express) {
   
   // Get active private rooms for current user
-  app.get('/api/private-rooms/active', requireAuth, async (req: any, res) => {
+  app.get('/api/private-rooms/active', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       
@@ -37,7 +37,7 @@ export function setupPrivateRoomRoutes(app: Express) {
   });
 
   // Create private room and send invitation
-  app.post('/api/private-rooms/create', requireAuth, async (req: any, res) => {
+  app.post('/api/private-rooms/create', requireFastAuth, async (req: any, res) => {
     try {
       const hostId = req.user.id;
       const { inviteeId, giftRequired, message, title, description } = req.body;
@@ -101,7 +101,7 @@ export function setupPrivateRoomRoutes(app: Express) {
   });
 
   // Get pending invitations
-  app.get('/api/room-invitations/pending', requireAuth, async (req: any, res) => {
+  app.get('/api/room-invitations/pending', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const now = new Date();
@@ -142,7 +142,7 @@ export function setupPrivateRoomRoutes(app: Express) {
   });
 
   // Accept invitation
-  app.post('/api/room-invitations/:invitationId/accept', requireAuth, async (req: any, res) => {
+  app.post('/api/room-invitations/:invitationId/accept', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const invitationId = parseInt(req.params.invitationId);
@@ -255,7 +255,7 @@ export function setupPrivateRoomRoutes(app: Express) {
   });
 
   // Decline invitation
-  app.post('/api/room-invitations/:invitationId/decline', requireAuth, async (req: any, res) => {
+  app.post('/api/room-invitations/:invitationId/decline', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const invitationId = parseInt(req.params.invitationId);
@@ -284,7 +284,7 @@ export function setupPrivateRoomRoutes(app: Express) {
   });
 
   // Delete private room (only host can delete)
-  app.delete('/api/private-rooms/:roomId', requireAuth, async (req: any, res) => {
+  app.delete('/api/private-rooms/:roomId', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const roomId = parseInt(req.params.roomId);
