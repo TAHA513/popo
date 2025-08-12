@@ -1,9 +1,10 @@
 // LaaBoBo PWA Service Worker - Advanced PWA Support
-const CACHE_NAME = 'laababo-v9';
-const RUNTIME_CACHE = 'laababo-runtime-v9';
+const CACHE_NAME = 'laababo-v10';
+const RUNTIME_CACHE = 'laababo-runtime-v10';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
+  '/laababo-icon.png',
   '/icon-192x192-real.png',
   '/icon-512x512-real.png',
   '/apple-touch-icon.png',

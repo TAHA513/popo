@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Cache for LaaBoBo Icons</title>
+    <link rel="icon" href="/laababo-icon.png" type="image/png">
+</head>
+<body>
+<script>
+// Force clear cache for favicon
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+            registration.unregister();
+        }
+    });
+}
+
+// Clear all caches
+if ('caches' in window) {
+    caches.keys().then(function(names) {
+        for (let name of names) {
+            caches.delete(name);
+        }
+    });
+}
+
+setTimeout(() => {
+    window.location.href = '/';
+}, 2000);
+</script>
+<h2>تنظيف الكاش... سيتم إعادة التوجيه خلال ثانيتين</h2>
+</body>
+</html>
