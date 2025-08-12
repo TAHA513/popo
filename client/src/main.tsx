@@ -2,22 +2,15 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Register service worker for PWA
+// Register service worker for PWA - silent mode
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', {
-      scope: '/'
-    })
+    navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
-        console.log('✅ PWA Service Worker registered successfully:', registration.scope);
-        
-        // Check for updates
-        registration.addEventListener('updatefound', () => {
-          console.log('🔄 PWA update found');
-        });
+        console.log('SW registered: ', registration);
       })
-      .catch((error) => {
-        console.error('❌ PWA Service Worker registration failed:', error);
+      .catch((registrationError) => {
+        console.warn('SW registration failed (continuing without): ', registrationError);
       });
   });
 }
