@@ -4,9 +4,9 @@ const RUNTIME_CACHE = 'laababo-runtime-v4';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/pwa-icon.svg',
   '/icon-192x192.png',
   '/icon-512x512.png',
+  '/pwa-icon.svg',
   '/sw.js'
 ];
 
