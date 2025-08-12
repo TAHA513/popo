@@ -191,7 +191,7 @@ export const PWAInstallButton = () => {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed top-16 right-4 z-50">
       <button
         onClick={handleInstallClick}
         className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
