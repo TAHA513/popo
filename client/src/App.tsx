@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
+import PWAInstallPrompt from "@/components/pwa-install-prompt";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -180,6 +181,7 @@ function App() {
       <LanguageProvider>
         <StreamProvider>
           <AppContent />
+          <PWAInstallPrompt />
         </StreamProvider>
       </LanguageProvider>
     </QueryClientProvider>
