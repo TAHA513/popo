@@ -45,14 +45,11 @@ export function PWAInstallButton() {
       return;
     }
 
-    // Try to detect if PWA is installable manually
+    // Force show button after delay for manual installation
     setTimeout(() => {
-      if (!deferredPrompt) {
-        console.log('⚠️ No install prompt detected after 3 seconds');
-        // Force show button for testing
-        setShowButton(true);
-      }
-    }, 3000);
+      console.log('⚠️ No install prompt detected, showing manual install button');
+      setShowButton(true);
+    }, 2000);
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -67,8 +64,25 @@ export function PWAInstallButton() {
     console.log('🔘 Install button clicked', { deferredPrompt: !!deferredPrompt });
     
     if (!deferredPrompt) {
-      // Manual installation guide for browsers without beforeinstallprompt
-      alert('للتثبيت:\n\n• Chrome/Edge: اضغط على أيقونة التثبيت في شريط العنوان\n• Safari: Share → Add to Home Screen\n• Firefox: Menu → Install');
+      // Check if we can detect Chrome-based browsers more accurately
+      const isChrome = /Chrome|Chromium|Edge/.test(navigator.userAgent);
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+      const isFirefox = /Firefox/.test(navigator.userAgent);
+      
+      let message = '📱 لتثبيت تطبيق LaaBoBo:\n\n';
+      
+      if (isChrome) {
+        message += '• ابحث عن أيقونة "تثبيت" 📥 في شريط العنوان\n• أو: قائمة المتصفح (⋮) ← "تثبيت LaaBoBo"\n• أو: إعدادات ← "تثبيت هذا الموقع كتطبيق"';
+      } else if (isSafari) {
+        message += '• اضغط على زر المشاركة 📤\n• اختر "إضافة إلى الشاشة الرئيسية" 📱\n• سيظهر التطبيق على شاشتك الرئيسية';
+      } else if (isFirefox) {
+        message += '• قائمة Firefox ← "تثبيت"\n• أو: اضغط على أيقونة التثبيت في شريط العنوان';
+      } else {
+        message += '• ابحث عن أيقونة التثبيت في شريط العنوان\n• أو: إعدادات المتصفح ← "تثبيت التطبيق"';
+      }
+      
+      message += '\n\n💡 ملاحظة: تأكد من أن الموقع يستخدم HTTPS للتثبيت';
+      alert(message);
       return;
     }
 

@@ -5,10 +5,7 @@ const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/pwa-icon.svg',
-  '/icon-192x192.svg',
-  '/icon-512x512.svg',
-  '/favicon.ico',
-  '/sw.js'
+  '/favicon.ico'
 ];
 
 // Advanced PWA features for standalone experience
