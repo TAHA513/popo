@@ -1234,14 +1234,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
       }
 
-      // Create fast session
-      const { sessionId, token } = FastSessionManager.createSession(user);
+      // Try to refresh existing session first, or create new one
+      const sessionResult = FastSessionManager.refreshSession(user.id, user);
+      const token = sessionResult?.token || FastSessionManager.createSession(user).token;
       
-      // Set auth token cookie for seamless authentication
+      // Set auth token cookie for seamless authentication - longer duration
       res.cookie('authToken', token, {
         httpOnly: true,
         secure: false, // Set to true in production with HTTPS
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days to match SESSION_TTL
         sameSite: 'lax',
       });
 

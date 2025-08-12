@@ -64,10 +64,14 @@ export class FastSessionManager {
     if (!token) return null;
     
     const sessionId = tokenStore.get(token);
-    if (!sessionId) return null;
+    if (!sessionId) {
+      console.log('❌ Token not found in tokenStore:', token.substring(0, 10) + '...');
+      return null;
+    }
     
     const session = sessionStore.get(sessionId);
     if (!session) {
+      console.log('❌ Session not found in sessionStore for sessionId:', sessionId);
       tokenStore.delete(token);
       return null;
     }
@@ -75,6 +79,7 @@ export class FastSessionManager {
     // Check expiry
     const now = Date.now();
     if (now - session.lastAccess > SESSION_TTL) {
+      console.log('❌ Session expired for user:', session.user.username);
       this.destroySession(sessionId);
       return null;
     }
@@ -114,7 +119,40 @@ export class FastSessionManager {
       }
     });
     
+    console.log(`🗑️ Destroying ${sessionsToDelete.length} sessions for user: ${userId}`);
     sessionsToDelete.forEach(sessionId => this.destroySession(sessionId));
+  }
+  
+  // Add method to refresh existing session
+  static refreshSession(userId: string, updatedUser: User): { token: string } | null {
+    // Find existing session for user
+    let existingSessionId: string | null = null;
+    let existingToken: string | null = null;
+    
+    Array.from(sessionStore.entries()).forEach(([sessionId, session]) => {
+      if (session.userId === userId) {
+        existingSessionId = sessionId;
+        session.user = updatedUser;
+        session.lastAccess = Date.now();
+      }
+    });
+    
+    if (existingSessionId) {
+      // Find token for this session
+      Array.from(tokenStore.entries()).forEach(([token, sessionId]) => {
+        if (sessionId === existingSessionId) {
+          existingToken = token;
+        }
+      });
+      
+      if (existingToken) {
+        console.log(`🔄 Refreshed existing session for user: ${updatedUser.username}`);
+        return { token: existingToken };
+      }
+    }
+    
+    // If no existing session, create new one
+    return this.createSession(updatedUser);
   }
   
   static getStats() {
