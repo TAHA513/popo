@@ -45,10 +45,14 @@ export function PWAInstallButton() {
       return;
     }
 
-    // Force show button after delay for manual installation
+    // Always show button for PWA installation
+    setShowButton(true);
+    
+    // Check if install prompt is available after delay
     setTimeout(() => {
-      console.log('⚠️ No install prompt detected, showing manual install button');
-      setShowButton(true);
+      if (!deferredPrompt) {
+        console.log('⚠️ No install prompt detected, using manual installation guide');
+      }
     }, 2000);
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);

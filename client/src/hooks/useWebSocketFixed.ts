@@ -24,8 +24,13 @@ class WebSocketManager {
       if (isDev) {
         wsUrl = 'ws://localhost:5000/ws';
       } else {
-        // For production Replit environment - use the same host and port as the main app
-        wsUrl = `${protocol}//${window.location.host}/ws`;
+        // For production Replit environment - ensure we have a valid host
+        const host = window.location.host || window.location.hostname;
+        if (!host) {
+          console.error('❌ Unable to determine WebSocket host');
+          return;
+        }
+        wsUrl = `${protocol}//${host}/ws`;
       }
       
       console.log('WebSocket connecting to:', wsUrl);

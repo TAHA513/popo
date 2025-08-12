@@ -169,6 +169,7 @@ function AppContent() {
       <LiveStreamIndicator />
       <PWAInstallPrompt />
       <PWAInstallButton />
+      <PWADiagnostic />
       <Toaster />
     </div>
   );
