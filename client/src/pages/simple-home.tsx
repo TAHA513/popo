@@ -17,15 +17,16 @@ export default function SimpleHome() {
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   
-  // Public posts only (no streams) - optimized for speed
+  // Public posts optimized for instant loading
   const { data: memories = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 15000, // تقليل تحديث البيانات من 10 إلى 15 ثانية
-    staleTime: 30000, // البيانات تبقى صالحة لـ 30 ثانية
-    gcTime: 300000, // تنظيف الكاش بعد 5 دقائق
+    refetchInterval: 30000, // تقليل تحديث البيانات إلى 30 ثانية
+    staleTime: 60000, // البيانات تبقى صالحة لـ 60 ثانية
+    gcTime: 600000, // تنظيف الكاش بعد 10 دقائق
     retry: 1, // محاولة واحدة فقط
     refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
     refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
+    networkMode: 'offlineFirst', // استخدام البيانات المخزنة أولاً
   });
 
 
@@ -69,7 +70,7 @@ export default function SimpleHome() {
             </div>
             
             {/* Action Buttons - Right Side */}
-            <div className="flex items-center gap-2" style={{ zIndex: 50, position: 'relative' }}>
+            <div className="flex items-center gap-2">
               {/* Search Button */}
               <button 
                 onClick={() => setLocation('/search')}
@@ -97,35 +98,16 @@ export default function SimpleHome() {
                 )}
               </button>
 
-              {/* Create Memory Button - محسن للعمل بشكل أفضل */}
+              {/* Create Memory Button - Fast Version */}
               <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('🎯 زر إنشاء الذكرى تم النقر عليه');
-                  setLocation('/create-memory');
-                }}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                className="flex items-center justify-center gap-1 min-w-[60px] h-[32px] bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 active:from-purple-700 active:via-pink-700 active:to-rose-700 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95 cursor-pointer select-none touch-manipulation"
-                title="إنشاء ذكرى جديدة"
-                type="button"
-                aria-label="إنشاء ذكرى جديدة"
-                style={{ 
-                  pointerEvents: 'auto',
-                  zIndex: 999,
-                  position: 'relative',
-                  WebkitTouchCallout: 'none',
-                  WebkitUserSelect: 'none',
-                  touchAction: 'manipulation'
-                }}
+                onClick={() => setLocation('/create-memory-fast')}
+                className="flex items-center justify-center gap-1 w-[55px] h-[28px] bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
+                title={t('memory.create')}
               >
-                <svg className="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                <svg className="w-3 h-3 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span className="text-white font-semibold text-[11px] leading-none whitespace-nowrap">ذكرى</span>
+                <span className="text-white font-medium text-[10px] leading-none">{t('memory.type_short')}</span>
               </button>
             </div>
           </div>
