@@ -104,11 +104,10 @@ export function PWAInstallButton() {
     }, 4000);
   };
 
-  const showForcedInstallModal = () => {
+  const showDirectInstallPrompt = () => {
     const browserName = getBrowserName();
-    const installUrl = window.location.href;
     
-    // Create a more aggressive install prompt
+    // Show direct install instructions without extra options
     const modalDiv = document.createElement('div');
     modalDiv.innerHTML = `
       <div style="
@@ -158,46 +157,34 @@ export function PWAInstallButton() {
           ">×</button>
           
           <div style="font-size: 22px; font-weight: bold; margin-bottom: 20px;">
-            🚀 تثبيت LaaBoBo الآن
-          </div>
-          
-          <div style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">
-            <strong>طرق التثبيت حسب متصفحك:</strong>
+            🚀 ثبت LaaBoBo الآن
           </div>
           
           <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: right;">
             ${getDetailedInstallInstructions(browserName)}
           </div>
           
-          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="window.open('${installUrl}', '_blank'); this.closest('div').remove();" style="
-              background: rgba(255,255,255,0.2);
-              color: white;
-              border: 1px solid rgba(255,255,255,0.3);
-              padding: 12px 24px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 14px;
-              font-weight: bold;
-            ">
-              فتح في نافذة جديدة
-            </button>
-            <button onclick="this.closest('div').remove()" style="
-              background: rgba(255,255,255,0.2);
-              color: white;
-              border: 1px solid rgba(255,255,255,0.3);
-              padding: 12px 24px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 14px;
-            ">
-              حسناً
-            </button>
-          </div>
+          <button onclick="this.closest('div').remove()" style="
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+          ">
+            فهمت
+          </button>
         </div>
       </div>
     `;
     document.body.appendChild(modalDiv);
+    
+    // Hide button after showing install instructions
+    setTimeout(() => {
+      setShowButton(false);
+    }, 500);
   };
 
   const getDetailedInstallInstructions = (browser: string) => {
@@ -303,6 +290,9 @@ export function PWAInstallButton() {
           console.log('✅ تم تثبيت التطبيق بنجاح!');
           setShowButton(false);
           showSuccessMessage();
+        } else {
+          // Even if dismissed, hide button since user saw the install option
+          setShowButton(false);
         }
         
         setDeferredPrompt(null);
@@ -337,9 +327,9 @@ export function PWAInstallButton() {
       console.error('❌ Force install failed:', error);
     }
 
-    // Method 3: Show enhanced install modal
-    console.log('💡 No native install available, showing enhanced install modal');
-    showForcedInstallModal();
+    // Method 3: Show direct install instructions and hide button
+    console.log('💡 No native install available, showing direct install instructions');
+    showDirectInstallPrompt();
   };
 
   // Check if already installed
@@ -364,7 +354,7 @@ export function PWAInstallButton() {
         title="تثبيت تطبيق LaaBoBo كتطبيق مستقل"
       >
         <Download className="h-4 w-4" />
-        تثبيت
+        ثبت التطبيق
       </button>
     </div>
   );
