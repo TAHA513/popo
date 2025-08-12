@@ -1713,7 +1713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId?', requireAuth, async (req: any, res) => {
+  app.get('/api/memories/user/:userId?', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId || req.user?.id;
       if (!userId) {
@@ -1992,7 +1992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Record a view for a memory
-  app.post('/api/memories/:memoryId/view', requireAuth, async (req: any, res) => {
+  app.post('/api/memories/:memoryId/view', requireFastAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.memoryId);
       const userId = req.user.id;
@@ -2211,7 +2211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user by ID
-  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
+  app.get('/api/users/:userId', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       console.log('🔍 Fetching user profile:', {
@@ -2289,7 +2289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if following
-  app.get('/api/users/:userId/follow-status', requireAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/follow-status', requireFastAuth, async (req: any, res) => {
     try {
       const followerId = req.user.id;
       const followedId = req.params.userId;
@@ -2522,7 +2522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get unread notifications count (includes unread messages)
-  app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
+  app.get('/api/notifications/unread-count', requireFastAuth, async (req: any, res) => {
     try {
       // Disable caching for real-time notification count
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -2684,7 +2684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's albums
-  app.get('/api/albums/user/:userId', requireAuth, async (req: any, res) => {
+  app.get('/api/albums/user/:userId', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const currentUserId = req.user.id;
@@ -2971,7 +2971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user followers
-  app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/followers', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const followers = await storage.getFollowers(userId);
@@ -2983,7 +2983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user following
-  app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/following', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const following = await storage.getFollowing(userId);
@@ -4245,7 +4245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId', requireAuth, async (req: any, res) => {
+  app.get('/api/memories/user/:userId', requireFastAuth, async (req: any, res) => {
     try {
       const targetUserId = req.params.userId;
       const currentUserId = req.user.id;
