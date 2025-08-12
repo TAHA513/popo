@@ -6,33 +6,16 @@ import { eq, and, or, desc } from "drizzle-orm";
 import { UrlHandler } from "../utils/url-handler";
 
 export function setupDirectMessageRoutes(app: Express) {
-  // Get conversations - OPTIMIZED for fast loading
+  // Get conversations - simple list of users you've messaged with
   app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       console.log(`🔍 جلب المحادثات للمستخدم: ${userId}`);
       
-      // Add caching header for better performance
-      res.set('Cache-Control', 'public, max-age=20, s-maxage=20');
-      
-      // OPTIMIZATION: Get messages with user data in a single JOIN query
+      // Get all messages involving this user
       const allMessages = await db
-        .select({
-          id: messages.id,
-          senderId: messages.senderId,
-          recipientId: messages.recipientId,
-          content: messages.content,
-          isRead: messages.isRead,
-          createdAt: messages.createdAt,
-          senderUser: {
-            id: users.id,
-            username: users.username,
-            firstName: users.firstName,
-            profileImageUrl: users.profileImageUrl
-          }
-        })
+        .select()
         .from(messages)
-        .leftJoin(users, eq(messages.senderId, users.id))
         .where(
           or(
             eq(messages.senderId, userId),
@@ -43,43 +26,27 @@ export function setupDirectMessageRoutes(app: Express) {
 
       console.log(`📨 وجدت ${allMessages.length} رسائل للمستخدم ${userId}`);
 
-      // OPTIMIZATION: Get all unique user IDs and their details in one query
-      const allUserIds = new Set<string>();
-      allMessages.forEach(msg => {
-        if (msg.senderId !== userId) allUserIds.add(msg.senderId);
-        if (msg.recipientId !== userId) allUserIds.add(msg.recipientId);
-      });
-
-      const uniqueUserIds = Array.from(allUserIds);
-      const allUsersInfo = uniqueUserIds.length > 0 ? await db
-        .select({
-          id: users.id,
-          username: users.username,
-          firstName: users.firstName,
-          profileImageUrl: users.profileImageUrl
-        })
-        .from(users)
-        .where(eq(users.id, uniqueUserIds[0])) // Fix for multiple IDs - using IN operator
-        : [];
-
-      // Create user map for quick lookup
-      const userMap = new Map();
-      allUsersInfo.forEach(user => {
-        userMap.set(user.id, user);
-      });
-
-      // Create unique conversations list efficiently
+      // Create unique conversations list
       const conversationsMap = new Map();
       
       for (const message of allMessages) {
         const otherUserId = message.senderId === userId ? message.recipientId : message.senderId;
         
         if (!conversationsMap.has(otherUserId)) {
-          const otherUserInfo = userMap.get(otherUserId) || 
-            (message.senderId === otherUserId ? message.senderUser : null);
+          // Get user details
+          const otherUserInfo = await db
+            .select({
+              id: users.id,
+              username: users.username,
+              firstName: users.firstName,
+              profileImageUrl: users.profileImageUrl
+            })
+            .from(users)
+            .where(eq(users.id, otherUserId))
+            .limit(1);
 
-          if (otherUserInfo) {
-            // Calculate unread messages count
+          if (otherUserInfo.length > 0) {
+            // Calculate unread messages count (messages from other user to current user that are not read)
             const unreadMessages = allMessages.filter(msg => 
               msg.senderId === otherUserId && 
               msg.recipientId === userId &&
@@ -88,9 +55,9 @@ export function setupDirectMessageRoutes(app: Express) {
             
             conversationsMap.set(otherUserId, {
               otherUser: {
-                ...otherUserInfo,
-                profileImageUrl: otherUserInfo.profileImageUrl ? 
-                  UrlHandler.processMediaUrl(otherUserInfo.profileImageUrl, req) : null
+                ...otherUserInfo[0],
+                profileImageUrl: otherUserInfo[0].profileImageUrl ? 
+                  UrlHandler.processMediaUrl(otherUserInfo[0].profileImageUrl, req) : null
               },
               lastMessage: message.content,
               lastMessageAt: message.createdAt,

@@ -1759,18 +1759,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get public memory fragments for homepage - OPTIMIZED for performance
+  // Get public memory fragments for homepage
   app.get('/api/memories/public', async (req, res) => {
     try {
-      // Enable aggressive caching for better performance
-      res.set('Cache-Control', 'public, max-age=30, s-maxage=30');
-      
-      // OPTIMIZATION 1: Limit results for better performance
-      const limit = parseInt(req.query.limit as string) || 30; // Default 30 posts
-      const offset = parseInt(req.query.offset as string) || 0;
+      // Enable short-term caching for performance
+      res.set('Cache-Control', 'public, max-age=30'); // 30 ثانية cache
+      res.set('Pragma', 'public');
 
-      // OPTIMIZATION 2: Get memories with author info in a single query with JOIN
-      const memoriesWithCounts = await db
+      // Get memories with author info and comment counts in one optimized query
+      const memoriesWithCommentCounts = await db
         .select({
           id: memoryFragments.id,
           authorId: memoryFragments.authorId,
@@ -1795,6 +1792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           location: memoryFragments.location,
           createdAt: memoryFragments.createdAt,
           updatedAt: memoryFragments.updatedAt,
+          commentCount: sql<number>`COALESCE(COUNT(DISTINCT ${comments.id}), 0)::int`,
           author: {
             id: users.id,
             username: users.username,
@@ -1807,40 +1805,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .from(memoryFragments)
         .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .leftJoin(comments, and(
+          eq(comments.postId, memoryFragments.id),
+          eq(comments.postType, 'memory')
+        ))
         .where(and(
           eq(memoryFragments.isActive, true),
           eq(memoryFragments.isPublic, true)
         ))
+        .groupBy(
+          memoryFragments.id,
+          memoryFragments.authorId,
+          memoryFragments.type,
+          memoryFragments.title,
+          memoryFragments.caption,
+          memoryFragments.mediaUrls,
+          memoryFragments.thumbnailUrl,
+          memoryFragments.viewCount,
+          memoryFragments.likeCount,
+          memoryFragments.shareCount,
+          memoryFragments.giftCount,
+          memoryFragments.currentEnergy,
+          memoryFragments.memoryType,
+          memoryFragments.mood,
+          memoryFragments.isActive,
+          memoryFragments.isPublic,
+          memoryFragments.visibilityLevel,
+          memoryFragments.allowComments,
+          memoryFragments.allowSharing,
+          memoryFragments.allowGifts,
+          memoryFragments.location,
+          memoryFragments.createdAt,
+          memoryFragments.updatedAt,
+          users.id,
+          users.username,
+          users.firstName,
+          users.profileImageUrl,
+          users.isStreamer,
+          users.isVerified,
+          users.verificationBadge
+        )
         .orderBy(desc(memoryFragments.createdAt))
-        .limit(limit)
-        .offset(offset);
+        .limit(20); // حد أقصى 20 منشور لسرعة أكبر
 
-      // OPTIMIZATION 3: Get ALL comment counts in a single query
-      const memoryIds = memoriesWithCounts.map(m => m.id);
-      const commentCounts = memoryIds.length > 0 ? await db
-        .select({
-          postId: comments.postId,
-          count: sql<number>`count(*)::int`
-        })
-        .from(comments)
-        .where(and(
-          sql`${comments.postId} = ANY(${memoryIds})`,
-          eq(comments.postType, 'memory')
-        ))
-        .groupBy(comments.postId) : [];
-
-      // Create a map for quick lookup
-      const commentCountMap = new Map(
-        commentCounts.map(cc => [cc.postId, cc.count])
-      );
-
-      // OPTIMIZATION 4: Bulk process URLs and combine data
-      const memoriesWithCommentCounts = memoriesWithCounts.map(memory => ({
+      // Convert URLs to absolute paths for proper cross-domain support
+      const memoriesWithAbsoluteUrls = memoriesWithCommentCounts.map(memory => ({
         ...memory,
-        commentCount: commentCountMap.get(memory.id) || 0,
-        // Process URLs inline for better performance
+        // Convert media URLs to absolute URLs
         mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
         thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
+        // Convert author profile image URL to absolute URL  
         author: memory.author ? {
           ...memory.author,
           profileImageUrl: memory.author.profileImageUrl ? 
@@ -1848,7 +1862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       }));
 
-      res.json(memoriesWithCommentCounts);
+      res.json(memoriesWithAbsoluteUrls);
     } catch (error) {
       console.error("Error fetching public memories:", error);
       res.status(500).json({ message: "Failed to fetch public memories" });
