@@ -297,9 +297,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               res.set({
                 'Content-Type': authResponse.headers.get('content-type') || contentType,
-                'Cache-Control': 'public, max-age=86400',
+                'Cache-Control': 'public, max-age=31536000, immutable',
                 'Access-Control-Allow-Origin': '*',
-                'X-Source': 'backblaze-b2-auth'
+                'X-Source': 'backblaze-b2-auth',
+                'ETag': `"${filename}"`,
+                'Last-Modified': new Date().toUTCString()
               });
 
               console.log('✅ Successfully served B2 file with auth:', filename);
@@ -324,13 +326,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (ext === '.webp') contentType = 'image/webp';
       else if (ext === '.mp4') contentType = 'video/mp4';
 
+
+
       res.set({
         'Content-Type': response.headers.get('content-type') || contentType,
-        'Cache-Control': 'public, max-age=86400',
+        'Cache-Control': 'public, max-age=31536000, immutable, stale-while-revalidate=86400',
         'Access-Control-Allow-Origin': '*',
-        'X-Source': 'backblaze-b2'
+        'X-Source': 'backblaze-b2',
+        'ETag': `"${filename}"`,
+        'Last-Modified': new Date().toUTCString(),
+        'Vary': 'Accept-Encoding',
+        'X-Content-Type-Options': 'nosniff'
       });
-
+      
       console.log('✅ Successfully served B2 file:', filename);
       res.send(Buffer.from(buffer));
     } catch (error) {

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+// import { CachedImage } from "@/hooks/useImageWithCache";
 import { 
   Heart, 
   MessageCircle, 
@@ -247,6 +248,8 @@ export default function MemoryCard({
                   src={memory.thumbnailUrl}
                   alt={memory.title || 'Memory'}
                   className="w-full h-64 object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                  loading="eager"
+                  decoding="async"
                 />
               </div>
             ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (

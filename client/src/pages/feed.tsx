@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// import { CachedImage } from "@/hooks/useImageWithCache";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -440,6 +441,7 @@ export default function Feed() {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                             }}
+                            onLoad={() => console.log('✅ Image loaded successfully:', memory.thumbnailUrl)}
                           />
                         ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
                           <video
