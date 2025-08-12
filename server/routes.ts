@@ -25,7 +25,6 @@ import { setupPrivateRoomRoutes } from './routes/private-rooms';
 import { setupGroupRoomRoutes } from './routes/group-rooms';
 import { setupWalletRoutes } from './routes/wallet';
 import { registerStripeRoutes } from './routes/stripe';
-import shareRoutes from './routes/share.js';
 import { updateSupporterLevel, updateGiftsReceived } from './supporter-system';
 import { initializePointPackages } from './init-point-packages';
 import crypto from 'crypto';
@@ -243,9 +242,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup Stripe payment routes
   registerStripeRoutes(app);
-
-  // Setup PWA share routes
-  app.use('/', shareRoutes);
 
   // Enhanced CORS configuration
   app.use(cors({

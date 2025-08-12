@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { StreamProvider } from "@/contexts/StreamContext";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
-import { PWAManager } from "@/components/pwa-manager";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -62,7 +61,6 @@ import PrivacyPolicyPage from "@/pages/privacy-policy";
 import AdminDashboardPage from "@/pages/admin-dashboard";
 import OwnerWelcomePage from "@/pages/owner-welcome";
 import SearchPage from "@/pages/search";
-import PWAInfoPage from "@/pages/pwa-info";
 
 
 
@@ -143,7 +141,6 @@ function Router() {
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
           <Route path="/owner-welcome" component={OwnerWelcomePage} />
           <Route path="/search" component={SearchPage} />
-          <Route path="/pwa-info" component={PWAInfoPage} />
             </>
           )}
         </Suspense>
@@ -167,7 +164,6 @@ function AppContent() {
     <div className="min-h-screen">
       <Router />
       <LiveStreamIndicator />
-      <PWAManager />
       <Toaster />
     </div>
   );
