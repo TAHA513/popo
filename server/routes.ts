@@ -265,150 +265,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { filename } = req.params;
       console.log('🖼️ Fetching B2 image:', filename);
 
-      // Check if B2 is available and working
       if (!backblazeService.isAvailable()) {
-        console.log('⚠️ Backblaze B2 not available, trying local fallback');
-        return tryLocalFallback(filename, res);
+        return res.status(503).json({ error: 'Backblaze B2 not available' });
       }
 
-      try {
-        // Get the public URL directly (no authorization needed for public bucket)
-        const publicUrl = await backblazeService.getFileUrl(filename);
-        console.log('🔗 Using public URL for:', filename);
+      // Get the public URL directly (no authorization needed for public bucket)
+      const publicUrl = await backblazeService.getFileUrl(filename);
+      console.log('🔗 Using public URL for:', filename);
 
-        // Fetch the file from B2
-        const response = await fetch(publicUrl);
+      // Fetch the file from B2
+      const response = await fetch(publicUrl);
 
-        if (!response.ok) {
-          console.error('❌ Failed to fetch from B2:', response.status, response.statusText);
-          
-          // If B2 fails, try local fallback immediately
-          console.log('🔄 B2 failed, trying local fallback...');
-          return tryLocalFallback(filename, res);
+      if (!response.ok) {
+        console.error('❌ Failed to fetch from B2:', response.status, response.statusText);
+        // If 401/403, the file might be in a private location, try with auth
+        if (response.status === 401 || response.status === 403) {
+          console.log('🔒 Trying with authorization...');
+          try {
+            const authorizedUrl = await backblazeService.getFileUrlWithAuth(filename);
+            const authResponse = await fetch(authorizedUrl);
+            
+            if (authResponse.ok) {
+              const buffer = await authResponse.arrayBuffer();
+              const ext = path.extname(filename).toLowerCase();
+              let contentType = 'application/octet-stream';
+              if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+              else if (ext === '.png') contentType = 'image/png';
+              else if (ext === '.gif') contentType = 'image/gif';
+              else if (ext === '.webp') contentType = 'image/webp';
+              else if (ext === '.mp4') contentType = 'video/mp4';
+
+              res.set({
+                'Content-Type': authResponse.headers.get('content-type') || contentType,
+                'Cache-Control': 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*',
+                'X-Source': 'backblaze-b2-auth'
+              });
+
+              console.log('✅ Successfully served B2 file with auth:', filename);
+              return res.send(Buffer.from(buffer));
+            }
+          } catch (authError) {
+            console.error('❌ Authorization also failed:', authError);
+          }
         }
-
-        const buffer = await response.arrayBuffer();
-
-        // تحديد نوع المحتوى بناءً على امتداد الملف
-        const ext = path.extname(filename).toLowerCase();
-        let contentType = 'application/octet-stream';
-        if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
-        else if (ext === '.png') contentType = 'image/png';
-        else if (ext === '.gif') contentType = 'image/gif';
-        else if (ext === '.webp') contentType = 'image/webp';
-        else if (ext === '.mp4') contentType = 'video/mp4';
-
-        res.set({
-          'Content-Type': response.headers.get('content-type') || contentType,
-          'Cache-Control': 'public, max-age=86400',
-          'Access-Control-Allow-Origin': '*',
-          'X-Source': 'backblaze-b2'
-        });
-
-        console.log('✅ Successfully served B2 file:', filename);
-        res.send(Buffer.from(buffer));
-      } catch (b2Error) {
-        console.error('❌ B2 service error:', b2Error);
-        console.log('🔄 B2 service failed, trying local fallback...');
-        return tryLocalFallback(filename, res);
+        
+        return res.status(response.status).json({ error: 'File not found or access denied' });
       }
+
+      const buffer = await response.arrayBuffer();
+
+      // تحديد نوع المحتوى بناءً على امتداد الملف
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      else if (ext === '.mp4') contentType = 'video/mp4';
+
+      res.set({
+        'Content-Type': response.headers.get('content-type') || contentType,
+        'Cache-Control': 'public, max-age=86400',
+        'Access-Control-Allow-Origin': '*',
+        'X-Source': 'backblaze-b2'
+      });
+
+      console.log('✅ Successfully served B2 file:', filename);
+      res.send(Buffer.from(buffer));
     } catch (error) {
-      console.error('❌ Error in B2 endpoint:', error);
-      return tryLocalFallback(filename, res);
+      console.error('❌ Error fetching B2 image:', error);
+      res.status(404).json({ error: 'File not found in Backblaze B2' });
     }
   });
 
-  // Helper function for local fallback
-  async function tryLocalFallback(filename: string, res: any) {
-    const possiblePaths = [
-      path.join(FALLBACK_MEDIA_DIR, filename),
-      path.join(process.cwd(), 'public', 'media', filename),
-      path.join(process.cwd(), 'uploads', filename)
-    ];
-
-    for (const filePath of possiblePaths) {
-      try {
-        await fs.access(filePath);
-        const stats = await fs.stat(filePath);
-        const ext = path.extname(filename).toLowerCase();
-
-        let contentType = 'application/octet-stream';
-        if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
-        else if (ext === '.png') contentType = 'image/png';
-        else if (ext === '.gif') contentType = 'image/gif';
-        else if (ext === '.webp') contentType = 'image/webp';
-        else if (ext === '.mp4') contentType = 'video/mp4';
-        else if (ext === '.webm') contentType = 'video/webm';
-
-        console.log(`✅ Local fallback successful: ${filePath}`);
-
-        res.set({
-          'Content-Type': contentType,
-          'Content-Length': stats.size.toString(),
-          'Cache-Control': 'public, max-age=31536000',
-          'Access-Control-Allow-Origin': '*',
-          'X-Source': 'local-fallback'
-        });
-
-        return res.sendFile(path.resolve(filePath));
-      } catch (error) {
-        continue;
-      }
-    }
-
-    // If no local file found, return 404
-    console.log(`❌ File not found in any storage: ${filename}`);
-    res.status(404).json({ 
-      error: 'File not found',
-      filename: filename,
-      message: 'File not available in Backblaze B2 or local storage'
-    });
-  }
-
-  // Unified media serving endpoint with smart fallback
+  // Unified media serving endpoint - Redirect to specialized B2 endpoint
   app.get(['/public-objects/:filename', '/media/:filename', '/api/media/:filename'], async (req, res) => {
-    let filename = req.params.filename;
+    const filename = req.params.filename;
     console.log(`🔍 طلب ملف: ${filename}`);
 
-    // Decode URL-encoded filenames
-    try {
-      filename = decodeURIComponent(filename);
-    } catch (e) {
-      // If decoding fails, use original filename
-      console.log('⚠️ Could not decode filename, using original:', filename);
-    }
-
-    // Strategy 1: Try Backblaze B2 first (Primary) but with direct handling instead of redirect
+    // Strategy 1: Try Backblaze B2 first (Primary) - Redirect to dedicated endpoint
     if (backblazeService.isAvailable()) {
-      console.log(`🔄 Trying B2 directly for: ${filename}`);
-      
-      try {
-        const publicUrl = await backblazeService.getFileUrl(filename);
-        const response = await fetch(publicUrl);
-
-        if (response.ok) {
-          const buffer = await response.arrayBuffer();
-          const ext = path.extname(filename).toLowerCase();
-          let contentType = 'application/octet-stream';
-          if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
-          else if (ext === '.png') contentType = 'image/png';
-          else if (ext === '.gif') contentType = 'image/gif';
-          else if (ext === '.webp') contentType = 'image/webp';
-          else if (ext === '.mp4') contentType = 'video/mp4';
-
-          res.set({
-            'Content-Type': response.headers.get('content-type') || contentType,
-            'Cache-Control': 'public, max-age=86400',
-            'Access-Control-Allow-Origin': '*',
-            'X-Source': 'backblaze-b2-unified'
-          });
-
-          console.log('✅ B2 unified endpoint success:', filename);
-          return res.send(Buffer.from(buffer));
-        }
-      } catch (b2Error) {
-        console.log('❌ B2 unified failed, trying local fallback:', b2Error?.message);
-      }
+      console.log(`🔄 إعادة توجيه إلى B2 endpoint: ${filename}`);
+      return res.redirect(`/api/media/b2/${filename}`);
     }
 
     // Strategy 2: Local files as fallback only
@@ -487,43 +426,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-
-  // B2 status check endpoint (public)
-  app.get('/api/media/status', async (req, res) => {
-    try {
-      const status = {
-        backblazeAvailable: backblazeService.isAvailable(),
-        backblazeConfig: {
-          hasKeyId: !!process.env.B2_APPLICATION_KEY_ID,
-          hasKey: !!process.env.B2_APPLICATION_KEY,
-          hasBucketName: !!process.env.B2_BUCKET_NAME,
-          hasBucketId: !!process.env.B2_BUCKET_ID
-        },
-        localFallbackPaths: [
-          path.join(FALLBACK_MEDIA_DIR, 'test'),
-          path.join(process.cwd(), 'public', 'media', 'test'),
-          path.join(process.cwd(), 'uploads', 'test')
-        ]
-      };
-
-      // Try to test B2 connection if available
-      if (backblazeService.isAvailable()) {
-        try {
-          await backblazeService.initialize();
-          status.backblazeStatus = 'connected';
-        } catch (error: any) {
-          status.backblazeStatus = 'failed';
-          status.backblazeError = error.message;
-        }
-      } else {
-        status.backblazeStatus = 'not_configured';
-      }
-
-      res.json(status);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
 
   // Backblaze B2 test endpoint
   app.get('/api/test/backblaze', requireAuth, async (req: any, res) => {

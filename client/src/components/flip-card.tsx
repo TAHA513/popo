@@ -343,48 +343,15 @@ export default function FlipCard({ content, type, onAction, onLike, isLiked = fa
               className="w-full h-full object-cover"
               onError={(e) => {
                 console.error('❌ Failed to load image:', content.mediaUrls[0]);
+                // Try to reload with proxy URL if direct URL fails
                 const img = e.currentTarget;
-                const originalSrc = img.src;
-                
-                // Try different fallback strategies
-                if (!img.dataset.retryCount) {
-                  img.dataset.retryCount = '1';
-                  
-                  // Try B2 endpoint if not already tried
-                  if (!originalSrc.includes('/api/media/b2/')) {
-                    const filename = content.mediaUrls[0].split('/').pop();
-                    if (filename) {
-                      console.log('🔄 Trying B2 endpoint:', filename);
-                      img.src = `/api/media/b2/${filename}`;
-                      return;
-                    }
-                  }
-                  
-                  // Try regular media endpoint
-                  if (!originalSrc.includes('/api/media/') || originalSrc.includes('/api/media/b2/')) {
-                    const filename = content.mediaUrls[0].split('/').pop();
-                    if (filename) {
-                      console.log('🔄 Trying regular media endpoint:', filename);
-                      img.src = `/api/media/${filename}`;
-                      return;
-                    }
-                  }
-                } else if (img.dataset.retryCount === '1') {
-                  img.dataset.retryCount = '2';
-                  
-                  // Try with URL encoding for Arabic characters
+                if (!img.src.includes('/api/media/b2/')) {
                   const filename = content.mediaUrls[0].split('/').pop();
-                  if (filename) {
-                    const encodedFilename = encodeURIComponent(filename);
-                    console.log('🔄 Trying with URL encoding:', encodedFilename);
-                    img.src = `/api/media/${encodedFilename}`;
-                    return;
-                  }
+                  img.src = `/api/media/b2/${filename}`;
+                } else {
+                  // Show gradient background instead of broken image
+                  img.style.display = 'none';
                 }
-                
-                // All retries failed, hide the image
-                console.log('❌ All retry attempts failed, hiding image');
-                img.style.display = 'none';
               }}
               onLoad={() => {
                 console.log('✅ Image loaded successfully:', content.mediaUrls[0]);
