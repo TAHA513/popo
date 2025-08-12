@@ -1,12 +1,12 @@
 import type { Express } from "express";
-import { requireAuth } from "../localAuth";
+import { requireFastAuth } from "../fastSessions";
 import { db } from "../db";
 import { messages, users, blockedUsers } from "@shared/schema";
 import { eq, and, or, desc, sql } from "drizzle-orm";
 
 export function setupSimpleMessageRoutes(app: Express) {
   // Get messages between two users (simple direct chat)
-  app.get('/api/messages/:userId', requireAuth, async (req: any, res) => {
+  app.get('/api/messages/:userId', requireFastAuth, async (req: any, res) => {
     try {
       const currentUserId = req.user.id;
       const otherUserId = req.params.userId;
@@ -62,7 +62,7 @@ export function setupSimpleMessageRoutes(app: Express) {
   });
 
   // Send a simple message
-  app.post('/api/messages/send', requireAuth, async (req: any, res) => {
+  app.post('/api/messages/send', requireFastAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, content, messageType = 'text' } = req.body;
@@ -156,7 +156,7 @@ export function setupSimpleMessageRoutes(app: Express) {
   // Conversations endpoint is handled by direct-messages.ts
   
   // Debug endpoint to check messages
-  app.get('/api/messages/debug', requireAuth, async (req: any, res) => {
+  app.get('/api/messages/debug', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       console.log(`🐛 Debug: checking messages for user ${userId}`);
@@ -185,7 +185,7 @@ export function setupSimpleMessageRoutes(app: Express) {
   });
 
   // Mark messages as read for a specific conversation
-  app.put('/api/messages/:userId/read', requireAuth, async (req: any, res) => {
+  app.put('/api/messages/:userId/read', requireFastAuth, async (req: any, res) => {
     try {
       const currentUserId = req.user.id;
       const otherUserId = req.params.userId;

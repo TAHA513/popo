@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { requireAuth } from "../localAuth";
+import { requireFastAuth } from "../fastSessions";
 import { db } from "../db";
 import { messages, users, blockedUsers } from "@shared/schema";
 import { eq, and, or, desc } from "drizzle-orm";
@@ -7,7 +7,7 @@ import { UrlHandler } from "../utils/url-handler";
 
 export function setupDirectMessageRoutes(app: Express) {
   // Get conversations - simple list of users you've messaged with
-  app.get('/api/messages/conversations', requireAuth, async (req: any, res) => {
+  app.get('/api/messages/conversations', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       console.log(`🔍 جلب المحادثات للمستخدم: ${userId}`);
@@ -78,7 +78,7 @@ export function setupDirectMessageRoutes(app: Express) {
   });
 
   // Get messages between two users
-  app.get('/api/messages/:userId', requireAuth, async (req: any, res) => {
+  app.get('/api/messages/:userId', requireFastAuth, async (req: any, res) => {
     try {
       const currentUserId = req.user.id;
       const otherUserId = req.params.userId;
@@ -151,7 +151,7 @@ export function setupDirectMessageRoutes(app: Express) {
   });
 
   // Send message - direct and simple
-  app.post('/api/messages/send', requireAuth, async (req: any, res) => {
+  app.post('/api/messages/send', requireFastAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, content, messageType = 'text' } = req.body;
@@ -241,7 +241,7 @@ export function setupDirectMessageRoutes(app: Express) {
   });
 
   // Empty requests endpoint for compatibility
-  app.get('/api/messages/requests', requireAuth, async (req: any, res) => {
+  app.get('/api/messages/requests', requireFastAuth, async (req: any, res) => {
     res.json([]);
   });
 }
