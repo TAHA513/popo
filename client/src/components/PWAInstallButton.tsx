@@ -5,7 +5,7 @@ import { usePWA } from '@/hooks/usePWA';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function PWAInstallButton() {
-  const { canInstall, isInstalled, installApp } = usePWA();
+  const { canInstall, isInstalled, installApp, debug } = usePWA();
   const [installing, setInstalling] = useState(false);
 
   const handleInstall = async () => {
@@ -14,11 +14,28 @@ export function PWAInstallButton() {
       const success = await installApp();
       if (!success) {
         console.warn('تثبيت التطبيق لم ينجح');
+        // Show manual install instruction
+        alert('افتح قائمة المتصفح (⋮) واختر "تثبيت التطبيق" أو "إضافة للشاشة الرئيسية"');
       }
     } catch (error) {
       console.error('خطأ في تثبيت التطبيق:', error);
+      alert('اضغط على قائمة المتصفح واختر "تثبيت التطبيق"');
     } finally {
       setInstalling(false);
+    }
+  };
+
+  const handleManualInstall = () => {
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+        alert('في Safari: اضغط على زر المشاركة ثم "إضافة إلى الشاشة الرئيسية"');
+      } else {
+        alert('في Chrome: اضغط على القائمة (⋮) ثم "إضافة إلى الشاشة الرئيسية"');
+      }
+    } else {
+      alert('اضغط على أيقونة التثبيت في شريط العنوان أو قائمة المتصفح');
     }
   };
 
@@ -51,21 +68,19 @@ export function PWAInstallButton() {
     );
   }
 
-  // For mobile devices, show simple install hint
+  // Show manual install for all devices when PWA install not available
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
-  if (isMobile) {
-    return (
-      <div className="flex justify-center">
-        <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm cursor-pointer hover:bg-blue-200 transition-colors"
-          title="اضغط على قائمة المتصفح واختر 'إضافة للشاشة الرئيسية'">
-          <Smartphone className="w-4 h-4" />
-          تثبيت
-        </div>
-      </div>
-    );
-  }
-
-  // For desktop, don't show anything
-  return null;
+  return (
+    <div className="flex justify-center">
+      <button
+        onClick={handleManualInstall}
+        className="flex items-center gap-2 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm cursor-pointer transition-colors"
+        title={isMobile ? "اضغط للحصول على تعليمات التثبيت" : "اضغط للحصول على تعليمات التثبيت"}
+      >
+        <Smartphone className="w-4 h-4" />
+        تثبيت
+      </button>
+    </div>
+  );
 }
