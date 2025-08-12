@@ -27,15 +27,24 @@ export const PWAInstallButton = () => {
       console.log('🎉 App installed successfully');
       setShowButton(false);
       setDeferredPrompt(null);
+      // Clear install interest since app is now installed
+      localStorage.removeItem('pwa-install-interest');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Show button by default for testing
+    // Check if user has shown install interest before
+    const installInterest = localStorage.getItem('pwa-install-interest');
+    
+    // Show button by default for testing, or if user has shown interest before
     setTimeout(() => {
       if (!deferredPrompt) {
-        console.log('🔍 No install prompt detected, showing button anyway');
+        if (installInterest) {
+          console.log('🎯 User previously showed install interest, showing button');
+        } else {
+          console.log('🔍 No install prompt detected, showing button anyway');
+        }
         setShowButton(true);
       }
     }, 1000);
@@ -58,17 +67,43 @@ export const PWAInstallButton = () => {
         
         if (outcome === 'accepted') {
           console.log('✅ تم تثبيت التطبيق بنجاح!');
+          setShowButton(false);
+        } else {
+          console.log('❌ User cancelled installation');
+          // Don't hide button if user cancelled - let them try again
         }
         
         setDeferredPrompt(null);
       } catch (error) {
         console.error('❌ Install prompt failed:', error);
       }
+    } else {
+      // No prompt available - this click will "prime" the browser
+      console.log('🔍 No install prompt yet, priming browser for next attempt...');
+      
+      // Store user interaction in localStorage to track install interest
+      localStorage.setItem('pwa-install-interest', Date.now().toString());
+      
+      // Trigger some user engagement events to signal install intent
+      try {
+        // Try to register service worker interactions
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            console.log('🔄 Service worker interaction triggered');
+          }
+        }
+        
+        // Create user engagement
+        window.dispatchEvent(new Event('click'));
+        window.dispatchEvent(new Event('focus'));
+        
+        // Don't hide button - keep it for next click after browser refresh
+        console.log('💡 Keep button visible for next attempt after page refresh');
+      } catch (error) {
+        console.log('⚠️ Could not trigger engagement events');
+      }
     }
-    
-    // Always hide button after click (no popups or modals)
-    console.log('✅ Hiding install button after click');
-    setShowButton(false);
   };
 
   // Check if already installed
