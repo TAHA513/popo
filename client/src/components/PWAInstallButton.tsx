@@ -4,7 +4,7 @@ import { Download } from 'lucide-react';
 export const PWAInstallButton = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showButton, setShowButton] = useState(false);
-  const [isFirstClick, setIsFirstClick] = useState(true);
+  const [buttonStage, setButtonStage] = useState<'prepare' | 'install'>('prepare');
 
   useEffect(() => {
     // Check if app is already installed
@@ -16,10 +16,10 @@ export const PWAInstallButton = () => {
       return;
     }
 
-    // Check previous state
-    const hasClickedBefore = localStorage.getItem('pwa-first-click-done');
-    if (hasClickedBefore) {
-      setIsFirstClick(false);
+    // Check what stage we're in
+    const isPrepared = localStorage.getItem('pwa-prepared');
+    if (isPrepared) {
+      setButtonStage('install');
     }
 
     // Listen for install events
@@ -27,6 +27,7 @@ export const PWAInstallButton = () => {
       e.preventDefault();
       console.log('✅ beforeinstallprompt event captured');
       setDeferredPrompt(e);
+      setButtonStage('install');
       setShowButton(true);
     };
 
@@ -34,7 +35,7 @@ export const PWAInstallButton = () => {
       console.log('🎉 App installed successfully');
       setShowButton(false);
       setDeferredPrompt(null);
-      localStorage.removeItem('pwa-first-click-done');
+      localStorage.removeItem('pwa-prepared');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -141,35 +142,43 @@ export const PWAInstallButton = () => {
   const handleInstallClick = async () => {
     console.log('🔘 Install button clicked');
     
-    if (deferredPrompt) {
-      // Native prompt available
-      try {
-        console.log('🎯 Using native install prompt');
-        await deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        if (outcome === 'accepted') {
-          console.log('✅ تم التثبيت بنجاح');
-          setShowButton(false);
+    if (buttonStage === 'prepare') {
+      // First stage - prepare for install
+      console.log('🔧 Prepare stage: Setting up for install');
+      
+      // Mark as prepared
+      localStorage.setItem('pwa-prepared', 'true');
+      
+      // Create user engagement
+      await triggerInstallConditions();
+      
+      // Reload page to trigger install conditions
+      window.location.reload();
+      
+    } else if (buttonStage === 'install') {
+      // Second stage - try to install
+      if (deferredPrompt) {
+        // Native prompt available
+        try {
+          console.log('🎯 Using native install prompt');
+          await deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          
+          if (outcome === 'accepted') {
+            console.log('✅ تم التثبيت بنجاح');
+            setShowButton(false);
+            localStorage.removeItem('pwa-prepared');
+          }
+          
+          setDeferredPrompt(null);
+        } catch (error) {
+          console.error('❌ Native install failed:', error);
         }
-        
-        setDeferredPrompt(null);
-      } catch (error) {
-        console.error('❌ Native install failed:', error);
+      } else {
+        // Force install attempt
+        console.log('🚀 Attempting forced install');
+        await triggerInstallConditions();
       }
-    } else if (isFirstClick) {
-      // First click - prepare conditions
-      console.log('🔧 First click: Preparing install conditions');
-      setIsFirstClick(false);
-      localStorage.setItem('pwa-first-click-done', 'true');
-      
-      await triggerInstallConditions();
-      
-    } else {
-      // Second+ click - aggressive install
-      console.log('🚀 Second click: Attempting aggressive install');
-      
-      await triggerInstallConditions();
     }
   };
 
@@ -187,7 +196,7 @@ export const PWAInstallButton = () => {
         title="تثبيت تطبيق LaaBoBo كتطبيق مستقل"
       >
         <Download className="h-4 w-4" />
-        {isFirstClick ? 'ثبت التطبيق' : 'ثبت الآن'}
+        {buttonStage === 'prepare' ? 'انقر للتثبيت' : 'ثبت التطبيق'}
       </button>
     </div>
   );
