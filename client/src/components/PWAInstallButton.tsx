@@ -5,7 +5,7 @@ import { usePWA } from '@/hooks/usePWA';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function PWAInstallButton() {
-  const { canInstall, isInstalled, installApp, debug } = usePWA();
+  const { canInstall, isInstalled, installApp } = usePWA();
   const [installing, setInstalling] = useState(false);
 
   const handleInstall = async () => {
@@ -22,7 +22,7 @@ export function PWAInstallButton() {
     }
   };
 
-  // Don't show anything if already installed
+  // Show success message if already installed
   if (isInstalled) {
     return (
       <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">
@@ -36,7 +36,7 @@ export function PWAInstallButton() {
     );
   }
 
-  // Show install button if available
+  // Show install button if PWA can be installed
   if (canInstall) {
     return (
       <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/50 dark:to-purple-950/50">
@@ -64,10 +64,10 @@ export function PWAInstallButton() {
     );
   }
 
-  // Show helpful message only on mobile devices that don't support PWA install
+  // For mobile devices, show helpful instruction
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
-  if (!canInstall && !isInstalled && isMobile) {
+  if (isMobile) {
     return (
       <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
         <CardContent className="flex items-center gap-2 pt-6 pb-4">
@@ -83,5 +83,6 @@ export function PWAInstallButton() {
     );
   }
 
+  // For desktop, don't show anything
   return null;
 }
