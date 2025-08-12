@@ -3,8 +3,6 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin } from "./localAuth";
-import { requireFastAuth, optionalFastAuth, FastSessionManager } from "./fastSessions";
-import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
 import { insertStreamSchema, insertGiftSchema, insertChatMessageSchema, users, streams, memoryFragments, memoryInteractions, insertMemoryFragmentSchema, insertMemoryInteractionSchema, registerSchema, loginSchema, insertCommentSchema, insertCommentLikeSchema, comments, commentLikes, chatMessages, giftCharacters, gifts, notifications, insertNotificationSchema, messages, blockedUsers } from "@shared/schema";
 import { z } from "zod";
@@ -430,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Backblaze B2 test endpoint
-  app.get('/api/test/backblaze', requireFastAuth, async (req: any, res) => {
+  app.get('/api/test/backblaze', requireAuth, async (req: any, res) => {
     try {
       if (!backblazeService.isAvailable()) {
         return res.json({
@@ -506,7 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Wallet API endpoints
   // Get user transactions
-  app.get('/api/users/:userId/transactions', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/transactions', requireAuth, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
@@ -526,7 +524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get sent gifts for user
-  app.get('/api/gifts/sent/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/gifts/sent/:userId', requireAuth, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
@@ -564,7 +562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get received gifts for user
-  app.get('/api/gifts/received/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/gifts/received/:userId', requireAuth, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
@@ -602,7 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Transfer points between wallets
-  app.post('/api/wallet/transfer', requireFastAuth, async (req: any, res) => {
+  app.post('/api/wallet/transfer', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, amount } = req.body;
@@ -675,7 +673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Premium Messages API
 
   // Get premium messages for current user
-  app.get("/api/premium-messages", requireFastAuth, async (req: any, res) => {
+  app.get("/api/premium-messages", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const messages = await storage.getPremiumMessages(userId);
@@ -687,7 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send premium message
-  app.post("/api/premium-messages/send", requireFastAuth, async (req: any, res) => {
+  app.post("/api/premium-messages/send", requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, albumId, message } = req.body;
@@ -713,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Unlock premium message  
-  app.post("/api/premium-messages/:id/unlock", requireFastAuth, async (req: any, res) => {
+  app.post("/api/premium-messages/:id/unlock", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const messageId = parseInt(req.params.id);
@@ -768,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Premium Albums API Routes
 
   // Create premium album
-  app.post('/api/premium-albums', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { title, description, coverImageUrl, requiredGiftId, requiredGiftAmount } = req.body;
@@ -795,7 +793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's premium albums
-  app.get('/api/premium-albums/my-albums', requireFastAuth, async (req: any, res) => {
+  app.get('/api/premium-albums/my-albums', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const albums = await storage.getPremiumAlbums(userId);
@@ -807,7 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get premium album details
-  app.get('/api/premium-albums/:albumId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/premium-albums/:albumId', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -842,7 +840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Purchase premium album access
-  app.post('/api/premium-albums/:albumId/purchase', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums/:albumId/purchase', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -948,7 +946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add media to album
-  app.post('/api/premium-albums/:albumId/media', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     console.log('🔄 طلب إضافة محتوى للألبوم:', {
       albumId: req.params.albumId,
       userId: req.user?.id,
@@ -1008,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get album media
-  app.get('/api/premium-albums/:albumId/media', requireFastAuth, async (req: any, res) => {
+  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -1032,7 +1030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Purchase premium album access
-  app.post('/api/premium-albums/:albumId/purchase', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums/:albumId/purchase', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -1103,7 +1101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send premium message with album
-  app.post('/api/premium-messages/send', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-messages/send', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, albumId, message } = req.body;
@@ -1134,7 +1132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get premium messages for user
-  app.get('/api/premium-messages', requireFastAuth, async (req: any, res) => {
+  app.get('/api/premium-messages', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const messages = await storage.getPremiumMessages(userId);
@@ -1146,7 +1144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Unlock premium message
-  app.post('/api/premium-messages/:messageId/unlock', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-messages/:messageId/unlock', requireAuth, async (req: any, res) => {
     try {
       const messageId = parseInt(req.params.messageId);
       const userId = req.user.id;
@@ -1213,52 +1211,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fast login route - much faster than old passport sessions
-  app.post('/api/login', async (req, res) => {
+  app.post('/api/login', (req, res, next) => {
     try {
-      const { username, password } = loginSchema.parse(req.body);
-      
-      const user = await storage.getUserByUsername(username);
-      
-      if (!user) {
-        return res.status(401).json({ message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
-      }
-      
-      if (!user.passwordHash) {
-        return res.status(401).json({ message: 'هذا الحساب لا يحتوي على كلمة مرور محلية' });
-      }
+      const validatedData = loginSchema.parse(req.body);
 
-      const isValid = await bcrypt.compare(password, user.passwordHash);
-      
-      if (!isValid) {
-        return res.status(401).json({ message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
-      }
+      passport.authenticate('local', (err: any, user: any, info: any) => {
+        if (err) {
+          return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
+        }
+        if (!user) {
+          return res.status(401).json({ message: info?.message || "اسم المستخدم أو كلمة المرور غير صحيحة" });
+        }
 
-      // Try to refresh existing session first, or create new one
-      const sessionResult = FastSessionManager.refreshSession(user.id, user);
-      const token = sessionResult?.token || FastSessionManager.createSession(user).token;
-      
-      // Set auth token cookie for seamless authentication - longer duration
-      res.cookie('authToken', token, {
-        httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days to match SESSION_TTL
-        sameSite: 'lax',
-      });
+        req.logIn(user, (err) => {
+          if (err) {
+            return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
+          }
 
-      res.json({ 
-        message: 'تم تسجيل الدخول بنجاح', 
-        user: {
-          id: user.id,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          points: user.points,
-        },
-        token, // Also send token for API usage
-      });
+          res.json({
+            message: "تم تسجيل الدخول بنجاح",
+            user: {
+              id: user.id,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              role: user.role,
+              points: user.points,
+            }
+          });
+        });
+      })(req, res, next);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1266,37 +1249,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errors: error.errors.map(e => ({ field: e.path[0], message: e.message }))
         });
       }
-      console.error('Login error:', error);
-      res.status(500).json({ message: 'حدث خطأ أثناء تسجيل الدخول' });
+      res.status(500).json({ message: "حدث خطأ أثناء تسجيل الدخول" });
     }
   });
 
-  // Fast logout - clear session tokens  
-  const handleLogout = (req: any, res: any) => {
-    try {
-      const token = req.headers.authorization?.replace('Bearer ', '') || 
-                    req.cookies?.authToken ||
-                    req.headers['x-auth-token'];
-      
-      if (token) {
-        const tokenStore = (FastSessionManager as any).tokenStore;
-        if (tokenStore && tokenStore.get) {
-          const sessionId = tokenStore.get(token);
-          if (sessionId) {
-            FastSessionManager.destroySession(sessionId);
-          }
-        }
+  app.post('/api/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
       }
-      
-      res.clearCookie('authToken');
       res.json({ message: "تم تسجيل الخروج بنجاح" });
-    } catch (error) {
-      res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
-    }
-  };
+    });
+  });
 
-  app.post('/api/logout', handleLogout);
-  app.get('/api/logout', handleLogout);
+  // Also support GET logout for direct URL access
+  app.get('/api/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "حدث خطأ أثناء تسجيل الخروج" });
+      }
+      res.json({ message: "تم تسجيل الخروج بنجاح" });
+    });
+  });
 
   app.get('/api/check-username', async (req, res) => {
     try {
@@ -1313,11 +1287,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fast auth route - instant user data
-  app.get('/api/auth/user', optionalFastAuth, async (req: any, res) => {
-    if (!req.user) {
-      return res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });
-    }
+  // Auth routes
+  app.get('/api/auth/user', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
       res.json({
@@ -1344,7 +1315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // General file upload endpoint - now uses Object Storage
-  app.post('/api/upload', requireFastAuth, upload.single('file'), async (req: any, res) => {
+  app.post('/api/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "لم يتم رفع أي ملف" });
@@ -1384,7 +1355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Profile image upload endpoint - now uses Backblaze B2 Cloud Storage
-  app.post('/api/upload/profile-image', requireFastAuth, upload.single('image'), async (req: any, res) => {
+  app.post('/api/upload/profile-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const file = req.file;
@@ -1420,7 +1391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cover image upload endpoint - now uses Object Storage
-  app.post('/api/upload/cover-image', requireFastAuth, upload.single('image'), async (req: any, res) => {
+  app.post('/api/upload/cover-image', requireAuth, upload.single('image'), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const file = req.file;
@@ -1640,7 +1611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Clear all memories (for testing purposes)
-  app.delete('/api/memories/clear-all', requireFastAuth, async (req: any, res) => {
+  app.delete('/api/memories/clear-all', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
 
@@ -1658,7 +1629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memory fragments routes
-  app.post('/api/memories', requireFastAuth, upload.array('media', 5), async (req: any, res) => {
+  app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
@@ -1714,7 +1685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId?', requireFastAuth, async (req: any, res) => {
+  app.get('/api/memories/user/:userId?', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId || req.user?.id;
       if (!userId) {
@@ -1914,7 +1885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete memory fragment by ID (only by author)
-  app.delete('/api/memories/:memoryId', requireFastAuth, async (req: any, res) => {
+  app.delete('/api/memories/:memoryId', requireAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.memoryId);
       const userId = req.user.id;
@@ -1993,7 +1964,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Record a view for a memory
-  app.post('/api/memories/:memoryId/view', requireFastAuth, async (req: any, res) => {
+  app.post('/api/memories/:memoryId/view', requireAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.memoryId);
       const userId = req.user.id;
@@ -2030,7 +2001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search users endpoint
-  app.get('/api/users/search', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/search', requireAuth, async (req: any, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.q as string || '';
@@ -2212,7 +2183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user by ID
-  app.get('/api/users/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       console.log('🔍 Fetching user profile:', {
@@ -2290,7 +2261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if following
-  app.get('/api/users/:userId/follow-status', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/follow-status', requireAuth, async (req: any, res) => {
     try {
       const followerId = req.user.id;
       const followedId = req.params.userId;
@@ -2469,7 +2440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if user is blocked
-  app.get('/api/users/:userId/block-status', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/block-status', requireAuth, async (req: any, res) => {
     try {
       const blockerId = req.user.id;
       const blockedId = req.params.userId;
@@ -2523,7 +2494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get unread notifications count (includes unread messages)
-  app.get('/api/notifications/unread-count', requireFastAuth, async (req: any, res) => {
+  app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
     try {
       // Disable caching for real-time notification count
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -2685,7 +2656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's albums
-  app.get('/api/albums/user/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/albums/user/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const currentUserId = req.user.id;
@@ -2972,7 +2943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user followers
-  app.get('/api/users/:userId/followers', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const followers = await storage.getFollowers(userId);
@@ -2984,7 +2955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user following
-  app.get('/api/users/:userId/following', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const following = await storage.getFollowing(userId);
@@ -3281,7 +3252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get gifts received by a user
-  app.get('/api/gifts/received/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/gifts/received/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const gifts = await storage.getReceivedGifts(userId);
@@ -3448,7 +3419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.post('/api/streams', requireFastAuth, async (req: any, res) => {
+  app.post('/api/streams', requireAuth, async (req: any, res) => {
     try {
       console.log("🎥 Creating new stream for user:", req.user.id);
       console.log("📊 Stream data:", req.body);
@@ -3570,7 +3541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams/:id/end', requireFastAuth, async (req: any, res) => {
+  app.post('/api/streams/:id/end', requireAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
       const userId = req.user.id;
@@ -3681,7 +3652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Like/Unlike memory
-  app.post('/api/memories/:id/like', requireFastAuth, async (req: any, res) => {
+  app.post('/api/memories/:id/like', requireAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.id);
       const userId = req.user.id;
@@ -3814,7 +3785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/memories/:id/comments', requireFastAuth, async (req: any, res) => {
+  app.post('/api/memories/:id/comments', requireAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.id);
       const { content } = req.body;
@@ -3916,7 +3887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams/:id/comments', requireFastAuth, async (req: any, res) => {
+  app.post('/api/streams/:id/comments', requireAuth, async (req: any, res) => {
     try {
       const postId = parseInt(req.params.id);
       const { content } = req.body;
@@ -3992,7 +3963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add new chat message to stream
-  app.post('/api/streams/:id/messages', requireFastAuth, async (req: any, res) => {
+  app.post('/api/streams/:id/messages', requireAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
       const { message } = req.body;
@@ -4045,7 +4016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // End all streams for current user
-  app.post('/api/streams/end-all', requireFastAuth, async (req: any, res) => {
+  app.post('/api/streams/end-all', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       console.log(`🗑️ Ending all streams for user: ${userId}`);
@@ -4194,7 +4165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Memory Fragment routes
-  app.post('/api/memories', requireFastAuth, upload.array('media', 5), async (req: any, res) => {
+  app.post('/api/memories', requireAuth, upload.array('media', 5), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
@@ -4246,7 +4217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/memories/user/:userId', requireAuth, async (req: any, res) => {
     try {
       const targetUserId = req.params.userId;
       const currentUserId = req.user.id;
@@ -4264,7 +4235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/memories/:id/interact', requireFastAuth, async (req: any, res) => {
+  app.post('/api/memories/:id/interact', requireAuth, async (req: any, res) => {
     try {
       const fragmentId = parseInt(req.params.id);
       const userId = req.user.id;
