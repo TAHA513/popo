@@ -122,145 +122,37 @@ export function PWAInstallButton() {
       return;
     }
 
-    // No native prompt available, show manual instructions
-    console.log('📋 Showing manual install instructions');
+    // No native prompt available - show simple message to install from browser
+    console.log('💡 No install prompt, showing browser install message');
     
-    const isChrome = /Chrome|Chromium|Edge/.test(navigator.userAgent);
-    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-    const isFirefox = /Firefox/.test(navigator.userAgent);
-    
-    let message = '📱 لتثبيت تطبيق LaaBoBo:\n\n';
-    
-    if (isChrome) {
-      message += '🔍 **Chrome/Edge - طريقة سهلة:**\n';
-      message += '1️⃣ ابحث عن أيقونة التثبيت 📥 في شريط العنوان\n';
-      message += '   (عادة بجانب النجمة ⭐ والإعدادات)\n\n';
-      message += '2️⃣ أو من القائمة:\n';
-      message += '   • النقاط الثلاث (⋮) في الزاوية ←\n';
-      message += '   • "تثبيت LaaBoBo..." أو "Install LaaBoBo"\n';
-      message += '   • أو "More tools" ← "Create shortcut"\n\n';
-      message += '💡 **إذا لم تظهر أيقونة التثبيت:**\n';
-      message += '   • حدث الصفحة (F5 أو Ctrl+R)\n';
-      message += '   • تأكد من HTTPS (🔒 في شريط العنوان)\n';
-      message += '   • استخدم التصفح العادي (ليس الخاص/المخفي)';
-    } else if (isSafari) {
-      message += '🔍 **Safari - iOS/Mac:**\n';
-      message += '1️⃣ **على الآيفون/آيباد:**\n';
-      message += '   • اضغط زر المشاركة 📤 (في الأسفل)\n';
-      message += '   • مرر لأسفل ← "إضافة إلى الشاشة الرئيسية"\n';
-      message += '   • اكتب "LaaBoBo" واضغط "إضافة"\n\n';
-      message += '2️⃣ **على Mac:**\n';
-      message += '   • قائمة File ← "Add to Dock"\n';
-      message += '   • أو Dock ← النقر بالزر الأيمن ← "Options"';
-    } else if (isFirefox) {
-      message += '🔍 **Firefox:**\n';
-      message += '   • ابحث عن أيقونة التثبيت في شريط العنوان\n';
-      message += '   • أو: قائمة Firefox ← "Install this site as an app"\n';
-      message += '   • أو: Three lines (☰) ← "Install"\n';
-    } else {
-      message += '🔍 **تعليمات عامة:**\n';
-      message += '   • ابحث عن "تثبيت" أو "Install" في قائمة المتصفح\n';
-      message += '   • أو أيقونة + أو 📥 في شريط العنوان\n';
-      message += '   • أو Settings ← "Apps" ← "Install"';
-    }
-    
-    message += '\n\n✅ **مميزات بعد التثبيت:**\n';
-    message += '   • تطبيق مستقل بدون شريط المتصفح 🚀\n';
-    message += '   • فتح سريع من قائمة التطبيقات 📱\n';
-    message += '   • أداء أفضل وتجربة أكثر سلاسة ⚡\n';
-    message += '   • إشعارات مخصصة للتطبيق 🔔';
-    
-    // Create enhanced modal
-    const modalDiv = document.createElement('div');
-    modalDiv.innerHTML = `
+    // Simple alert telling user to install from browser
+    const alertDiv = document.createElement('div');
+    alertDiv.innerHTML = `
       <div style="
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
         z-index: 10000;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        backdrop-filter: blur(5px);
+        font-family: Arial, sans-serif;
+        text-align: right;
+        direction: rtl;
+        max-width: 300px;
       ">
-        <div style="
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 30px;
-          border-radius: 20px;
-          max-width: 95%;
-          max-height: 90%;
-          overflow-y: auto;
-          text-align: right;
-          direction: rtl;
-          box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-          position: relative;
-        ">
-          <button onclick="this.closest('div').remove()" style="
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-          ">×</button>
-          
-          <h2 style="
-            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-top: 0;
-            font-size: 24px;
-            text-align: center;
-          ">📱 تثبيت تطبيق LaaBoBo</h2>
-          
-          <div style="
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border: 1px solid rgba(255,255,255,0.2);
-          ">
-            <pre style="
-              white-space: pre-wrap;
-              font-family: inherit;
-              line-height: 1.8;
-              margin: 0;
-              color: #f8f8f8;
-            ">${message}</pre>
-          </div>
-          
-          <div style="text-align: center; margin-top: 25px;">
-            <button onclick="this.closest('div').remove()" style="
-              background: linear-gradient(45deg, #ff6b6b, #ffd93d);
-              color: white;
-              border: none;
-              padding: 12px 30px;
-              border-radius: 25px;
-              cursor: pointer;
-              font-size: 16px;
-              font-weight: bold;
-              box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-              transition: transform 0.2s;
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              فهمت، شكراً! ✨
-            </button>
-          </div>
+        <div style="font-size: 14px; font-weight: bold;">
+          للتثبيت: ابحث عن أيقونة التثبيت في شريط المتصفح أو القائمة
         </div>
       </div>
     `;
-    document.body.appendChild(modalDiv);
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+      alertDiv.remove();
+    }, 4000);
   };
 
   // Check if already installed
@@ -281,21 +173,11 @@ export function PWAInstallButton() {
     <div className="fixed bottom-4 right-4 z-50">
       <button
         onClick={handleInstallClick}
-        className="bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 text-white px-6 py-4 rounded-2xl text-sm font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center gap-3 hover:scale-105 animate-pulse hover:animate-none group"
+        className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
         title="تثبيت تطبيق LaaBoBo كتطبيق مستقل"
       >
-        <div className="flex items-center justify-center w-8 h-8 bg-white bg-opacity-20 rounded-full">
-          <img 
-            src="/laababo-icon.png" 
-            alt="LaaBoBo" 
-            className="w-6 h-6 rounded-full"
-          />
-        </div>
-        <div className="flex flex-col items-start">
-          <span className="text-base font-extrabold">تثبيت LaaBoBo</span>
-          <span className="text-xs opacity-90">للحصول على تجربة أفضل</span>
-        </div>
-        <Download className="h-5 w-5 group-hover:animate-bounce" />
+        <Download className="h-4 w-4" />
+        تثبيت
       </button>
     </div>
   );
