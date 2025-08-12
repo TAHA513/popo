@@ -216,6 +216,44 @@ interface ConnectedClient {
 const connectedClients = new Map<string, ConnectedClient>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // PWA Manifest endpoint - dynamic with proper headers
+  app.get('/manifest.json', (req, res) => {
+    res.header('Content-Type', 'application/manifest+json');
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', '0');
+    
+    const manifest = {
+      name: "LaaBoBo - منصة البث المباشر",
+      short_name: "LaaBoBo",
+      description: "منصة البث المباشر والتواصل الاجتماعي العربية",
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
+      orientation: "portrait-primary",
+      background_color: "#ec4899",
+      theme_color: "#9333ea",
+      lang: "ar",
+      dir: "rtl",
+      categories: ["social", "entertainment"],
+      icons: [
+        {
+          src: "/icon-192.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any maskable"
+        },
+        {
+          src: "/icon-512.png",
+          sizes: "512x512", 
+          type: "image/png",
+          purpose: "any maskable"
+        }
+      ]
+    };
+    
+    res.json(manifest);
+  });
   // Initialize gift characters
   await initializeGiftCharacters();
 
