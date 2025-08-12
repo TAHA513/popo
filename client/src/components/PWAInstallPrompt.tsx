@@ -61,12 +61,15 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = () => {
       }, 3000);
     } 
     
-    // Force show PWA prompt for testing (remove this line later)
-    if (!isStandalone) {
+    // Test PWA prompt - show if not dismissed
+    if (!isStandalone && !iOS) {
       setTimeout(() => {
-        console.log('🔧 Force showing PWA prompt for testing');
-        setShowInstallPrompt(true);
-      }, 5000);
+        const dismissed = localStorage.getItem('pwa-install-dismissed');
+        if (!dismissed) {
+          console.log('🔧 Showing PWA install prompt for desktop/Android');
+          setShowInstallPrompt(true);
+        }
+      }, 3000);
     }
 
     return () => {

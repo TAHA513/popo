@@ -1,16 +1,13 @@
-// LaaBoBo PWA - Advanced Service Worker
-const CACHE_NAME = 'laababo-pwa-v6.0';
-const API_CACHE = 'laababo-api-v1';
-const MEDIA_CACHE = 'laababo-media-v1';
+// LaaBoBo PWA Service Worker
+const CACHE_NAME = 'laababo-pwa-v7.0';
 
-// Critical assets to cache for offline functionality
+// Critical assets for PWA
 const CRITICAL_ASSETS = [
   '/',
   '/manifest.json',
   '/favicon.ico',
-  '/rabbit-icon-192.svg',
-  '/rabbit-icon-512.svg',
-  '/laabo-rabbit-logo.svg'
+  '/rabbit-icon-192.svg', 
+  '/rabbit-icon-512.svg'
 ];
 
 // Install event - cache critical assets
