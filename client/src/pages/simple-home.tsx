@@ -1,8 +1,8 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Bell, Mail, Search } from "lucide-react";
 
@@ -16,17 +16,25 @@ export default function SimpleHome() {
   const { isRTL, t } = useLanguage();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
+
+  // إعادة تحميل البيانات عند تحميل المكون
+  useEffect(() => {
+    // إعادة تحميل فورية للبيانات المهمة
+    queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
+  }, [queryClient]);
   
   // Public posts optimized for instant loading
   const { data: memories = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 30000, // تقليل تحديث البيانات إلى 30 ثانية
-    staleTime: 60000, // البيانات تبقى صالحة لـ 60 ثانية
-    gcTime: 600000, // تنظيف الكاش بعد 10 دقائق
-    retry: 1, // محاولة واحدة فقط
-    refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
-    refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
-    networkMode: 'offlineFirst', // استخدام البيانات المخزنة أولاً
+    refetchInterval: 30000, // تحديث البيانات كل 30 ثانية
+    staleTime: 30000, // البيانات تبقى صالحة لـ 30 ثانية
+    gcTime: 300000, // تنظيف الكاش بعد 5 دقائق
+    retry: 2, // محاولتان لإعادة التحميل
+    refetchOnWindowFocus: true, // إعادة التحميل عند العودة للصفحة
+    refetchOnReconnect: true, // إعادة التحميل عند الاتصال
+    networkMode: 'online', // استخدام الشبكة أولاً
   });
 
 
@@ -36,6 +44,8 @@ export default function SimpleHome() {
     queryKey: ['/api/messages/conversations'],
     refetchInterval: 30000,
     staleTime: 15000,
+    refetchOnWindowFocus: true, // إعادة التحميل عند العودة للصفحة
+    refetchOnReconnect: true, // إعادة التحميل عند الاتصال
   });
 
   // Calculate unread messages count based on conversations with unread messages
