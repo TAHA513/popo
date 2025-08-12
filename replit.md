@@ -58,7 +58,8 @@ LaaBoBo is an advanced Arabic-first mobile social broadcasting platform designed
 - **URL Generation**: Public URLs for all uploaded media
 
 ## User Preferences
-- **أزرار PWA**: المستخدم لا يريد ظهور أي أزرار PWA (Install Button + Diagnostic Button) - تم إخفاؤها نهائياً
+- **زر التثبيت الذكي**: يظهر فقط عندما التطبيق غير مثبت، يقوم بالتثبيت المباشر بدون تعليمات، يحتوي على شعار LaaBoBo
+- **زر التشخيص**: مخفي نهائياً (PWA Diagnostic Button)
 - **الأيقونة**: استخدام الشعار الوردي الأصلي للأرنب في جميع أيقونات التطبيق
 
 ## Development Guidelines

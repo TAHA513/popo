@@ -68,16 +68,49 @@ export function PWAInstallButton() {
     console.log('🔘 Install button clicked', { deferredPrompt: !!deferredPrompt });
     
     if (deferredPrompt) {
-      // We have the native install prompt
+      // We have the native install prompt - use it directly
       try {
         console.log('🎯 Triggering native install prompt...');
-        deferredPrompt.prompt();
+        await deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         console.log('📊 User choice:', outcome);
         
         if (outcome === 'accepted') {
-          console.log('✅ User accepted the install prompt');
+          console.log('✅ تم تثبيت التطبيق بنجاح!');
           setShowButton(false);
+          
+          // Show success message
+          const successDiv = document.createElement('div');
+          successDiv.innerHTML = `
+            <div style="
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              background: linear-gradient(135deg, #10b981, #059669);
+              color: white;
+              padding: 20px;
+              border-radius: 12px;
+              box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+              z-index: 10000;
+              font-family: Arial, sans-serif;
+              text-align: right;
+              direction: rtl;
+            ">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="/laababo-icon.png" style="width: 32px; height: 32px; border-radius: 50%;" />
+                <div>
+                  <div style="font-size: 16px; font-weight: bold;">✅ تم التثبيت بنجاح!</div>
+                  <div style="font-size: 14px; opacity: 0.9;">يمكنك الآن فتح LaaBoBo من قائمة التطبيقات</div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(successDiv);
+          
+          setTimeout(() => {
+            successDiv.remove();
+          }, 4000);
+          
         } else {
           console.log('❌ User dismissed the install prompt');
         }
@@ -230,6 +263,40 @@ export function PWAInstallButton() {
     document.body.appendChild(modalDiv);
   };
 
-  // Hide the install button as requested by user
-  return null;
+  // Check if already installed
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                      (window.navigator as any).standalone === true;
+
+  // Show smart install button only when app is not installed
+  if (isStandalone) {
+    console.log('📱 App already installed, hiding button');
+    return null;
+  }
+
+  if (!showButton) {
+    return null;
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      <button
+        onClick={handleInstallClick}
+        className="bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 text-white px-6 py-4 rounded-2xl text-sm font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center gap-3 hover:scale-105 animate-pulse hover:animate-none group"
+        title="تثبيت تطبيق LaaBoBo كتطبيق مستقل"
+      >
+        <div className="flex items-center justify-center w-8 h-8 bg-white bg-opacity-20 rounded-full">
+          <img 
+            src="/laababo-icon.png" 
+            alt="LaaBoBo" 
+            className="w-6 h-6 rounded-full"
+          />
+        </div>
+        <div className="flex flex-col items-start">
+          <span className="text-base font-extrabold">تثبيت LaaBoBo</span>
+          <span className="text-xs opacity-90">للحصول على تجربة أفضل</span>
+        </div>
+        <Download className="h-5 w-5 group-hover:animate-bounce" />
+      </button>
+    </div>
+  );
 }
