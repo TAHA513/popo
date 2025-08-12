@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Download } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 export const PWAInstallButton = () => {
+  const [location] = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showButton, setShowButton] = useState(false);
   const [isReadyToInstall, setIsReadyToInstall] = useState(false);
+
+  // فقط صفحات الدخول والتسجيل
+  const isAuthPage = location === '/' || location === '/login' || location === '/register' || location === '/landing' || location === '/forgot-password' || location === '/reset-password';
+  
+  if (!isAuthPage) return null;
 
   useEffect(() => {
     // Check if app is already installed
