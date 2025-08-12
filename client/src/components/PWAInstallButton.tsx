@@ -230,24 +230,6 @@ export function PWAInstallButton() {
     document.body.appendChild(modalDiv);
   };
 
-  // Always show button for easier testing and access
-  if (!showButton) {
-    return null;
-  }
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <button
-        onClick={handleInstallClick}
-        className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105 animate-bounce"
-        title="تثبيت تطبيق LaaBoBo كتطبيق مستقل"
-      >
-        <Download className="h-4 w-4" />
-        تثبيت التطبيق
-      </button>
-      <div className="text-xs text-center mt-1 text-gray-600">
-        للحصول على تجربة أفضل
-      </div>
-    </div>
-  );
+  // Hide the install button as requested by user
+  return null;
 }
