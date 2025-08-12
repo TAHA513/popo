@@ -1,10 +1,31 @@
 // LaaBoBo PWA Service Worker - Optimized for PWA Installation
-const CACHE_NAME = 'laababo-v2';
+const CACHE_NAME = 'laababo-v3';
+const STATIC_ASSETS = [
+  '/',
+  '/manifest.json',
+  '/icon-192x192.png',
+  '/icon-512x512.png'
+];
 
 // Install event - required for PWA
 self.addEventListener('install', (event) => {
   console.log('LaaBoBo Service Worker installing...');
-  self.skipWaiting(); // Force activate immediately
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('Caching essential PWA assets...');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        console.log('PWA assets cached successfully');
+        self.skipWaiting(); // Force activate immediately
+      })
+      .catch((error) => {
+        console.error('Failed to cache PWA assets:', error);
+        self.skipWaiting(); // Still activate even if caching fails
+      })
+  );
 });
 
 // Activate event - required for PWA

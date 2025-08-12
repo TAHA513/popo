@@ -6,6 +6,7 @@ import { StreamProvider } from "@/contexts/StreamContext";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PWADiagnostic } from "@/components/PWADiagnostic";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -166,6 +167,7 @@ function AppContent() {
       <Router />
       <LiveStreamIndicator />
       <PWAInstallPrompt />
+      <PWADiagnostic />
       <Toaster />
     </div>
   );
