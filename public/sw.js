@@ -1,5 +1,5 @@
 // LaaBoBo PWA Service Worker
-const CACHE_NAME = 'laababo-pwa-v7.0';
+const CACHE_NAME = 'laababo-pwa-v8.0';
 
 // Critical assets for PWA
 const CRITICAL_ASSETS = [
