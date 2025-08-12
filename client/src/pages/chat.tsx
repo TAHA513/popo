@@ -31,7 +31,7 @@ import {
 import SimpleNavigation from "@/components/simple-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation, useParams } from "wouter";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { GiftShop } from "@/components/gift-shop";
@@ -49,7 +49,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
@@ -489,10 +488,9 @@ export default function ChatPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
-  const params = useParams<{ userId: string }>();
   
   // Extract user ID from URL /messages/chat/:userId
-  const otherUserId = params.userId;
+  const otherUserId = location.split('/messages/chat/')[1];
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   

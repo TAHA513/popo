@@ -101,7 +101,7 @@ function Router() {
             <>
               <Route path="/" component={SimpleHome} />
               <Route path="/home" component={SimpleHome} />
-              <Route path="/explore" component={SimpleExplore} />
+              <Route path="/explore" component={LiveStreams} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />
           <Route path="/private-albums" component={PrivateAlbumsPage} />
