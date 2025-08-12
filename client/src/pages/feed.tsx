@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -32,17 +32,50 @@ export default function Feed() {
     refetchOnWindowFocus: false, // تجنب إعادة التحميل عند التركيز
   });
 
-  // Fetch public memories/posts - محسن للأداء
-  const { data: memories = [], isLoading: memoriesLoading } = useQuery({
+  // Fetch public memories/posts - محسن للأداء العالي
+  const { data: memories = [], isLoading: memoriesLoading, error: memoriesError } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 30000, // كل 30 ثانية - أداء أفضل
-    staleTime: 5000, // 5 ثوان للتخزين المؤقت
-    refetchOnMount: true, // تحميل المنشورات عند فتح الصفحة
+    refetchInterval: 60000, // كل دقيقة - توفير الشبكة
+    staleTime: 2000, // ثانيتان فقط - تحديث سريع
+    refetchOnMount: true, // تحميل فوري
     refetchOnWindowFocus: false,
+    refetchOnReconnect: true, // إعادة التحميل عند الاتصال
+    retry: 3, // إعادة المحاولة 3 مرات
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
+
+  // Pre-fetch data and optimize for instant display
+  useEffect(() => {
+    // Prefetch posts data
+    queryClient.prefetchQuery({
+      queryKey: ['/api/memories/public'],
+      staleTime: 1000,
+    });
+    
+    // Prefetch streams data
+    queryClient.prefetchQuery({
+      queryKey: ['/api/streams/public'],
+      staleTime: 1000,
+    });
+    
+    // Preload first few images for instant display
+    const preloadImages = async () => {
+      if (typedMemories.length > 0) {
+        const firstFiveMemories = typedMemories.slice(0, 5);
+        firstFiveMemories.forEach(memory => {
+          if (memory.thumbnailUrl) {
+            const img = new Image();
+            img.src = memory.thumbnailUrl;
+          }
+        });
+      }
+    };
+    
+    preloadImages();
+  }, [queryClient, typedMemories]);
 
   const handleJoinStream = (streamId: number) => {
     window.location.href = `/stream/${streamId}`;
@@ -173,8 +206,10 @@ export default function Feed() {
     deleteMutation.mutate({ memoryId });
   };
 
-  // Show content immediately even while loading - تحسين منطق التحميل
-  const showLoadingSpinner = memoriesLoading && typedMemories.length === 0;
+  // Optimized loading logic - عرض المحتوى فوراً مع تحسين الأداء
+  const showLoadingSpinner = memoriesLoading && typedMemories.length === 0 && !memoriesError;
+  const hasContent = typedMemories.length > 0 || typedStreams.length > 0;
+  const isInitialLoad = memoriesLoading && typedMemories.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
@@ -279,7 +314,23 @@ export default function Feed() {
                 </Card>
               ))}
             </div>
-          ) : typedMemories.length === 0 && typedStreams.length === 0 ? (
+          ) : memoriesError ? (
+            <Card className="p-12 text-center border-red-200 bg-red-50">
+              <div className="text-red-600 mb-4">
+                <svg className="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-red-700 mb-2">مشكلة في تحميل المنشورات</h3>
+              <p className="text-red-600 mb-6">تحقق من الاتصال بالإنترنت وأعد المحاولة</p>
+              <Button 
+                onClick={() => window.location.reload()}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                إعادة المحاولة
+              </Button>
+            </Card>
+          ) : !hasContent ? (
             <Card className="p-12 text-center">
               <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد منشورات حالياً</h3>
@@ -304,7 +355,7 @@ export default function Feed() {
                                     src={memory.author.profileImageUrl} 
                                     alt={memory.author.username} 
                                     className="w-full h-full object-cover"
-                                    loading="lazy"
+                                    loading="eager"
                                     decoding="async"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
@@ -383,7 +434,7 @@ export default function Feed() {
                             src={memory.thumbnailUrl} 
                             alt={memory.caption || 'منشور'} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
+                            loading="eager"
                             decoding="async"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
