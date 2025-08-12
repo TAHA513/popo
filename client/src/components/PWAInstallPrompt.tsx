@@ -55,9 +55,10 @@ const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = () => {
       setTimeout(() => {
         const dismissed = localStorage.getItem('ios-install-dismissed');
         if (!dismissed) {
+          console.log('📱 Showing iOS install prompt');
           setShowInstallPrompt(true);
         }
-      }, 5000);
+      }, 3000);
     }
 
     return () => {

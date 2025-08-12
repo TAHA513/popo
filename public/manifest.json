@@ -22,7 +22,7 @@
     {
       "src": "/favicon.ico",
       "sizes": "32x32",
-      "type": "image/svg+xml",
+      "type": "image/x-icon",
       "purpose": "any"
     },
     {
@@ -48,7 +48,7 @@
     {
       "name": "الذكريات العامة",
       "short_name": "ذكريات",
-      "url": "/memories",
+      "url": "/",
       "icons": [{"src": "/rabbit-icon-192.svg", "sizes": "192x192"}]
     },
     {

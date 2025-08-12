@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test - LaaBoBo</title>
+    <link rel="manifest" href="/manifest.json?v=4.0">
+    <meta name="theme-color" content="#9333ea">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(45deg, #ec4899, #9333ea);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: white;
+            color: #9333ea;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+        .status {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 PWA اختبار التطبيق</h1>
+        
+        <div class="test-item">
+            <h3>✅ Manifest Test</h3>
+            <p>إذا كان manifest.json يعمل، ستظهر أيقونة الأرنب في شريط العنوان</p>
+        </div>
+
+        <div class="test-item">
+            <h3>🔧 Service Worker Test</h3>
+            <button onclick="testServiceWorker()">اختبار Service Worker</button>
+            <p id="sw-status">جاري الاختبار...</p>
+        </div>
+
+        <div class="test-item">
+            <h3>📱 PWA Install Test</h3>
+            <button onclick="triggerInstallPrompt()">عرض رسالة التثبيت</button>
+            <button onclick="clearPWAStorage()">مسح التخزين وإعادة المحاولة</button>
+        </div>
+
+        <div class="status" id="log">
+            بدء الاختبار...
+        </div>
+
+        <button onclick="goBack()">← العودة للتطبيق الرئيسي</button>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const swStatus = document.getElementById('sw-status');
+        
+        function addLog(message) {
+            log.textContent += new Date().toLocaleTimeString('ar') + ': ' + message + '\n';
+            log.scrollTop = log.scrollHeight;
+            console.log(message);
+        }
+
+        function testServiceWorker() {
+            addLog('🔍 Testing Service Worker...');
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    addLog(`📊 Found ${registrations.length} service worker registrations`);
+                    
+                    if (registrations.length > 0) {
+                        const registration = registrations[0];
+                        addLog(`✅ Service Worker active: ${registration.active ? 'Yes' : 'No'}`);
+                        addLog(`📍 Scope: ${registration.scope}`);
+                        swStatus.textContent = 'Service Worker مفعل ويعمل';
+                        swStatus.style.color = 'lightgreen';
+                    } else {
+                        swStatus.textContent = 'Service Worker غير مسجل';
+                        swStatus.style.color = 'orange';
+                        
+                        // Try to register
+                        navigator.serviceWorker.register('/sw.js')
+                            .then(reg => {
+                                addLog('✅ Service Worker registered successfully');
+                                swStatus.textContent = 'Service Worker تم تسجيله بنجاح';
+                                swStatus.style.color = 'lightgreen';
+                            })
+                            .catch(err => {
+                                addLog('❌ Service Worker registration failed: ' + err.message);
+                                swStatus.textContent = 'فشل تسجيل Service Worker';
+                                swStatus.style.color = 'red';
+                            });
+                    }
+                });
+            } else {
+                addLog('❌ Service Workers not supported');
+                swStatus.textContent = 'Service Worker غير مدعوم';
+                swStatus.style.color = 'red';
+            }
+        }
+
+        function triggerInstallPrompt() {
+            addLog('🎯 Checking for install prompt...');
+            
+            // Check for stored prompt
+            if (window.deferredPrompt) {
+                addLog('✅ Found deferred prompt, showing install dialog');
+                window.deferredPrompt.prompt();
+                window.deferredPrompt.userChoice.then((choiceResult) => {
+                    addLog('👤 User choice: ' + choiceResult.outcome);
+                    window.deferredPrompt = null;
+                });
+            } else {
+                addLog('⏳ No install prompt available yet');
+                addLog('💡 Try waiting a few seconds or refreshing the page');
+                
+                // Simulate install prompt for testing
+                if (confirm('تريد تثبيت LaaBoBo كتطبيق PWA؟')) {
+                    addLog('✅ User would install if prompt was available');
+                } else {
+                    addLog('❌ User would decline installation');
+                }
+            }
+        }
+
+        function clearPWAStorage() {
+            addLog('🗑️ Clearing PWA storage...');
+            localStorage.removeItem('pwa-install-dismissed');
+            localStorage.removeItem('ios-install-dismissed');
+            localStorage.removeItem('pwa-installed');
+            addLog('✅ Storage cleared, refresh page to test again');
+        }
+
+        function goBack() {
+            window.location.href = '/';
+        }
+
+        // Initialize tests
+        window.addEventListener('load', () => {
+            addLog('🚀 PWA Test Page loaded');
+            testServiceWorker();
+            
+            // Listen for install prompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPrompt = e;
+                addLog('🎉 beforeinstallprompt event received!');
+                addLog('📱 PWA is installable');
+            });
+        });
+    </script>
+</body>
+</html>
