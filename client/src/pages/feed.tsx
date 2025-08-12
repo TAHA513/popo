@@ -23,20 +23,21 @@ export default function Feed() {
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
 
-  // Fetch live streams
+  // Fetch live streams - محسن للأداء
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
     queryKey: ['/api/streams'],
-    refetchInterval: 3000, // كل 3 ثواني
-    staleTime: 0,
+    refetchInterval: 10000, // كل 10 ثواني - أقل استهلاكاً
+    staleTime: 5000, // 5 ثواني - تحسين التخزين المؤقت
+    refetchOnWindowFocus: false, // تجنب إعادة التحميل عند التركيز
   });
 
-  // Fetch public memories/posts
+  // Fetch public memories/posts - محسن للأداء
   const { data: memories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 15000, // كل 15 ثانية - متوازن
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // كل 30 ثانية - أداء أفضل
+    staleTime: 10000, // 10 ثوان للتخزين المؤقت
+    refetchOnMount: false, // تجنب إعادة التحميل المتكرر
+    refetchOnWindowFocus: false,
   });
 
   const typedStreams = (streams as Stream[]);
@@ -171,18 +172,8 @@ export default function Feed() {
     deleteMutation.mutate({ memoryId });
   };
 
-  const isLoading = streamsLoading || memoriesLoading;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <SimpleNavigation />
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-lg">جاري التحميل...</div>
-        </div>
-      </div>
-    );
-  }
+  // Show content immediately even while loading
+  const showLoadingSpinner = (streamsLoading && streams.length === 0) || (memoriesLoading && memories.length === 0);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
@@ -256,9 +247,38 @@ export default function Feed() {
 
         {/* Posts/Memories Feed */}
         <div>
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">آخر المنشورات</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">آخر المنشورات</h2>
+            {memoriesLoading && (
+              <div className="flex items-center text-sm text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 ml-2"></div>
+                جاري التحديث...
+              </div>
+            )}
+          </div>
           
-          {typedMemories.length === 0 && typedStreams.length === 0 ? (
+          {showLoadingSpinner ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="overflow-hidden animate-pulse">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                      <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-300 rounded mb-2 w-3/4"></div>
+                        <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-48 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : typedMemories.length === 0 && typedStreams.length === 0 ? (
             <Card className="p-12 text-center">
               <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد منشورات حالياً</h3>
