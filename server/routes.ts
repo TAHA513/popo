@@ -506,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Wallet API endpoints
   // Get user transactions
-  app.get('/api/users/:userId/transactions', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/transactions', requireAuth, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
@@ -526,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get sent gifts for user
-  app.get('/api/gifts/sent/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/gifts/sent/:userId', requireAuth, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
@@ -564,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get received gifts for user
-  app.get('/api/gifts/received/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/gifts/received/:userId', requireAuth, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const requestingUserId = req.user.id;
@@ -602,7 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Transfer points between wallets
-  app.post('/api/wallet/transfer', requireFastAuth, async (req: any, res) => {
+  app.post('/api/wallet/transfer', requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, amount } = req.body;
@@ -675,7 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Premium Messages API
 
   // Get premium messages for current user
-  app.get("/api/premium-messages", requireFastAuth, async (req: any, res) => {
+  app.get("/api/premium-messages", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const messages = await storage.getPremiumMessages(userId);
@@ -687,7 +687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send premium message
-  app.post("/api/premium-messages/send", requireFastAuth, async (req: any, res) => {
+  app.post("/api/premium-messages/send", requireAuth, async (req: any, res) => {
     try {
       const senderId = req.user.id;
       const { recipientId, albumId, message } = req.body;
@@ -713,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Unlock premium message  
-  app.post("/api/premium-messages/:id/unlock", requireFastAuth, async (req: any, res) => {
+  app.post("/api/premium-messages/:id/unlock", requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const messageId = parseInt(req.params.id);
@@ -768,7 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Premium Albums API Routes
 
   // Create premium album
-  app.post('/api/premium-albums', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { title, description, coverImageUrl, requiredGiftId, requiredGiftAmount } = req.body;
@@ -795,7 +795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's premium albums
-  app.get('/api/premium-albums/my-albums', requireFastAuth, async (req: any, res) => {
+  app.get('/api/premium-albums/my-albums', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const albums = await storage.getPremiumAlbums(userId);
@@ -807,7 +807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get premium album details
-  app.get('/api/premium-albums/:albumId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/premium-albums/:albumId', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -842,7 +842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Purchase premium album access
-  app.post('/api/premium-albums/:albumId/purchase', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums/:albumId/purchase', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -948,7 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add media to album
-  app.post('/api/premium-albums/:albumId/media', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     console.log('🔄 طلب إضافة محتوى للألبوم:', {
       albumId: req.params.albumId,
       userId: req.user?.id,
@@ -1008,7 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get album media
-  app.get('/api/premium-albums/:albumId/media', requireFastAuth, async (req: any, res) => {
+  app.get('/api/premium-albums/:albumId/media', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -1032,7 +1032,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Purchase premium album access
-  app.post('/api/premium-albums/:albumId/purchase', requireFastAuth, async (req: any, res) => {
+  app.post('/api/premium-albums/:albumId/purchase', requireAuth, async (req: any, res) => {
     try {
       const albumId = parseInt(req.params.albumId);
       const userId = req.user.id;
@@ -1713,7 +1713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId?', requireFastAuth, async (req: any, res) => {
+  app.get('/api/memories/user/:userId?', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId || req.user?.id;
       if (!userId) {
@@ -1992,7 +1992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Record a view for a memory
-  app.post('/api/memories/:memoryId/view', requireFastAuth, async (req: any, res) => {
+  app.post('/api/memories/:memoryId/view', requireAuth, async (req: any, res) => {
     try {
       const memoryId = parseInt(req.params.memoryId);
       const userId = req.user.id;
@@ -2211,7 +2211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user by ID
-  app.get('/api/users/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       console.log('🔍 Fetching user profile:', {
@@ -2289,7 +2289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if following
-  app.get('/api/users/:userId/follow-status', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/follow-status', requireAuth, async (req: any, res) => {
     try {
       const followerId = req.user.id;
       const followedId = req.params.userId;
@@ -2468,7 +2468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if user is blocked
-  app.get('/api/users/:userId/block-status', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/block-status', requireAuth, async (req: any, res) => {
     try {
       const blockerId = req.user.id;
       const blockedId = req.params.userId;
@@ -2522,7 +2522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get unread notifications count (includes unread messages)
-  app.get('/api/notifications/unread-count', requireFastAuth, async (req: any, res) => {
+  app.get('/api/notifications/unread-count', requireAuth, async (req: any, res) => {
     try {
       // Disable caching for real-time notification count
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -2684,7 +2684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's albums
-  app.get('/api/albums/user/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/albums/user/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const currentUserId = req.user.id;
@@ -2971,7 +2971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user followers
-  app.get('/api/users/:userId/followers', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/followers', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const followers = await storage.getFollowers(userId);
@@ -2983,7 +2983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user following
-  app.get('/api/users/:userId/following', requireFastAuth, async (req: any, res) => {
+  app.get('/api/users/:userId/following', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const following = await storage.getFollowing(userId);
@@ -3280,7 +3280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get gifts received by a user
-  app.get('/api/gifts/received/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/gifts/received/:userId', requireAuth, async (req: any, res) => {
     try {
       const userId = req.params.userId;
       const gifts = await storage.getReceivedGifts(userId);
@@ -4245,7 +4245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/memories/user/:userId', requireFastAuth, async (req: any, res) => {
+  app.get('/api/memories/user/:userId', requireAuth, async (req: any, res) => {
     try {
       const targetUserId = req.params.userId;
       const currentUserId = req.user.id;

@@ -131,17 +131,10 @@ export class FastSessionManager {
 }
 
 // Fast authentication middleware using tokens
-export const requireFastAuth: RequestHandler = (req: any, res, next) => {
+export const requireFastAuth: RequestHandler = (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || 
                 req.cookies?.authToken ||
                 req.headers['x-auth-token'] as string;
-  
-  console.log('🔐 requireFastAuth check:', {
-    hasToken: !!token,
-    tokenPreview: token ? `${token.substring(0, 10)}...` : null,
-    sessionCount: sessionStore.size,
-    tokenCount: tokenStore.size
-  });
   
   if (!token) {
     return res.status(401).json({ message: "يجب تسجيل الدخول أولاً" });
@@ -149,30 +142,22 @@ export const requireFastAuth: RequestHandler = (req: any, res, next) => {
   
   const user = FastSessionManager.getSessionByToken(token);
   if (!user) {
-    console.log('❌ No valid session for token');
     return res.status(401).json({ message: "انتهت صلاحية الجلسة" });
   }
   
-  console.log('✅ Auth success for:', user.username);
   req.user = user;
   next();
 };
 
 // Optional auth middleware (doesn't require authentication)
-export const optionalFastAuth: RequestHandler = (req: any, res, next) => {
+export const optionalFastAuth: RequestHandler = (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || 
                 req.cookies?.authToken ||
                 req.headers['x-auth-token'] as string;
   
-  console.log('🔍 optionalFastAuth check:', {
-    hasToken: !!token,
-    tokenPreview: token ? `${token.substring(0, 10)}...` : null
-  });
-  
   if (token) {
     const user = FastSessionManager.getSessionByToken(token);
     if (user) {
-      console.log('✅ Optional auth success for:', user.username);
       req.user = user;
     }
   }
