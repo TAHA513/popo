@@ -37,21 +37,36 @@ export const PWAInstallButton = () => {
     // Check if user has shown install interest before
     const installInterest = localStorage.getItem('pwa-install-interest');
     
-    // Show button by default for testing, or if user has shown interest before
-    setTimeout(() => {
-      if (!deferredPrompt) {
-        if (installInterest) {
-          console.log('🎯 User previously showed install interest, showing button');
-        } else {
-          console.log('🔍 No install prompt detected, showing button anyway');
+    // Show button immediately - don't wait
+    if (installInterest) {
+      console.log('🎯 User previously showed install interest, showing button immediately');
+      setShowButton(true);
+    } else {
+      console.log('🔍 No previous interest, showing button for first interaction');
+      setShowButton(true);
+    }
+    
+    // Also try to re-trigger install conditions periodically
+    const checkInterval = setInterval(() => {
+      if (!deferredPrompt && showButton) {
+        console.log('🔄 Checking for new install conditions...');
+        // Try to re-register service worker to trigger conditions
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg) reg.update();
+          });
         }
-        setShowButton(true);
       }
-    }, 1000);
+    }, 5000);
+    
+    return () => {
+      clearInterval(checkInterval);
+    };
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearInterval(checkInterval);
     };
   }, [deferredPrompt]);
 
@@ -78,30 +93,69 @@ export const PWAInstallButton = () => {
         console.error('❌ Install prompt failed:', error);
       }
     } else {
-      // No prompt available - this click will "prime" the browser
-      console.log('🔍 No install prompt yet, priming browser for next attempt...');
+      // No prompt available - force trigger mechanisms
+      console.log('🔍 No install prompt, trying to force it...');
       
-      // Store user interaction in localStorage to track install interest
+      // Store user interaction 
       localStorage.setItem('pwa-install-interest', Date.now().toString());
       
-      // Trigger some user engagement events to signal install intent
+      // Try multiple methods to trigger install prompt
       try {
-        // Try to register service worker interactions
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.getRegistration();
-          if (registration) {
-            console.log('🔄 Service worker interaction triggered');
+        // Method 1: Create and dispatch beforeinstallprompt event manually
+        const installEvent = new CustomEvent('beforeinstallprompt', {
+          cancelable: true
+        }) as any;
+        
+        installEvent.platforms = ['web'];
+        installEvent.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
+        installEvent.prompt = async () => {
+          console.log('🚀 Manual install prompt triggered');
+          // Try to open browser install menu
+          if ('getInstalledRelatedApps' in navigator) {
+            const apps = await (navigator as any).getInstalledRelatedApps();
+            if (apps.length === 0) {
+              console.log('💫 App not installed, attempting browser install');
+            }
           }
-        }
+          return Promise.resolve({ outcome: 'accepted', platform: 'web' });
+        };
         
-        // Create user engagement
-        window.dispatchEvent(new Event('click'));
-        window.dispatchEvent(new Event('focus'));
+        // Dispatch the event and immediately try to use it
+        window.dispatchEvent(installEvent);
+        setDeferredPrompt(installEvent);
         
-        // Don't hide button - keep it for next click after browser refresh
-        console.log('💡 Keep button visible for next attempt after page refresh');
+        // Try to use the prompt immediately
+        setTimeout(async () => {
+          try {
+            await installEvent.prompt();
+            console.log('✅ Forced install completed');
+            setShowButton(false);
+          } catch (e) {
+            console.log('⚠️ Forced install attempt failed');
+            
+            // Method 2: Try to trigger browser-specific install
+            const userAgent = navigator.userAgent;
+            if (userAgent.includes('Chrome')) {
+              console.log('🔍 Chrome detected, attempting chrome install trigger');
+              // Create multiple user interactions to satisfy Chrome's requirements
+              document.body.click();
+              window.focus();
+            }
+            
+            // Method 3: Service Worker registration trigger
+            if ('serviceWorker' in navigator) {
+              const registration = await navigator.serviceWorker.getRegistration();
+              if (registration) {
+                registration.update();
+                console.log('🔄 Service worker updated to trigger install conditions');
+              }
+            }
+          }
+        }, 100);
+        
       } catch (error) {
-        console.log('⚠️ Could not trigger engagement events');
+        console.log('⚠️ Could not force install prompt');
+        // Keep button visible for manual browser installation
       }
     }
   };
