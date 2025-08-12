@@ -391,8 +391,8 @@ export default function MessagesPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredConversations.map((conversation: any) => (
-                  <Link key={conversation.id} href={`/messages/chat/${conversation.otherUser.id}`}>
+                {filteredConversations.map((conversation: any, index: number) => (
+                  <Link key={`conversation-${conversation.otherUser.id}-${index}`} href={`/messages/chat/${conversation.otherUser.id}`}>
                     <Card className={`cursor-pointer hover:shadow-md transition-all duration-200 border-l-4 ${
                       conversation.unreadCount > 0 
                         ? 'border-l-red-500 bg-red-50 hover:bg-red-100' 
