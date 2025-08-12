@@ -67,12 +67,11 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false, // منع التحديث التلقائي المستمر
       refetchOnWindowFocus: false, // منع التحديث عند العودة للتبويب
-      staleTime: 1000 * 60 * 2, // البيانات تبقى حديثة لمدة 2 دقيقة (للاستجابة السريعة)
-      retry: 1, // محاولة واحدة فقط
-      networkMode: 'offlineFirst', // استخدام البيانات المخزنة أولاً
+      staleTime: 1000 * 60 * 5, // البيانات تبقى حديثة لمدة 5 دقائق
+      retry: false,
     },
     mutations: {
-      retry: 1, // محاولة واحدة فقط للطفرات
+      retry: false,
     },
   },
 });

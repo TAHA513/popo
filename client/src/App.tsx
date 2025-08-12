@@ -52,7 +52,6 @@ import Checkout from "@/pages/Checkout";
 import PaymentHistory from "@/pages/PaymentHistory";
 // Core page imports
 import CreateMemoryPage from "@/pages/create-memory";
-import CreateMemoryFastPage from "@/pages/create-memory-fast";
 import ProfileSimplePage from "@/pages/profile-simple";
 import ExplorePage from "@/pages/explore";
 import GiftsPage from "@/pages/gifts";
@@ -111,7 +110,6 @@ function Router() {
           <Route path="/start-stream" component={SimpleStreamPage} />
           <Route path="/stream/:id" component={WatchStreamPage} />
           <Route path="/create-memory" component={CreateMemoryPage} />
-          <Route path="/create-memory-fast" component={CreateMemoryFastPage} />
 
           <Route path="/profile" component={ProfileRedesignPage} />
           <Route path="/profile-old" component={ProfileSimplePage} />

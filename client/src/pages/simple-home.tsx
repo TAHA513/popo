@@ -1,8 +1,8 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Bell, Mail, Search } from "lucide-react";
 
@@ -16,45 +16,16 @@ export default function SimpleHome() {
   const { isRTL, t } = useLanguage();
   const [, setLocation] = useLocation();
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
-  const queryClient = useQueryClient();
-
-  // إعادة تحميل البيانات عند تحميل المكون أو العودة للصفحة
-  useEffect(() => {
-    // إعادة تحميل فورية للبيانات المهمة
-    const refreshData = async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
-      // إجبار إعادة تحميل فورية
-      await queryClient.refetchQueries({ queryKey: ['/api/memories/public'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/messages/conversations'] });
-    };
-    
-    refreshData();
-  }, [queryClient]);
-
-  // إعادة تحميل البيانات عند كل دخول للصفحة
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/messages/conversations'] });
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [queryClient]);
   
-  // Public posts optimized for instant loading
+  // Public posts only (no streams) - optimized for speed
   const { data: memories = [], isLoading, isError } = useQuery<any[]>({
     queryKey: ['/api/memories/public'], 
-    refetchInterval: 30000, // تحديث البيانات كل 30 ثانية
+    refetchInterval: 15000, // تقليل تحديث البيانات من 10 إلى 15 ثانية
     staleTime: 30000, // البيانات تبقى صالحة لـ 30 ثانية
     gcTime: 300000, // تنظيف الكاش بعد 5 دقائق
-    retry: 2, // محاولتان لإعادة التحميل
-    refetchOnWindowFocus: true, // إعادة التحميل عند العودة للصفحة
-    refetchOnReconnect: true, // إعادة التحميل عند الاتصال
-    networkMode: 'online', // استخدام الشبكة أولاً
+    retry: 1, // محاولة واحدة فقط
+    refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز
+    refetchOnReconnect: false, // منع إعادة التحميل عند الاتصال
   });
 
 
@@ -64,8 +35,6 @@ export default function SimpleHome() {
     queryKey: ['/api/messages/conversations'],
     refetchInterval: 30000,
     staleTime: 15000,
-    refetchOnWindowFocus: true, // إعادة التحميل عند العودة للصفحة
-    refetchOnReconnect: true, // إعادة التحميل عند الاتصال
   });
 
   // Calculate unread messages count based on conversations with unread messages
@@ -100,7 +69,7 @@ export default function SimpleHome() {
             </div>
             
             {/* Action Buttons - Right Side */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" style={{ zIndex: 50, position: 'relative' }}>
               {/* Search Button */}
               <button 
                 onClick={() => setLocation('/search')}
@@ -128,16 +97,35 @@ export default function SimpleHome() {
                 )}
               </button>
 
-              {/* Create Memory Button - Fast Version */}
+              {/* Create Memory Button - محسن للعمل بشكل أفضل */}
               <button 
-                onClick={() => setLocation('/create-memory-fast')}
-                className="flex items-center justify-center gap-1 w-[55px] h-[28px] bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
-                title={t('memory.create')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🎯 زر إنشاء الذكرى تم النقر عليه');
+                  setLocation('/create-memory');
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="flex items-center justify-center gap-1 min-w-[60px] h-[32px] bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 active:from-purple-700 active:via-pink-700 active:to-rose-700 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95 cursor-pointer select-none touch-manipulation"
+                title="إنشاء ذكرى جديدة"
+                type="button"
+                aria-label="إنشاء ذكرى جديدة"
+                style={{ 
+                  pointerEvents: 'auto',
+                  zIndex: 999,
+                  position: 'relative',
+                  WebkitTouchCallout: 'none',
+                  WebkitUserSelect: 'none',
+                  touchAction: 'manipulation'
+                }}
               >
-                <svg className="w-3 h-3 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <svg className="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                 </svg>
-                <span className="text-white font-medium text-[10px] leading-none">{t('memory.type_short')}</span>
+                <span className="text-white font-semibold text-[11px] leading-none whitespace-nowrap">ذكرى</span>
               </button>
             </div>
           </div>
