@@ -187,7 +187,7 @@ export const requireFastAuth: RequestHandler = (req: any, res, next) => {
   
   const user = FastSessionManager.getSessionByToken(token);
   if (!user) {
-    console.log('❌ No valid session for token');
+    console.log('❌ Token not found in tokenStore:', `${token.substring(0, 10)}...`);
     return res.status(401).json({ message: "انتهت صلاحية الجلسة" });
   }
   
@@ -212,6 +212,8 @@ export const optionalFastAuth: RequestHandler = (req: any, res, next) => {
     if (user) {
       console.log('✅ Optional auth success for:', user.username);
       req.user = user;
+    } else {
+      console.log('❌ Token not found in tokenStore:', `${token.substring(0, 10)}...`);
     }
   }
   

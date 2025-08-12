@@ -3448,7 +3448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.post('/api/streams', requireAuth, async (req: any, res) => {
+  app.post('/api/streams', requireFastAuth, async (req: any, res) => {
     try {
       console.log("🎥 Creating new stream for user:", req.user.id);
       console.log("📊 Stream data:", req.body);
@@ -3570,7 +3570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams/:id/end', requireAuth, async (req: any, res) => {
+  app.post('/api/streams/:id/end', requireFastAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
       const userId = req.user.id;
@@ -3916,7 +3916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/streams/:id/comments', requireAuth, async (req: any, res) => {
+  app.post('/api/streams/:id/comments', requireFastAuth, async (req: any, res) => {
     try {
       const postId = parseInt(req.params.id);
       const { content } = req.body;
@@ -3992,7 +3992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add new chat message to stream
-  app.post('/api/streams/:id/messages', requireAuth, async (req: any, res) => {
+  app.post('/api/streams/:id/messages', requireFastAuth, async (req: any, res) => {
     try {
       const streamId = parseInt(req.params.id);
       const { message } = req.body;
@@ -4045,7 +4045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // End all streams for current user
-  app.post('/api/streams/end-all', requireAuth, async (req: any, res) => {
+  app.post('/api/streams/end-all', requireFastAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
       console.log(`🗑️ Ending all streams for user: ${userId}`);
