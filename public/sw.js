@@ -1,14 +1,20 @@
 // LaaBoBo PWA Service Worker
-const CACHE_NAME = 'laababo-pwa-v8.0';
+const CACHE_NAME = 'laababo-live-pwa-v9.0';
 
 // Critical assets for PWA
 const CRITICAL_ASSETS = [
   '/',
   '/manifest.json',
-  '/favicon.ico',
+  '/laabo-rabbit-logo.svg',
+  '/icon-192.png',
+  '/icon-512.png',
   '/rabbit-icon-192.svg', 
   '/rabbit-icon-512.svg'
 ];
+
+// Additional cache names
+const API_CACHE = 'laababo-api-v9.0';
+const MEDIA_CACHE = 'laababo-media-v9.0';
 
 // Install event - cache critical assets
 self.addEventListener('install', (event) => {
@@ -170,7 +176,7 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: event.data ? event.data.text() : 'إشعار جديد من LaaBoBo',
-    icon: '/rabbit-icon-192.svg',
+    icon: '/laabo-rabbit-logo.svg',
     badge: '/favicon.ico',
     vibrate: [200, 100, 200],
     tag: 'laababo-notification',
@@ -178,7 +184,7 @@ self.addEventListener('push', (event) => {
       {
         action: 'open',
         title: 'فتح التطبيق',
-        icon: '/rabbit-icon-192.svg'
+        icon: '/laabo-rabbit-logo.svg'
       }
     ]
   };

@@ -219,9 +219,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PWA Manifest endpoint - dynamic with proper headers
   app.get('/manifest.json', (req, res) => {
     res.header('Content-Type', 'application/manifest+json');
-    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     res.header('Pragma', 'no-cache');
-    res.header('Expires', '0');
+    res.header('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
+    res.header('Last-Modified', new Date().toUTCString());
+    res.header('ETag', '"' + Date.now() + '"');
     
     const manifest = {
       name: "LaaBoBo Live - منصة البث المباشر والتواصل الاجتماعي",
