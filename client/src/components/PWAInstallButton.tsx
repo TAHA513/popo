@@ -84,17 +84,19 @@ export function PWAInstallButton() {
     }
   };
 
-  if (!showButton || !deferredPrompt) {
+  // Always show button for easier testing and access
+  if (!showButton) {
     return null;
   }
 
   return (
     <button
       onClick={handleInstallClick}
-      className="fixed bottom-2 right-2 z-40 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-1 rounded-full text-[10px] font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-1 animate-pulse"
+      className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-3 py-2 rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
+      title="تثبيت تطبيق LaaBoBo"
     >
-      <Download className="h-2.5 w-2.5" />
-      تثبيت
+      <Download className="h-4 w-4" />
+      📱 تثبيت
     </button>
   );
 }
