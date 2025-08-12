@@ -27,7 +27,8 @@ export default function Feed() {
   const { data: streams = [], isLoading: streamsLoading } = useQuery<Stream[]>({
     queryKey: ['/api/streams'],
     refetchInterval: 10000, // كل 10 ثواني - أقل استهلاكاً
-    staleTime: 5000, // 5 ثواني - تحسين التخزين المؤقت
+    staleTime: 3000, // 3 ثواني - تخزين مؤقت أسرع
+    refetchOnMount: true, // تحميل البث المباشر عند فتح الصفحة
     refetchOnWindowFocus: false, // تجنب إعادة التحميل عند التركيز
   });
 
@@ -35,8 +36,8 @@ export default function Feed() {
   const { data: memories = [], isLoading: memoriesLoading } = useQuery({
     queryKey: ['/api/memories/public'],
     refetchInterval: 30000, // كل 30 ثانية - أداء أفضل
-    staleTime: 10000, // 10 ثوان للتخزين المؤقت
-    refetchOnMount: false, // تجنب إعادة التحميل المتكرر
+    staleTime: 5000, // 5 ثوان للتخزين المؤقت
+    refetchOnMount: true, // تحميل المنشورات عند فتح الصفحة
     refetchOnWindowFocus: false,
   });
 
@@ -172,8 +173,8 @@ export default function Feed() {
     deleteMutation.mutate({ memoryId });
   };
 
-  // Show content immediately even while loading
-  const showLoadingSpinner = (streamsLoading && streams.length === 0) || (memoriesLoading && memories.length === 0);
+  // Show content immediately even while loading - تحسين منطق التحميل
+  const showLoadingSpinner = memoriesLoading && typedMemories.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
@@ -396,7 +397,7 @@ export default function Feed() {
                             muted
                             loop
                             playsInline
-                            preload="auto"
+                            preload="metadata"
                             onMouseEnter={(e) => e.currentTarget.play()}
                             onMouseLeave={(e) => e.currentTarget.pause()}
                             onCanPlay={(e) => {
