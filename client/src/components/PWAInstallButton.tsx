@@ -64,20 +64,20 @@ export function PWAInstallButton() {
     );
   }
 
-  // Debug info for development
-  if (process.env.NODE_ENV === 'development') {
+  // Show helpful message only on mobile devices that don't support PWA install
+  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (!canInstall && !isInstalled && isMobile) {
     return (
-      <Card className="border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
-        <CardHeader>
-          <CardTitle className="text-sm">PWA Debug Info</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-xs">
-          <div>Can Install: {canInstall ? '✅' : '❌'}</div>
-          <div>Is Installed: {isInstalled ? '✅' : '❌'}</div>
-          <div>Standalone: {debug.standalone ? '✅' : '❌'}</div>
-          <div>Platform: {debug.platform}</div>
-          <div>User Agent: {debug.userAgent}</div>
-          <div>Deferred Prompt: {debug.deferredPrompt ? '✅' : '❌'}</div>
+      <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50">
+        <CardContent className="flex items-center gap-2 pt-6 pb-4">
+          <Smartphone className="h-5 w-5 text-blue-600" />
+          <div className="text-blue-800 dark:text-blue-200">
+            <div className="font-semibold text-sm">تثبيت التطبيق</div>
+            <div className="text-xs opacity-75">
+              قد يكون متوفر خيار "إضافة للشاشة الرئيسية" في قائمة المتصفح
+            </div>
+          </div>
         </CardContent>
       </Card>
     );

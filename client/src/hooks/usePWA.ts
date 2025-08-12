@@ -23,15 +23,18 @@ export function usePWA() {
     const isInstall = isInStandaloneMode || isInWebAppiOS;
     setIsInstalled(isInstall);
     
-    console.log('PWA Status:', {
-      isInStandaloneMode,
-      isInWebAppiOS,
-      isInstalled: isInstall,
-      userAgent: navigator.userAgent
-    });
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.log('PWA Status:', {
+        isInStandaloneMode,
+        isInWebAppiOS,
+        isInstalled: isInstall,
+        userAgent: navigator.userAgent
+      });
+    }
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('PWA: beforeinstallprompt event fired');
+      console.log('PWA: beforeinstallprompt event fired - App can be installed!');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setCanInstall(true);
