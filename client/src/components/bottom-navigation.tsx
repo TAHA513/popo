@@ -53,7 +53,7 @@ export default function BottomNavigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-[100] md:hidden shadow-2xl">
       <div className="relative flex items-center justify-around py-1 px-0">
         {navItems.map((item, index) => {
           const isActive = location === item.href;
