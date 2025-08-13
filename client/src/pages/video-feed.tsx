@@ -283,7 +283,7 @@ export default function VideoFeed() {
           <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto">
             {/* Profile */}
             <div className="relative mt-[38px] mb-[38px]">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white mt-[28px] mb-[28px]">
                 {currentVideo.author?.profileImageUrl ? (
                   <img 
                     src={currentVideo.author.profileImageUrl} 
