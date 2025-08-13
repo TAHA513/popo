@@ -48,7 +48,15 @@ export default function Feed() {
   const typedStreams = (streams as Stream[]);
   const imageOnlyMemories = (memories as any[]); // البيانات تأتي مفلترة من الخادم مسبقاً
   
+  console.log(`📷 Endpoint استخدام: /api/memories/images-only`);
   console.log(`📷 تم جلب ${imageOnlyMemories.length} صورة مفلترة من الخادم`);
+  console.log(`📷 عينة من البيانات:`, imageOnlyMemories.slice(0, 2).map(m => ({id: m.id, type: m.type})));
+  
+  // إجبار refresh للتأكد من استخدام الـ endpoint الجديد
+  useEffect(() => {
+    console.log('🔄 إجبار refresh لصفحة المنشورات للتأكد من استخدام images-only endpoint');
+    queryClient.invalidateQueries({ queryKey: ['/api/memories/images-only'] });
+  }, []);
 
   // Pre-fetch data and optimize for instant display
   useEffect(() => {
