@@ -25,8 +25,8 @@ export default function NavigationHeader() {
   const [location] = useLocation();
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100" style={{ height: '56px' }}>
-      <div className="container mx-auto px-3 py-2">
+    <header className="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 shadow-sm" style={{ height: '48px' }}>
+      <div className="container mx-auto px-3 py-1">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
           <Link href="/">
@@ -34,9 +34,9 @@ export default function NavigationHeader() {
               <img 
                 src="/laabo-rabbit-logo.svg" 
                 alt="LaaBoBo" 
-                className="w-8 h-8"
+                className="w-7 h-7"
               />
-              <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-base font-bold text-white">
                 LaaBoBo
               </span>
             </div>
@@ -46,9 +46,9 @@ export default function NavigationHeader() {
           <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
             <Link href="/">
               <Button 
-                variant={location === "/" ? "default" : "ghost"} 
+                variant={location === "/" ? "secondary" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white hover:text-gray-200"
               >
                 <Home className="w-4 h-4" />
                 <span>{t('nav.home')}</span>
@@ -57,9 +57,9 @@ export default function NavigationHeader() {
             
             <Link href="/profile">
               <Button 
-                variant={location === "/profile" ? "default" : "ghost"} 
+                variant={location === "/profile" ? "secondary" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white hover:text-gray-200"
               >
                 <User className="w-4 h-4" />
                 <span>{t('nav.profile')}</span>
@@ -68,9 +68,9 @@ export default function NavigationHeader() {
 
             <Link href="/explore">
               <Button 
-                variant={location === "/explore" ? "default" : "ghost"} 
+                variant={location === "/explore" ? "secondary" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white hover:text-gray-200"
               >
                 <Search className="w-4 h-4" />
                 <span>{t('explore.title')}</span>
@@ -79,9 +79,9 @@ export default function NavigationHeader() {
 
             <Link href="/gifts">
               <Button 
-                variant={location === "/gifts" ? "default" : "ghost"} 
+                variant={location === "/gifts" ? "secondary" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white hover:text-gray-200"
               >
                 <Gift className="w-4 h-4" />
                 <span>{t('nav.gifts')}</span>
@@ -90,9 +90,9 @@ export default function NavigationHeader() {
 
             <Link href="/start-stream">
               <Button 
-                variant={location === "/start-stream" ? "default" : "ghost"} 
+                variant={location === "/start-stream" ? "secondary" : "ghost"} 
                 size="sm"
-                className="flex items-center space-x-1 rtl:space-x-reverse"
+                className="flex items-center space-x-1 rtl:space-x-reverse text-white hover:text-gray-200"
               >
                 <Video className="w-4 h-4" />
                 <span>بث مباشر</span>
@@ -131,11 +131,11 @@ export default function NavigationHeader() {
               )}
               
               <div className="hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-white">
                   {user?.firstName || user?.username || 'مستخدم'}
                 </p>
                 {user?.points !== undefined && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs text-white border-white">
                     <Sparkles className="w-3 h-3 mr-1" />
                     {user.points} نقطة
                   </Badge>
@@ -145,7 +145,7 @@ export default function NavigationHeader() {
 
             {/* Settings Button */}
             <Link href="/account">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-white hover:text-gray-200">
                 <Settings className="w-4 h-4" />
               </Button>
             </Link>
@@ -155,7 +155,7 @@ export default function NavigationHeader() {
               variant="ghost" 
               size="sm"
               onClick={logout}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-white hover:text-red-200 hover:bg-red-500/20"
             >
               <LogOut className="w-4 h-4" />
             </Button>

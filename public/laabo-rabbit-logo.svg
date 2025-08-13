@@ -44,7 +44,6 @@
   <circle cx="50" cy="108" r="6" fill="#fbb6ce" opacity="0.6" />
   <circle cx="90" cy="108" r="6" fill="#fbb6ce" opacity="0.6" />
   
-  <!-- Text: LaaBoBo Live -->
-  <text x="150" y="90" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="url(#gradient)">LaaBoBo</text>
-  <text x="170" y="115" font-family="Arial, sans-serif" font-size="16" font-weight="normal" fill="#666">Live</text>
+  <!-- Text: LaaBoBo -->
+  <text x="150" y="105" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="url(#gradient)">LaaBoBo</text>
 </svg>
