@@ -41,6 +41,7 @@ export default function VideoFeed() {
   const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const isDragging = useRef(false);
+  const isButtonClicked = useRef(false);
 
   // Get URL params to check if starting from specific video
   const urlParams = new URLSearchParams(window.location.search);
@@ -100,6 +101,13 @@ export default function VideoFeed() {
   }, []);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
+    // Don't handle swipe if a button was clicked
+    if (isButtonClicked.current) {
+      isButtonClicked.current = false;
+      isDragging.current = false;
+      return;
+    }
+
     if (!isDragging.current) return;
 
     const currentY = e.changedTouches[0].clientY;
@@ -380,6 +388,7 @@ export default function VideoFeed() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  isButtonClicked.current = true; // Prevent video navigation
                   console.log('Follow button clicked for user:', currentVideo.author?.username);
                   handleFollow(currentVideo.author?.id);
                 }}
@@ -394,6 +403,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                isButtonClicked.current = true; // Prevent video navigation
                 console.log('Profile clicked for user:', currentVideo.author?.username);
                 if (currentVideo.author?.username) {
                   window.location.href = `/profile/${currentVideo.author.username}`;
@@ -417,6 +427,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                isButtonClicked.current = true; // Prevent video navigation
                 console.log('Like clicked for video:', currentVideo.id);
                 handleLike(currentVideo.id);
               }}
@@ -433,6 +444,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                isButtonClicked.current = true; // Prevent video navigation
                 console.log('Comments clicked for video:', currentVideo.id);
                 setShowCommentsModal(true);
               }}
@@ -449,6 +461,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                isButtonClicked.current = true; // Prevent video navigation
                 console.log('Share clicked for video:', currentVideo.id);
                 handleShare(currentVideo.id);
               }}
@@ -465,6 +478,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                isButtonClicked.current = true; // Prevent video navigation
                 console.log('Gift clicked for video:', currentVideo.id);
                 handleGiftClick(currentVideo);
               }}
