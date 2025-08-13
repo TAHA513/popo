@@ -38,11 +38,16 @@ export default function VideoFeed() {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const [stickyMode, setStickyMode] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean[]>([]);
+  const [videoDuration, setVideoDuration] = useState<number[]>([]);
+  const [videoCurrentTime, setVideoCurrentTime] = useState<number[]>([]);
+  const [showPlayButton, setShowPlayButton] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const isDragging = useRef(false);
   const isButtonClicked = useRef(false);
+  const playButtonTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Get URL params to check if starting from specific video
   const urlParams = new URLSearchParams(window.location.search);
@@ -229,6 +234,62 @@ export default function VideoFeed() {
     }
   }, [currentVideoIndex, videoMemories.length]);
 
+  // Initialize video states
+  useEffect(() => {
+    if (videoMemories.length > 0) {
+      setIsVideoPlaying(new Array(videoMemories.length).fill(false));
+      setVideoDuration(new Array(videoMemories.length).fill(0));
+      setVideoCurrentTime(new Array(videoMemories.length).fill(0));
+    }
+  }, [videoMemories.length]);
+
+  // Setup video event listeners for tracking progress
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+
+      const updateTime = () => {
+        setVideoCurrentTime(prev => {
+          const newTimes = [...prev];
+          newTimes[index] = video.currentTime;
+          return newTimes;
+        });
+      };
+
+      const updateDuration = () => {
+        if (video.duration) {
+          setVideoDuration(prev => {
+            const newDurations = [...prev];
+            newDurations[index] = video.duration;
+            return newDurations;
+          });
+        }
+      };
+
+      const updatePlayState = () => {
+        setIsVideoPlaying(prev => {
+          const newStates = [...prev];
+          newStates[index] = !video.paused;
+          return newStates;
+        });
+      };
+
+      video.addEventListener('timeupdate', updateTime);
+      video.addEventListener('loadedmetadata', updateDuration);
+      video.addEventListener('play', updatePlayState);
+      video.addEventListener('pause', updatePlayState);
+      video.addEventListener('ended', updatePlayState);
+
+      return () => {
+        video.removeEventListener('timeupdate', updateTime);
+        video.removeEventListener('loadedmetadata', updateDuration);
+        video.removeEventListener('play', updatePlayState);
+        video.removeEventListener('pause', updatePlayState);
+        video.removeEventListener('ended', updatePlayState);
+      };
+    });
+  }, [videoMemories]);
+
   // Setup event listeners
   useEffect(() => {
     const container = containerRef.current;
@@ -259,10 +320,17 @@ export default function VideoFeed() {
           });
         } else {
           video.pause();
+          video.currentTime = 0; // Reset time for other videos
         }
         video.muted = isMuted;
       }
     });
+
+    // Hide play button when switching videos
+    setShowPlayButton(false);
+    if (playButtonTimeoutRef.current) {
+      clearTimeout(playButtonTimeoutRef.current);
+    }
   }, [currentVideoIndex, isMuted]);
 
   // Record video view
@@ -467,9 +535,66 @@ export default function VideoFeed() {
                     } else {
                       video.pause();
                     }
+                    
+                    // Show play button temporarily
+                    setShowPlayButton(true);
+                    
+                    // Clear any existing timeout
+                    if (playButtonTimeoutRef.current) {
+                      clearTimeout(playButtonTimeoutRef.current);
+                    }
+                    
+                    // Hide play button after 1 second
+                    playButtonTimeoutRef.current = setTimeout(() => {
+                      setShowPlayButton(false);
+                    }, 1000);
                   }
                 }}
               />
+
+              {/* Play/Pause Icon Overlay - TikTok style */}
+              {index === currentVideoIndex && showPlayButton && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                  <div className="bg-black/60 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center animate-pulse shadow-lg">
+                    {isVideoPlaying[index] ? (
+                      <div className="flex space-x-1.5">
+                        <div className="w-1.5 h-8 bg-white rounded-sm"></div>
+                        <div className="w-1.5 h-8 bg-white rounded-sm"></div>
+                      </div>
+                    ) : (
+                      <div className="w-0 h-0 border-l-[20px] border-l-white border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-2"></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Video Playing Indicator - Small play icon like TikTok */}
+              {index === currentVideoIndex && !showPlayButton && !isVideoPlaying[index] && (
+                <div className="absolute center-0 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
+                  <div className="bg-black/40 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center">
+                    <div className="w-0 h-0 border-l-[16px] border-l-white border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Video Progress Bar - TikTok style */}
+              {index === currentVideoIndex && videoDuration[index] > 0 && (
+                <div className="absolute bottom-0 left-0 right-0 z-20">
+                  <div className="h-1 bg-white/20 overflow-hidden">
+                    <div 
+                      className="h-full bg-white transition-all duration-200 ease-linear shadow-sm"
+                      style={{
+                        width: `${(videoCurrentTime[index] / videoDuration[index]) * 100}%`,
+                        boxShadow: '0 0 8px rgba(255,255,255,0.6)'
+                      }}
+                    />
+                  </div>
+                  {/* Optional: Time indicator */}
+                  <div className="absolute -top-6 right-2 text-white/80 text-xs font-medium bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                    {Math.floor(videoCurrentTime[index] || 0)}s / {Math.floor(videoDuration[index] || 0)}s
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
