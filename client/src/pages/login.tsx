@@ -47,7 +47,7 @@ export default function Login() {
 
   // Install button click handler
   const handleInstallClick = () => {
-    // First try to use the native prompt if available
+    // Try to use the native prompt if available
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult: any) => {
@@ -57,33 +57,25 @@ export default function Login() {
         setDeferredPrompt(null);
       });
     } else {
-      // If no native prompt is available, check if PWA is already installable
-      // Force a page reload to trigger beforeinstallprompt event
-      const hasBeenReloaded = sessionStorage.getItem('pwa-reload-attempted');
+      // If no native prompt available, show browser-specific instructions immediately
+      const userAgent = navigator.userAgent.toLowerCase();
+      let instructions = '';
       
-      if (!hasBeenReloaded) {
-        // First attempt - reload to ensure PWA prompt is available
-        sessionStorage.setItem('pwa-reload-attempted', 'true');
-        window.location.reload();
+      if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+        instructions = 'في Chrome: اضغط على الثلاث نقاط (⋮) في الأعلى ← "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"';
+      } else if (userAgent.includes('firefox')) {
+        instructions = 'في Firefox: ابحث عن أيقونة "إضافة إلى الشاشة الرئيسية" في شريط العنوان';
+      } else if (userAgent.includes('safari')) {
+        instructions = 'في Safari: اضغط على أيقونة المشاركة ← "إضافة إلى الشاشة الرئيسية"';
+      } else if (userAgent.includes('edg')) {
+        instructions = 'في Edge: اضغط على الثلاث نقاط (⋯) ← "التطبيقات" ← "تثبيت هذا الموقع كتطبيق"';
       } else {
-        // After reload, show browser-specific instructions
-        const userAgent = navigator.userAgent.toLowerCase();
-        let instructions = '';
-        
-        if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
-          instructions = 'في Chrome: اضغط على الثلاث نقاط (⋮) → "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"';
-        } else if (userAgent.includes('firefox')) {
-          instructions = 'في Firefox: اضغط على أيقونة الصفحة الرئيسية في شريط العنوان';
-        } else if (userAgent.includes('safari')) {
-          instructions = 'في Safari: اضغط على أيقونة المشاركة → "إضافة إلى الشاشة الرئيسية"';
-        } else if (userAgent.includes('edg')) {
-          instructions = 'في Edge: اضغط على الثلاث نقاط (⋯) → "التطبيقات" → "تثبيت هذا الموقع كتطبيق"';
-        } else {
-          instructions = 'ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية" في قائمة متصفحك';
-        }
-        
+        instructions = 'ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية" في قائمة متصفحك';
+      }
+      
+      // Show instructions in a more user-friendly way
+      if (confirm('للحصول على أفضل تجربة، يمكنك تثبيت LaaBoBo كتطبيق على جهازك.\n\nهل تريد معرفة كيفية التثبيت؟')) {
         alert(instructions);
-        sessionStorage.removeItem('pwa-reload-attempted');
       }
     }
   };
