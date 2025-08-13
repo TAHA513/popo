@@ -70,6 +70,9 @@ export default function VideoFeed() {
     }
   }, [startVideoId, videoMemories]);
 
+  // Get current video safely
+  const currentVideo = videoMemories[currentVideoIndex];
+
   // Load follow status for current user only
   useEffect(() => {
     const loadCurrentUserFollowStatus = async () => {
@@ -330,8 +333,6 @@ export default function VideoFeed() {
       </div>
     );
   }
-
-  const currentVideo = videoMemories[currentVideoIndex];
 
   return (
     <>
