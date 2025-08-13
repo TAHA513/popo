@@ -35,6 +35,30 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+// Helper function to format time ago in Arabic
+function formatTimeAgo(dateString: string | undefined): string {
+  if (!dateString) return 'منذ وقت قريب';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+  
+  if (diffInMinutes < 1) return 'الآن';
+  if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) return `منذ ${diffInDays} يوم`;
+  
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) return `منذ ${diffInMonths} شهر`;
+  
+  const diffInYears = Math.floor(diffInMonths / 12);
+  return `منذ ${diffInYears} سنة`;
+}
+
 export default function VideoFeed() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -936,8 +960,8 @@ export default function VideoFeed() {
               
               {/* Stats - TikTok Style */}
               <div className="flex items-center gap-4 text-xs text-white/80 font-medium" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>
-                <span>منذ {Math.floor(Math.random() * 24) + 1} ساعة</span>
-                <span>{currentVideo.viewCount || Math.floor(Math.random() * 1000) + 100} مشاهدة</span>
+                <span>{formatTimeAgo(currentVideo.createdAt)}</span>
+                <span>{currentVideo.viewCount || 0} مشاهدة</span>
               </div>
             </div>
           </div>
