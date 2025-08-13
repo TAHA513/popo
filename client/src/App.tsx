@@ -6,7 +6,6 @@ import { StreamProvider } from "@/contexts/StreamContext";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { LiveStreamIndicator } from "@/components/LiveStreamIndicator";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { PWAInstallWatcher } from "@/components/PWAInstallWatcher";
 
 import { PWADiagnostic } from "@/components/PWADiagnostic";
 
@@ -169,7 +168,6 @@ function AppContent() {
       <Router />
       <LiveStreamIndicator />
       <PWAInstallPrompt />
-      <PWAInstallWatcher />
 
       <PWADiagnostic />
       <Toaster />
