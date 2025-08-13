@@ -285,12 +285,20 @@ export default function VideoFeed() {
             <Button
               size="sm"
               className="bg-red-500 hover:bg-red-600 text-white w-4 h-4 rounded-full p-0 font-bold text-xs border border-white"
+              onClick={() => window.location.href = '/home'}
             >
               +
             </Button>
             
             {/* Profile */}
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
+            <button 
+              className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white"
+              onClick={() => {
+                if (currentVideo.author?.username) {
+                  window.location.href = `/profile/${currentVideo.author.username}`;
+                }
+              }}
+            >
               {currentVideo.author?.profileImageUrl ? (
                 <img 
                   src={currentVideo.author.profileImageUrl} 
@@ -300,7 +308,7 @@ export default function VideoFeed() {
               ) : (
                 <User className="w-6 h-6 text-white m-3" />
               )}
-            </div>
+            </button>
 
             {/* Like */}
             <button
