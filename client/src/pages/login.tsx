@@ -117,10 +117,7 @@ export default function Login() {
       return response.json();
     },
     onSuccess: async (data) => {
-      toast({
-        title: t('auth.success_title'),
-        description: data.message,
-      });
+      // No welcome message - direct login
       
       // Invalidate auth query to refresh user state
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });

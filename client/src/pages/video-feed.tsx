@@ -435,14 +435,10 @@ export default function VideoFeed() {
               return false;
             }}
           >
-            {/* Follow Button - TikTok Style */}
-            {currentVideo.author?.id && user?.id !== currentVideo.author.id && (
+            {/* Follow Button - Only show if not following */}
+            {currentVideo.author?.id && user?.id !== currentVideo.author.id && !followingUsers.has(currentVideo.author.id) && (
               <button
-                className={`${
-                  followingUsers.has(currentVideo.author.id)
-                    ? 'bg-gray-400/70 text-gray-200 border-gray-300'
-                    : 'bg-red-500 text-white border-white hover:bg-red-600'
-                } min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-50 relative transition-all duration-200 backdrop-blur-sm`}
+                className="bg-red-500 text-white border-white hover:bg-red-600 min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-50 relative transition-all duration-200 backdrop-blur-sm"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -450,7 +446,7 @@ export default function VideoFeed() {
                   handleFollow(currentVideo.author?.id);
                 }}
               >
-                {followingUsers.has(currentVideo.author.id) ? 'متابِع' : 'متابعة'}
+                متابعة
               </button>
             )}
             
