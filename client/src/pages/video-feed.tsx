@@ -75,10 +75,11 @@ export default function VideoFeed() {
 
   // Touch/Swipe handlers
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    // Check if touching controls
+    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto')) {
-      return; // Don't start swipe on controls
+    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
+      e.stopPropagation();
+      return false; // Don't start swipe on controls
     }
     
     startY.current = e.touches[0].clientY;
@@ -86,11 +87,14 @@ export default function VideoFeed() {
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    // Check if touching controls
+    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto')) {
-      return; // Don't swipe on controls
+    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]') || isButtonClicked.current) {
+      e.stopPropagation();
+      return false; // Don't swipe on controls
     }
+    
+    if (!startY.current) return;
     
     const currentY = e.touches[0].clientY;
     const diffY = startY.current - currentY;
@@ -101,6 +105,15 @@ export default function VideoFeed() {
   }, []);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
+    // Check if touching controls or button areas
+    const target = e.target as Element;
+    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
+      e.stopPropagation();
+      isDragging.current = false;
+      isButtonClicked.current = false;
+      return false;
+    }
+
     // Don't handle swipe if a button was clicked
     if (isButtonClicked.current) {
       isButtonClicked.current = false;
@@ -313,16 +326,27 @@ export default function VideoFeed() {
         onTouchStart={(e) => {
           // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto')) {
+          if (target.closest('.pointer-events-auto') || target.closest('button')) {
             e.stopPropagation();
+            e.preventDefault();
             return false;
           }
         }}
         onTouchMove={(e) => {
           // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto')) {
+          if (target.closest('.pointer-events-auto') || target.closest('button')) {
             e.stopPropagation();
+            e.preventDefault();
+            return false;
+          }
+        }}
+        onTouchEnd={(e) => {
+          // Prevent swipe if touching controls
+          const target = e.target as HTMLElement;
+          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+            e.stopPropagation();
+            e.preventDefault();
             return false;
           }
         }}
@@ -385,6 +409,11 @@ export default function VideoFeed() {
                     ? 'bg-gray-600 hover:bg-gray-700'
                     : 'bg-red-500 hover:bg-red-600'
                 } text-white min-w-[50px] h-7 rounded-full px-2.5 py-1 font-bold text-[10px] border border-white z-50 relative transition-all duration-200`}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isButtonClicked.current = true;
+                }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -400,6 +429,11 @@ export default function VideoFeed() {
             {/* Profile */}
             <button 
               className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white z-50 relative"
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -424,6 +458,11 @@ export default function VideoFeed() {
             {/* Like */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -441,6 +480,11 @@ export default function VideoFeed() {
             {/* Comments */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -458,6 +502,11 @@ export default function VideoFeed() {
             {/* Share */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -475,6 +524,11 @@ export default function VideoFeed() {
             {/* Gift */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
