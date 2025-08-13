@@ -259,10 +259,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Dedicated Backblaze B2 media endpoint - optimized for public access
+  // Simple in-memory cache for B2 files
+  const mediaCache = new Map();
+  const cacheTimeout = 15 * 60 * 1000; // 15 minutes
+
+  // Dedicated Backblaze B2 media endpoint - optimized with caching
   app.get('/api/media/b2/:filename', async (req, res) => {
     try {
       const { filename } = req.params;
+      
+      // Check cache first
+      const cached = mediaCache.get(filename);
+      if (cached && Date.now() - cached.timestamp < cacheTimeout) {
+        console.log('⚡ Cache hit for:', filename);
+        res.set(cached.headers);
+        return res.send(cached.buffer);
+      }
+
       console.log('🖼️ Fetching B2 image:', filename);
 
       if (!backblazeService.isAvailable()) {
@@ -328,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-      res.set({
+      const headers = {
         'Content-Type': response.headers.get('content-type') || contentType,
         'Cache-Control': 'public, max-age=31536000, immutable, stale-while-revalidate=86400',
         'Access-Control-Allow-Origin': '*',
@@ -337,10 +350,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Last-Modified': new Date().toUTCString(),
         'Vary': 'Accept-Encoding',
         'X-Content-Type-Options': 'nosniff'
+      };
+      
+      const bufferData = Buffer.from(buffer);
+      
+      // Cache the result
+      mediaCache.set(filename, {
+        buffer: bufferData,
+        headers: headers,
+        timestamp: Date.now()
       });
       
-      console.log('✅ Successfully served B2 file:', filename);
-      res.send(Buffer.from(buffer));
+      res.set(headers);
+      console.log('✅ Successfully served B2 file (cached):', filename);
+      res.send(bufferData);
     } catch (error) {
       console.error('❌ Error fetching B2 image:', error);
       res.status(404).json({ error: 'File not found in Backblaze B2' });

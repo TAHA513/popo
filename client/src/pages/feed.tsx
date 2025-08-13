@@ -435,13 +435,16 @@ export default function Feed() {
                             src={memory.thumbnailUrl} 
                             alt={memory.caption || 'منشور'} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="eager"
+                            loading="lazy"
                             decoding="async"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                             }}
-                            onLoad={() => console.log('✅ Image loaded successfully:', memory.thumbnailUrl)}
+                            style={{ 
+                              backgroundColor: '#f3f4f6',
+                              minHeight: '200px'
+                            }}
                           />
                         ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
                           <video
