@@ -1846,7 +1846,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .where(and(
           eq(memoryFragments.isActive, true),
-          eq(memoryFragments.isPublic, true)
+          eq(memoryFragments.isPublic, true),
+          // ⚠️ فلتر نهائي: استبعاد كامل للفيديوهات من صفحة المنشورات
+          eq(memoryFragments.type, 'image')
         ))
         .groupBy(
           memoryFragments.id,

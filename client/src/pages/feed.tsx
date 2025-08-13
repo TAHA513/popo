@@ -48,44 +48,65 @@ export default function Feed() {
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
   
-  // فلترة نهائية وصارمة - استبعاد جميع الفيديوهات من المنشورات
+  // ⚠️ فلتر جذري نهائي: استبعاد كامل لجميع الفيديوهات من المنشورات
   const imageOnlyMemories = typedMemories.filter(memory => {
-    // استبعاد فوري وتام لأي شيء يحتوي على فيديو
-    const hasVideoContent = 
-      memory.type === 'video' || 
-      memory.type === 'live' ||
-      (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
-        url.toLowerCase().includes('.mp4') ||
-        url.toLowerCase().includes('.webm') ||
-        url.toLowerCase().includes('.mov') ||
-        url.toLowerCase().includes('.avi') ||
-        url.toLowerCase().includes('(720p') ||
-        url.toLowerCase().includes('(480p') ||
-        url.toLowerCase().includes('_hd') ||
-        url.toLowerCase().includes('video')
-      ));
+    console.log(`🔍 فحص منشور ${memory.id}:`, {
+      type: memory.type,
+      firstUrl: memory.mediaUrls?.[0]?.substring(0, 80),
+      urlsCount: memory.mediaUrls?.length
+    });
     
-    if (hasVideoContent) {
-      console.log(`🚫 BLOCKED VIDEO: ${memory.id} - نوع: ${memory.type}`);
+    // ❌ استبعاد فوري: أي نوع فيديو
+    if (memory.type === 'video' || memory.type === 'live' || memory.type === 'stream') {
+      console.log(`🚫 BLOCKED - Video Type: ${memory.id} (${memory.type})`);
       return false;
     }
     
-    // قبول الصور فقط
-    const isImageOnly = memory.type === 'image' || 
-      (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
-        url.toLowerCase().includes('.jpg') ||
-        url.toLowerCase().includes('.jpeg') ||
-        url.toLowerCase().includes('.png') ||
-        url.toLowerCase().includes('.gif') ||
-        url.toLowerCase().includes('.webp')
-      ));
+    // ❌ استبعاد فوري: أي URL يحتوي على إشارات فيديو
+    if (memory.mediaUrls?.length > 0) {
+      for (const url of memory.mediaUrls) {
+        const lowerUrl = url.toLowerCase();
+        
+        // فحص امتدادات الفيديو
+        const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v', '.3gp'];
+        if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+          console.log(`🚫 BLOCKED - Video Extension: ${memory.id} (${url.substring(0, 50)}...)`);
+          return false;
+        }
+        
+        // فحص كلمات دلالية على الفيديو
+        const videoKeywords = ['(720p)', '(480p)', '_hd', 'video', 'mp4', 'webm'];
+        const foundKeyword = videoKeywords.find(keyword => lowerUrl.includes(keyword));
+        if (foundKeyword) {
+          console.log(`🚫 BLOCKED - Video Keyword: ${memory.id} (${foundKeyword})`);
+          return false;
+        }
+      }
+    }
     
-    if (isImageOnly) {
-      console.log(`✅ ACCEPTED IMAGE: ${memory.id}`);
+    // ✅ قبول فقط إذا كان صورة صريحة
+    if (memory.type === 'image') {
+      console.log(`✅ ACCEPTED - Image Type: ${memory.id}`);
       return true;
     }
     
-    console.log(`🚫 REJECTED: ${memory.id} - غير محدد`);
+    // ✅ قبول إذا كان URL يحتوي على امتدادات صور
+    if (memory.mediaUrls?.length > 0) {
+      const hasImageExtension = memory.mediaUrls.some((url: string) => {
+        const lowerUrl = url.toLowerCase();
+        return ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'].some(ext => 
+          lowerUrl.includes(ext)
+        );
+      });
+      
+      if (hasImageExtension) {
+        console.log(`✅ ACCEPTED - Image Extension: ${memory.id}`);
+        return true;
+      }
+    }
+    
+    // ❌ رفض كل شيء آخر
+    console.log(`🚫 REJECTED - Unknown: ${memory.id} (type: ${memory.type})`);
     return false;
   });
   
