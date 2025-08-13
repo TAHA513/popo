@@ -207,7 +207,7 @@ export default function VideoFeed() {
 
     // Always reset
     isDragging.current = false;
-    startY.current = null;
+    startY.current = 0;
   }, [currentVideoIndex, videoMemories.length]);
 
   // Keyboard navigation
@@ -460,7 +460,6 @@ export default function VideoFeed() {
               target.tagName === 'BUTTON') {
             e.stopPropagation();
             e.preventDefault();
-            e.stopImmediatePropagation();
             isButtonClicked.current = true;
             return false;
           }
@@ -474,7 +473,6 @@ export default function VideoFeed() {
               isButtonClicked.current) {
             e.stopPropagation();
             e.preventDefault();
-            e.stopImmediatePropagation();
             return false;
           }
         }}
@@ -486,7 +484,6 @@ export default function VideoFeed() {
               target.tagName === 'BUTTON') {
             e.stopPropagation();
             e.preventDefault();
-            e.stopImmediatePropagation();
             setTimeout(() => { isButtonClicked.current = false; }, 100);
             return false;
           }
@@ -517,10 +514,55 @@ export default function VideoFeed() {
                 ref={(el) => (videoRefs.current[index] = el)}
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
-                loop
+                onEnded={() => {
+                  // Auto advance to next video when current one ends
+                  if (currentVideoIndex < videoMemories.length - 1) {
+                    setCurrentVideoIndex(prev => prev + 1);
+                  }
+                }}
                 playsInline
                 muted={isMuted}
                 preload="metadata"
+                onTimeUpdate={(e) => {
+                  const video = e.currentTarget;
+                  const newCurrentTime = video.currentTime;
+                  const newDuration = video.duration;
+                  
+                  // Update time for current video only
+                  if (index === currentVideoIndex) {
+                    setCurrentTime(newCurrentTime);
+                    setDuration(newDuration);
+                    
+                    // Update arrays for progress bar
+                    setVideoCurrentTime(prev => {
+                      const newTimes = [...prev];
+                      newTimes[index] = newCurrentTime;
+                      return newTimes;
+                    });
+                    
+                    setVideoDuration(prev => {
+                      const newDurations = [...prev];
+                      newDurations[index] = newDuration;
+                      return newDurations;
+                    });
+                  }
+                }}
+                onPlay={() => {
+                  setShowPlayButton(false);
+                  setIsVideoPlaying(prev => {
+                    const newPlaying = [...prev];
+                    newPlaying[index] = true;
+                    return newPlaying;
+                  });
+                }}
+                onPause={() => {
+                  setShowPlayButton(true);
+                  setIsVideoPlaying(prev => {
+                    const newPlaying = [...prev];
+                    newPlaying[index] = false;
+                    return newPlaying;
+                  });
+                }}
                 onClick={(e) => {
                   // Only handle click if not clicking on controls
                   const target = e.target as HTMLElement;
@@ -622,20 +664,17 @@ export default function VideoFeed() {
             onTouchStart={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              e.stopImmediatePropagation();
               isButtonClicked.current = true;
               return false;
             }}
             onTouchMove={(e) => {
               e.stopPropagation(); 
               e.preventDefault();
-              e.stopImmediatePropagation();
               return false;
             }}
             onTouchEnd={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              e.stopImmediatePropagation();
               return false;
             }}
           >
