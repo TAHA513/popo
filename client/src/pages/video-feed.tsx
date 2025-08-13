@@ -114,8 +114,13 @@ export default function VideoFeed() {
     loadCurrentUserFollowStatus();
   }, [user, currentVideo?.author?.id]);
 
+  // User interaction tracking
+  const userInteracting = useRef(false);
+  const isAdvancing = useRef(false);
+
   // Touch/Swipe handlers - Enhanced protection against auto-navigation
   const handleTouchStart = useCallback((e: TouchEvent) => {
+    userInteracting.current = true; // Track user interaction
     const target = e.target as Element;
     
     // Block all interaction with control areas
@@ -162,6 +167,8 @@ export default function VideoFeed() {
   }, []);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
+    // Reset interaction flag after delay
+    setTimeout(() => (userInteracting.current = false), 300);
     const target = e.target as Element;
     
     // Block all interaction with control areas
@@ -201,8 +208,11 @@ export default function VideoFeed() {
         // If in sticky mode, disable it and go to previous video
         setStickyMode(false);
         if (currentVideoIndex > 0) {
+          if (isAdvancing.current) return; // Prevent multiple navigations
+          isAdvancing.current = true;
           console.log('Manual swipe to previous video');
           setCurrentVideoIndex(prev => prev - 1);
+          setTimeout(() => (isAdvancing.current = false), 500);
         }
       } else {
         // Enable sticky mode on upward swipe
@@ -210,9 +220,12 @@ export default function VideoFeed() {
       }
     } else if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
       // Downward swipe - MANUAL navigation only 
+      if (isAdvancing.current) return; // Prevent multiple navigations
+      isAdvancing.current = true;
       setStickyMode(false);
       console.log('Manual swipe navigation to next video');
       setCurrentVideoIndex(prev => prev + 1);
+      setTimeout(() => (isAdvancing.current = false), 500);
     }
 
     // Always reset
@@ -222,12 +235,20 @@ export default function VideoFeed() {
 
   // Keyboard navigation - ONLY manual control
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (isAdvancing.current) return; // Prevent rapid navigation
+    
     if (e.key === 'ArrowUp' && currentVideoIndex > 0) {
+      e.preventDefault();
+      isAdvancing.current = true;
       console.log('Manual keyboard up - previous video');
       setCurrentVideoIndex(prev => prev - 1);
+      setTimeout(() => (isAdvancing.current = false), 500);
     } else if (e.key === 'ArrowDown' && currentVideoIndex < videoMemories.length - 1) {
+      e.preventDefault();
+      isAdvancing.current = true;
       console.log('Manual keyboard down - next video');
       setCurrentVideoIndex(prev => prev + 1);
+      setTimeout(() => (isAdvancing.current = false), 500);
     } else if (e.key === ' ') {
       e.preventDefault();
       const currentVideo = videoRefs.current[currentVideoIndex];
@@ -346,12 +367,18 @@ export default function VideoFeed() {
     }
   }, [currentVideoIndex, stickyMode]);
 
-  // Record video view
+  // Record video view - ONLY ONCE per video, no repeated calls
+  const viewedVideos = useRef(new Set<number>());
   useEffect(() => {
-    if (videoMemories[currentVideoIndex]?.id) {
+    const videoId = videoMemories[currentVideoIndex]?.id;
+    if (videoId && !viewedVideos.current.has(videoId)) {
+      viewedVideos.current.add(videoId);
       const timeoutId = setTimeout(() => {
-        apiRequest(`/api/memories/${videoMemories[currentVideoIndex].id}/view`, 'POST');
-      }, 1000);
+        apiRequest(`/api/memories/${videoId}/view`, 'POST').catch(() => {
+          // Remove from viewed set if request fails
+          viewedVideos.current.delete(videoId);
+        });
+      }, 2000); // Only once per video with longer delay
       return () => clearTimeout(timeoutId);
     }
   }, [currentVideoIndex, videoMemories]);
@@ -528,8 +555,12 @@ export default function VideoFeed() {
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
                 onEnded={() => {
-                  // ABSOLUTELY NO AUTO ADVANCE - DISABLED COMPLETELY
-                  console.log(`Video ${index} ended - staying on same video`);
+                  // ABSOLUTELY NO AUTO ADVANCE - Check user interaction first
+                  if (userInteracting.current || isAdvancing.current) {
+                    console.log(`Video ${index} ended during user interaction - staying put`);
+                    return;
+                  }
+                  console.log(`Video ${index} ended - staying on same video (NO AUTO ADVANCE)`);
                   // Do nothing - video just ends and stays put
                 }}
                 loop={false}

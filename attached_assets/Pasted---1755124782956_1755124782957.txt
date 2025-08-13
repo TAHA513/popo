@@ -1,0 +1,146 @@
+تمام، واضح عندك “سواب عمودي” مثل تيك توك، لكنه يقفز بين المقاطع تلقائيًا بلا توقف. غالبًا السبب واحد من 3 أشياء:
+
+الأسباب الأكثر شيوعًا
+
+1. IntersectionObserver يحرك الشاشة بنفسه
+تعمل مراقبًا لكل فيديو، وعند دخوله الشاشة تستدعي scrollIntoView() أو scrollTo() → يتولد حدث مراقبة جديد → حلقة لا نهائية.
+
+
+2. منطق “التالي عند الانتهاء” بدون حراسة
+حدث ended للفيديو يستدعي goNext() حتى لو كان المستخدم يلمس الشاشة أو لو وصلتم للحافة → يقفز باستمرار.
+
+
+3. Scroll Snap بدون إيقاف
+مع scroll-snap-type: y mandatory، لو ما استخدمت scroll-snap-stop: always وعمليات تحريك مبرمجة كثيرة، يحصل “ارتجاج” والقفز.
+
+
+
+
+---
+
+إصلاح سريع (جرّبهم بهذا الترتيب)
+
+أ) أوقِف أي تمرير مبرمج من داخل الـObserver
+
+اجعل الـObserver “قارئًا فقط” يحدّد المقطع النشط ويُشغّل/يُوقِف الصوت، بدون scrollTo/scrollIntoView.
+
+
+// React مثال
+const [activeId, setActiveId] = useState<string | null>(null);
+const isAutoScrolling = useRef(false); // حارس
+
+useEffect(() => {
+  const options = { root: null, rootMargin: "0px", threshold: [0.6, 0.9] };
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const id = entry.target.getAttribute("data-id");
+      if (!id) return;
+
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.9) {
+        // لا تحرك الشاشة هنا أبداً
+        setActiveId((prev) => (prev === id ? prev : id));
+      }
+    });
+  }, options);
+
+  document.querySelectorAll(".feed-item").forEach((el) => io.observe(el));
+  return () => io.disconnect();
+}, []);
+
+> لو عندك كود قديم يستدعي entry.target.scrollIntoView() داخل الـObserver احذفه.
+
+
+
+
+---
+
+ب) امنع حلقات “التالي” من حدث ended
+
+تحرّك للمقطع التالي فقط إذا لم تكن داخل تمرير آلي حاليًا ولم يكن المستخدم يلمس الشاشة.
+
+
+const userInteracting = useRef(false);
+const isAdvancing = useRef(false);
+
+function onTouchStart() { userInteracting.current = true; }
+function onTouchEnd() { 
+  // مهلة صغيرة بعد اللمس لتجنب القفز
+  setTimeout(() => (userInteracting.current = false), 200);
+}
+
+function onVideoEnded() {
+  if (userInteracting.current || isAdvancing.current) return;
+  isAdvancing.current = true;
+  goNext(); // تمرير إلى العنصر التالي (مرة واحدة)
+  setTimeout(() => (isAdvancing.current = false), 400);
+}
+
+> اربط onTouchStart/onTouchEnd على حاوية الفيد، وonEnded={onVideoEnded} على الفيديو.
+
+
+
+
+---
+
+ج) ثبّت الـScroll Snap
+
+أضف/تأكّد من هذه القواعد:
+
+.feed {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain; /* يمنع سحب النظام الخارجي */
+}
+
+.feed-item {
+  height: 100vh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always; /* يمنع تخطي أكثر من عنصر بتمرير واحد */
+}
+
+> scroll-snap-stop: always مهم جدًا لمنع القفز المتكرر.
+
+
+
+
+---
+
+حارس عام ضد التمرير البرمجي المتكرر
+
+لو عندك دالة goTo(index):
+
+function goTo(index: number) {
+  if (isAutoScrolling.current) return;
+  isAutoScrolling.current = true;
+
+  document.querySelectorAll(".feed-item")[index]
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // فك القفل بعد اكتمال الحركة
+  setTimeout(() => (isAutoScrolling.current = false), 500);
+}
+
+> أي استدعاء آخر لـgoTo/goNext/goPrev أثناء القفل سيتم تجاهله.
+
+
+
+
+---
+
+فحوصات سريعة إضافية
+
+لو تضيف “تثبيت الفيديو اسحب لأعلى”، تأكّد أن “التثبيت” يعطل onVideoEnded.
+
+عطّل أي مؤقّت (setInterval) يغيّر activeIndex.
+
+في WebView/أندرويد: عطّل “عرض تلقائي للفيديو التالي” إن وجد في منطقك، وليس المتصفح.
+
+تأكّد أن لكل عنصر data-id فريد؛ تغيير الـkey في React باستمرار قد يعيد المونت ويطلق observers من جديد.
+
+
+
+---
+
+إذا تحب، أرسل لي (1) مقطع كود الـObserver، (2) دالة goNext/goTo، و(3) CSS لحاوية الفيد، وأنا أعدّلها لك فورًا لتتوقف القفزات نهائيًا.
+
