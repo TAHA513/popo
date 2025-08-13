@@ -262,21 +262,13 @@ export default function VideoFeed() {
       if (response.ok) {
         const result = await response.json();
         
-        // Update local state
+        // Update local state silently (no notification)
         setFollowingUsers(prev => {
           const newSet = new Set(prev);
           if (result.action === 'follow') {
             newSet.add(userId);
-            toast({
-              title: "تم! ✅",
-              description: "تم متابعة المستخدم بنجاح",
-            });
           } else {
             newSet.delete(userId);
-            toast({
-              title: "تم",
-              description: "تم إلغاء المتابعة",
-            });
           }
           return newSet;
         });
