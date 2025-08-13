@@ -100,9 +100,8 @@ function Router() {
             <Route path="/tiktok-admin-panel-secure-access-laabobogarden-owner-dashboard" component={AdminDashboardPage} />
           ) : (
             <>
-              <Route path="/" component={VideoFeedPage} />
+              <Route path="/" component={SimpleHome} />
               <Route path="/home" component={SimpleHome} />
-              <Route path="/posts" component={SimpleHome} />
               <Route path="/explore" component={LiveStreams} />
           <Route path="/feed" component={FeedPage} />
           <Route path="/albums" component={LockedAlbums} />

@@ -117,13 +117,6 @@ export default function SimpleNavigation() {
 
           {/* Right Side - Search, Settings & Logout Buttons */}
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
-            {/* Gifts Button */}
-            <Link href="/gifts">
-              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full" title="الهدايا">
-                <Gift className="w-5 h-5" />
-              </Button>
-            </Link>
-            
             {/* Search Button */}
             <Link href="/search">
               <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full" title="البحث">
