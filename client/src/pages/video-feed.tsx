@@ -528,10 +528,8 @@ export default function VideoFeed() {
                   const newCurrentTime = video.currentTime;
                   const newDuration = video.duration;
                   
-                  // Always update global time values
+                  // Always update arrays for progress bar
                   if (index === currentVideoIndex) {
-                    setCurrentTime(newCurrentTime);
-                    setDuration(newDuration);
                     
                     // Update arrays for progress bar
                     setVideoCurrentTime(prev => {
@@ -629,14 +627,14 @@ export default function VideoFeed() {
                     <div 
                       className="h-full bg-white transition-all duration-300 ease-linear shadow-sm"
                       style={{
-                        width: currentTime && duration ? `${(currentTime / duration) * 100}%` : '0%',
+                        width: videoCurrentTime[index] && videoDuration[index] ? `${(videoCurrentTime[index] / videoDuration[index]) * 100}%` : '0%',
                         boxShadow: '0 0 8px rgba(255,255,255,0.8)'
                       }}
                     />
                   </div>
                   {/* Time indicator - Always show */}
                   <div className="absolute -top-6 right-2 text-white/90 text-xs font-medium bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/20">
-                    {Math.floor(currentTime || 0)}s / {Math.floor(duration || 0)}s
+                    {Math.floor(videoCurrentTime[index] || 0)}s / {Math.floor(videoDuration[index] || 0)}s
                   </div>
                 </div>
               )}
@@ -647,7 +645,7 @@ export default function VideoFeed() {
                   <div 
                     className="h-1 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 transition-all duration-100"
                     style={{
-                      width: `${Math.min((currentTime || 0) / Math.max((duration || 1), 1) * 100, 100)}%`
+                      width: `${Math.min((videoCurrentTime[index] || 0) / Math.max((videoDuration[index] || 1), 1) * 100, 100)}%`
                     }}
                   />
                 </div>
@@ -737,9 +735,9 @@ export default function VideoFeed() {
               )}
             </button>
 
-            {/* Like */}
+            {/* Like - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -753,15 +751,15 @@ export default function VideoFeed() {
                 handleLike(currentVideo.id);
               }}
             >
-              <div className="w-10 h-10 flex items-center justify-center">
-                <Heart className="w-6 h-6" />
+              <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-full backdrop-blur-sm border border-white/20 shadow-lg">
+                <Heart className="w-7 h-7 fill-current text-white" />
               </div>
-              <span className="text-xs">{currentVideo.likeCount || 0}</span>
+              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>{currentVideo.likeCount || 0}</span>
             </button>
 
-            {/* Comments */}
+            {/* Comments - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -775,15 +773,15 @@ export default function VideoFeed() {
                 setShowCommentsModal(true);
               }}
             >
-              <div className="w-10 h-10 flex items-center justify-center">
-                <MessageCircle className="w-6 h-6" />
+              <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-full backdrop-blur-sm border border-white/20 shadow-lg">
+                <MessageCircle className="w-7 h-7" />
               </div>
-              <span className="text-xs">تعليق</span>
+              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>تعليق</span>
             </button>
 
-            {/* Share */}
+            {/* Share - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -797,15 +795,15 @@ export default function VideoFeed() {
                 handleShare(currentVideo.id);
               }}
             >
-              <div className="w-10 h-10 flex items-center justify-center">
-                <Share2 className="w-6 h-6" />
+              <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-full backdrop-blur-sm border border-white/20 shadow-lg">
+                <Share2 className="w-7 h-7" />
               </div>
-              <span className="text-xs">شارك</span>
+              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>شارك</span>
             </button>
 
-            {/* Gift */}
+            {/* Gift - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -819,26 +817,51 @@ export default function VideoFeed() {
                 handleGiftClick(currentVideo);
               }}
             >
-              <div className="w-10 h-10 flex items-center justify-center">
-                <Gift className="w-6 h-6" />
+              <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 rounded-full shadow-lg">
+                <Gift className="w-7 h-7 text-white" />
               </div>
-              <span className="text-xs">هدية</span>
+              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>هدية</span>
             </button>
           </div>
 
-          {/* Left side info */}
-          <div className="absolute left-4 bottom-20 max-w-[60%] pointer-events-auto">
-            <div className="text-white space-y-2">
-              <h3 className="font-bold flex items-center gap-2">
-                @{currentVideo.author?.username || `user${currentVideo.authorId?.slice(0, 6)}`}
-                <span className="text-blue-400">✓</span>
-              </h3>
+          {/* Left side info - TikTok Style */}
+          <div className="absolute left-4 bottom-20 max-w-[65%] pointer-events-auto z-30">
+            <div className="text-white space-y-3">
+              {/* Username with Follow Button - TikTok Style */}
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <img
+                    src={currentVideo.author?.profileImageUrl || '/default-avatar.png'}
+                    alt={currentVideo.author?.username || 'User'}
+                    className="w-12 h-12 rounded-full border-2 border-white object-cover shadow-lg"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-bold text-white text-lg tracking-tight" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>
+                    @{currentVideo.author?.username || `user${currentVideo.authorId?.slice(0, 6)}`}
+                  </h3>
+                  {currentVideo.authorId !== user?.id && !followingUsers.has(currentVideo.authorId) && (
+                    <button
+                      onClick={() => handleFollow(currentVideo.authorId)}
+                      className="bg-[var(--tiktok-red)] hover:bg-red-600 text-white px-5 py-1.5 rounded-md text-sm font-bold transition-all transform active:scale-95 shadow-lg"
+                      style={{ fontFamily: 'var(--tiktok-font-arabic)' }}
+                    >
+                      متابعة
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Caption - TikTok Style */}
               {currentVideo.caption && (
-                <p className="text-sm leading-relaxed">
+                <p className="text-white text-sm leading-relaxed break-words font-medium max-w-full pr-2" 
+                   style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>
                   {currentVideo.caption}
                 </p>
               )}
-              <div className="flex items-center space-x-4 text-xs opacity-80">
+              
+              {/* Stats - TikTok Style */}
+              <div className="flex items-center gap-4 text-xs text-white/80 font-medium" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>
                 <span>منذ {Math.floor(Math.random() * 24) + 1} ساعة</span>
                 <span>{currentVideo.viewCount || Math.floor(Math.random() * 1000) + 100} مشاهدة</span>
               </div>
