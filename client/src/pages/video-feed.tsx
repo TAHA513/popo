@@ -421,14 +421,37 @@ export default function VideoFeed() {
     }
   }, [currentVideoIndex, videoMemories]);
 
-  // Interaction mutations
+  // Like mutation
+  const likeMutation = useMutation({
+    mutationFn: async (memoryId: number) => {
+      return await apiRequest(`/api/memories/${memoryId}/like`, 'POST');
+    },
+    onSuccess: (data) => {
+      toast({
+        title: data.liked ? "تم الإعجاب! ❤️" : "تم إلغاء الإعجاب",
+        description: data.message,
+      });
+      
+      // Refresh the data to update like count
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    },
+    onError: (error) => {
+      console.error("Like error:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في الإعجاب. تأكد من تسجيل الدخول.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Share functionality
   const interactionMutation = useMutation({
     mutationFn: async ({ memoryId, type }: { memoryId: number; type: string }) => {
-      return await apiRequest('POST', `/api/memories/${memoryId}/interact`, { type });
+      return await apiRequest(`/api/memories/${memoryId}/interact`, 'POST', { type });
     },
     onSuccess: (_, { type }) => {
       const messages = {
-        like: "تم الإعجاب! ❤️",
         share: "تم نسخ الرابط للمشاركة",
       };
       
@@ -440,7 +463,7 @@ export default function VideoFeed() {
   });
 
   const handleLike = (memoryId: number) => {
-    interactionMutation.mutate({ memoryId, type: 'like' });
+    likeMutation.mutate(memoryId);
   };
 
   const handleShare = (memoryId: number) => {
