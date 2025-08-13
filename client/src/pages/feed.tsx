@@ -52,11 +52,15 @@ export default function Feed() {
   console.log(`📷 تم جلب ${imageOnlyMemories.length} صورة مفلترة من الخادم`);
   console.log(`📷 عينة من البيانات:`, imageOnlyMemories.slice(0, 2).map(m => ({id: m.id, type: m.type})));
   
-  // إجبار refresh للتأكد من استخدام الـ endpoint الجديد
+  // إجبار refresh وإعادة تحميل كاملة للتأكد من استخدام الـ endpoint الجديد
   useEffect(() => {
     console.log('🔄 إجبار refresh لصفحة المنشورات للتأكد من استخدام images-only endpoint');
-    queryClient.invalidateQueries({ queryKey: ['/api/memories/images-only'] });
-  }, []);
+    // مسح كل الكاش
+    queryClient.removeQueries({ queryKey: ['/api/memories/public'] });
+    queryClient.removeQueries({ queryKey: ['/api/memories/images-only'] });
+    // إعادة تحميل فوري 
+    queryClient.refetchQueries({ queryKey: ['/api/memories/images-only'] });
+  }, [queryClient]);
 
   // Pre-fetch data and optimize for instant display
   useEffect(() => {
@@ -200,8 +204,8 @@ export default function Feed() {
         title: "تم الحذف",
         description: "تم حذف المنشور بنجاح",
       });
-      // إعادة تحميل قائمة المنشورات
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+      // إعادة تحميل قائمة المنشورات (صور فقط)
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/images-only'] });
       queryClient.invalidateQueries({ queryKey: ['/api/memories/user'] });
     },
     onError: (error: any) => {
@@ -218,9 +222,9 @@ export default function Feed() {
   };
 
   // Optimized loading logic - عرض المحتوى فوراً مع تحسين الأداء
-  const showLoadingSpinner = memoriesLoading && typedMemories.length === 0 && !memoriesError;
+  const showLoadingSpinner = memoriesLoading && imageOnlyMemories.length === 0 && !memoriesError;
   const hasContent = imageOnlyMemories.length > 0 || typedStreams.length > 0;
-  const isInitialLoad = memoriesLoading && typedMemories.length === 0;
+  const isInitialLoad = memoriesLoading && imageOnlyMemories.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">

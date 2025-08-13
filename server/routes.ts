@@ -1907,7 +1907,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get public IMAGES ONLY for posts page - separate endpoint
   app.get('/api/memories/images-only', async (req, res) => {
     try {
-      console.log('🖼️ جلب الصور فقط لصفحة المنشورات');
+      console.log('🖼️ ✅ تم استدعاء endpoint الصور فقط: /api/memories/images-only');
+      console.log('🖼️ سيتم جلب الصور فقط (نوع: image) من قاعدة البيانات');
       
       // Enable short-term caching for performance
       res.set('Cache-Control', 'public, max-age=30');
