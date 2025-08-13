@@ -45,45 +45,45 @@ export default function Login() {
     };
   }, []);
 
-  // Check if this is the second click after reload
-  useEffect(() => {
-    const wasClicked = localStorage.getItem('pwa-install-clicked');
-    if (wasClicked === 'true') {
-      setClickCount(1);
-    }
-  }, []);
-
   // Install button click handler
   const handleInstallClick = () => {
-    const currentClickCount = localStorage.getItem('pwa-install-clicked') === 'true' ? 1 : 0;
-    
-    if (currentClickCount === 0) {
-      // First click - mark as clicked and reload
-      localStorage.setItem('pwa-install-clicked', 'true');
-      window.location.reload();
-    } else {
-      // Second click - try to install and clear the flag
-      localStorage.removeItem('pwa-install-clicked');
-      
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult: any) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the PWA install prompt');
-          }
-          setDeferredPrompt(null);
-        });
-      } else {
-        // Try to trigger manual install prompt by creating a beforeinstallprompt event
-        const event = new Event('beforeinstallprompt');
-        window.dispatchEvent(event);
-        
-        // If still no prompt, try other PWA methods
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then(() => {
-            console.log('PWA install attempt - service worker ready');
-          });
+    // First try to use the native prompt if available
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the PWA install prompt');
         }
+        setDeferredPrompt(null);
+      });
+    } else {
+      // If no native prompt is available, check if PWA is already installable
+      // Force a page reload to trigger beforeinstallprompt event
+      const hasBeenReloaded = sessionStorage.getItem('pwa-reload-attempted');
+      
+      if (!hasBeenReloaded) {
+        // First attempt - reload to ensure PWA prompt is available
+        sessionStorage.setItem('pwa-reload-attempted', 'true');
+        window.location.reload();
+      } else {
+        // After reload, show browser-specific instructions
+        const userAgent = navigator.userAgent.toLowerCase();
+        let instructions = '';
+        
+        if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+          instructions = 'في Chrome: اضغط على الثلاث نقاط (⋮) → "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"';
+        } else if (userAgent.includes('firefox')) {
+          instructions = 'في Firefox: اضغط على أيقونة الصفحة الرئيسية في شريط العنوان';
+        } else if (userAgent.includes('safari')) {
+          instructions = 'في Safari: اضغط على أيقونة المشاركة → "إضافة إلى الشاشة الرئيسية"';
+        } else if (userAgent.includes('edg')) {
+          instructions = 'في Edge: اضغط على الثلاث نقاط (⋯) → "التطبيقات" → "تثبيت هذا الموقع كتطبيق"';
+        } else {
+          instructions = 'ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية" في قائمة متصفحك';
+        }
+        
+        alert(instructions);
+        sessionStorage.removeItem('pwa-reload-attempted');
       }
     }
   };
