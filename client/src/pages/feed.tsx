@@ -48,56 +48,45 @@ export default function Feed() {
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
   
-  // فلترة نهائية وصارمة للصور فقط - استبعاد تام للفيديوهات
+  // فلترة نهائية وصارمة - استبعاد جميع الفيديوهات من المنشورات
   const imageOnlyMemories = typedMemories.filter(memory => {
-    // طباعة تفاصيل كل منشور للتصحيح
-    console.log(`🔍 فحص منشور ${memory.id}:`, {
-      type: memory.type,
-      mediaUrl: memory.mediaUrls?.[0]?.substring(0, 50) + '...',
-      hasMedia: !!memory.mediaUrls?.length
-    });
+    // استبعاد فوري وتام لأي شيء يحتوي على فيديو
+    const hasVideoContent = 
+      memory.type === 'video' || 
+      memory.type === 'live' ||
+      (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
+        url.toLowerCase().includes('.mp4') ||
+        url.toLowerCase().includes('.webm') ||
+        url.toLowerCase().includes('.mov') ||
+        url.toLowerCase().includes('.avi') ||
+        url.toLowerCase().includes('(720p') ||
+        url.toLowerCase().includes('(480p') ||
+        url.toLowerCase().includes('_hd') ||
+        url.toLowerCase().includes('video')
+      ));
     
-    // استبعاد نهائي لأي محتوى من نوع 'video'
-    if (memory.type === 'video') {
-      console.log(`🚫 استبعاد فيديو ${memory.id} - نوع: video`);
+    if (hasVideoContent) {
+      console.log(`🚫 BLOCKED VIDEO: ${memory.id} - نوع: ${memory.type}`);
       return false;
     }
     
-    // فحص دقيق جداً لامتدادات الملفات
-    if (memory.mediaUrls && memory.mediaUrls.length > 0) {
-      const mediaUrl = memory.mediaUrls[0]?.toLowerCase() || '';
-      
-      // قائمة شاملة لجميع امتدادات الفيديو الممكنة
-      const videoExtensions = [
-        '.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv', 
-        '.m4v', '.3gp', '.ogv', '.m2ts', '.mts', '.vob', '.ts'
-      ];
-      
-      // فحص إذا كان URL يحتوي على أي امتداد فيديو
-      const isVideoFile = videoExtensions.some(ext => mediaUrl.includes(ext));
-      
-      if (isVideoFile) {
-        console.log(`🚫 استبعاد فيديو ${memory.id} - امتداد الملف`);
-        return false;
-      }
-      
-      // فحص إضافي للتأكد من أنه صورة
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.tiff', '.ico'];
-      const isImageFile = imageExtensions.some(ext => mediaUrl.includes(ext));
-      
-      if (!isImageFile) {
-        console.log(`🚫 استبعاد منشور ${memory.id} - ليس صورة`);
-        return false;
-      }
-      
-      console.log(`✅ قبول صورة ${memory.id}`);
+    // قبول الصور فقط
+    const isImageOnly = memory.type === 'image' || 
+      (memory.mediaUrls && memory.mediaUrls.some((url: string) => 
+        url.toLowerCase().includes('.jpg') ||
+        url.toLowerCase().includes('.jpeg') ||
+        url.toLowerCase().includes('.png') ||
+        url.toLowerCase().includes('.gif') ||
+        url.toLowerCase().includes('.webp')
+      ));
+    
+    if (isImageOnly) {
+      console.log(`✅ ACCEPTED IMAGE: ${memory.id}`);
       return true;
     }
     
-    // إذا لم يكن هناك ملفات، تحقق من النوع فقط
-    const acceptBasedOnType = memory.type === 'image';
-    console.log(`${acceptBasedOnType ? '✅' : '🚫'} منشور ${memory.id} بدون ملفات - نوع: ${memory.type}`);
-    return acceptBasedOnType;
+    console.log(`🚫 REJECTED: ${memory.id} - غير محدد`);
+    return false;
   });
   
   // تسجيل النتائج النهائية
@@ -401,7 +390,7 @@ export default function Feed() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {imageOnlyMemories.map((memory) => (
+              {imageOnlyMemories.length > 0 ? imageOnlyMemories.map((memory) => (
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
@@ -672,7 +661,11 @@ export default function Feed() {
                     </div>
                   </div>
                 </Card>
-              ))}
+              )) : (
+                <div className="col-span-full flex items-center justify-center p-8">
+                  <p className="text-gray-500">لا توجد صور لعرضها</p>
+                </div>
+              )}
             </div>
           )}
         </div>
