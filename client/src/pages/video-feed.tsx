@@ -316,7 +316,7 @@ export default function VideoFeed() {
     };
   }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleKeyDown]);
 
-  // Auto-play current video and pause others
+  // Control video playback manually - NO AUTO PLAY OR ADVANCE
   useEffect(() => {
     // Pause all videos first
     videoRefs.current.forEach((video, index) => {
@@ -325,14 +325,12 @@ export default function VideoFeed() {
       }
     });
 
-    // Then play current video only if not in sticky mode
+    // Current video setup but NO AUTO PLAY
     const currentVideo = videoRefs.current[currentVideoIndex];
-    if (currentVideo && !stickyMode) {
-      // Reset video to beginning
+    if (currentVideo) {
       currentVideo.currentTime = 0;
-      currentVideo.play().catch(() => {
-        console.log('Auto-play blocked by browser policy');
-      });
+      // Don't auto-play - user must click to play
+      currentVideo.pause();
     }
   }, [currentVideoIndex, stickyMode]);
 
@@ -518,14 +516,9 @@ export default function VideoFeed() {
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
                 onEnded={() => {
-                  // Prevent auto advance to stop video skipping
-                  if (index === currentVideoIndex && !stickyMode && currentVideoIndex < videoMemories.length - 1) {
-                    console.log(`Video ${index} ended naturally`);
-                    // Optionally auto-advance after longer delay
-                    setTimeout(() => {
-                      setCurrentVideoIndex(prev => prev + 1);
-                    }, 2000); // 2 second delay instead of immediate
-                  }
+                  // NO AUTO ADVANCE - User must manually navigate
+                  console.log(`Video ${index} ended - no auto advance`);
+                  // Video will loop or pause, user controls navigation
                 }}
                 playsInline
                 muted={isMuted}
