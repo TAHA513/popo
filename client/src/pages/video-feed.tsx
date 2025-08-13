@@ -21,6 +21,7 @@ interface VideoMemory {
   shareCount?: number;
   createdAt: string;
   author?: {
+    id: string;
     username: string;
     profileImageUrl?: string;
   };
@@ -210,6 +211,36 @@ export default function VideoFeed() {
     }
   };
 
+  const handleFollow = async (userId: string | undefined) => {
+    if (!userId) return;
+    
+    try {
+      const response = await fetch(`/api/users/${userId}/follow`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        toast({
+          title: "تم! ✅",
+          description: "تم متابعة المستخدم بنجاح",
+        });
+      } else {
+        toast({
+          title: "خطأ",
+          description: "فشل في متابعة المستخدم",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في الاتصال",
+      });
+    }
+  };
+
   const handleGiftClick = (memory: VideoMemory) => {
     setSelectedRecipient({
       id: memory.authorId,
@@ -283,18 +314,18 @@ export default function VideoFeed() {
           
           {/* Right side controls */}
           <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50">
-            {/* Add Button */}
+            {/* Follow Button - TikTok Style */}
             <Button
               size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white w-4 h-4 rounded-full p-0 font-bold text-xs border border-white z-50 relative"
+              className="bg-red-500 hover:bg-red-600 text-white min-w-[60px] h-8 rounded-full px-3 py-1 font-bold text-xs border border-white z-50 relative"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Add button clicked - navigating to /home');
-                window.location.href = '/home';
+                console.log('Follow button clicked for user:', currentVideo.author?.username);
+                handleFollow(currentVideo.author?.id);
               }}
             >
-              +
+              متابعة
             </Button>
             
             {/* Profile */}
