@@ -18,19 +18,26 @@ class WebSocketManager {
     try {
       // تحسين اتصال WebSocket لتجنب الأخطاء
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const isDev = window.location.hostname === 'localhost';
+      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
       let wsUrl;
       if (isDev) {
-        wsUrl = 'ws://localhost:5000/ws';
+        // Development environment
+        const port = window.location.port || '5000';
+        wsUrl = `ws://localhost:${port}/ws`;
       } else {
-        // For production Replit environment - ensure we have a valid host
-        const host = window.location.host || window.location.hostname;
-        if (!host) {
-          console.error('❌ Unable to determine WebSocket host');
+        // Production/Replit environment - use current host with proper port
+        const hostname = window.location.hostname;
+        const port = window.location.port;
+        
+        if (!hostname) {
+          console.error('❌ Unable to determine WebSocket hostname');
           return;
         }
-        wsUrl = `${protocol}//${host}/ws`;
+        
+        // Build URL with explicit port if available
+        const hostWithPort = port ? `${hostname}:${port}` : hostname;
+        wsUrl = `${protocol}//${hostWithPort}/ws`;
       }
       
       console.log('WebSocket connecting to:', wsUrl);

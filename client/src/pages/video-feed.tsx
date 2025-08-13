@@ -27,6 +27,14 @@ interface VideoMemory {
   };
 }
 
+// Helper function to format time
+function formatTime(seconds: number): string {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 export default function VideoFeed() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -310,28 +318,23 @@ export default function VideoFeed() {
 
   // Auto-play current video and pause others
   useEffect(() => {
+    // Pause all videos first
     videoRefs.current.forEach((video, index) => {
-      if (video) {
-        if (index === currentVideoIndex) {
-          video.currentTime = 0;
-          video.play().catch(() => {
-            // Handle autoplay restrictions
-            console.log('تعذر التشغيل التلقائي');
-          });
-        } else {
-          video.pause();
-          video.currentTime = 0; // Reset time for other videos
-        }
-        video.muted = isMuted;
+      if (video && index !== currentVideoIndex) {
+        video.pause();
       }
     });
 
-    // Hide play button when switching videos
-    setShowPlayButton(false);
-    if (playButtonTimeoutRef.current) {
-      clearTimeout(playButtonTimeoutRef.current);
+    // Then play current video only if not in sticky mode
+    const currentVideo = videoRefs.current[currentVideoIndex];
+    if (currentVideo && !stickyMode) {
+      // Reset video to beginning
+      currentVideo.currentTime = 0;
+      currentVideo.play().catch(() => {
+        console.log('Auto-play blocked by browser policy');
+      });
     }
-  }, [currentVideoIndex, isMuted]);
+  }, [currentVideoIndex, stickyMode]);
 
   // Record video view
   useEffect(() => {
@@ -515,9 +518,13 @@ export default function VideoFeed() {
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
                 onEnded={() => {
-                  // Auto advance to next video when current one ends
-                  if (currentVideoIndex < videoMemories.length - 1) {
-                    setCurrentVideoIndex(prev => prev + 1);
+                  // Prevent auto advance to stop video skipping
+                  if (index === currentVideoIndex && !stickyMode && currentVideoIndex < videoMemories.length - 1) {
+                    console.log(`Video ${index} ended naturally`);
+                    // Optionally auto-advance after longer delay
+                    setTimeout(() => {
+                      setCurrentVideoIndex(prev => prev + 1);
+                    }, 2000); // 2 second delay instead of immediate
                   }
                 }}
                 playsInline
@@ -526,12 +533,10 @@ export default function VideoFeed() {
                 onTimeUpdate={(e) => {
                   const video = e.currentTarget;
                   const newCurrentTime = video.currentTime;
-                  const newDuration = video.duration;
+                  const newDuration = video.duration || 0;
                   
-                  // Always update arrays for progress bar
-                  if (index === currentVideoIndex) {
-                    
-                    // Update arrays for progress bar
+                  // Only update if we have valid duration and this is current video
+                  if (index === currentVideoIndex && newDuration > 0 && !isNaN(newCurrentTime)) {
                     setVideoCurrentTime(prev => {
                       const newTimes = [...prev];
                       newTimes[index] = newCurrentTime;
@@ -543,9 +548,17 @@ export default function VideoFeed() {
                       newDurations[index] = newDuration;
                       return newDurations;
                     });
-                    
-                    // Debug log to check values
-                    console.log(`Video ${index} - Time: ${newCurrentTime.toFixed(1)}s / ${newDuration.toFixed(1)}s`);
+                  }
+                }}
+                onLoadedMetadata={(e) => {
+                  const video = e.currentTarget;
+                  const duration = video.duration || 0;
+                  if (duration > 0) {
+                    setVideoDuration(prev => {
+                      const newDurations = [...prev];
+                      newDurations[index] = duration;
+                      return newDurations;
+                    });
                   }
                 }}
                 onPlay={() => {
@@ -634,7 +647,7 @@ export default function VideoFeed() {
                   </div>
                   {/* Time indicator - Always show */}
                   <div className="absolute -top-6 right-2 text-white/90 text-xs font-medium bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/20">
-                    {Math.floor(videoCurrentTime[index] || 0)}s / {Math.floor(videoDuration[index] || 0)}s
+                    {formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}
                   </div>
                 </div>
               )}
