@@ -217,7 +217,7 @@ export default function VideoFeed() {
 
   if (videoMemories.length === 0) {
     return (
-      <div className="fixed top-0 left-0 right-0 bottom-20 bg-black flex items-center justify-center z-[1]">
+      <div className="fixed inset-0 bg-black flex items-center justify-center">
         <div className="text-center text-white">
           <Play className="w-16 h-16 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">لا توجد فيديوهات</h2>
@@ -233,7 +233,7 @@ export default function VideoFeed() {
     <>
       <div 
         ref={containerRef}
-        className="fixed top-0 left-0 right-0 bottom-20 bg-black overflow-hidden touch-none z-[1]"
+        className="fixed inset-0 bg-black overflow-hidden touch-none"
         style={{ userSelect: 'none' }}
       >
         {/* Video Container */}
