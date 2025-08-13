@@ -352,28 +352,31 @@ export default function VideoFeed() {
     };
   }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleKeyDown]);
 
-  // Control video playback manually - NO AUTO PLAY OR ADVANCE
+  // Control video playback - Play current, pause others, NO AUTO ADVANCE
   useEffect(() => {
     // Pause all videos first
     videoRefs.current.forEach((video, index) => {
       if (video && index !== currentVideoIndex) {
         video.pause();
+        video.currentTime = 0; // Reset other videos
       }
     });
 
-    // Current video - NO AUTO PLAY AT ALL
+    // Current video - Play it but prevent auto advance
     const currentVideo = videoRefs.current[currentVideoIndex];
     if (currentVideo) {
-      // Reset video but keep it paused
+      // Reset and play current video
       currentVideo.currentTime = 0;
-      currentVideo.pause();
+      currentVideo.play().catch(() => {
+        // If autoplay fails, show play button
+        setShowPlayButton(true);
+      });
       
-      // Force all other videos to stay paused and reset
-      videoRefs.current.forEach((video, idx) => {
-        if (video && idx !== currentVideoIndex) {
-          video.pause();
-          video.currentTime = 0;
-        }
+      // Update playing state
+      setIsVideoPlaying(prev => {
+        const newStates = [...prev];
+        newStates[currentVideoIndex] = true;
+        return newStates;
       });
     }
   }, [currentVideoIndex, stickyMode]);
@@ -633,25 +636,34 @@ export default function VideoFeed() {
                   }
                   
                   const video = videoRefs.current[index];
-                  if (video) {
+                  if (video && index === currentVideoIndex) {
                     if (video.paused) {
-                      video.play();
+                      video.play().then(() => {
+                        setShowPlayButton(false);
+                        // Update playing state
+                        setIsVideoPlaying(prev => {
+                          const newStates = [...prev];
+                          newStates[index] = true;
+                          return newStates;
+                        });
+                      }).catch(() => {
+                        setShowPlayButton(true);
+                      });
                     } else {
                       video.pause();
+                      setShowPlayButton(true);
+                      // Update playing state
+                      setIsVideoPlaying(prev => {
+                        const newStates = [...prev];
+                        newStates[index] = false;
+                        return newStates;
+                      });
                     }
-                    
-                    // Show play button temporarily
-                    setShowPlayButton(true);
                     
                     // Clear any existing timeout
                     if (playButtonTimeoutRef.current) {
                       clearTimeout(playButtonTimeoutRef.current);
                     }
-                    
-                    // Hide play button after 1 second
-                    playButtonTimeoutRef.current = setTimeout(() => {
-                      setShowPlayButton(false);
-                    }, 1000);
                   }
                 }}
               />
