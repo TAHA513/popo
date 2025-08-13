@@ -595,10 +595,7 @@ export default function VideoFeed() {
             {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
           </button>
 
-          {/* Progress indicator */}
-          <div className="absolute top-6 left-4 text-white text-sm pointer-events-none">
-            {currentVideoIndex + 1} / {videoMemories.length}
-          </div>
+
 
           {/* Navigation hints */}
           {currentVideoIndex < videoMemories.length - 1 && (
