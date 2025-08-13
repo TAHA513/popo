@@ -37,9 +37,10 @@ export default function VideoFeed() {
   const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
+  const [isPlaying, setIsPlaying] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const startY = useRef(0);
+  const startY = useRef<number | null>(null);
   const isDragging = useRef(false);
   const isButtonClicked = useRef(false);
 
@@ -241,21 +242,67 @@ export default function VideoFeed() {
 
   // Auto-play current video and pause others
   useEffect(() => {
+    const currentVideo = videoRefs.current[currentVideoIndex];
+    
+    // Pause all videos first
     videoRefs.current.forEach((video, index) => {
       if (video) {
-        if (index === currentVideoIndex) {
-          video.currentTime = 0;
-          video.play().catch(() => {
-            // Handle autoplay restrictions
-            console.log('تعذر التشغيل التلقائي');
-          });
-        } else {
+        video.muted = isMuted;
+        if (index !== currentVideoIndex) {
           video.pause();
         }
-        video.muted = isMuted;
       }
     });
-  }, [currentVideoIndex, isMuted]);
+
+    // Handle current video
+    if (currentVideo) {
+      currentVideo.currentTime = 0;
+      currentVideo.muted = isMuted;
+      
+      // Remove any existing ended event listeners
+      currentVideo.onended = null;
+      
+      // Add new ended event listener
+      currentVideo.onended = () => {
+        // Automatically go to next video when current ends
+        if (currentVideoIndex < videoMemories.length - 1) {
+          console.log('انتهى الفيديو - الانتقال للفيديو التالي');
+          setCurrentVideoIndex(prev => prev + 1);
+        } else {
+          // Loop back to first video
+          console.log('انتهى آخر فيديو - العودة للبداية');
+          setCurrentVideoIndex(0);
+        }
+      };
+      
+      // Add play/pause event listeners
+      const handlePlay = () => setIsPlaying(true);
+      const handlePause = () => setIsPlaying(false);
+      
+      currentVideo.addEventListener('play', handlePlay);
+      currentVideo.addEventListener('pause', handlePause);
+      
+      // Try to play the video
+      const playPromise = currentVideo.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((error) => {
+            console.log('تعذر التشغيل التلقائي:', error);
+            setIsPlaying(false);
+          });
+      }
+      
+      // Cleanup function
+      return () => {
+        currentVideo.onended = null;
+        currentVideo.removeEventListener('play', handlePlay);
+        currentVideo.removeEventListener('pause', handlePause);
+      };
+    }
+  }, [currentVideoIndex, isMuted, videoMemories.length]);
 
   // Record video view
   useEffect(() => {
@@ -449,6 +496,15 @@ export default function VideoFeed() {
           
           {/* Bottom gradient */}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 to-transparent" />
+          
+          {/* Play/Pause Indicator */}
+          {!isPlaying && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-20 h-20 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <Play className="w-10 h-10 text-white ml-1" />
+              </div>
+            </div>
+          )}
           
           {/* Right side controls */}
           <div 
