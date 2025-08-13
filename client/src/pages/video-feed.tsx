@@ -630,14 +630,7 @@ export default function VideoFeed() {
                 </div>
               )}
 
-              {/* Video Playing Indicator - Small play icon like TikTok */}
-              {index === currentVideoIndex && !showPlayButton && !isVideoPlaying[index] && (
-                <div className="absolute center-0 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
-                  <div className="bg-black/40 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center">
-                    <div className="w-0 h-0 border-l-[16px] border-l-white border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
-                  </div>
-                </div>
-              )}
+              {/* Removed the circular play icon completely */}
 
               {/* Video Progress Bar - TikTok style - Always show for current video */}
               {index === currentVideoIndex && (
