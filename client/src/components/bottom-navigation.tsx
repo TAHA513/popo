@@ -12,7 +12,8 @@ import {
   LogOut,
   Wallet,
   Gift,
-  Video
+  Video,
+  Grid3X3
 } from "lucide-react";
 
 export default function BottomNavigation() {
@@ -42,10 +43,10 @@ export default function BottomNavigation() {
   );
 
   const navItems = [
-    { href: "/videos", icon: Video, label: "الرئيسية" },
-    { href: "/", icon: Home, label: "منشورات" },
-    { href: "/messages", icon: MessageCircle, label: t('nav.messages') },
+    { href: "/videos", icon: Home, label: "الرئيسية" },
+    { href: "/", icon: Grid3X3, label: "منشورات" },
     { href: "/gifts", icon: Gift, label: t('nav.gifts') },
+    { href: "/messages", icon: MessageCircle, label: t('nav.messages') },
     { href: "/create-memory", icon: Plus, label: t('common.create'), isSpecial: true },
     { href: "/explore", icon: Radio, label: t('stream.start_streaming') },
     { href: "/profile", icon: User, label: t('nav.profile') }
