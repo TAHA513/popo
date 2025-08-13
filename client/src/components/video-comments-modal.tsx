@@ -125,7 +125,8 @@ export default function VideoCommentsModal({
   // Close delete menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showDeleteMenu !== null) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('[data-delete-menu]')) {
         setShowDeleteMenu(null);
       }
     };
@@ -169,7 +170,14 @@ export default function VideoCommentsModal({
               <p className="text-sm mt-2">كن أول من يعلق!</p>
             </div>
           ) : (
-            comments.map((comment: Comment) => (
+            comments.map((comment: Comment) => {
+              console.log('Rendering comment:', { 
+                id: comment.id, 
+                userId: comment.userId, 
+                currentUser: user?.id, 
+                canDelete: user?.id === comment.userId 
+              });
+              return (
               <div key={comment.id} className="flex space-x-3 rtl:space-x-reverse">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
@@ -203,23 +211,34 @@ export default function VideoCommentsModal({
                     
                     {/* Delete button - only show for user's own comments */}
                     {user?.id === comment.userId && (
-                      <div className="relative">
+                      <div className="relative" data-delete-menu>
                         <button
-                          onClick={() => setShowDeleteMenu(showDeleteMenu === comment.id ? null : comment.id)}
-                          className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Delete menu button clicked for comment:', comment.id);
+                            setShowDeleteMenu(showDeleteMenu === comment.id ? null : comment.id);
+                          }}
+                          className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
-                          <MoreVertical className="w-4 h-4" />
+                          <MoreVertical className="w-5 h-5" />
                         </button>
                         
                         {showDeleteMenu === comment.id && (
-                          <div className="absolute left-0 top-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10 min-w-[120px]">
+                          <div className="absolute right-0 top-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl z-[1000] min-w-[140px] animate-in fade-in-0 zoom-in-95 duration-200">
                             <button
-                              onClick={() => deleteCommentMutation.mutate(comment.id)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                deleteCommentMutation.mutate(comment.id);
+                              }}
                               disabled={deleteCommentMutation.isPending}
-                              className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2 rtl:space-x-reverse rounded-lg transition-colors"
+                              className="w-full px-4 py-3 text-right text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2 rtl:space-x-reverse rounded-lg transition-colors disabled:opacity-50"
                             >
-                              <Trash2 className="w-4 h-4" />
-                              <span>حذف التعليق</span>
+                              <Trash2 className="w-4 h-4 flex-shrink-0" />
+                              <span className="font-medium">
+                                {deleteCommentMutation.isPending ? 'جارٍ الحذف...' : 'حذف التعليق'}
+                              </span>
                             </button>
                           </div>
                         )}
@@ -242,7 +261,8 @@ export default function VideoCommentsModal({
                   </div>
                 </div>
               </div>
-            ))
+            );
+            })
           )}
         </div>
 
