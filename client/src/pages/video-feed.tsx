@@ -632,11 +632,11 @@ export default function VideoFeed() {
         }}
       >
         {/* Video Container */}
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full bg-black video-container">
           {videoMemories.map((memory, index) => (
             <div
               key={memory.id}
-              className={`absolute inset-0 transition-transform duration-300 ${
+              className={`absolute inset-0 transition-transform duration-300 video-container ${
                 stickyMode && index === currentVideoIndex ? 
                   'translate-y-0 !fixed !top-0 !left-0 !right-0 !bottom-0 z-40' :
                   index === currentVideoIndex ? 'translate-y-0' : 
@@ -656,6 +656,11 @@ export default function VideoFeed() {
                 ref={(el) => (videoRefs.current[index] = el)}
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
+                style={{ 
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  background: 'transparent'
+                }}
                 onEnded={() => {
                   // ABSOLUTELY NO AUTO ADVANCE - but restart the same video
                   if (userInteracting.current || isAdvancing.current) {
