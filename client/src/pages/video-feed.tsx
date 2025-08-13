@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share2, Gift, User, Volume2, VolumeX, Play } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Heart, MessageCircle, Share2, Gift, User, Volume2, VolumeX, Play, X } from "lucide-react";
 import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
 
 import BottomNavigation from "@/components/bottom-navigation";
@@ -32,6 +33,7 @@ export default function VideoFeed() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -288,8 +290,8 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Add button clicked - navigating to /home');
-                window.location.href = '/home';
+                console.log('Add button clicked - navigating to create');
+                window.location.href = '/create';
               }}
             >
               +
@@ -340,8 +342,8 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Comments clicked for video:', currentVideo.id);
-                window.location.href = `/memory/${currentVideo.id}`;
+                console.log('Comments modal opened for video:', currentVideo.id);
+                setShowCommentsModal(true);
               }}
             >
               <div className="w-10 h-10 flex items-center justify-center">
@@ -423,6 +425,22 @@ export default function VideoFeed() {
           )}
         </div>
       </div>
+      {/* Comments Modal */}
+      <Dialog open={showCommentsModal} onOpenChange={setShowCommentsModal}>
+        <DialogContent className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[70vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-right text-lg font-semibold mb-4">
+              التعليقات
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center text-gray-500 py-8">
+            <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <p>لا توجد تعليقات حتى الآن</p>
+            <p className="text-sm mt-2">كن أول من يعلق على هذا الفيديو!</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Gift Modal */}
       {showGiftPanel && selectedRecipient && (
         <EnhancedGiftModal
