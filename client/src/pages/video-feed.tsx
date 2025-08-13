@@ -233,8 +233,6 @@ export default function VideoFeed() {
 
   return (
     <>
-      
-      
       <div 
         ref={containerRef}
         className="fixed inset-0 bg-black overflow-hidden touch-none pb-12"
@@ -284,7 +282,7 @@ export default function VideoFeed() {
           {/* Right side controls */}
           <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto">
             {/* Profile */}
-            <div className="relative">
+            <div className="relative mt-[38px] mb-[38px]">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
                 {currentVideo.author?.profileImageUrl ? (
                   <img 
@@ -389,7 +387,6 @@ export default function VideoFeed() {
           )}
         </div>
       </div>
-
       {/* Gift Modal */}
       {showGiftPanel && selectedRecipient && (
         <EnhancedGiftModal
@@ -404,7 +401,6 @@ export default function VideoFeed() {
           memoryId={null}
         />
       )}
-      
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <BottomNavigation />
