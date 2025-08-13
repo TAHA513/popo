@@ -195,15 +195,18 @@ export default function Login() {
             </div>
             <div className="flex items-center justify-center gap-3 mb-2">
               <h1 className="text-3xl font-bold text-white">LaaBoBo Live</h1>
-              <Button
-                onClick={handleInstallClick}
-                variant="ghost"
-                size="sm"
-                className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-lg border border-pink-400/30 text-white hover:from-pink-500/30 hover:to-purple-600/30 rounded-full w-8 h-8 p-0 shadow-lg group transition-all duration-300 hover:scale-110"
-                title="تثبيت التطبيق"
-              >
-                <Download className="h-4 w-4 group-hover:animate-bounce" />
-              </Button>
+              <div className="flex flex-col items-center">
+                <Button
+                  onClick={handleInstallClick}
+                  variant="ghost"
+                  size="sm"
+                  className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-lg border border-pink-400/30 text-white hover:from-pink-500/30 hover:to-purple-600/30 rounded-full w-8 h-8 p-0 shadow-lg group transition-all duration-300 hover:scale-110"
+                  title="تثبيت التطبيق"
+                >
+                  <Download className="h-4 w-4 group-hover:animate-bounce" />
+                </Button>
+                <span className="text-white/70 text-xs mt-1">تثبيت</span>
+              </div>
             </div>
             <p className="text-gray-300 text-sm">{isRTL ? 'أهلاً وسهلاً' : 'Welcome back'}</p>
           </div>
