@@ -19,6 +19,8 @@ interface VideoMemory {
   likeCount?: number;
   viewCount?: number;
   shareCount?: number;
+  commentCount?: number;
+  isLiked?: boolean;
   createdAt: string;
   author?: {
     id: string;
@@ -957,7 +959,7 @@ export default function VideoFeed() {
               <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-full backdrop-blur-sm border border-white/20 shadow-lg">
                 <MessageCircle className="w-7 h-7" />
               </div>
-              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>تعليق</span>
+              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>{currentVideo.commentCount || 0}</span>
             </button>
 
             {/* Share - TikTok Style */}
