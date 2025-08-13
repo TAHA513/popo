@@ -155,8 +155,8 @@ export default function VideoFeed() {
     const currentY = e.touches[0].clientY;
     const diffY = startY.current - currentY;
     
-    // Require much larger movement for drag detection to prevent accidental scrolling
-    if (Math.abs(diffY) > 50) {
+    // Require larger movement for drag detection
+    if (Math.abs(diffY) > 20) {
       isDragging.current = true;
     }
   }, []);
@@ -194,25 +194,23 @@ export default function VideoFeed() {
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
-    // Handle swipe gestures - increased threshold to prevent accidental navigation
-    if (diffY < -120) {
-      // Strong upward swipe - enable sticky mode
-      if (!stickyMode) {
-        setStickyMode(true);
-        console.log('Sticky mode enabled - video locked');
-      } else {
-        // Already in sticky mode - disable it
+    // Handle upward swipe for sticky mode vs navigation
+    if (diffY < -80) {
+      // Upward swipe - toggle sticky mode or go to previous video
+      if (stickyMode) {
+        // If in sticky mode, disable it and go to previous video
         setStickyMode(false);
-        console.log('Sticky mode disabled');
+        if (currentVideoIndex > 0) {
+          setCurrentVideoIndex(prev => prev - 1);
+        }
+      } else {
+        // Enable sticky mode on upward swipe
+        setStickyMode(true);
       }
-    } else if (diffY > 120) {
-      // Strong downward swipe - navigate to next video only if NOT in sticky mode
-      if (!stickyMode && currentVideoIndex < videoMemories.length - 1) {
-        setCurrentVideoIndex(prev => prev + 1);
-        console.log('Navigated to next video');
-      } else if (stickyMode) {
-        console.log('Navigation blocked - video is in sticky mode');
-      }
+    } else if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
+      // Downward swipe - always go to next video and disable sticky mode
+      setStickyMode(false);
+      setCurrentVideoIndex(prev => prev + 1);
     }
 
     // Always reset
@@ -520,9 +518,14 @@ export default function VideoFeed() {
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
                 onEnded={() => {
-                  // Disable auto-advance completely to prevent video skipping
-                  console.log(`Video ${index} ended - staying on current video`);
-                  // Do not auto-advance - user must manually swipe to next video
+                  // Prevent auto advance to stop video skipping
+                  if (index === currentVideoIndex && !stickyMode && currentVideoIndex < videoMemories.length - 1) {
+                    console.log(`Video ${index} ended naturally`);
+                    // Optionally auto-advance after longer delay
+                    setTimeout(() => {
+                      setCurrentVideoIndex(prev => prev + 1);
+                    }, 2000); // 2 second delay instead of immediate
+                  }
                 }}
                 playsInline
                 muted={isMuted}
@@ -888,8 +891,8 @@ export default function VideoFeed() {
 
           {/* Sticky Mode Indicator */}
           {stickyMode && (
-            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 bg-red-500/90 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm pointer-events-none animate-pulse shadow-lg border-2 border-white/30">
-              📌 مثبت - اسحب للأعلى للإلغاء
+            <div className="absolute top-6 left-4 bg-green-500/80 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm pointer-events-none">
+              📌 الفيديو مثبت
             </div>
           )}
 
