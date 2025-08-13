@@ -569,15 +569,23 @@ export default function VideoFeed() {
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
                 onEnded={() => {
-                  // ABSOLUTELY NO AUTO ADVANCE - Check user interaction first
+                  // ABSOLUTELY NO AUTO ADVANCE - but restart the same video
                   if (userInteracting.current || isAdvancing.current) {
                     console.log(`Video ${index} ended during user interaction - staying put`);
                     return;
                   }
-                  console.log(`Video ${index} ended - staying on same video (NO AUTO ADVANCE)`);
-                  // Do nothing - video just ends and stays put
+                  console.log(`Video ${index} ended - restarting same video (NO ADVANCE)`);
+                  
+                  // Restart the same video from beginning
+                  const video = videoRefs.current[index];
+                  if (video && index === currentVideoIndex) {
+                    video.currentTime = 0;
+                    video.play().catch(() => {
+                      setShowPlayButton(true);
+                    });
+                  }
                 }}
-                loop={false}
+                loop={true}
                 playsInline
                 muted={isMuted}
                 preload="metadata"
