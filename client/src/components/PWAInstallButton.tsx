@@ -4,8 +4,6 @@ import { Download } from 'lucide-react';
 export const PWAInstallButton = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showButton, setShowButton] = useState(false);
-  const [isFirstClick, setIsFirstClick] = useState(true);
-
   useEffect(() => {
     // Check if app is already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
@@ -14,12 +12,6 @@ export const PWAInstallButton = () => {
     if (isStandalone) {
       console.log('📱 App already installed');
       return;
-    }
-
-    // Check previous state
-    const hasClickedBefore = localStorage.getItem('pwa-first-click-done');
-    if (hasClickedBefore) {
-      setIsFirstClick(false);
     }
 
     // Listen for install events
@@ -34,7 +26,6 @@ export const PWAInstallButton = () => {
       console.log('🎉 App installed successfully');
       setShowButton(false);
       setDeferredPrompt(null);
-      localStorage.removeItem('pwa-first-click-done');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -49,100 +40,33 @@ export const PWAInstallButton = () => {
     };
   }, []);
 
-  const triggerInstallConditions = async () => {
-    console.log('🔧 Setting up install conditions...');
-    
-    try {
-      // Create multiple user interactions
-      document.body.click();
-      window.focus();
-      document.body.focus();
-      
-      // Trigger navigation events
-      window.history.pushState({}, '', window.location.href);
-      window.history.pushState({}, '', window.location.href);
-      
-      // Create engagement events
-      const events = ['click', 'mousedown', 'keydown', 'touchstart'];
-      events.forEach(eventType => {
-        document.dispatchEvent(new Event(eventType, { bubbles: true }));
-      });
-      
-      // Force service worker interaction
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration) {
-          await registration.update();
-          console.log('🔄 Service worker triggered');
-        }
-      }
-      
-      // Wait a bit then try to trigger install prompt manually
-      setTimeout(async () => {
-        try {
-          // Create fake beforeinstallprompt event
-          const installEvent = new CustomEvent('beforeinstallprompt', {
-            cancelable: true,
-            bubbles: true
-          }) as any;
-          
-          installEvent.platforms = ['web'];
-          installEvent.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
-          installEvent.prompt = async () => {
-            console.log('💥 Forced install prompt execution');
-            
-            // Try to trigger actual browser install mechanisms
-            if ('getInstalledRelatedApps' in navigator) {
-              await (navigator as any).getInstalledRelatedApps();
-            }
-            
-            // Hide button and show success
-            setShowButton(false);
-            
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-              position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-              background: linear-gradient(135deg, #10b981, #059669); color: white;
-              padding: 20px 30px; border-radius: 15px; font-size: 16px; z-index: 10000;
-              box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center;
-              font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            `;
-            notification.innerHTML = `
-              <div style="direction: rtl;">
-                <div style="font-size: 20px; margin-bottom: 10px;">🎉</div>
-                <div>تم تحضير التطبيق للتثبيت!</div>
-                <div style="font-size: 14px; opacity: 0.9; margin-top: 10px;">ابحث عن أيقونة التثبيت في متصفحك</div>
-              </div>
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => notification.remove(), 3000);
-            
-            return Promise.resolve({ outcome: 'accepted', platform: 'web' });
-          };
-          
-          // Dispatch and use the event
-          window.dispatchEvent(installEvent);
-          setDeferredPrompt(installEvent);
-          
-          // Try to use it immediately
-          await installEvent.prompt();
-          
-        } catch (e) {
-          console.log('⚠️ Manual trigger failed, using browser install');
-        }
-      }, 100);
-      
-    } catch (error) {
-      console.log('⚠️ Could not set up install conditions');
-    }
+  // Simple function to show install success message
+  const showInstallSuccess = () => {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #10b981, #059669); color: white;
+      padding: 20px 30px; border-radius: 15px; font-size: 16px; z-index: 10000;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    `;
+    notification.innerHTML = `
+      <div style="direction: rtl;">
+        <div style="font-size: 20px; margin-bottom: 10px;">🎉</div>
+        <div>تم تثبيت التطبيق بنجاح!</div>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
   };
 
-  const handleInstallClick = async () => {
+  const handleInstallClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     console.log('🔘 Install button clicked');
     
     if (deferredPrompt) {
-      // Native prompt available
+      // Native prompt available - use it immediately
       try {
         console.log('🎯 Using native install prompt');
         await deferredPrompt.prompt();
@@ -154,23 +78,79 @@ export const PWAInstallButton = () => {
         }
         
         setDeferredPrompt(null);
+        return; // Exit here, don't continue
       } catch (error) {
         console.error('❌ Native install failed:', error);
       }
-    } else if (isFirstClick) {
-      // First click - prepare conditions
-      console.log('🔧 First click: Preparing install conditions');
-      setIsFirstClick(false);
-      localStorage.setItem('pwa-first-click-done', 'true');
-      
-      await triggerInstallConditions();
-      
-    } else {
-      // Second+ click - aggressive install
-      console.log('🚀 Second click: Attempting aggressive install');
-      
-      await triggerInstallConditions();
     }
+    
+    // Fallback: Show browser-specific instructions immediately
+    console.log('📱 Showing install instructions');
+    setShowButton(false);
+    
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;
+      padding: 25px 35px; border-radius: 20px; font-size: 16px; z-index: 10000;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4); text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 90%;
+    `;
+    
+    const userAgent = navigator.userAgent.toLowerCase();
+    let instructions = '';
+    
+    if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+      instructions = `
+        <div style="direction: rtl;">
+          <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
+          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
+          <div style="line-height: 1.6;">
+            في Chrome:<br>
+            ابحث عن أيقونة التحميل ⬇️ في شريط العناوين<br>
+            أو اضغط القائمة ← "تثبيت التطبيق"
+          </div>
+        </div>
+      `;
+    } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+      instructions = `
+        <div style="direction: rtl;">
+          <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
+          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
+          <div style="line-height: 1.6;">
+            في Safari:<br>
+            اضغط أيقونة المشاركة 📤<br>
+            ← "إضافة إلى الشاشة الرئيسية"
+          </div>
+        </div>
+      `;
+    } else {
+      instructions = `
+        <div style="direction: rtl;">
+          <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
+          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
+          <div style="line-height: 1.6;">
+            ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"<br>
+            في قائمة المتصفح
+          </div>
+        </div>
+      `;
+    }
+    
+    notification.innerHTML = instructions;
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 5000);
+    
+    // Allow clicking to close
+    notification.addEventListener('click', () => {
+      notification.remove();
+    });
   };
 
   // Don't show if already installed
@@ -187,7 +167,7 @@ export const PWAInstallButton = () => {
         title="تثبيت تطبيق LaaBoBo كتطبيق مستقل"
       >
         <Download className="h-4 w-4" />
-        {isFirstClick ? 'ثبت التطبيق' : 'ثبت الآن'}
+        تثبيت التطبيق
       </button>
     </div>
   );
