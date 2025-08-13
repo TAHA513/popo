@@ -284,13 +284,13 @@ export default function VideoFeed() {
             {/* Add Button */}
             <Button
               size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white w-5 h-5 rounded-full p-0 font-bold text-sm border border-white"
+              className="bg-red-500 hover:bg-red-600 text-white w-4 h-4 rounded-full p-0 font-bold text-xs border border-white"
             >
               +
             </Button>
             
             {/* Profile */}
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
               {currentVideo.author?.profileImageUrl ? (
                 <img 
                   src={currentVideo.author.profileImageUrl} 
@@ -307,8 +307,8 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => handleLike(currentVideo.id)}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <Heart className="w-7 h-7" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Heart className="w-6 h-6" />
               </div>
               <span className="text-xs">{currentVideo.likeCount || 0}</span>
             </button>
@@ -318,8 +318,8 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => window.location.href = `/comments/${currentVideo.id}`}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <MessageCircle className="w-7 h-7" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <MessageCircle className="w-6 h-6" />
               </div>
               <span className="text-xs">تعليق</span>
             </button>
@@ -329,8 +329,8 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => handleShare(currentVideo.id)}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <Share2 className="w-7 h-7" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Share2 className="w-6 h-6" />
               </div>
               <span className="text-xs">شارك</span>
             </button>
@@ -340,8 +340,8 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => handleGiftClick(currentVideo)}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <Gift className="w-7 h-7" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Gift className="w-6 h-6" />
               </div>
               <span className="text-xs">هدية</span>
             </button>
