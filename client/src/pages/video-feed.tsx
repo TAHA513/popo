@@ -106,6 +106,7 @@ export default function VideoFeed() {
     const target = e.target as Element;
     if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
       e.stopPropagation();
+      e.preventDefault();
       return false; // Don't start swipe on controls
     }
     
@@ -118,6 +119,7 @@ export default function VideoFeed() {
     const target = e.target as Element;
     if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]') || isButtonClicked.current) {
       e.stopPropagation();
+      e.preventDefault();
       return false; // Don't swipe on controls
     }
     
@@ -126,7 +128,8 @@ export default function VideoFeed() {
     const currentY = e.touches[0].clientY;
     const diffY = startY.current - currentY;
     
-    if (Math.abs(diffY) > 10) {
+    // Require larger movement to register as swipe (increased from 10 to 30)
+    if (Math.abs(diffY) > 30) {
       isDragging.current = true;
     }
   }, []);
@@ -136,6 +139,7 @@ export default function VideoFeed() {
     const target = e.target as Element;
     if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
       e.stopPropagation();
+      e.preventDefault();
       isDragging.current = false;
       isButtonClicked.current = false;
       return false;
@@ -148,30 +152,32 @@ export default function VideoFeed() {
       return;
     }
 
-    if (!isDragging.current) return;
+    if (!isDragging.current || !startY.current) {
+      isDragging.current = false;
+      return;
+    }
 
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
+    // Require much larger swipe distance (increased from 50 to 100)
     // Swipe up (next video)
-    if (diffY > 50 && currentVideoIndex < videoMemories.length - 1) {
+    if (diffY > 100 && currentVideoIndex < videoMemories.length - 1) {
       setCurrentVideoIndex(prev => prev + 1);
     }
     // Swipe down (previous video)  
-    else if (diffY < -50 && currentVideoIndex > 0) {
+    else if (diffY < -100 && currentVideoIndex > 0) {
       setCurrentVideoIndex(prev => prev - 1);
     }
 
     isDragging.current = false;
+    startY.current = 0;
   }, [currentVideoIndex, videoMemories.length]);
 
-  // Keyboard navigation
+  // Keyboard navigation - Only allow play/pause and mute, NO video switching
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'ArrowUp' && currentVideoIndex > 0) {
-      setCurrentVideoIndex(prev => prev - 1);
-    } else if (e.key === 'ArrowDown' && currentVideoIndex < videoMemories.length - 1) {
-      setCurrentVideoIndex(prev => prev + 1);
-    } else if (e.key === ' ') {
+    // Removed arrow key navigation to prevent accidental switching
+    if (e.key === ' ') {
       e.preventDefault();
       const currentVideo = videoRefs.current[currentVideoIndex];
       if (currentVideo) {
@@ -184,7 +190,7 @@ export default function VideoFeed() {
     } else if (e.key === 'm' || e.key === 'M') {
       setIsMuted(prev => !prev);
     }
-  }, [currentVideoIndex, videoMemories.length]);
+  }, [currentVideoIndex]);
 
   // Setup event listeners
   useEffect(() => {
@@ -341,29 +347,31 @@ export default function VideoFeed() {
         className="fixed inset-0 bg-black overflow-hidden touch-none pb-12"
         style={{ userSelect: 'none' }}
         onTouchStart={(e) => {
-          // Prevent swipe if touching controls
+          // Block ALL touch events on controls completely
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
             e.stopPropagation();
             e.preventDefault();
+            isButtonClicked.current = true;
             return false;
           }
         }}
         onTouchMove={(e) => {
-          // Prevent swipe if touching controls
+          // Block ALL touch events on controls completely
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]') || isButtonClicked.current) {
             e.stopPropagation();
             e.preventDefault();
             return false;
           }
         }}
         onTouchEnd={(e) => {
-          // Prevent swipe if touching controls
+          // Block ALL touch events on controls completely
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]') || isButtonClicked.current) {
             e.stopPropagation();
             e.preventDefault();
+            isButtonClicked.current = false;
             return false;
           }
         }}
