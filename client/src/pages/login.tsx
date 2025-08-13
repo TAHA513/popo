@@ -74,8 +74,16 @@ export default function Login() {
           setDeferredPrompt(null);
         });
       } else {
-        // If no native prompt available, show instructions
-        alert('لتثبيت التطبيق، ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية" في قائمة متصفحك.');
+        // Try to trigger manual install prompt by creating a beforeinstallprompt event
+        const event = new Event('beforeinstallprompt');
+        window.dispatchEvent(event);
+        
+        // If still no prompt, try other PWA methods
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(() => {
+            console.log('PWA install attempt - service worker ready');
+          });
+        }
       }
     }
   };
@@ -185,7 +193,18 @@ export default function Login() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl mb-4 shadow-2xl">
               <span className="text-3xl rabbit-animated">🐰</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">LaaBoBo Live</h1>
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-white">LaaBoBo Live</h1>
+              <Button
+                onClick={handleInstallClick}
+                variant="ghost"
+                size="sm"
+                className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-lg border border-pink-400/30 text-white hover:from-pink-500/30 hover:to-purple-600/30 rounded-full w-8 h-8 p-0 shadow-lg group transition-all duration-300 hover:scale-110"
+                title="تثبيت التطبيق"
+              >
+                <Download className="h-4 w-4 group-hover:animate-bounce" />
+              </Button>
+            </div>
             <p className="text-gray-300 text-sm">{isRTL ? 'أهلاً وسهلاً' : 'Welcome back'}</p>
           </div>
 
@@ -282,19 +301,7 @@ export default function Login() {
             </Button>
           </div>
 
-          {/* PWA Install Icon - Bottom */}
-          <div className="text-center mt-6">
-            <Button
-              onClick={handleInstallClick}
-              variant="ghost"
-              size="sm"
-              className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-lg border border-pink-400/30 text-white hover:from-pink-500/30 hover:to-purple-600/30 rounded-full w-12 h-12 p-0 shadow-lg group transition-all duration-300 hover:scale-110"
-              title="تثبيت التطبيق"
-            >
-              <Download className="h-5 w-5 group-hover:animate-bounce" />
-            </Button>
-            <p className="text-white/70 text-xs mt-2">تثبيت التطبيق</p>
-          </div>
+
 
           {/* Footer */}
           <div className="text-center mt-8">
