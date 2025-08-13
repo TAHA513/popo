@@ -84,9 +84,9 @@ export default function VideoFeed() {
           const { isFollowing } = await response.json();
           setFollowingUsers(prev => {
             const newSet = new Set(prev);
-            if (isFollowing) {
+            if (isFollowing && currentVideo.author) {
               newSet.add(currentVideo.author.id);
-            } else {
+            } else if (currentVideo.author) {
               newSet.delete(currentVideo.author.id);
             }
             return newSet;
@@ -100,13 +100,20 @@ export default function VideoFeed() {
     loadCurrentUserFollowStatus();
   }, [user, currentVideo?.author?.id]);
 
-  // Touch/Swipe handlers
+  // Touch/Swipe handlers - Enhanced protection against auto-navigation
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
+    
+    // Block all interaction with control areas
+    if (target.closest('.pointer-events-auto') || 
+        target.closest('button') || 
+        target.closest('[role="button"]') ||
+        target.closest('.video-controls') ||
+        target.tagName === 'BUTTON') {
+      e.preventDefault();
       e.stopPropagation();
-      return false; // Don't start swipe on controls
+      e.stopImmediatePropagation();
+      return false;
     }
     
     startY.current = e.touches[0].clientY;
@@ -114,11 +121,19 @@ export default function VideoFeed() {
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]') || isButtonClicked.current) {
-      e.stopPropagation();
-      return false; // Don't swipe on controls
+    
+    // Block all interaction with control areas
+    if (target.closest('.pointer-events-auto') || 
+        target.closest('button') || 
+        target.closest('[role="button"]') ||
+        target.closest('.video-controls') ||
+        target.tagName === 'BUTTON' ||
+        isButtonClicked.current) {
+      e.preventDefault();
+      e.stopPropagation(); 
+      e.stopImmediatePropagation();
+      return false;
     }
     
     if (!startY.current) return;
@@ -126,43 +141,55 @@ export default function VideoFeed() {
     const currentY = e.touches[0].clientY;
     const diffY = startY.current - currentY;
     
-    if (Math.abs(diffY) > 10) {
+    // Require larger movement for drag detection
+    if (Math.abs(diffY) > 20) {
       isDragging.current = true;
     }
   }, []);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
-    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
+    
+    // Block all interaction with control areas
+    if (target.closest('.pointer-events-auto') || 
+        target.closest('button') || 
+        target.closest('[role="button"]') ||
+        target.closest('.video-controls') ||
+        target.tagName === 'BUTTON') {
+      e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation();
       isDragging.current = false;
       isButtonClicked.current = false;
       return false;
     }
 
-    // Don't handle swipe if a button was clicked
+    // Always reset button click flag after any touch
     if (isButtonClicked.current) {
       isButtonClicked.current = false;
       isDragging.current = false;
       return;
     }
 
-    if (!isDragging.current) return;
+    // Only navigate if we have a proper drag gesture
+    if (!isDragging.current || !startY.current) {
+      isDragging.current = false;
+      return;
+    }
 
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
-    // Swipe up (next video)
-    if (diffY > 50 && currentVideoIndex < videoMemories.length - 1) {
+    // Require larger swipe distance to navigate
+    if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
       setCurrentVideoIndex(prev => prev + 1);
-    }
-    // Swipe down (previous video)  
-    else if (diffY < -50 && currentVideoIndex > 0) {
+    } else if (diffY < -80 && currentVideoIndex > 0) {
       setCurrentVideoIndex(prev => prev - 1);
     }
 
+    // Always reset
     isDragging.current = false;
+    startY.current = null;
   }, [currentVideoIndex, videoMemories.length]);
 
   // Keyboard navigation
@@ -338,32 +365,45 @@ export default function VideoFeed() {
     <>
       <div 
         ref={containerRef}
-        className="fixed inset-0 bg-black overflow-hidden touch-none pb-12"
-        style={{ userSelect: 'none' }}
+        className="fixed inset-0 bg-black overflow-hidden pb-12"
+        style={{ userSelect: 'none', touchAction: 'pan-y' }}
         onTouchStart={(e) => {
-          // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          // Block navigation if touching any control elements
+          if (target.closest('.pointer-events-auto') || 
+              target.closest('button') || 
+              target.closest('.video-controls') ||
+              target.tagName === 'BUTTON') {
             e.stopPropagation();
             e.preventDefault();
+            e.stopImmediatePropagation();
+            isButtonClicked.current = true;
             return false;
           }
         }}
         onTouchMove={(e) => {
-          // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          if (target.closest('.pointer-events-auto') || 
+              target.closest('button') || 
+              target.closest('.video-controls') ||
+              target.tagName === 'BUTTON' ||
+              isButtonClicked.current) {
             e.stopPropagation();
             e.preventDefault();
+            e.stopImmediatePropagation();
             return false;
           }
         }}
         onTouchEnd={(e) => {
-          // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          if (target.closest('.pointer-events-auto') || 
+              target.closest('button') || 
+              target.closest('.video-controls') ||
+              target.tagName === 'BUTTON') {
             e.stopPropagation();
             e.preventDefault();
+            e.stopImmediatePropagation();
+            setTimeout(() => { isButtonClicked.current = false; }, 100);
             return false;
           }
         }}
@@ -417,21 +457,25 @@ export default function VideoFeed() {
           
           {/* Right side controls */}
           <div 
-            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 touch-none"
+            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 video-controls"
             style={{ touchAction: 'none' }}
             onTouchStart={(e) => {
               e.stopPropagation();
               e.preventDefault();
+              e.stopImmediatePropagation();
+              isButtonClicked.current = true;
               return false;
             }}
             onTouchMove={(e) => {
               e.stopPropagation(); 
               e.preventDefault();
+              e.stopImmediatePropagation();
               return false;
             }}
             onTouchEnd={(e) => {
               e.stopPropagation();
               e.preventDefault();
+              e.stopImmediatePropagation();
               return false;
             }}
           >
