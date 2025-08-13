@@ -45,14 +45,26 @@ export default function Login() {
     };
   }, []);
 
+  // Check if this is the second click after reload
+  useEffect(() => {
+    const wasClicked = localStorage.getItem('pwa-install-clicked');
+    if (wasClicked === 'true') {
+      setClickCount(1);
+    }
+  }, []);
+
   // Install button click handler
   const handleInstallClick = () => {
-    if (clickCount === 0) {
-      // First click - reload page
-      setClickCount(1);
+    const currentClickCount = localStorage.getItem('pwa-install-clicked') === 'true' ? 1 : 0;
+    
+    if (currentClickCount === 0) {
+      // First click - mark as clicked and reload
+      localStorage.setItem('pwa-install-clicked', 'true');
       window.location.reload();
     } else {
-      // Second click - try to install
+      // Second click - try to install and clear the flag
+      localStorage.removeItem('pwa-install-clicked');
+      
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult: any) => {
@@ -61,6 +73,9 @@ export default function Login() {
           }
           setDeferredPrompt(null);
         });
+      } else {
+        // If no native prompt available, show instructions
+        alert('لتثبيت التطبيق، ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية" في قائمة متصفحك.');
       }
     }
   };
@@ -133,51 +148,34 @@ export default function Login() {
         <div className="absolute bottom-20 left-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
       </div>
       
-      {/* Top Right Controls */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
-        {/* PWA Install Icon */}
-        <div className="flex flex-col items-center">
-          <Button
-            onClick={handleInstallClick}
-            variant="ghost"
-            size="sm"
-            className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-lg border border-pink-400/30 text-white hover:from-pink-500/30 hover:to-purple-600/30 rounded-full w-8 h-8 p-0 shadow-lg group transition-all duration-300 hover:scale-110"
-            title="تثبيت التطبيق"
-          >
-            <Download className="h-4 w-4 group-hover:animate-bounce" />
-          </Button>
-          <span className="text-white/70 text-xs mt-1">تثبيت</span>
-        </div>
-
-        {/* Language Switcher */}
-        <div className="flex flex-col items-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all px-2 py-1 h-8"
+      {/* Language Switcher - Top Right */}
+      <div className="absolute top-4 right-4 z-50 flex flex-col items-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all px-2 py-1 h-8"
+            >
+              <Globe className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+              <span className="text-sm">{currentLanguage.flag}</span>
+              <ChevronDown className={`w-2 h-2 ${isRTL ? 'mr-1' : 'ml-1'}`} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-black/90 backdrop-blur-lg border border-white/20">
+            {languages.map((lang) => (
+              <DropdownMenuItem
+                key={lang.code}
+                onClick={() => setLanguage(lang)}
+                className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10 text-sm"
               >
-                <Globe className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
-                <span className="text-sm">{currentLanguage.flag}</span>
-                <ChevronDown className={`w-2 h-2 ${isRTL ? 'mr-1' : 'ml-1'}`} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-black/90 backdrop-blur-lg border border-white/20">
-              {languages.map((lang) => (
-                <DropdownMenuItem
-                  key={lang.code}
-                  onClick={() => setLanguage(lang)}
-                  className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10 text-sm"
-                >
-                  <span className={`${isRTL ? 'ml-2' : 'mr-2'}`}>{lang.flag}</span>
-                  {lang.localName}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <span className="text-white/70 text-xs mt-1">Language</span>
-        </div>
+                <span className={`${isRTL ? 'ml-2' : 'mr-2'}`}>{lang.flag}</span>
+                {lang.localName}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span className="text-white/70 text-xs mt-1">Language</span>
       </div>
       
       <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -282,6 +280,20 @@ export default function Login() {
             >
 {t('auth.register_now')}
             </Button>
+          </div>
+
+          {/* PWA Install Icon - Bottom */}
+          <div className="text-center mt-6">
+            <Button
+              onClick={handleInstallClick}
+              variant="ghost"
+              size="sm"
+              className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-lg border border-pink-400/30 text-white hover:from-pink-500/30 hover:to-purple-600/30 rounded-full w-12 h-12 p-0 shadow-lg group transition-all duration-300 hover:scale-110"
+              title="تثبيت التطبيق"
+            >
+              <Download className="h-5 w-5 group-hover:animate-bounce" />
+            </Button>
+            <p className="text-white/70 text-xs mt-2">تثبيت التطبيق</p>
           </div>
 
           {/* Footer */}
