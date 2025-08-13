@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Share2, Gift, User, Volume2, VolumeX, Play } from "lucide-react";
 import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
+import { BottomNavigation } from "@/components/bottom-navigation";
 
 interface VideoMemory {
   id: number;
@@ -400,6 +401,9 @@ export default function VideoFeed() {
           memoryId={null}
         />
       )}
+
+      {/* Bottom Navigation - Always visible */}
+      <BottomNavigation />
     </>
   );
 }
