@@ -57,26 +57,44 @@ export default function Login() {
         setDeferredPrompt(null);
       });
     } else {
-      // If no native prompt available, show browser-specific instructions immediately
-      const userAgent = navigator.userAgent.toLowerCase();
-      let instructions = '';
+      // Try to trigger the install prompt through various methods
       
-      if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
-        instructions = 'في Chrome: اضغط على الثلاث نقاط (⋮) في الأعلى ← "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"';
-      } else if (userAgent.includes('firefox')) {
-        instructions = 'في Firefox: ابحث عن أيقونة "إضافة إلى الشاشة الرئيسية" في شريط العنوان';
-      } else if (userAgent.includes('safari')) {
-        instructions = 'في Safari: اضغط على أيقونة المشاركة ← "إضافة إلى الشاشة الرئيسية"';
-      } else if (userAgent.includes('edg')) {
-        instructions = 'في Edge: اضغط على الثلاث نقاط (⋯) ← "التطبيقات" ← "تثبيت هذا الموقع كتطبيق"';
-      } else {
-        instructions = 'ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية" في قائمة متصفحك';
+      // Method 1: Try to dispatch a custom beforeinstallprompt event
+      const installEvent = new CustomEvent('beforeinstallprompt', {
+        bubbles: true,
+        cancelable: true
+      });
+      
+      const eventDispatched = window.dispatchEvent(installEvent);
+      
+      // Method 2: Try to access the install API if available
+      if ('getInstalledRelatedApps' in navigator) {
+        (navigator as any).getInstalledRelatedApps().then((apps: any[]) => {
+          if (apps.length === 0) {
+            // App not installed, try to show install prompt
+            console.log('PWA not installed, attempting to trigger install');
+          }
+        });
       }
       
-      // Show instructions in a more user-friendly way
-      if (confirm('للحصول على أفضل تجربة، يمكنك تثبيت LaaBoBo كتطبيق على جهازك.\n\nهل تريد معرفة كيفية التثبيت؟')) {
-        alert(instructions);
+      // Method 3: For Chrome/Edge, try to use the install prompt API
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        navigator.serviceWorker.getRegistration().then((registration) => {
+          if (registration) {
+            // Service worker is registered, PWA should be installable
+            console.log('Service worker registered - PWA should be installable');
+            
+            // Try to trigger install through service worker message
+            if (registration.active) {
+              registration.active.postMessage({ type: 'TRIGGER_INSTALL' });
+            }
+          }
+        });
       }
+      
+      // If all methods fail, the browser will show its native install option
+      // The user can use the browser's built-in install functionality
+      console.log('Install triggered - check browser for install option');
     }
   };
 
