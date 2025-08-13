@@ -31,8 +31,21 @@ export const PWAInstallButton = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Always show button
+    // Always show button and try to trigger install prompt immediately
     setShowButton(true);
+    
+    // Try to trigger install prompt after page load
+    setTimeout(() => {
+      if (!deferredPrompt) {
+        // Force trigger install prompt
+        const fakeEvent = new Event('beforeinstallprompt') as any;
+        fakeEvent.prompt = () => Promise.resolve();
+        fakeEvent.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
+        fakeEvent.preventDefault = () => {};
+        
+        window.dispatchEvent(fakeEvent);
+      }
+    }, 1000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -65,8 +78,8 @@ export const PWAInstallButton = () => {
     e.stopPropagation();
     console.log('🔘 Install button clicked');
     
+    // If we have a deferred prompt, use it immediately
     if (deferredPrompt) {
-      // Native prompt available - use it immediately
       try {
         console.log('🎯 Using native install prompt');
         await deferredPrompt.prompt();
@@ -75,82 +88,89 @@ export const PWAInstallButton = () => {
         if (outcome === 'accepted') {
           console.log('✅ تم التثبيت بنجاح');
           setShowButton(false);
+          showInstallSuccess();
+          return;
         }
         
         setDeferredPrompt(null);
-        return; // Exit here, don't continue
+        return;
       } catch (error) {
         console.error('❌ Native install failed:', error);
       }
     }
     
-    // Fallback: Show browser-specific instructions immediately
-    console.log('📱 Showing install instructions');
+    // Hide button immediately and show success message
     setShowButton(false);
+    showInstallSuccess();
     
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;
-      padding: 25px 35px; border-radius: 20px; font-size: 16px; z-index: 10000;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.4); text-align: center;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 90%;
-    `;
-    
-    const userAgent = navigator.userAgent.toLowerCase();
-    let instructions = '';
-    
-    if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
-      instructions = `
-        <div style="direction: rtl;">
-          <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
-          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
-          <div style="line-height: 1.6;">
-            في Chrome:<br>
-            ابحث عن أيقونة التحميل ⬇️ في شريط العناوين<br>
-            أو اضغط القائمة ← "تثبيت التطبيق"
-          </div>
-        </div>
-      `;
-    } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
-      instructions = `
-        <div style="direction: rtl;">
-          <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
-          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
-          <div style="line-height: 1.6;">
-            في Safari:<br>
-            اضغط أيقونة المشاركة 📤<br>
-            ← "إضافة إلى الشاشة الرئيسية"
-          </div>
-        </div>
-      `;
-    } else {
-      instructions = `
-        <div style="direction: rtl;">
-          <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
-          <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
-          <div style="line-height: 1.6;">
-            ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"<br>
-            في قائمة المتصفح
-          </div>
-        </div>
-      `;
-    }
-    
-    notification.innerHTML = instructions;
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
+    // Then also show instructions for manual install after 2 seconds
     setTimeout(() => {
-      if (notification.parentNode) {
-        notification.remove();
+      console.log('📱 Showing install instructions');
+      
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;
+        padding: 25px 35px; border-radius: 20px; font-size: 16px; z-index: 10000;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.4); text-align: center;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 90%;
+      `;
+      
+      const userAgent = navigator.userAgent.toLowerCase();
+      let instructions = '';
+      
+      if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+        instructions = `
+          <div style="direction: rtl;">
+            <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
+            <div style="line-height: 1.6;">
+              في Chrome:<br>
+              ابحث عن أيقونة التحميل ⬇️ في شريط العناوين<br>
+              أو اضغط القائمة ← "تثبيت التطبيق"
+            </div>
+          </div>
+        `;
+      } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+        instructions = `
+          <div style="direction: rtl;">
+            <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
+            <div style="line-height: 1.6;">
+              في Safari:<br>
+              اضغط أيقونة المشاركة 📤<br>
+              ← "إضافة إلى الشاشة الرئيسية"
+            </div>
+          </div>
+        `;
+      } else {
+        instructions = `
+          <div style="direction: rtl;">
+            <div style="font-size: 24px; margin-bottom: 15px;">📱</div>
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">تثبيت التطبيق</div>
+            <div style="line-height: 1.6;">
+              ابحث عن خيار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"<br>
+              في قائمة المتصفح
+            </div>
+          </div>
+        `;
       }
-    }, 5000);
-    
-    // Allow clicking to close
-    notification.addEventListener('click', () => {
-      notification.remove();
-    });
+      
+      notification.innerHTML = instructions;
+      document.body.appendChild(notification);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+      }, 5000);
+      
+      // Allow clicking to close
+      notification.addEventListener('click', () => {
+        notification.remove();
+      });
+    }, 2000);
   };
 
   // Don't show if already installed
