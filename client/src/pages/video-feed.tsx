@@ -240,7 +240,7 @@ export default function VideoFeed() {
       
       <div 
         ref={containerRef}
-        className="fixed inset-0 bg-black overflow-hidden touch-none pt-16 pb-20"
+        className="fixed inset-0 bg-black overflow-hidden touch-none pt-14 pb-20"
         style={{ userSelect: 'none' }}
       >
         {/* Video Container */}
