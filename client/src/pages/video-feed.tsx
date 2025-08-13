@@ -85,9 +85,9 @@ export default function VideoFeed() {
           setFollowingUsers(prev => {
             const newSet = new Set(prev);
             if (isFollowing) {
-              newSet.add(currentVideo.author!.id);
+              newSet.add(currentVideo.author.id);
             } else {
-              newSet.delete(currentVideo.author!.id);
+              newSet.delete(currentVideo.author.id);
             }
             return newSet;
           });
@@ -100,24 +100,13 @@ export default function VideoFeed() {
     loadCurrentUserFollowStatus();
   }, [user, currentVideo?.author?.id]);
 
-  // Touch/Swipe handlers - More strict control
+  // Touch/Swipe handlers
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    // Check if touching controls or button areas - STRICT CHECK
+    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto') || 
-        target.closest('button') || 
-        target.closest('[role="button"]') || 
-        target.closest('.z-50') ||
-        target.closest('svg') ||
-        target.closest('span')) {
+    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
       e.stopPropagation();
-      e.preventDefault();
-      return false; // PREVENT any swipe on controls
-    }
-    
-    // Only start swipe on video background area
-    if (!target.closest('video')) {
-      return false;
+      return false; // Don't start swipe on controls
     }
     
     startY.current = e.touches[0].clientY;
@@ -125,18 +114,11 @@ export default function VideoFeed() {
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    // STRICT CHECK - Multiple layers of protection
+    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto') || 
-        target.closest('button') || 
-        target.closest('[role="button"]') || 
-        target.closest('.z-50') ||
-        target.closest('svg') ||
-        target.closest('span') ||
-        isButtonClicked.current) {
+    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]') || isButtonClicked.current) {
       e.stopPropagation();
-      e.preventDefault();
-      return false; // BLOCK swipe completely on controls
+      return false; // Don't swipe on controls
     }
     
     if (!startY.current) return;
@@ -144,60 +126,43 @@ export default function VideoFeed() {
     const currentY = e.touches[0].clientY;
     const diffY = startY.current - currentY;
     
-    // INCREASE threshold to prevent accidental swipes
-    if (Math.abs(diffY) > 50) { // Increased from 10 to 50
+    if (Math.abs(diffY) > 10) {
       isDragging.current = true;
     }
   }, []);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
-    // ULTRA STRICT CHECK - Block ANY control interaction
+    // Check if touching controls or button areas
     const target = e.target as Element;
-    if (target.closest('.pointer-events-auto') || 
-        target.closest('button') || 
-        target.closest('[role="button"]') ||
-        target.closest('.z-50') ||
-        target.closest('svg') ||
-        target.closest('span')) {
+    if (target.closest('.pointer-events-auto') || target.closest('button') || target.closest('[role="button"]')) {
       e.stopPropagation();
-      e.preventDefault();
       isDragging.current = false;
       isButtonClicked.current = false;
-      startY.current = null;
       return false;
     }
 
-    // BLOCK if button was clicked
+    // Don't handle swipe if a button was clicked
     if (isButtonClicked.current) {
       isButtonClicked.current = false;
       isDragging.current = false;
-      startY.current = null;
       return;
     }
 
-    // ONLY process if we were actually dragging
-    if (!isDragging.current || !startY.current) {
-      startY.current = null;
-      return;
-    }
+    if (!isDragging.current) return;
 
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
-    // REQUIRE STRONG SWIPE (100px instead of 50px)
-    if (diffY > 100 && currentVideoIndex < videoMemories.length - 1) {
-      console.log('Strong swipe UP detected - going to next video');
+    // Swipe up (next video)
+    if (diffY > 50 && currentVideoIndex < videoMemories.length - 1) {
       setCurrentVideoIndex(prev => prev + 1);
     }
-    else if (diffY < -100 && currentVideoIndex > 0) {
-      console.log('Strong swipe DOWN detected - going to previous video');
+    // Swipe down (previous video)  
+    else if (diffY < -50 && currentVideoIndex > 0) {
       setCurrentVideoIndex(prev => prev - 1);
-    } else {
-      console.log('Swipe too weak or invalid:', diffY);
     }
 
     isDragging.current = false;
-    startY.current = null;
   }, [currentVideoIndex, videoMemories.length]);
 
   // Keyboard navigation
@@ -555,7 +520,7 @@ export default function VideoFeed() {
               <div className="w-10 h-10 flex items-center justify-center">
                 <MessageCircle className="w-6 h-6" />
               </div>
-              <span className="text-xs">{(currentVideo as any).commentCount || 0}</span>
+              <span className="text-xs">تعليق</span>
             </button>
 
             {/* Share */}
