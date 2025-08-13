@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useRouter } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Eye, EyeOff, Globe, ChevronDown } from "lucide-react";
+import { Loader2, Eye, EyeOff, Globe, ChevronDown, Download } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage, languages } from "@/contexts/LanguageContext";
 import {
@@ -22,10 +22,48 @@ import {
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currentLanguage, setLanguage, t, isRTL } = useLanguage();
+
+  // PWA Install functionality
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  // Listen for beforeinstallprompt event
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  // Install button click handler
+  const handleInstallClick = () => {
+    if (clickCount === 0) {
+      // First click - reload page
+      setClickCount(1);
+      window.location.reload();
+    } else {
+      // Second click - try to install
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult: any) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the PWA install prompt');
+          }
+          setDeferredPrompt(null);
+        });
+      }
+    }
+  };
 
   const loginSchema = z.object({
     username: z.string().min(1, t('auth.username')),
@@ -95,34 +133,51 @@ export default function Login() {
         <div className="absolute bottom-20 left-1/3 w-36 h-36 bg-blue-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
       </div>
       
-      {/* Language Switcher - Top Right */}
-      <div className="absolute top-4 right-4 z-50 flex flex-col items-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all px-2 py-1 h-8"
-            >
-              <Globe className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
-              <span className="text-sm">{currentLanguage.flag}</span>
-              <ChevronDown className={`w-2 h-2 ${isRTL ? 'mr-1' : 'ml-1'}`} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-black/90 backdrop-blur-lg border border-white/20">
-            {languages.map((lang) => (
-              <DropdownMenuItem
-                key={lang.code}
-                onClick={() => setLanguage(lang)}
-                className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10 text-sm"
+      {/* Top Right Controls */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
+        {/* PWA Install Icon */}
+        <div className="flex flex-col items-center">
+          <Button
+            onClick={handleInstallClick}
+            variant="ghost"
+            size="sm"
+            className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 backdrop-blur-lg border border-pink-400/30 text-white hover:from-pink-500/30 hover:to-purple-600/30 rounded-full w-8 h-8 p-0 shadow-lg group transition-all duration-300 hover:scale-110"
+            title="تثبيت التطبيق"
+          >
+            <Download className="h-4 w-4 group-hover:animate-bounce" />
+          </Button>
+          <span className="text-white/70 text-xs mt-1">تثبيت</span>
+        </div>
+
+        {/* Language Switcher */}
+        <div className="flex flex-col items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-white/10 backdrop-blur-lg border border-white/20 text-white hover:bg-white/20 transition-all px-2 py-1 h-8"
               >
-                <span className={`${isRTL ? 'ml-2' : 'mr-2'}`}>{lang.flag}</span>
-                {lang.localName}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <span className="text-white/70 text-xs mt-1">Language</span>
+                <Globe className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                <span className="text-sm">{currentLanguage.flag}</span>
+                <ChevronDown className={`w-2 h-2 ${isRTL ? 'mr-1' : 'ml-1'}`} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-black/90 backdrop-blur-lg border border-white/20">
+              {languages.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => setLanguage(lang)}
+                  className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10 text-sm"
+                >
+                  <span className={`${isRTL ? 'ml-2' : 'mr-2'}`}>{lang.flag}</span>
+                  {lang.localName}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span className="text-white/70 text-xs mt-1">Language</span>
+        </div>
       </div>
       
       <div className="relative min-h-screen flex items-center justify-center p-4">
