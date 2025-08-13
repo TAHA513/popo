@@ -25,18 +25,18 @@ export default function NavigationHeader() {
   const [location] = useLocation();
 
   return (
-    <header className="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 shadow-sm" style={{ height: '48px' }}>
-      <div className="container mx-auto px-3 py-1">
+    <header className="bg-gradient-to-r from-purple-500/80 via-pink-500/80 to-blue-500/80 backdrop-blur-sm shadow-sm" style={{ height: '40px' }}>
+      <div className="container mx-auto px-2 py-1">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <img 
-                src="/laabo-rabbit-logo.svg" 
+                src="/rabbit-icon-simple.svg" 
                 alt="LaaBoBo" 
-                className="w-7 h-7"
+                className="w-6 h-6"
               />
-              <span className="text-base font-bold text-white">
+              <span className="text-sm font-bold text-white">
                 LaaBoBo
               </span>
             </div>
