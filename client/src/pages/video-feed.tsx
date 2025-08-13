@@ -281,25 +281,25 @@ export default function VideoFeed() {
           
           {/* Right side controls */}
           <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto">
+            {/* Add Button */}
+            <Button
+              size="sm"
+              className="bg-red-500 hover:bg-red-600 text-white w-5 h-5 rounded-full p-0 font-bold text-sm border border-white"
+            >
+              +
+            </Button>
+            
             {/* Profile */}
-            <div className="relative mt-[38px] mb-[38px]">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white mt-[28px] mb-[28px]">
-                {currentVideo.author?.profileImageUrl ? (
-                  <img 
-                    src={currentVideo.author.profileImageUrl} 
-                    alt={currentVideo.author.username} 
-                    className="w-full h-full object-cover mt-[11px] mb-[11px]"
-                  />
-                ) : (
-                  <User className="w-6 h-6 text-white m-3" />
-                )}
-              </div>
-              <Button
-                size="sm"
-                className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white w-5 h-5 rounded-full p-0 font-bold text-sm border border-white mt-[11px] mb-[11px]"
-              >
-                +
-              </Button>
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
+              {currentVideo.author?.profileImageUrl ? (
+                <img 
+                  src={currentVideo.author.profileImageUrl} 
+                  alt={currentVideo.author.username} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-6 h-6 text-white m-3" />
+              )}
             </div>
 
             {/* Like */}
