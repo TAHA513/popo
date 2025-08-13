@@ -201,6 +201,7 @@ export default function VideoFeed() {
         // If in sticky mode, disable it and go to previous video
         setStickyMode(false);
         if (currentVideoIndex > 0) {
+          console.log('Manual swipe to previous video');
           setCurrentVideoIndex(prev => prev - 1);
         }
       } else {
@@ -208,8 +209,9 @@ export default function VideoFeed() {
         setStickyMode(true);
       }
     } else if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
-      // Downward swipe - always go to next video and disable sticky mode
+      // Downward swipe - MANUAL navigation only 
       setStickyMode(false);
+      console.log('Manual swipe navigation to next video');
       setCurrentVideoIndex(prev => prev + 1);
     }
 
@@ -218,11 +220,13 @@ export default function VideoFeed() {
     startY.current = 0;
   }, [currentVideoIndex, videoMemories.length]);
 
-  // Keyboard navigation
+  // Keyboard navigation - ONLY manual control
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'ArrowUp' && currentVideoIndex > 0) {
+      console.log('Manual keyboard up - previous video');
       setCurrentVideoIndex(prev => prev - 1);
     } else if (e.key === 'ArrowDown' && currentVideoIndex < videoMemories.length - 1) {
+      console.log('Manual keyboard down - next video');
       setCurrentVideoIndex(prev => prev + 1);
     } else if (e.key === ' ') {
       e.preventDefault();
@@ -325,12 +329,20 @@ export default function VideoFeed() {
       }
     });
 
-    // Current video setup but NO AUTO PLAY
+    // Current video - NO AUTO PLAY AT ALL
     const currentVideo = videoRefs.current[currentVideoIndex];
     if (currentVideo) {
+      // Reset video but keep it paused
       currentVideo.currentTime = 0;
-      // Don't auto-play - user must click to play
       currentVideo.pause();
+      
+      // Force all other videos to stay paused and reset
+      videoRefs.current.forEach((video, idx) => {
+        if (video && idx !== currentVideoIndex) {
+          video.pause();
+          video.currentTime = 0;
+        }
+      });
     }
   }, [currentVideoIndex, stickyMode]);
 
@@ -516,10 +528,11 @@ export default function VideoFeed() {
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
                 onEnded={() => {
-                  // NO AUTO ADVANCE - User must manually navigate
-                  console.log(`Video ${index} ended - no auto advance`);
-                  // Video will loop or pause, user controls navigation
+                  // ABSOLUTELY NO AUTO ADVANCE - DISABLED COMPLETELY
+                  console.log(`Video ${index} ended - staying on same video`);
+                  // Do nothing - video just ends and stays put
                 }}
+                loop={false}
                 playsInline
                 muted={isMuted}
                 preload="metadata"
