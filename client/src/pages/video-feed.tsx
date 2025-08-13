@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -61,16 +61,27 @@ export default function VideoFeed() {
   const urlParams = new URLSearchParams(window.location.search);
   const startVideoId = urlParams.get('start');
 
-  // Get only video memories
+  // Get only video memories - NO AUTO REFRESH to prevent jumping
   const { data: allMemories = [] } = useQuery({
     queryKey: ['/api/memories/public'],
-    refetchInterval: 30000,
+    // Remove refetchInterval to prevent automatic data refresh that causes jumping
   });
 
-  // Filter only videos and shuffle randomly
-  const videoMemories = (allMemories as VideoMemory[])
-    .filter(memory => memory.type === 'video' && memory.mediaUrls?.length > 0)
-    .sort(() => Math.random() - 0.5); // Random shuffle
+  // Filter only videos - NO RANDOM SHUFFLE to prevent jumping
+  const videoMemoriesRef = useRef<VideoMemory[]>([]);
+  const videoMemories = useMemo(() => {
+    if (!allMemories || !Array.isArray(allMemories) || allMemories.length === 0) return [];
+    
+    const filteredVideos = (allMemories as VideoMemory[])
+      .filter(memory => memory.type === 'video' && memory.mediaUrls?.length > 0);
+    
+    // Only shuffle once when data first loads, then keep the same order
+    if (videoMemoriesRef.current.length === 0 && filteredVideos.length > 0) {
+      videoMemoriesRef.current = filteredVideos.sort(() => Math.random() - 0.5);
+    }
+    
+    return videoMemoriesRef.current;
+  }, [allMemories]);
 
   // Set initial video index based on URL param
   useEffect(() => {
