@@ -285,7 +285,12 @@ export default function VideoFeed() {
             <Button
               size="sm"
               className="bg-red-500 hover:bg-red-600 text-white w-4 h-4 rounded-full p-0 font-bold text-xs border border-white"
-              onClick={() => window.location.href = '/home'}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Add button clicked');
+                window.location.href = '/home';
+              }}
             >
               +
             </Button>
@@ -293,7 +298,10 @@ export default function VideoFeed() {
             {/* Profile */}
             <button 
               className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Profile clicked for user:', currentVideo.author?.username);
                 if (currentVideo.author?.username) {
                   window.location.href = `/profile/${currentVideo.author.username}`;
                 }
@@ -313,7 +321,12 @@ export default function VideoFeed() {
             {/* Like */}
             <button
               className="flex flex-col items-center space-y-1 text-white"
-              onClick={() => handleLike(currentVideo.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Like clicked for video:', currentVideo.id);
+                handleLike(currentVideo.id);
+              }}
             >
               <div className="w-10 h-10 flex items-center justify-center">
                 <Heart className="w-6 h-6" />
@@ -324,7 +337,12 @@ export default function VideoFeed() {
             {/* Comments */}
             <button
               className="flex flex-col items-center space-y-1 text-white"
-              onClick={() => window.location.href = `/comments/${currentVideo.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Comments clicked for video:', currentVideo.id);
+                window.location.href = `/memory/${currentVideo.id}`;
+              }}
             >
               <div className="w-10 h-10 flex items-center justify-center">
                 <MessageCircle className="w-6 h-6" />
@@ -335,7 +353,12 @@ export default function VideoFeed() {
             {/* Share */}
             <button
               className="flex flex-col items-center space-y-1 text-white"
-              onClick={() => handleShare(currentVideo.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Share clicked for video:', currentVideo.id);
+                handleShare(currentVideo.id);
+              }}
             >
               <div className="w-10 h-10 flex items-center justify-center">
                 <Share2 className="w-6 h-6" />
