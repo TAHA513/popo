@@ -89,7 +89,7 @@ export default function VideoFeed() {
 
   // Get only video memories - NO AUTO REFRESH to prevent jumping
   const { data: allMemories = [] } = useQuery({
-    queryKey: ['/api/memories/public'],
+    queryKey: ['/api/memories/videos'],
     // Remove refetchInterval to prevent automatic data refresh that causes jumping
   });
 

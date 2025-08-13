@@ -1794,14 +1794,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get public memory fragments for homepage
+  // Get public memory fragments for posts section (IMAGES ONLY)
   app.get('/api/memories/public', async (req, res) => {
     try {
       // Enable short-term caching for performance
       res.set('Cache-Control', 'public, max-age=30'); // 30 ثانية cache
       res.set('Pragma', 'public');
 
-      // Get memories with author info and comment counts in one optimized query
+      console.log('🖼️ طلب صفحة المنشورات - فلتر الصور فقط');
+
+      // Get ONLY IMAGE memories for posts section
       const memoriesWithCommentCounts = await db
         .select({
           id: memoryFragments.id,
@@ -1847,7 +1849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(and(
           eq(memoryFragments.isActive, true),
           eq(memoryFragments.isPublic, true),
-          // ⚠️ فلتر نهائي: استبعاد كامل للفيديوهات من صفحة المنشورات
+          // ⚠️ فلتر صارم: الصور فقط في صفحة المنشورات
           eq(memoryFragments.type, 'image')
         ))
         .groupBy(
@@ -1899,10 +1901,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       }));
 
+      console.log(`✅ إرسال ${memoriesWithAbsoluteUrls.length} صورة لصفحة المنشورات`);
       res.json(memoriesWithAbsoluteUrls);
     } catch (error) {
       console.error("Error fetching public memories:", error);
       res.status(500).json({ message: "Failed to fetch public memories" });
+    }
+  });
+
+  // Get public video memories for video feed (VIDEOS ONLY)
+  app.get('/api/memories/videos', async (req, res) => {
+    try {
+      // Enable short-term caching for performance
+      res.set('Cache-Control', 'public, max-age=30'); // 30 ثانية cache
+      res.set('Pragma', 'public');
+
+      console.log('🎥 طلب صفحة الفيديوهات - فلتر الفيديوهات فقط');
+
+      // Get ONLY VIDEO memories for video feed
+      const videoMemoriesWithCommentCounts = await db
+        .select({
+          id: memoryFragments.id,
+          authorId: memoryFragments.authorId,
+          type: memoryFragments.type,
+          title: memoryFragments.title,
+          caption: memoryFragments.caption,
+          mediaUrls: memoryFragments.mediaUrls,
+          thumbnailUrl: memoryFragments.thumbnailUrl,
+          viewCount: memoryFragments.viewCount,
+          likeCount: memoryFragments.likeCount,
+          shareCount: memoryFragments.shareCount,
+          giftCount: memoryFragments.giftCount,
+          currentEnergy: memoryFragments.currentEnergy,
+          memoryType: memoryFragments.memoryType,
+          mood: memoryFragments.mood,
+          isActive: memoryFragments.isActive,
+          isPublic: memoryFragments.isPublic,
+          visibilityLevel: memoryFragments.visibilityLevel,
+          allowComments: memoryFragments.allowComments,
+          allowSharing: memoryFragments.allowSharing,
+          allowGifts: memoryFragments.allowGifts,
+          location: memoryFragments.location,
+          createdAt: memoryFragments.createdAt,
+          updatedAt: memoryFragments.updatedAt,
+          commentCount: sql<number>`COALESCE(COUNT(DISTINCT ${comments.id}), 0)::int`,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+            isStreamer: users.isStreamer,
+            isVerified: users.isVerified,
+            verificationBadge: users.verificationBadge,
+          }
+        })
+        .from(memoryFragments)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .leftJoin(comments, and(
+          eq(comments.postId, memoryFragments.id),
+          eq(comments.postType, 'memory')
+        ))
+        .where(and(
+          eq(memoryFragments.isActive, true),
+          eq(memoryFragments.isPublic, true),
+          // ✅ فلتر الفيديوهات: فقط محتوى الفيديو
+          eq(memoryFragments.type, 'video')
+        ))
+        .groupBy(
+          memoryFragments.id,
+          memoryFragments.authorId,
+          memoryFragments.type,
+          memoryFragments.title,
+          memoryFragments.caption,
+          memoryFragments.mediaUrls,
+          memoryFragments.thumbnailUrl,
+          memoryFragments.viewCount,
+          memoryFragments.likeCount,
+          memoryFragments.shareCount,
+          memoryFragments.giftCount,
+          memoryFragments.currentEnergy,
+          memoryFragments.memoryType,
+          memoryFragments.mood,
+          memoryFragments.isActive,
+          memoryFragments.isPublic,
+          memoryFragments.visibilityLevel,
+          memoryFragments.allowComments,
+          memoryFragments.allowSharing,
+          memoryFragments.allowGifts,
+          memoryFragments.location,
+          memoryFragments.createdAt,
+          memoryFragments.updatedAt,
+          users.id,
+          users.username,
+          users.firstName,
+          users.profileImageUrl,
+          users.isStreamer,
+          users.isVerified,
+          users.verificationBadge
+        )
+        .orderBy(desc(memoryFragments.createdAt))
+        .limit(20); // حد أقصى 20 فيديو
+
+      // Convert URLs to absolute paths for proper cross-domain support
+      const videosWithAbsoluteUrls = videoMemoriesWithCommentCounts.map(memory => ({
+        ...memory,
+        // Convert media URLs to absolute URLs
+        mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
+        thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
+        // Convert author profile image URL to absolute URL  
+        author: memory.author ? {
+          ...memory.author,
+          profileImageUrl: memory.author.profileImageUrl ? 
+            UrlHandler.processMediaUrl(memory.author.profileImageUrl, req) : null
+        } : null
+      }));
+
+      console.log(`✅ إرسال ${videosWithAbsoluteUrls.length} فيديو لصفحة الفيديوهات`);
+      res.json(videosWithAbsoluteUrls);
+    } catch (error) {
+      console.error("Error fetching video memories:", error);
+      res.status(500).json({ message: "Failed to fetch video memories" });
     }
   });
 
