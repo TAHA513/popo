@@ -421,26 +421,28 @@ export default function VideoFeed() {
     }
   }, [currentVideoIndex, videoMemories]);
 
+  // State for immediate like feedback
+  const [likedVideos, setLikedVideos] = useState<Set<number>>(new Set());
+
   // Like mutation
   const likeMutation = useMutation({
     mutationFn: async (memoryId: number) => {
       return await apiRequest(`/api/memories/${memoryId}/like`, 'POST');
     },
     onSuccess: (data) => {
-      toast({
-        title: data.liked ? "تم الإعجاب! ❤️" : "تم إلغاء الإعجاب",
-        description: data.message,
-      });
-      
-      // Refresh the data to update like count
+      // Silently refresh the data to update like count
       queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
     },
     onError: (error) => {
       console.error("Like error:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في الإعجاب. تأكد من تسجيل الدخول.",
-        variant: "destructive"
+      // Revert the optimistic update on error
+      setLikedVideos(prev => {
+        const newSet = new Set(prev);
+        const memoryId = videoMemories[currentVideoIndex]?.id;
+        if (memoryId) {
+          newSet.delete(memoryId);
+        }
+        return newSet;
       });
     }
   });
@@ -463,6 +465,18 @@ export default function VideoFeed() {
   });
 
   const handleLike = (memoryId: number) => {
+    // Immediate UI update
+    setLikedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(memoryId)) {
+        newSet.delete(memoryId);
+      } else {
+        newSet.add(memoryId);
+      }
+      return newSet;
+    });
+    
+    // Send request in background
     likeMutation.mutate(memoryId);
   };
 
@@ -872,8 +886,16 @@ export default function VideoFeed() {
                 handleLike(currentVideo.id);
               }}
             >
-              <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-full backdrop-blur-sm border border-white/20 shadow-lg">
-                <Heart className="w-7 h-7 fill-current text-white" />
+              <div className={`w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-sm border shadow-lg transition-all duration-200 ${
+                likedVideos.has(currentVideo.id) 
+                  ? 'bg-red-500/80 border-red-400/30' 
+                  : 'bg-black/30 border-white/20'
+              }`}>
+                <Heart className={`w-7 h-7 transition-all duration-200 ${
+                  likedVideos.has(currentVideo.id) 
+                    ? 'fill-white text-white scale-110' 
+                    : 'fill-current text-white'
+                }`} />
               </div>
               <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>{currentVideo.likeCount || 0}</span>
             </button>
