@@ -447,19 +447,34 @@ export default function Feed() {
                             }}
                           />
                         ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
-                          <video
-                            src={memory.mediaUrls[0]}
-                            className="w-full h-full object-cover"
-                            muted
-                            loop
-                            playsInline
-                            preload="metadata"
-                            onMouseEnter={(e) => e.currentTarget.play()}
-                            onMouseLeave={(e) => e.currentTarget.pause()}
-                            onCanPlay={(e) => {
-                              e.currentTarget.currentTime = 0.01;
+                          <div 
+                            className="relative w-full h-full cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Navigate to video feed with this specific video
+                              window.location.href = `/videos?start=${memory.id}`;
                             }}
-                          />
+                          >
+                            <video
+                              src={memory.mediaUrls[0]}
+                              className="w-full h-full object-cover"
+                              muted
+                              loop
+                              playsInline
+                              preload="metadata"
+                              onMouseEnter={(e) => e.currentTarget.play()}
+                              onMouseLeave={(e) => e.currentTarget.pause()}
+                              onCanPlay={(e) => {
+                                e.currentTarget.currentTime = 0.01;
+                              }}
+                            />
+                            {/* Play indicator overlay */}
+                            <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                                <Play className="w-8 h-8 text-white" />
+                              </div>
+                            </div>
+                          </div>
                         ) : (
                           <div className="flex items-center justify-center h-full">
                             <div className="text-center">

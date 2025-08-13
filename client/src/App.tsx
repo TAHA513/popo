@@ -64,6 +64,7 @@ import PrivacyPolicyPage from "@/pages/privacy-policy";
 import AdminDashboardPage from "@/pages/admin-dashboard";
 import OwnerWelcomePage from "@/pages/owner-welcome";
 import SearchPage from "@/pages/search";
+import VideoFeedPage from "@/pages/video-feed";
 
 
 
@@ -144,6 +145,7 @@ function Router() {
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
           <Route path="/owner-welcome" component={OwnerWelcomePage} />
           <Route path="/search" component={SearchPage} />
+          <Route path="/videos" component={VideoFeedPage} />
             </>
           )}
         </Suspense>
