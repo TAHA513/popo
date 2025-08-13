@@ -2507,6 +2507,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check follow status
+  app.get('/api/users/:userId/follow-status', requireAuth, async (req: any, res) => {
+    try {
+      const followerId = req.user.id;
+      const followedId = req.params.userId;
+
+      const isFollowing = await storage.isFollowing(followerId, followedId);
+      res.json({ isFollowing });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ message: "فشل في فحص حالة المتابعة" });
+    }
+  });
+
   // NOTIFICATIONS API
 
   // Get user notifications

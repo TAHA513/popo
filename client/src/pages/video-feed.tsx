@@ -70,8 +70,32 @@ export default function VideoFeed() {
     }
   }, [startVideoId, videoMemories]);
 
-  // Initialize empty follow status - will be updated when user follows/unfollows
-  // This prevents the constant API calls that cause video navigation issues
+  // Load follow status for current user only
+  useEffect(() => {
+    const loadCurrentUserFollowStatus = async () => {
+      if (!user || !currentVideo?.author?.id) return;
+      
+      try {
+        const response = await fetch(`/api/users/${currentVideo.author.id}/follow-status`);
+        if (response.ok) {
+          const { isFollowing } = await response.json();
+          setFollowingUsers(prev => {
+            const newSet = new Set(prev);
+            if (isFollowing) {
+              newSet.add(currentVideo.author.id);
+            } else {
+              newSet.delete(currentVideo.author.id);
+            }
+            return newSet;
+          });
+        }
+      } catch (error) {
+        console.log('Failed to load follow status');
+      }
+    };
+
+    loadCurrentUserFollowStatus();
+  }, [user, currentVideo?.author?.id]);
 
   // Touch/Swipe handlers
   const handleTouchStart = useCallback((e: TouchEvent) => {
@@ -411,29 +435,22 @@ export default function VideoFeed() {
             }}
           >
             {/* Follow Button - TikTok Style */}
-            {currentVideo.author?.id && (
-              <Button
-                size="sm"
+            {currentVideo.author?.id && user?.id !== currentVideo.author.id && (
+              <button
                 className={`${
                   followingUsers.has(currentVideo.author.id)
-                    ? 'bg-gray-600 hover:bg-gray-700'
-                    : 'bg-red-500 hover:bg-red-600'
-                } text-white min-w-[50px] h-7 rounded-full px-2.5 py-1 font-bold text-[10px] border border-white z-50 relative transition-all duration-200`}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  isButtonClicked.current = true;
-                }}
+                    ? 'bg-gray-400/70 text-gray-200 border-gray-300'
+                    : 'bg-red-500 text-white border-white hover:bg-red-600'
+                } min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-50 relative transition-all duration-200 backdrop-blur-sm`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  isButtonClicked.current = true; // Prevent video navigation
                   console.log('Follow button clicked for user:', currentVideo.author?.username);
                   handleFollow(currentVideo.author?.id);
                 }}
               >
-                {followingUsers.has(currentVideo.author.id) ? 'متابع' : 'متابعة'}
-              </Button>
+                {followingUsers.has(currentVideo.author.id) ? 'متابِع' : 'متابعة'}
+              </button>
             )}
             
             {/* Profile */}
