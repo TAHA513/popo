@@ -47,6 +47,12 @@ export default function Feed() {
 
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
+  
+  // فلترة المحتوى لعرض الصور فقط (بدون فيديوهات)
+  const imageOnlyMemories = typedMemories.filter(memory => 
+    memory.type === 'image' || 
+    (memory.mediaUrls && memory.mediaUrls.length > 0 && !memory.mediaUrls[0]?.includes('.mp4') && !memory.mediaUrls[0]?.includes('.webm'))
+  );
 
   // Pre-fetch data and optimize for instant display
   useEffect(() => {
@@ -64,8 +70,8 @@ export default function Feed() {
     
     // Preload first few images for instant display
     const preloadImages = async () => {
-      if (typedMemories.length > 0) {
-        const firstFiveMemories = typedMemories.slice(0, 5);
+      if (imageOnlyMemories.length > 0) {
+        const firstFiveMemories = imageOnlyMemories.slice(0, 5);
         firstFiveMemories.forEach(memory => {
           if (memory.thumbnailUrl) {
             const img = new Image();
@@ -76,7 +82,7 @@ export default function Feed() {
     };
     
     preloadImages();
-  }, [queryClient, typedMemories]);
+  }, [queryClient, imageOnlyMemories]);
 
   const handleJoinStream = (streamId: number) => {
     window.location.href = `/stream/${streamId}`;
@@ -209,7 +215,7 @@ export default function Feed() {
 
   // Optimized loading logic - عرض المحتوى فوراً مع تحسين الأداء
   const showLoadingSpinner = memoriesLoading && typedMemories.length === 0 && !memoriesError;
-  const hasContent = typedMemories.length > 0 || typedStreams.length > 0;
+  const hasContent = imageOnlyMemories.length > 0 || typedStreams.length > 0;
   const isInitialLoad = memoriesLoading && typedMemories.length === 0;
 
   return (
@@ -285,7 +291,7 @@ export default function Feed() {
         {/* Posts/Memories Feed */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">آخر المنشورات</h2>
+            <h2 className="text-2xl font-bold text-gray-800">آخر الصور 📷</h2>
             {memoriesLoading && (
               <div className="flex items-center text-sm text-gray-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 ml-2"></div>
@@ -333,16 +339,16 @@ export default function Feed() {
             </Card>
           ) : !hasContent ? (
             <Card className="p-12 text-center">
-              <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد منشورات حالياً</h3>
-              <p className="text-gray-500 mb-6">كن أول من يشارك محتوى!</p>
+              <div className="w-16 h-16 text-gray-400 mx-auto mb-4">📷</div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد صور حالياً</h3>
+              <p className="text-gray-500 mb-6">كن أول من يشارك صورة!</p>
               <Button onClick={() => window.location.href = '/create-memory'}>
                 إنشاء منشور جديد
               </Button>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {typedMemories.map((memory) => (
+              {imageOnlyMemories.map((memory) => (
                 <Card key={memory.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:scale-[1.02]">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
@@ -446,35 +452,7 @@ export default function Feed() {
                               minHeight: '200px'
                             }}
                           />
-                        ) : memory.type === 'video' && memory.mediaUrls?.[0] ? (
-                          <div 
-                            className="relative w-full h-full cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Navigate to video feed with this specific video
-                              window.location.href = `/videos?start=${memory.id}`;
-                            }}
-                          >
-                            <video
-                              src={memory.mediaUrls[0]}
-                              className="w-full h-full object-cover"
-                              muted
-                              loop
-                              playsInline
-                              preload="metadata"
-                              onMouseEnter={(e) => e.currentTarget.play()}
-                              onMouseLeave={(e) => e.currentTarget.pause()}
-                              onCanPlay={(e) => {
-                                e.currentTarget.currentTime = 0.01;
-                              }}
-                            />
-                            {/* Play indicator overlay */}
-                            <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                                <Play className="w-8 h-8 text-white" />
-                              </div>
-                            </div>
-                          </div>
+
                         ) : (
                           <div className="flex items-center justify-center h-full">
                             <div className="text-center">
