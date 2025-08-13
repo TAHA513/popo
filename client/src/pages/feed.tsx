@@ -48,37 +48,64 @@ export default function Feed() {
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
   
-  // فلترة صارمة للصور فقط - إزالة جميع الفيديوهات نهائياً
+  // فلترة نهائية وصارمة للصور فقط - استبعاد تام للفيديوهات
   const imageOnlyMemories = typedMemories.filter(memory => {
-    // استبعاد كل ما هو فيديو
-    if (memory.type === 'video') return false;
+    // طباعة تفاصيل كل منشور للتصحيح
+    console.log(`🔍 فحص منشور ${memory.id}:`, {
+      type: memory.type,
+      mediaUrl: memory.mediaUrls?.[0]?.substring(0, 50) + '...',
+      hasMedia: !!memory.mediaUrls?.length
+    });
     
-    // فحص صارم لامتدادات الملفات
-    if (memory.mediaUrls && memory.mediaUrls.length > 0) {
-      const mediaUrl = memory.mediaUrls[0]?.toLowerCase();
-      
-      // قائمة شاملة لامتدادات الفيديو
-      const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv', '.m4v', '.3gp', '.ogv'];
-      const isVideo = videoExtensions.some(ext => mediaUrl?.includes(ext));
-      
-      if (isVideo) return false;
-      
-      // قبول الصور فقط
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-      const isImage = imageExtensions.some(ext => mediaUrl?.includes(ext));
-      
-      return isImage;
+    // استبعاد نهائي لأي محتوى من نوع 'video'
+    if (memory.type === 'video') {
+      console.log(`🚫 استبعاد فيديو ${memory.id} - نوع: video`);
+      return false;
     }
     
-    // قبول فقط إذا كان النوع 'image' صراحة
-    return memory.type === 'image';
+    // فحص دقيق جداً لامتدادات الملفات
+    if (memory.mediaUrls && memory.mediaUrls.length > 0) {
+      const mediaUrl = memory.mediaUrls[0]?.toLowerCase() || '';
+      
+      // قائمة شاملة لجميع امتدادات الفيديو الممكنة
+      const videoExtensions = [
+        '.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv', 
+        '.m4v', '.3gp', '.ogv', '.m2ts', '.mts', '.vob', '.ts'
+      ];
+      
+      // فحص إذا كان URL يحتوي على أي امتداد فيديو
+      const isVideoFile = videoExtensions.some(ext => mediaUrl.includes(ext));
+      
+      if (isVideoFile) {
+        console.log(`🚫 استبعاد فيديو ${memory.id} - امتداد الملف`);
+        return false;
+      }
+      
+      // فحص إضافي للتأكد من أنه صورة
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.tiff', '.ico'];
+      const isImageFile = imageExtensions.some(ext => mediaUrl.includes(ext));
+      
+      if (!isImageFile) {
+        console.log(`🚫 استبعاد منشور ${memory.id} - ليس صورة`);
+        return false;
+      }
+      
+      console.log(`✅ قبول صورة ${memory.id}`);
+      return true;
+    }
+    
+    // إذا لم يكن هناك ملفات، تحقق من النوع فقط
+    const acceptBasedOnType = memory.type === 'image';
+    console.log(`${acceptBasedOnType ? '✅' : '🚫'} منشور ${memory.id} بدون ملفات - نوع: ${memory.type}`);
+    return acceptBasedOnType;
   });
   
-  // تسجيل للتصحيح
-  console.log('📷 فلترة صارمة للصور فقط:');
+  // تسجيل النتائج النهائية
+  console.log('📊 نتائج الفلترة النهائية:');
   console.log('🔍 إجمالي المنشورات:', typedMemories.length);
   console.log('📷 الصور المقبولة:', imageOnlyMemories.length);
   console.log('🚫 المنشورات المرفوضة:', typedMemories.length - imageOnlyMemories.length);
+  console.log('📷 الصور النهائية:', imageOnlyMemories.map(m => ({id: m.id, type: m.type})));
 
   // Pre-fetch data and optimize for instant display
   useEffect(() => {
