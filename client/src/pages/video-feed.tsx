@@ -424,14 +424,39 @@ export default function VideoFeed() {
   // State for immediate like feedback
   const [likedVideos, setLikedVideos] = useState<Set<number>>(new Set());
 
+  // Initialize liked videos from server data
+  useEffect(() => {
+    if (videoMemories.length > 0) {
+      const initialLikes = new Set<number>();
+      videoMemories.forEach(video => {
+        if (video.isLiked) {
+          initialLikes.add(video.id);
+        }
+      });
+      setLikedVideos(initialLikes);
+    }
+  }, [videoMemories]);
+
   // Like mutation
   const likeMutation = useMutation({
     mutationFn: async (memoryId: number) => {
       return await apiRequest(`/api/memories/${memoryId}/like`, 'POST');
     },
-    onSuccess: (data) => {
-      // Silently refresh the data to update like count
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
+    onSuccess: (data, memoryId) => {
+      // Update the like count in the local data
+      queryClient.setQueryData(['/api/memories/public'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((video: any) => {
+          if (video.id === memoryId) {
+            return {
+              ...video,
+              likeCount: data.liked ? (video.likeCount || 0) + 1 : Math.max((video.likeCount || 0) - 1, 0),
+              isLiked: data.liked
+            };
+          }
+          return video;
+        });
+      });
     },
     onError: (error) => {
       console.error("Like error:", error);
@@ -897,7 +922,20 @@ export default function VideoFeed() {
                     : 'fill-current text-white'
                 }`} />
               </div>
-              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>{currentVideo.likeCount || 0}</span>
+              <span className="text-xs font-bold" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>
+                {(() => {
+                  const baseCount = currentVideo.likeCount || 0;
+                  const isLiked = likedVideos.has(currentVideo.id);
+                  const wasOriginallyLiked = currentVideo.isLiked;
+                  
+                  if (isLiked && !wasOriginallyLiked) {
+                    return baseCount + 1;
+                  } else if (!isLiked && wasOriginallyLiked) {
+                    return Math.max(baseCount - 1, 0);
+                  }
+                  return baseCount;
+                })()}
+              </span>
             </button>
 
             {/* Comments - TikTok Style */}
