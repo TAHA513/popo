@@ -48,30 +48,37 @@ export default function Feed() {
   const typedStreams = (streams as Stream[]);
   const typedMemories = (memories as any[]);
   
-  // فلترة المحتوى لعرض الصور فقط (بدون فيديوهات)
+  // فلترة صارمة للصور فقط - إزالة جميع الفيديوهات نهائياً
   const imageOnlyMemories = typedMemories.filter(memory => {
-    // تحقق من نوع المحتوى
-    if (memory.type === 'image') return true;
+    // استبعاد كل ما هو فيديو
+    if (memory.type === 'video') return false;
     
-    // تحقق من امتدادات الملفات
+    // فحص صارم لامتدادات الملفات
     if (memory.mediaUrls && memory.mediaUrls.length > 0) {
-      const mediaUrl = memory.mediaUrls[0];
-      const isVideo = mediaUrl?.includes('.mp4') || 
-                     mediaUrl?.includes('.webm') || 
-                     mediaUrl?.includes('.mov') || 
-                     mediaUrl?.includes('.avi') ||
-                     memory.type === 'video';
-      return !isVideo; // إرجاع false للفيديوهات، true للصور
+      const mediaUrl = memory.mediaUrls[0]?.toLowerCase();
+      
+      // قائمة شاملة لامتدادات الفيديو
+      const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv', '.m4v', '.3gp', '.ogv'];
+      const isVideo = videoExtensions.some(ext => mediaUrl?.includes(ext));
+      
+      if (isVideo) return false;
+      
+      // قبول الصور فقط
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+      const isImage = imageExtensions.some(ext => mediaUrl?.includes(ext));
+      
+      return isImage;
     }
     
-    // في حالة عدم وجود mediaUrls، تحقق من النوع فقط
-    return memory.type !== 'video';
+    // قبول فقط إذا كان النوع 'image' صراحة
+    return memory.type === 'image';
   });
   
-  // إضافة تسجيل للتصحيح
-  console.log('🔍 Total memories:', typedMemories.length);
-  console.log('📷 Image-only memories:', imageOnlyMemories.length);
-  console.log('🎬 Video memories filtered out:', typedMemories.length - imageOnlyMemories.length);
+  // تسجيل للتصحيح
+  console.log('📷 فلترة صارمة للصور فقط:');
+  console.log('🔍 إجمالي المنشورات:', typedMemories.length);
+  console.log('📷 الصور المقبولة:', imageOnlyMemories.length);
+  console.log('🚫 المنشورات المرفوضة:', typedMemories.length - imageOnlyMemories.length);
 
   // Pre-fetch data and optimize for instant display
   useEffect(() => {
@@ -356,13 +363,13 @@ export default function Feed() {
                 إعادة المحاولة
               </Button>
             </Card>
-          ) : !hasContent ? (
+          ) : imageOnlyMemories.length === 0 ? (
             <Card className="p-12 text-center">
               <div className="w-16 h-16 text-gray-400 mx-auto mb-4">📷</div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">لا توجد صور حالياً</h3>
-              <p className="text-gray-500 mb-6">كن أول من يشارك صورة!</p>
+              <p className="text-gray-500 mb-6">هذه الصفحة تعرض الصور فقط. شارك صورة جديدة!</p>
               <Button onClick={() => window.location.href = '/create-memory'}>
-                إنشاء منشور جديد
+                رفع صورة جديدة
               </Button>
             </Card>
           ) : (
@@ -475,8 +482,8 @@ export default function Feed() {
                         ) : (
                           <div className="flex items-center justify-center h-full">
                             <div className="text-center">
-                              <Video className="w-16 h-16 text-gray-400 mx-auto mb-2" />
-                              <p className="text-sm text-gray-500">فيديو</p>
+                              <div className="w-16 h-16 text-gray-400 mx-auto mb-2">📷</div>
+                              <p className="text-sm text-gray-500">صورة</p>
                             </div>
                           </div>
                         )}
