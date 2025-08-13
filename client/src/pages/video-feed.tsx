@@ -234,11 +234,13 @@ export default function VideoFeed() {
   return (
     <>
       {/* Top Navigation */}
-      <NavigationHeader />
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <NavigationHeader />
+      </div>
       
       <div 
         ref={containerRef}
-        className="fixed inset-0 bg-black overflow-hidden touch-none"
+        className="fixed inset-0 bg-black overflow-hidden touch-none pt-16 pb-20"
         style={{ userSelect: 'none' }}
       >
         {/* Video Container */}
@@ -407,7 +409,9 @@ export default function VideoFeed() {
       )}
       
       {/* Bottom Navigation */}
-      <BottomNavigation />
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNavigation />
+      </div>
     </>
   );
 }
