@@ -282,7 +282,7 @@ export default function VideoFeed() {
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 to-transparent" />
           
           {/* Right side controls */}
-          <div className="absolute right-4 bottom-16 flex flex-col items-center space-y-4 pointer-events-auto">
+          <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto">
             {/* Profile */}
             <div className="relative">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
@@ -350,7 +350,7 @@ export default function VideoFeed() {
           </div>
 
           {/* Left side info */}
-          <div className="absolute left-4 bottom-16 max-w-[60%] pointer-events-auto">
+          <div className="absolute left-4 bottom-20 max-w-[60%] pointer-events-auto">
             <div className="text-white space-y-2">
               <h3 className="font-bold flex items-center gap-2">
                 @{currentVideo.author?.username || `user${currentVideo.authorId?.slice(0, 6)}`}
@@ -383,7 +383,7 @@ export default function VideoFeed() {
 
           {/* Navigation hints */}
           {currentVideoIndex < videoMemories.length - 1 && (
-            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-60 pointer-events-none animate-bounce">
+            <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-60 pointer-events-none animate-bounce">
               ← اسحب لأعلى للفيديو التالي
             </div>
           )}

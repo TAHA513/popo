@@ -54,7 +54,7 @@ export default function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 z-50 md:hidden shadow-2xl">
-      <div className="relative flex items-center justify-around py-0.5 px-0" style={{ height: '48px' }}>
+      <div className="relative flex items-center justify-around py-1 px-0" style={{ height: '56px' }}>
         {navItems.map((item, index) => {
           const isActive = location === item.href;
           const Icon = item.icon;
@@ -63,10 +63,10 @@ export default function BottomNavigation() {
             return (
               <Link key={item.href} href={item.href}>
                 <div className="flex flex-col items-center justify-center -mt-4 relative">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-2 border-white">
-                    <Icon className="w-5 h-5 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 border-2 border-white">
+                    <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-[8px] mt-0.5 text-purple-600 font-medium text-center">{item.label}</span>
+                  <span className="text-[9px] mt-0.5 text-purple-600 font-medium text-center">{item.label}</span>
                 </div>
               </Link>
             );
@@ -111,7 +111,7 @@ export default function BottomNavigation() {
                     </span>
                   )}
                 </div>
-                <span className={`text-[8px] mt-0.5 font-medium ${isActive ? 'text-purple-600' : ''}`}>{item.label}</span>
+                <span className={`text-[9px] mt-0.5 font-medium ${isActive ? 'text-purple-600' : ''}`}>{item.label}</span>
               </div>
             </Link>
           );
