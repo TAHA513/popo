@@ -45,56 +45,41 @@ export default function Login() {
     };
   }, []);
 
+  // Check if this is after a reload for install
+  useEffect(() => {
+    const wasClickedForInstall = sessionStorage.getItem('pwa-install-ready');
+    if (wasClickedForInstall === 'true') {
+      setClickCount(1);
+      sessionStorage.removeItem('pwa-install-ready');
+    }
+  }, []);
+
   // Install button click handler
   const handleInstallClick = () => {
-    // Try to use the native prompt if available
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the PWA install prompt');
-        }
-        setDeferredPrompt(null);
-      });
+    if (clickCount === 0) {
+      // First click - prepare for install and reload
+      sessionStorage.setItem('pwa-install-ready', 'true');
+      setClickCount(1);
+      window.location.reload();
     } else {
-      // Try to trigger the install prompt through various methods
-      
-      // Method 1: Try to dispatch a custom beforeinstallprompt event
-      const installEvent = new CustomEvent('beforeinstallprompt', {
-        bubbles: true,
-        cancelable: true
-      });
-      
-      const eventDispatched = window.dispatchEvent(installEvent);
-      
-      // Method 2: Try to access the install API if available
-      if ('getInstalledRelatedApps' in navigator) {
-        (navigator as any).getInstalledRelatedApps().then((apps: any[]) => {
-          if (apps.length === 0) {
-            // App not installed, try to show install prompt
-            console.log('PWA not installed, attempting to trigger install');
+      // Second click - try to install
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult: any) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the PWA install prompt');
           }
+          setDeferredPrompt(null);
+          setClickCount(0);
         });
+      } else {
+        // Force trigger PWA detection
+        const event = new Event('beforeinstallprompt');
+        window.dispatchEvent(event);
+        
+        // Reset click count
+        setClickCount(0);
       }
-      
-      // Method 3: For Chrome/Edge, try to use the install prompt API
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        navigator.serviceWorker.getRegistration().then((registration) => {
-          if (registration) {
-            // Service worker is registered, PWA should be installable
-            console.log('Service worker registered - PWA should be installable');
-            
-            // Try to trigger install through service worker message
-            if (registration.active) {
-              registration.active.postMessage({ type: 'TRIGGER_INSTALL' });
-            }
-          }
-        });
-      }
-      
-      // If all methods fail, the browser will show its native install option
-      // The user can use the browser's built-in install functionality
-      console.log('Install triggered - check browser for install option');
     }
   };
 
