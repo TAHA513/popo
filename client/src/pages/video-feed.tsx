@@ -296,7 +296,7 @@ export default function VideoFeed() {
               </div>
               <Button
                 size="sm"
-                className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white w-5 h-5 rounded-full p-0 font-bold text-sm border border-white"
+                className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white w-5 h-5 rounded-full p-0 font-bold text-sm border border-white mt-[11px] mb-[11px]"
               >
                 +
               </Button>
