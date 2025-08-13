@@ -1794,7 +1794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get public memory fragments for homepage
+  // Get public memory fragments for homepage (all types)
   app.get('/api/memories/public', async (req, res) => {
     try {
       // Enable short-term caching for performance
@@ -1846,9 +1846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .where(and(
           eq(memoryFragments.isActive, true),
-          eq(memoryFragments.isPublic, true),
-          // ⚠️ فلتر نهائي: استبعاد كامل للفيديوهات من صفحة المنشورات
-          eq(memoryFragments.type, 'image')
+          eq(memoryFragments.isPublic, true)
         ))
         .groupBy(
           memoryFragments.id,
@@ -1903,6 +1901,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching public memories:", error);
       res.status(500).json({ message: "Failed to fetch public memories" });
+    }
+  });
+
+  // Get public IMAGES ONLY for posts page - separate endpoint
+  app.get('/api/memories/images-only', async (req, res) => {
+    try {
+      console.log('🖼️ جلب الصور فقط لصفحة المنشورات');
+      
+      // Enable short-term caching for performance
+      res.set('Cache-Control', 'public, max-age=30');
+      res.set('Pragma', 'public');
+
+      // Get memories with author info and comment counts - IMAGES ONLY
+      const memoriesWithCommentCounts = await db
+        .select({
+          id: memoryFragments.id,
+          authorId: memoryFragments.authorId,
+          type: memoryFragments.type,
+          title: memoryFragments.title,
+          caption: memoryFragments.caption,
+          mediaUrls: memoryFragments.mediaUrls,
+          thumbnailUrl: memoryFragments.thumbnailUrl,
+          viewCount: memoryFragments.viewCount,
+          likeCount: memoryFragments.likeCount,
+          shareCount: memoryFragments.shareCount,
+          giftCount: memoryFragments.giftCount,
+          currentEnergy: memoryFragments.currentEnergy,
+          memoryType: memoryFragments.memoryType,
+          mood: memoryFragments.mood,
+          isActive: memoryFragments.isActive,
+          isPublic: memoryFragments.isPublic,
+          visibilityLevel: memoryFragments.visibilityLevel,
+          allowComments: memoryFragments.allowComments,
+          allowSharing: memoryFragments.allowSharing,
+          allowGifts: memoryFragments.allowGifts,
+          location: memoryFragments.location,
+          createdAt: memoryFragments.createdAt,
+          updatedAt: memoryFragments.updatedAt,
+          commentCount: sql<number>`COALESCE(COUNT(DISTINCT ${comments.id}), 0)::int`,
+          author: {
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+            profileImageUrl: users.profileImageUrl,
+            isStreamer: users.isStreamer,
+            isVerified: users.isVerified,
+            verificationBadge: users.verificationBadge,
+          }
+        })
+        .from(memoryFragments)
+        .leftJoin(users, eq(memoryFragments.authorId, users.id))
+        .leftJoin(comments, and(
+          eq(comments.postId, memoryFragments.id),
+          eq(comments.postType, 'memory')
+        ))
+        .where(and(
+          eq(memoryFragments.isActive, true),
+          eq(memoryFragments.isPublic, true),
+          // ⚠️ فلتر نهائي: الصور فقط لصفحة المنشورات
+          eq(memoryFragments.type, 'image')
+        ))
+        .groupBy(
+          memoryFragments.id,
+          memoryFragments.authorId,
+          memoryFragments.type,
+          memoryFragments.title,
+          memoryFragments.caption,
+          memoryFragments.mediaUrls,
+          memoryFragments.thumbnailUrl,
+          memoryFragments.viewCount,
+          memoryFragments.likeCount,
+          memoryFragments.shareCount,
+          memoryFragments.giftCount,
+          memoryFragments.currentEnergy,
+          memoryFragments.memoryType,
+          memoryFragments.mood,
+          memoryFragments.isActive,
+          memoryFragments.isPublic,
+          memoryFragments.visibilityLevel,
+          memoryFragments.allowComments,
+          memoryFragments.allowSharing,
+          memoryFragments.allowGifts,
+          memoryFragments.location,
+          memoryFragments.createdAt,
+          memoryFragments.updatedAt,
+          users.id,
+          users.username,
+          users.firstName,
+          users.profileImageUrl,
+          users.isStreamer,
+          users.isVerified,
+          users.verificationBadge
+        )
+        .orderBy(desc(memoryFragments.createdAt))
+        .limit(20);
+
+      // Convert URLs to absolute paths for proper cross-domain support
+      const memoriesWithAbsoluteUrls = memoriesWithCommentCounts.map(memory => ({
+        ...memory,
+        mediaUrls: memory.mediaUrls ? UrlHandler.processMediaUrls(memory.mediaUrls, req) : [],
+        thumbnailUrl: memory.thumbnailUrl ? UrlHandler.processMediaUrl(memory.thumbnailUrl, req) : null,
+        author: memory.author ? {
+          ...memory.author,
+          profileImageUrl: memory.author.profileImageUrl ? 
+            UrlHandler.processMediaUrl(memory.author.profileImageUrl, req) : null
+        } : null
+      }));
+
+      console.log(`✅ تم جلب ${memoriesWithAbsoluteUrls.length} صورة للمنشورات`);
+      res.json(memoriesWithAbsoluteUrls);
+    } catch (error) {
+      console.error("Error fetching images-only memories:", error);
+      res.status(500).json({ message: "Failed to fetch images-only memories" });
     }
   });
 
