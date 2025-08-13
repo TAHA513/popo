@@ -288,7 +288,7 @@ export default function VideoFeed() {
                   <img 
                     src={currentVideo.author.profileImageUrl} 
                     alt={currentVideo.author.username} 
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover mt-[11px] mb-[11px]"
                   />
                 ) : (
                   <User className="w-6 h-6 text-white m-3" />
