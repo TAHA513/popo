@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Heart } from 'lucide-react';
+import { X, Send, Heart, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Comment {
   id: number;
@@ -39,8 +40,10 @@ export default function VideoCommentsModal({
   memoryAuthor 
 }: VideoCommentsModalProps) {
   const [newComment, setNewComment] = useState('');
+  const [showDeleteMenu, setShowDeleteMenu] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: comments = [], isLoading } = useQuery<Comment[]>({
     queryKey: ['/api/memories', memoryId, 'comments'],
@@ -88,6 +91,23 @@ export default function VideoCommentsModal({
     },
   });
 
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId: number) => {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) throw new Error('Failed to delete comment');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/memories', memoryId, 'comments'] });
+      setShowDeleteMenu(null);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newComment.trim()) {
@@ -101,6 +121,20 @@ export default function VideoCommentsModal({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // Close delete menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showDeleteMenu !== null) {
+        setShowDeleteMenu(null);
+      }
+    };
+
+    if (showDeleteMenu !== null) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDeleteMenu]);
 
   if (!isOpen) return null;
 
@@ -154,17 +188,45 @@ export default function VideoCommentsModal({
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span className="font-medium text-sm text-gray-900 dark:text-white">
-                      {comment.author.firstName || comment.author.username}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {formatDistanceToNow(new Date(comment.createdAt), {
-                        addSuffix: true,
-                        locale: ar,
-                      })}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <span className="font-medium text-sm text-gray-900 dark:text-white">
+                        {comment.author.firstName || comment.author.username}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {formatDistanceToNow(new Date(comment.createdAt), {
+                          addSuffix: true,
+                          locale: ar,
+                        })}
+                      </span>
+                    </div>
+                    
+                    {/* Delete button - only show for user's own comments */}
+                    {user?.id === comment.userId && (
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowDeleteMenu(showDeleteMenu === comment.id ? null : comment.id)}
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        
+                        {showDeleteMenu === comment.id && (
+                          <div className="absolute left-0 top-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10 min-w-[120px]">
+                            <button
+                              onClick={() => deleteCommentMutation.mutate(comment.id)}
+                              disabled={deleteCommentMutation.isPending}
+                              className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2 rtl:space-x-reverse rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span>حذف التعليق</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+                  
                   <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                     {comment.content}
                   </p>
