@@ -33,9 +33,9 @@ export default function Feed() {
     refetchOnWindowFocus: false, // تجنب إعادة التحميل عند التركيز
   });
 
-  // Fetch public images/posts ONLY - صور فقط لصفحة المنشورات  
+  // Fetch public memories/posts - محسن للأداء العالي
   const { data: memories = [], isLoading: memoriesLoading, error: memoriesError } = useQuery({
-    queryKey: ['/api/memories/images-only'],
+    queryKey: ['/api/memories/public'],
     refetchInterval: 60000, // كل دقيقة - توفير الشبكة
     staleTime: 2000, // ثانيتان فقط - تحديث سريع
     refetchOnMount: true, // تحميل فوري
@@ -46,27 +46,82 @@ export default function Feed() {
   });
 
   const typedStreams = (streams as Stream[]);
-  const imageOnlyMemories = (memories as any[]); // البيانات تأتي مفلترة من الخادم مسبقاً
+  const typedMemories = (memories as any[]);
   
-  console.log(`📷 Endpoint استخدام: /api/memories/images-only`);
-  console.log(`📷 تم جلب ${imageOnlyMemories.length} صورة مفلترة من الخادم`);
-  console.log(`📷 عينة من البيانات:`, imageOnlyMemories.slice(0, 2).map(m => ({id: m.id, type: m.type})));
+  // ⚠️ فلتر جذري نهائي: استبعاد كامل لجميع الفيديوهات من المنشورات
+  const imageOnlyMemories = typedMemories.filter(memory => {
+    console.log(`🔍 فحص منشور ${memory.id}:`, {
+      type: memory.type,
+      firstUrl: memory.mediaUrls?.[0]?.substring(0, 80),
+      urlsCount: memory.mediaUrls?.length
+    });
+    
+    // ❌ استبعاد فوري: أي نوع فيديو
+    if (memory.type === 'video' || memory.type === 'live' || memory.type === 'stream') {
+      console.log(`🚫 BLOCKED - Video Type: ${memory.id} (${memory.type})`);
+      return false;
+    }
+    
+    // ❌ استبعاد فوري: أي URL يحتوي على إشارات فيديو
+    if (memory.mediaUrls?.length > 0) {
+      for (const url of memory.mediaUrls) {
+        const lowerUrl = url.toLowerCase();
+        
+        // فحص امتدادات الفيديو
+        const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v', '.3gp'];
+        if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+          console.log(`🚫 BLOCKED - Video Extension: ${memory.id} (${url.substring(0, 50)}...)`);
+          return false;
+        }
+        
+        // فحص كلمات دلالية على الفيديو
+        const videoKeywords = ['(720p)', '(480p)', '_hd', 'video', 'mp4', 'webm'];
+        const foundKeyword = videoKeywords.find(keyword => lowerUrl.includes(keyword));
+        if (foundKeyword) {
+          console.log(`🚫 BLOCKED - Video Keyword: ${memory.id} (${foundKeyword})`);
+          return false;
+        }
+      }
+    }
+    
+    // ✅ قبول فقط إذا كان صورة صريحة
+    if (memory.type === 'image') {
+      console.log(`✅ ACCEPTED - Image Type: ${memory.id}`);
+      return true;
+    }
+    
+    // ✅ قبول إذا كان URL يحتوي على امتدادات صور
+    if (memory.mediaUrls?.length > 0) {
+      const hasImageExtension = memory.mediaUrls.some((url: string) => {
+        const lowerUrl = url.toLowerCase();
+        return ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'].some(ext => 
+          lowerUrl.includes(ext)
+        );
+      });
+      
+      if (hasImageExtension) {
+        console.log(`✅ ACCEPTED - Image Extension: ${memory.id}`);
+        return true;
+      }
+    }
+    
+    // ❌ رفض كل شيء آخر
+    console.log(`🚫 REJECTED - Unknown: ${memory.id} (type: ${memory.type})`);
+    return false;
+  });
   
-  // إجبار refresh وإعادة تحميل كاملة للتأكد من استخدام الـ endpoint الجديد
-  useEffect(() => {
-    console.log('🔄 إجبار refresh لصفحة المنشورات للتأكد من استخدام images-only endpoint');
-    // مسح كل الكاش
-    queryClient.removeQueries({ queryKey: ['/api/memories/public'] });
-    queryClient.removeQueries({ queryKey: ['/api/memories/images-only'] });
-    // إعادة تحميل فوري 
-    queryClient.refetchQueries({ queryKey: ['/api/memories/images-only'] });
-  }, [queryClient]);
+  // تسجيل النتائج النهائية
+  console.log('📊 نتائج الفلترة النهائية:');
+  console.log('🔍 إجمالي المنشورات:', typedMemories.length);
+  console.log('📷 الصور المقبولة:', imageOnlyMemories.length);
+  console.log('🚫 المنشورات المرفوضة:', typedMemories.length - imageOnlyMemories.length);
+  console.log('📷 الصور النهائية:', imageOnlyMemories.map(m => ({id: m.id, type: m.type})));
 
   // Pre-fetch data and optimize for instant display
   useEffect(() => {
-    // Prefetch posts data (images only)
+    // Prefetch posts data
     queryClient.prefetchQuery({
-      queryKey: ['/api/memories/images-only'],
+      queryKey: ['/api/memories/public'],
       staleTime: 1000,
     });
     
@@ -204,8 +259,8 @@ export default function Feed() {
         title: "تم الحذف",
         description: "تم حذف المنشور بنجاح",
       });
-      // إعادة تحميل قائمة المنشورات (صور فقط)
-      queryClient.invalidateQueries({ queryKey: ['/api/memories/images-only'] });
+      // إعادة تحميل قائمة المنشورات
+      queryClient.invalidateQueries({ queryKey: ['/api/memories/public'] });
       queryClient.invalidateQueries({ queryKey: ['/api/memories/user'] });
     },
     onError: (error: any) => {
@@ -222,9 +277,9 @@ export default function Feed() {
   };
 
   // Optimized loading logic - عرض المحتوى فوراً مع تحسين الأداء
-  const showLoadingSpinner = memoriesLoading && imageOnlyMemories.length === 0 && !memoriesError;
+  const showLoadingSpinner = memoriesLoading && typedMemories.length === 0 && !memoriesError;
   const hasContent = imageOnlyMemories.length > 0 || typedStreams.length > 0;
-  const isInitialLoad = memoriesLoading && imageOnlyMemories.length === 0;
+  const isInitialLoad = memoriesLoading && typedMemories.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
