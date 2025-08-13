@@ -285,7 +285,7 @@ export default function VideoFeed() {
           <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto">
             {/* Profile */}
             <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white">
                 {currentVideo.author?.profileImageUrl ? (
                   <img 
                     src={currentVideo.author.profileImageUrl} 
@@ -293,12 +293,12 @@ export default function VideoFeed() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User className="w-6 h-6 text-white m-3" />
+                  <User className="w-7 h-7 text-white m-3.5" />
                 )}
               </div>
               <Button
                 size="sm"
-                className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full p-0"
+                className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full p-0 font-bold text-lg border-2 border-white"
               >
                 +
               </Button>
@@ -309,10 +309,10 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => handleLike(currentVideo.id)}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <Heart className="w-8 h-8" />
+              <div className="w-14 h-14 flex items-center justify-center">
+                <Heart className="w-9 h-9" />
               </div>
-              <span className="text-xs">{currentVideo.likeCount || 0}</span>
+              <span className="text-sm font-medium">{currentVideo.likeCount || 0}</span>
             </button>
 
             {/* Comments */}
@@ -320,10 +320,10 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => window.location.href = `/comments/${currentVideo.id}`}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <MessageCircle className="w-8 h-8" />
+              <div className="w-14 h-14 flex items-center justify-center">
+                <MessageCircle className="w-9 h-9" />
               </div>
-              <span className="text-xs">تعليق</span>
+              <span className="text-sm font-medium">تعليق</span>
             </button>
 
             {/* Share */}
@@ -331,10 +331,10 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => handleShare(currentVideo.id)}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <Share2 className="w-8 h-8" />
+              <div className="w-14 h-14 flex items-center justify-center">
+                <Share2 className="w-9 h-9" />
               </div>
-              <span className="text-xs">شارك</span>
+              <span className="text-sm font-medium">شارك</span>
             </button>
 
             {/* Gift */}
@@ -342,10 +342,10 @@ export default function VideoFeed() {
               className="flex flex-col items-center space-y-1 text-white"
               onClick={() => handleGiftClick(currentVideo)}
             >
-              <div className="w-12 h-12 flex items-center justify-center">
-                <Gift className="w-8 h-8" />
+              <div className="w-14 h-14 flex items-center justify-center">
+                <Gift className="w-9 h-9" />
               </div>
-              <span className="text-xs">هدية</span>
+              <span className="text-sm font-medium">هدية</span>
             </button>
           </div>
 
