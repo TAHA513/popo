@@ -49,10 +49,29 @@ export default function Feed() {
   const typedMemories = (memories as any[]);
   
   // فلترة المحتوى لعرض الصور فقط (بدون فيديوهات)
-  const imageOnlyMemories = typedMemories.filter(memory => 
-    memory.type === 'image' || 
-    (memory.mediaUrls && memory.mediaUrls.length > 0 && !memory.mediaUrls[0]?.includes('.mp4') && !memory.mediaUrls[0]?.includes('.webm'))
-  );
+  const imageOnlyMemories = typedMemories.filter(memory => {
+    // تحقق من نوع المحتوى
+    if (memory.type === 'image') return true;
+    
+    // تحقق من امتدادات الملفات
+    if (memory.mediaUrls && memory.mediaUrls.length > 0) {
+      const mediaUrl = memory.mediaUrls[0];
+      const isVideo = mediaUrl?.includes('.mp4') || 
+                     mediaUrl?.includes('.webm') || 
+                     mediaUrl?.includes('.mov') || 
+                     mediaUrl?.includes('.avi') ||
+                     memory.type === 'video';
+      return !isVideo; // إرجاع false للفيديوهات، true للصور
+    }
+    
+    // في حالة عدم وجود mediaUrls، تحقق من النوع فقط
+    return memory.type !== 'video';
+  });
+  
+  // إضافة تسجيل للتصحيح
+  console.log('🔍 Total memories:', typedMemories.length);
+  console.log('📷 Image-only memories:', imageOnlyMemories.length);
+  console.log('🎬 Video memories filtered out:', typedMemories.length - imageOnlyMemories.length);
 
   // Pre-fetch data and optimize for instant display
   useEffect(() => {
