@@ -290,8 +290,8 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Add button clicked - navigating to create');
-                window.location.href = '/create';
+                console.log('Add button clicked - navigating to create-memory');
+                window.location.href = '/create-memory';
               }}
             >
               +
