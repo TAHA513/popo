@@ -528,7 +528,7 @@ export default function VideoFeed() {
                   const newCurrentTime = video.currentTime;
                   const newDuration = video.duration;
                   
-                  // Update time for current video only
+                  // Always update global time values
                   if (index === currentVideoIndex) {
                     setCurrentTime(newCurrentTime);
                     setDuration(newDuration);
@@ -545,6 +545,9 @@ export default function VideoFeed() {
                       newDurations[index] = newDuration;
                       return newDurations;
                     });
+                    
+                    // Debug log to check values
+                    console.log(`Video ${index} - Time: ${newCurrentTime.toFixed(1)}s / ${newDuration.toFixed(1)}s`);
                   }
                 }}
                 onPlay={() => {
@@ -619,22 +622,34 @@ export default function VideoFeed() {
                 </div>
               )}
 
-              {/* Video Progress Bar - TikTok style */}
-              {index === currentVideoIndex && videoDuration[index] > 0 && (
+              {/* Video Progress Bar - TikTok style - Always show for current video */}
+              {index === currentVideoIndex && (
                 <div className="absolute bottom-0 left-0 right-0 z-20">
                   <div className="h-1 bg-white/20 overflow-hidden">
                     <div 
-                      className="h-full bg-white transition-all duration-200 ease-linear shadow-sm"
+                      className="h-full bg-white transition-all duration-300 ease-linear shadow-sm"
                       style={{
-                        width: `${(videoCurrentTime[index] / videoDuration[index]) * 100}%`,
-                        boxShadow: '0 0 8px rgba(255,255,255,0.6)'
+                        width: currentTime && duration ? `${(currentTime / duration) * 100}%` : '0%',
+                        boxShadow: '0 0 8px rgba(255,255,255,0.8)'
                       }}
                     />
                   </div>
-                  {/* Optional: Time indicator */}
-                  <div className="absolute -top-6 right-2 text-white/80 text-xs font-medium bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                    {Math.floor(videoCurrentTime[index] || 0)}s / {Math.floor(videoDuration[index] || 0)}s
+                  {/* Time indicator - Always show */}
+                  <div className="absolute -top-6 right-2 text-white/90 text-xs font-medium bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/20">
+                    {Math.floor(currentTime || 0)}s / {Math.floor(duration || 0)}s
                   </div>
+                </div>
+              )}
+
+              {/* Fallback Progress Bar - Always visible at bottom with bright color */}
+              {index === currentVideoIndex && (
+                <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500">
+                  <div 
+                    className="h-1 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 transition-all duration-100"
+                    style={{
+                      width: `${Math.min((currentTime || 0) / Math.max((duration || 1), 1) * 100, 100)}%`
+                    }}
+                  />
                 </div>
               )}
             </div>
