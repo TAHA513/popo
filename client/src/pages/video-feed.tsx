@@ -280,15 +280,15 @@ export default function VideoFeed() {
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 to-transparent" />
           
           {/* Right side controls */}
-          <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto">
+          <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50">
             {/* Add Button */}
             <Button
               size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white w-4 h-4 rounded-full p-0 font-bold text-xs border border-white"
+              className="bg-red-500 hover:bg-red-600 text-white w-4 h-4 rounded-full p-0 font-bold text-xs border border-white z-50 relative"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Add button clicked');
+                console.log('Add button clicked - navigating to /home');
                 window.location.href = '/home';
               }}
             >
@@ -297,7 +297,7 @@ export default function VideoFeed() {
             
             {/* Profile */}
             <button 
-              className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white"
+              className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white z-50 relative"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -320,7 +320,7 @@ export default function VideoFeed() {
 
             {/* Like */}
             <button
-              className="flex flex-col items-center space-y-1 text-white"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -336,7 +336,7 @@ export default function VideoFeed() {
 
             {/* Comments */}
             <button
-              className="flex flex-col items-center space-y-1 text-white"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -352,7 +352,7 @@ export default function VideoFeed() {
 
             {/* Share */}
             <button
-              className="flex flex-col items-center space-y-1 text-white"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -368,8 +368,13 @@ export default function VideoFeed() {
 
             {/* Gift */}
             <button
-              className="flex flex-col items-center space-y-1 text-white"
-              onClick={() => handleGiftClick(currentVideo)}
+              className="flex flex-col items-center space-y-1 text-white z-50 relative"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Gift clicked for video:', currentVideo.id);
+                handleGiftClick(currentVideo);
+              }}
             >
               <div className="w-10 h-10 flex items-center justify-center">
                 <Gift className="w-6 h-6" />
