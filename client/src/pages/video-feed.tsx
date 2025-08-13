@@ -164,9 +164,9 @@ export default function VideoFeed() {
     const container = containerRef.current;
     if (!container) return;
 
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: true });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: false });
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
@@ -391,7 +391,25 @@ export default function VideoFeed() {
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 to-transparent" />
           
           {/* Right side controls */}
-          <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50">
+          <div 
+            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 touch-none"
+            style={{ touchAction: 'none' }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              return false;
+            }}
+            onTouchMove={(e) => {
+              e.stopPropagation(); 
+              e.preventDefault();
+              return false;
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              return false;
+            }}
+          >
             {/* Follow Button - TikTok Style */}
             {currentVideo.author?.id && (
               <Button
