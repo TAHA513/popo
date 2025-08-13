@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Share2, Gift, User, Volume2, VolumeX, Play } from "lucide-react";
 import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
-import NavigationHeader from "@/components/navigation-header";
+
 import BottomNavigation from "@/components/bottom-navigation";
 
 interface VideoMemory {
@@ -233,14 +233,11 @@ export default function VideoFeed() {
 
   return (
     <>
-      {/* Top Navigation */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <NavigationHeader />
-      </div>
+      
       
       <div 
         ref={containerRef}
-        className="fixed inset-0 bg-black overflow-hidden touch-none pt-10 pb-20"
+        className="fixed inset-0 bg-black overflow-hidden touch-none pb-20"
         style={{ userSelect: 'none' }}
       >
         {/* Video Container */}
