@@ -37,10 +37,9 @@ export default function VideoFeed() {
   const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
-  const [isPlaying, setIsPlaying] = useState(false);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const startY = useRef<number | null>(null);
+  const startY = useRef(0);
   const isDragging = useRef(false);
   const isButtonClicked = useRef(false);
 
@@ -85,10 +84,10 @@ export default function VideoFeed() {
           const { isFollowing } = await response.json();
           setFollowingUsers(prev => {
             const newSet = new Set(prev);
-            if (isFollowing) {
-              newSet.add(currentVideo.author!.id);
-            } else {
-              newSet.delete(currentVideo.author!.id);
+            if (isFollowing && currentVideo.author) {
+              newSet.add(currentVideo.author.id);
+            } else if (currentVideo.author) {
+              newSet.delete(currentVideo.author.id);
             }
             return newSet;
           });
@@ -101,23 +100,19 @@ export default function VideoFeed() {
     loadCurrentUserFollowStatus();
   }, [user, currentVideo?.author?.id]);
 
-  // Touch/Swipe handlers - More strict control
+  // Touch/Swipe handlers - Enhanced protection against auto-navigation
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    // Check if touching controls or button areas - STRICT CHECK
     const target = e.target as Element;
+    
+    // Block all interaction with control areas
     if (target.closest('.pointer-events-auto') || 
         target.closest('button') || 
-        target.closest('[role="button"]') || 
-        target.closest('.z-50') ||
-        target.closest('svg') ||
-        target.closest('span')) {
-      e.stopPropagation();
+        target.closest('[role="button"]') ||
+        target.closest('.video-controls') ||
+        target.tagName === 'BUTTON') {
       e.preventDefault();
-      return false; // PREVENT any swipe on controls
-    }
-    
-    // Only start swipe on video background area
-    if (!target.closest('video')) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
       return false;
     }
     
@@ -126,18 +121,19 @@ export default function VideoFeed() {
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    // STRICT CHECK - Multiple layers of protection
     const target = e.target as Element;
+    
+    // Block all interaction with control areas
     if (target.closest('.pointer-events-auto') || 
         target.closest('button') || 
-        target.closest('[role="button"]') || 
-        target.closest('.z-50') ||
-        target.closest('svg') ||
-        target.closest('span') ||
+        target.closest('[role="button"]') ||
+        target.closest('.video-controls') ||
+        target.tagName === 'BUTTON' ||
         isButtonClicked.current) {
-      e.stopPropagation();
       e.preventDefault();
-      return false; // BLOCK swipe completely on controls
+      e.stopPropagation(); 
+      e.stopImmediatePropagation();
+      return false;
     }
     
     if (!startY.current) return;
@@ -145,58 +141,53 @@ export default function VideoFeed() {
     const currentY = e.touches[0].clientY;
     const diffY = startY.current - currentY;
     
-    // INCREASE threshold to prevent accidental swipes
-    if (Math.abs(diffY) > 50) { // Increased from 10 to 50
+    // Require larger movement for drag detection
+    if (Math.abs(diffY) > 20) {
       isDragging.current = true;
     }
   }, []);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
-    // ULTRA STRICT CHECK - Block ANY control interaction
     const target = e.target as Element;
+    
+    // Block all interaction with control areas
     if (target.closest('.pointer-events-auto') || 
         target.closest('button') || 
         target.closest('[role="button"]') ||
-        target.closest('.z-50') ||
-        target.closest('svg') ||
-        target.closest('span')) {
-      e.stopPropagation();
+        target.closest('.video-controls') ||
+        target.tagName === 'BUTTON') {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
       isDragging.current = false;
       isButtonClicked.current = false;
-      startY.current = null;
       return false;
     }
 
-    // BLOCK if button was clicked
+    // Always reset button click flag after any touch
     if (isButtonClicked.current) {
       isButtonClicked.current = false;
       isDragging.current = false;
-      startY.current = null;
       return;
     }
 
-    // ONLY process if we were actually dragging
+    // Only navigate if we have a proper drag gesture
     if (!isDragging.current || !startY.current) {
-      startY.current = null;
+      isDragging.current = false;
       return;
     }
 
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
-    // REQUIRE STRONG SWIPE (100px instead of 50px)
-    if (diffY > 100 && currentVideoIndex < videoMemories.length - 1) {
-      console.log('Strong swipe UP detected - going to next video');
+    // Require larger swipe distance to navigate
+    if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
       setCurrentVideoIndex(prev => prev + 1);
-    }
-    else if (diffY < -100 && currentVideoIndex > 0) {
-      console.log('Strong swipe DOWN detected - going to previous video');
+    } else if (diffY < -80 && currentVideoIndex > 0) {
       setCurrentVideoIndex(prev => prev - 1);
-    } else {
-      console.log('Swipe too weak or invalid:', diffY);
     }
 
+    // Always reset
     isDragging.current = false;
     startY.current = null;
   }, [currentVideoIndex, videoMemories.length]);
@@ -242,67 +233,21 @@ export default function VideoFeed() {
 
   // Auto-play current video and pause others
   useEffect(() => {
-    const currentVideo = videoRefs.current[currentVideoIndex];
-    
-    // Pause all videos first
     videoRefs.current.forEach((video, index) => {
       if (video) {
-        video.muted = isMuted;
-        if (index !== currentVideoIndex) {
+        if (index === currentVideoIndex) {
+          video.currentTime = 0;
+          video.play().catch(() => {
+            // Handle autoplay restrictions
+            console.log('تعذر التشغيل التلقائي');
+          });
+        } else {
           video.pause();
         }
+        video.muted = isMuted;
       }
     });
-
-    // Handle current video
-    if (currentVideo) {
-      currentVideo.currentTime = 0;
-      currentVideo.muted = isMuted;
-      
-      // Remove any existing ended event listeners
-      currentVideo.onended = null;
-      
-      // Add new ended event listener
-      currentVideo.onended = () => {
-        // Automatically go to next video when current ends
-        if (currentVideoIndex < videoMemories.length - 1) {
-          console.log('انتهى الفيديو - الانتقال للفيديو التالي');
-          setCurrentVideoIndex(prev => prev + 1);
-        } else {
-          // Loop back to first video
-          console.log('انتهى آخر فيديو - العودة للبداية');
-          setCurrentVideoIndex(0);
-        }
-      };
-      
-      // Add play/pause event listeners
-      const handlePlay = () => setIsPlaying(true);
-      const handlePause = () => setIsPlaying(false);
-      
-      currentVideo.addEventListener('play', handlePlay);
-      currentVideo.addEventListener('pause', handlePause);
-      
-      // Try to play the video
-      const playPromise = currentVideo.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch((error) => {
-            console.log('تعذر التشغيل التلقائي:', error);
-            setIsPlaying(false);
-          });
-      }
-      
-      // Cleanup function
-      return () => {
-        currentVideo.onended = null;
-        currentVideo.removeEventListener('play', handlePlay);
-        currentVideo.removeEventListener('pause', handlePause);
-      };
-    }
-  }, [currentVideoIndex, isMuted, videoMemories.length]);
+  }, [currentVideoIndex, isMuted]);
 
   // Record video view
   useEffect(() => {
@@ -420,32 +365,45 @@ export default function VideoFeed() {
     <>
       <div 
         ref={containerRef}
-        className="fixed inset-0 bg-black overflow-hidden touch-none pb-12"
-        style={{ userSelect: 'none' }}
+        className="fixed inset-0 bg-black overflow-hidden pb-12"
+        style={{ userSelect: 'none', touchAction: 'pan-y' }}
         onTouchStart={(e) => {
-          // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          // Block navigation if touching any control elements
+          if (target.closest('.pointer-events-auto') || 
+              target.closest('button') || 
+              target.closest('.video-controls') ||
+              target.tagName === 'BUTTON') {
             e.stopPropagation();
             e.preventDefault();
+            e.stopImmediatePropagation();
+            isButtonClicked.current = true;
             return false;
           }
         }}
         onTouchMove={(e) => {
-          // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          if (target.closest('.pointer-events-auto') || 
+              target.closest('button') || 
+              target.closest('.video-controls') ||
+              target.tagName === 'BUTTON' ||
+              isButtonClicked.current) {
             e.stopPropagation();
             e.preventDefault();
+            e.stopImmediatePropagation();
             return false;
           }
         }}
         onTouchEnd={(e) => {
-          // Prevent swipe if touching controls
           const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || target.closest('button')) {
+          if (target.closest('.pointer-events-auto') || 
+              target.closest('button') || 
+              target.closest('.video-controls') ||
+              target.tagName === 'BUTTON') {
             e.stopPropagation();
             e.preventDefault();
+            e.stopImmediatePropagation();
+            setTimeout(() => { isButtonClicked.current = false; }, 100);
             return false;
           }
         }}
@@ -497,32 +455,27 @@ export default function VideoFeed() {
           {/* Bottom gradient */}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/70 to-transparent" />
           
-          {/* Play/Pause Indicator */}
-          {!isPlaying && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-20 h-20 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Play className="w-10 h-10 text-white ml-1" />
-              </div>
-            </div>
-          )}
-          
           {/* Right side controls */}
           <div 
-            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 touch-none"
+            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 video-controls"
             style={{ touchAction: 'none' }}
             onTouchStart={(e) => {
               e.stopPropagation();
               e.preventDefault();
+              e.stopImmediatePropagation();
+              isButtonClicked.current = true;
               return false;
             }}
             onTouchMove={(e) => {
               e.stopPropagation(); 
               e.preventDefault();
+              e.stopImmediatePropagation();
               return false;
             }}
             onTouchEnd={(e) => {
               e.stopPropagation();
               e.preventDefault();
+              e.stopImmediatePropagation();
               return false;
             }}
           >
@@ -611,7 +564,7 @@ export default function VideoFeed() {
               <div className="w-10 h-10 flex items-center justify-center">
                 <MessageCircle className="w-6 h-6" />
               </div>
-              <span className="text-xs">{(currentVideo as any).commentCount || 0}</span>
+              <span className="text-xs">تعليق</span>
             </button>
 
             {/* Share */}
