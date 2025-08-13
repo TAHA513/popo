@@ -36,6 +36,7 @@ export default function VideoFeed() {
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
@@ -67,6 +68,34 @@ export default function VideoFeed() {
       window.history.replaceState({}, '', '/videos');
     }
   }, [startVideoId, videoMemories]);
+
+  // Load follow status for current user
+  useEffect(() => {
+    const loadFollowStatuses = async () => {
+      if (!user || videoMemories.length === 0) return;
+      
+      const authorIds = [...new Set(videoMemories.map(v => v.author?.id).filter(Boolean))];
+      const newFollowingSet = new Set<string>();
+      
+      for (const authorId of authorIds) {
+        try {
+          const response = await fetch(`/api/users/${authorId}/follow-status`);
+          if (response.ok) {
+            const { isFollowing } = await response.json();
+            if (isFollowing) {
+              newFollowingSet.add(authorId as string);
+            }
+          }
+        } catch (error) {
+          console.log('Failed to check follow status for:', authorId);
+        }
+      }
+      
+      setFollowingUsers(newFollowingSet);
+    };
+
+    loadFollowStatuses();
+  }, [user, videoMemories]);
 
   // Touch/Swipe handlers
   const handleTouchStart = useCallback((e: TouchEvent) => {
@@ -223,14 +252,30 @@ export default function VideoFeed() {
       });
 
       if (response.ok) {
-        toast({
-          title: "تم! ✅",
-          description: "تم متابعة المستخدم بنجاح",
+        const result = await response.json();
+        
+        // Update local state
+        setFollowingUsers(prev => {
+          const newSet = new Set(prev);
+          if (result.action === 'follow') {
+            newSet.add(userId);
+            toast({
+              title: "تم! ✅",
+              description: "تم متابعة المستخدم بنجاح",
+            });
+          } else {
+            newSet.delete(userId);
+            toast({
+              title: "تم",
+              description: "تم إلغاء المتابعة",
+            });
+          }
+          return newSet;
         });
       } else {
         toast({
           title: "خطأ",
-          description: "فشل في متابعة المستخدم",
+          description: "فشل في العملية",
         });
       }
     } catch (error) {
@@ -315,18 +360,24 @@ export default function VideoFeed() {
           {/* Right side controls */}
           <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50">
             {/* Follow Button - TikTok Style */}
-            <Button
-              size="sm"
-              className="bg-red-500 hover:bg-red-600 text-white min-w-[60px] h-8 rounded-full px-3 py-1 font-bold text-xs border border-white z-50 relative"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Follow button clicked for user:', currentVideo.author?.username);
-                handleFollow(currentVideo.author?.id);
-              }}
-            >
-              متابعة
-            </Button>
+            {currentVideo.author?.id && (
+              <Button
+                size="sm"
+                className={`${
+                  followingUsers.has(currentVideo.author.id)
+                    ? 'bg-gray-600 hover:bg-gray-700'
+                    : 'bg-red-500 hover:bg-red-600'
+                } text-white min-w-[50px] h-7 rounded-full px-2.5 py-1 font-bold text-[10px] border border-white z-50 relative transition-all duration-200`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Follow button clicked for user:', currentVideo.author?.username);
+                  handleFollow(currentVideo.author?.id);
+                }}
+              >
+                {followingUsers.has(currentVideo.author.id) ? 'متابع' : 'متابعة'}
+              </Button>
+            )}
             
             {/* Profile */}
             <button 
