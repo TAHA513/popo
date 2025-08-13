@@ -196,22 +196,26 @@ export default function VideoCommentsModal({
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                      <span className="font-medium text-sm text-gray-900 dark:text-white">
-                        {comment.author.firstName || comment.author.username}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatDistanceToNow(new Date(comment.createdAt), {
-                          addSuffix: true,
-                          locale: ar,
-                        })}
-                      </span>
-                    </div>
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <span className="font-medium text-sm text-gray-900 dark:text-white">
+                      {comment.author.firstName || comment.author.username}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {formatDistanceToNow(new Date(comment.createdAt), {
+                        addSuffix: true,
+                        locale: ar,
+                      })}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                      {comment.content}
+                    </p>
                     
-                    {/* Delete button - only show for user's own comments */}
+                    {/* Delete button in center - only show for user's own comments */}
                     {user?.id === comment.userId && (
-                      <div className="relative" data-delete-menu>
+                      <div className="relative mr-2" data-delete-menu>
                         <button
                           onClick={(e) => {
                             e.preventDefault();
@@ -219,13 +223,13 @@ export default function VideoCommentsModal({
                             console.log('Delete menu button clicked for comment:', comment.id);
                             setShowDeleteMenu(showDeleteMenu === comment.id ? null : comment.id);
                           }}
-                          className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
                         >
-                          <MoreVertical className="w-5 h-5" />
+                          <MoreVertical className="w-4 h-4" />
                         </button>
                         
                         {showDeleteMenu === comment.id && (
-                          <div className="absolute right-0 top-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl z-[1000] min-w-[140px] animate-in fade-in-0 zoom-in-95 duration-200">
+                          <div className="absolute right-0 top-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl z-[1000] min-w-[120px] animate-in fade-in-0 zoom-in-95 duration-200">
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
@@ -233,11 +237,11 @@ export default function VideoCommentsModal({
                                 deleteCommentMutation.mutate(comment.id);
                               }}
                               disabled={deleteCommentMutation.isPending}
-                              className="w-full px-4 py-3 text-right text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2 rtl:space-x-reverse rounded-lg transition-colors disabled:opacity-50"
+                              className="w-full px-3 py-2 text-right text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2 rtl:space-x-reverse rounded-lg transition-colors disabled:opacity-50"
                             >
-                              <Trash2 className="w-4 h-4 flex-shrink-0" />
+                              <Trash2 className="w-3 h-3 flex-shrink-0" />
                               <span className="font-medium">
-                                {deleteCommentMutation.isPending ? 'جارٍ الحذف...' : 'حذف التعليق'}
+                                {deleteCommentMutation.isPending ? 'حذف...' : 'حذف'}
                               </span>
                             </button>
                           </div>
@@ -245,10 +249,6 @@ export default function VideoCommentsModal({
                       </div>
                     )}
                   </div>
-                  
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                    {comment.content}
-                  </p>
                   
                   <div className="flex items-center mt-2 space-x-4 rtl:space-x-reverse">
                     <button
