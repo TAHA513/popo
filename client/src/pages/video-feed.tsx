@@ -69,41 +69,28 @@ export default function VideoFeed() {
     }
   }, [startVideoId, videoMemories]);
 
-  // Load follow status for current user
-  useEffect(() => {
-    const loadFollowStatuses = async () => {
-      if (!user || videoMemories.length === 0) return;
-      
-      const authorIds = [...new Set(videoMemories.map(v => v.author?.id).filter(Boolean))];
-      const newFollowingSet = new Set<string>();
-      
-      for (const authorId of authorIds) {
-        try {
-          const response = await fetch(`/api/users/${authorId}/follow-status`);
-          if (response.ok) {
-            const { isFollowing } = await response.json();
-            if (isFollowing) {
-              newFollowingSet.add(authorId as string);
-            }
-          }
-        } catch (error) {
-          console.log('Failed to check follow status for:', authorId);
-        }
-      }
-      
-      setFollowingUsers(newFollowingSet);
-    };
-
-    loadFollowStatuses();
-  }, [user, videoMemories]);
+  // Initialize empty follow status - will be updated when user follows/unfollows
+  // This prevents the constant API calls that cause video navigation issues
 
   // Touch/Swipe handlers
   const handleTouchStart = useCallback((e: TouchEvent) => {
+    // Check if touching controls
+    const target = e.target as Element;
+    if (target.closest('.pointer-events-auto')) {
+      return; // Don't start swipe on controls
+    }
+    
     startY.current = e.touches[0].clientY;
     isDragging.current = false;
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
+    // Check if touching controls
+    const target = e.target as Element;
+    if (target.closest('.pointer-events-auto')) {
+      return; // Don't swipe on controls
+    }
+    
     const currentY = e.touches[0].clientY;
     const diffY = startY.current - currentY;
     
@@ -295,13 +282,13 @@ export default function VideoFeed() {
     setShowGiftPanel(true);
   };
 
+  // Don't show "no videos" message - just show loading instead
   if (videoMemories.length === 0) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center">
         <div className="text-center text-white">
-          <Play className="w-16 h-16 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">لا توجد فيديوهات</h2>
-          <p>لا توجد فيديوهات متاحة حالياً</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-4">جاري التحميل...</p>
         </div>
       </div>
     );
@@ -315,6 +302,22 @@ export default function VideoFeed() {
         ref={containerRef}
         className="fixed inset-0 bg-black overflow-hidden touch-none pb-12"
         style={{ userSelect: 'none' }}
+        onTouchStart={(e) => {
+          // Prevent swipe if touching controls
+          const target = e.target as HTMLElement;
+          if (target.closest('.pointer-events-auto')) {
+            e.stopPropagation();
+            return false;
+          }
+        }}
+        onTouchMove={(e) => {
+          // Prevent swipe if touching controls
+          const target = e.target as HTMLElement;
+          if (target.closest('.pointer-events-auto')) {
+            e.stopPropagation();
+            return false;
+          }
+        }}
       >
         {/* Video Container */}
         <div className="relative w-full h-full">
@@ -334,7 +337,13 @@ export default function VideoFeed() {
                 playsInline
                 muted={isMuted}
                 preload="metadata"
-                onClick={() => {
+                onClick={(e) => {
+                  // Only handle click if not clicking on controls
+                  const target = e.target as HTMLElement;
+                  if (target.closest('.pointer-events-auto')) {
+                    return;
+                  }
+                  
                   const video = videoRefs.current[index];
                   if (video) {
                     if (video.paused) {
