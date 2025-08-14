@@ -185,8 +185,19 @@ export function EnhancedGiftModal({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md mx-auto p-0 border-0 bg-transparent shadow-2xl" dir="rtl">
+      <Dialog open={isOpen} onOpenChange={() => {}}>
+        <DialogContent 
+          className="max-w-md mx-auto p-0 border-0 bg-transparent shadow-2xl pointer-events-auto" 
+          dir="rtl"
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+            onClose();
+          }}
+          onPointerDownOutside={(e) => {
+            e.preventDefault();
+            onClose();
+          }}
+        >
           <VisuallyHidden>
             <DialogTitle>إرسال هدية</DialogTitle>
             <DialogDescription>اختر هدية لإرسالها للمستخدم</DialogDescription>
@@ -208,10 +219,10 @@ export function EnhancedGiftModal({
             <Button
               onClick={onClose}
               variant="ghost"
-              size="sm"
-              className="absolute top-4 left-4 text-white hover:bg-white/20 rounded-full w-8 h-8 p-0 z-10"
+              className="absolute top-3 left-3 text-white hover:bg-white/20 rounded-full w-12 h-12 p-0 z-50 shadow-lg"
+              style={{ minWidth: '48px', minHeight: '48px' }}
             >
-              <X className="w-4 h-4" />
+              <X className="w-8 h-8 stroke-2" />
             </Button>
 
             {/* Header */}
