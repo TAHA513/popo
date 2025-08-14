@@ -26,6 +26,8 @@ interface VideoMemory {
   author?: {
     id: string;
     username: string;
+    firstName?: string;
+    lastName?: string;
     profileImageUrl?: string;
   };
 }
@@ -502,8 +504,12 @@ export default function VideoFeed() {
 
   // Navigate to user profile instantly
   const handleUserProfileClick = (userId: string, username?: string) => {
+    console.log('🔗 handleUserProfileClick called:', { userId, username, userCurrentId: user?.id });
     if (userId && userId !== user?.id) {
+      console.log('🚀 Navigating to:', `/profile/${userId}`);
       setLocation(`/profile/${userId}`);
+    } else {
+      console.log('❌ Navigation blocked:', { reason: 'Same user or missing userId', userId, userCurrentId: user?.id });
     }
   };
 
@@ -844,7 +850,10 @@ export default function VideoFeed() {
                     style={{ fontFamily: 'var(--tiktok-font-arabic)' }}
                     onClick={() => handleUserProfileClick(currentVideo.authorId, currentVideo.author?.username)}
                   >
-                    @{currentVideo.author?.username || `user${currentVideo.authorId?.slice(0, 6)}`}
+                    {currentVideo.author?.firstName || currentVideo.author?.lastName 
+                      ? `${currentVideo.author.firstName || ''} ${currentVideo.author.lastName || ''}`.trim()
+                      : `@${currentVideo.author?.username || `user${currentVideo.authorId?.slice(0, 6)}`}`
+                    }
                   </h3>
                   {currentVideo.authorId !== user?.id && !followingUsers.has(currentVideo.authorId) && (
                     <button

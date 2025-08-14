@@ -1949,6 +1949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: users.id,
             username: users.username,
             firstName: users.firstName,
+            lastName: users.lastName,
             profileImageUrl: users.profileImageUrl,
             isStreamer: users.isStreamer,
             isVerified: users.isVerified,
