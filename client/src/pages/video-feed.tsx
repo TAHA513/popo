@@ -71,6 +71,7 @@ export default function VideoFeed() {
   const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
+  const [stickyMode, setStickyMode] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean[]>([]);
   const [videoDuration, setVideoDuration] = useState<number[]>([]);
   const [videoCurrentTime, setVideoCurrentTime] = useState<number[]>([]);
@@ -237,18 +238,28 @@ export default function VideoFeed() {
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
-    // Simple navigation: Up swipe = previous, Down swipe = next
-    if (diffY < -80 && currentVideoIndex > 0) {
-      // Upward swipe - go to previous video
-      if (isAdvancing.current) return; // Prevent multiple navigations
-      isAdvancing.current = true;
-      console.log('Manual swipe to previous video');
-      setCurrentVideoIndex(prev => prev - 1);
-      setTimeout(() => (isAdvancing.current = false), 500);
+    // Handle upward swipe for sticky mode vs navigation
+    if (diffY < -80) {
+      // Upward swipe - toggle sticky mode or go to previous video
+      if (stickyMode) {
+        // If in sticky mode, disable it and go to previous video
+        setStickyMode(false);
+        if (currentVideoIndex > 0) {
+          if (isAdvancing.current) return; // Prevent multiple navigations
+          isAdvancing.current = true;
+          console.log('Manual swipe to previous video');
+          setCurrentVideoIndex(prev => prev - 1);
+          setTimeout(() => (isAdvancing.current = false), 500);
+        }
+      } else {
+        // Enable sticky mode on upward swipe
+        setStickyMode(true);
+      }
     } else if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
-      // Downward swipe - go to next video
+      // Downward swipe - MANUAL navigation only 
       if (isAdvancing.current) return; // Prevent multiple navigations
       isAdvancing.current = true;
+      setStickyMode(false);
       console.log('Manual swipe navigation to next video');
       setCurrentVideoIndex(prev => prev + 1);
       setTimeout(() => (isAdvancing.current = false), 500);
@@ -287,6 +298,9 @@ export default function VideoFeed() {
       }
     } else if (e.key === 'm' || e.key === 'M') {
       setIsMuted(prev => !prev);
+    } else if (e.key === 's' || e.key === 'S') {
+      // Toggle sticky mode with 'S' key
+      setStickyMode(prev => !prev);
     }
   }, [currentVideoIndex, videoMemories.length]);
 
@@ -391,7 +405,7 @@ export default function VideoFeed() {
         return newStates;
       });
     }
-  }, [currentVideoIndex]);
+  }, [currentVideoIndex, stickyMode]);
 
   // Record video view - ONLY ONCE per video, no repeated calls
   const viewedVideos = useRef(new Set<number>());
@@ -577,8 +591,8 @@ export default function VideoFeed() {
     <>
       <div 
         ref={containerRef}
-        className="fixed inset-0 bg-black pb-12 overflow-hidden"
-        style={{ userSelect: 'none', touchAction: 'pan-y' }}
+        className={`fixed inset-0 bg-black pb-12 ${stickyMode ? 'overflow-visible' : 'overflow-hidden'}`}
+        style={{ userSelect: 'none', touchAction: stickyMode ? 'none' : 'pan-y' }}
         onTouchStart={(e) => {
           const target = e.target as HTMLElement;
           // Block navigation if touching any control elements
@@ -623,9 +637,20 @@ export default function VideoFeed() {
             <div
               key={memory.id}
               className={`absolute inset-0 transition-transform duration-300 video-container ${
-                index === currentVideoIndex ? 'translate-y-0' : 
-                index < currentVideoIndex ? '-translate-y-full' : 'translate-y-full'
+                stickyMode && index === currentVideoIndex ? 
+                  'translate-y-0 !fixed !top-0 !left-0 !right-0 !bottom-0 z-40' :
+                  index === currentVideoIndex ? 'translate-y-0' : 
+                  index < currentVideoIndex ? '-translate-y-full' : 'translate-y-full'
               }`}
+              style={{
+                position: stickyMode && index === currentVideoIndex ? 'fixed' : 'absolute',
+                top: stickyMode && index === currentVideoIndex ? 0 : undefined,
+                left: stickyMode && index === currentVideoIndex ? 0 : undefined,
+                right: stickyMode && index === currentVideoIndex ? 0 : undefined,
+                bottom: stickyMode && index === currentVideoIndex ? 0 : undefined,
+                zIndex: stickyMode && index === currentVideoIndex ? 50 : undefined,
+                transform: stickyMode && index === currentVideoIndex ? 'none' : undefined
+              }}
             >
               <video
                 ref={(el) => (videoRefs.current[index] = el)}
@@ -785,7 +810,15 @@ export default function VideoFeed() {
         </div>
 
         {/* User Info and Controls Overlay */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div 
+          className={`absolute inset-0 pointer-events-none ${
+            stickyMode ? 'fixed top-0 left-0 right-0 bottom-0 z-50' : ''
+          }`}
+          style={{
+            position: stickyMode ? 'fixed' : 'absolute',
+            zIndex: stickyMode ? 60 : undefined
+          }}
+        >
           {/* Top gradient */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
           
@@ -1062,15 +1095,30 @@ export default function VideoFeed() {
             {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
           </button>
 
-          {/* Navigation hints */}
-          {currentVideoIndex < videoMemories.length - 1 && (
-            <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-60 pointer-events-none animate-bounce">
-              ↓ اسحب لأسفل للفيديو التالي
+          {/* Sticky Mode Indicator */}
+          {stickyMode && (
+            <div className="absolute top-6 left-4 bg-green-500/80 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm pointer-events-none">
+              📌 الفيديو مثبت
             </div>
           )}
-          {currentVideoIndex > 0 && (
+
+
+
+          {/* Navigation hints */}
+          {!stickyMode ? (
+            <>
+              {currentVideoIndex < videoMemories.length - 1 && (
+                <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-60 pointer-events-none animate-bounce">
+                  ↓ اسحب لأسفل للفيديو التالي
+                </div>
+              )}
+              <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-60 pointer-events-none animate-pulse">
+                ↑ اسحب لأعلى لتثبيت الفيديو
+              </div>
+            </>
+          ) : (
             <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-white text-xs opacity-60 pointer-events-none animate-pulse">
-              ↑ اسحب لأعلى للفيديو السابق
+              ↑ اسحب لأعلى مرة أخرى للإلغاء
             </div>
           )}
         </div>
