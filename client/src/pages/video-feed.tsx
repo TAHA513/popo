@@ -784,43 +784,29 @@ export default function VideoFeed() {
                   </div>
                 </div>
               )}
-              
-              {/* مؤشر الفيديو يعمل - في أعلى اليسار */}
-              {index === currentVideoIndex && isVideoPlaying[index] && !showPlayButton && (
-                <div className="absolute top-4 left-4 z-20 pointer-events-none">
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    <span>يعمل الآن</span>
-                  </div>
-                </div>
-              )}
 
               {/* Removed the circular play icon completely */}
 
-              {/* Video Progress Bar - أكثر وضوحاً وأكبر */}
+              {/* Video Progress Bar - TikTok style - Always show for current video */}
               {index === currentVideoIndex && (
-                <div className="absolute bottom-0 left-0 right-0 z-30">
-                  {/* شريط الخلفية - أكبر وأكثر وضوحاً */}
-                  <div className="h-2 bg-black/30 backdrop-blur-sm border-t border-white/10">
-                    {/* شريط التقدم الرئيسي - ملون ومتحرك */}
+                <div className="absolute bottom-0 left-0 right-0 z-30 progress-bar-mobile">
+                  {/* Progress bar background */}
+                  <div className="h-1 bg-white/30 overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 transition-all duration-200 ease-out shadow-lg relative"
+                      className="h-full bg-white transition-all duration-300 ease-linear"
                       style={{
                         width: videoCurrentTime[index] && videoDuration[index] ? `${(videoCurrentTime[index] / videoDuration[index]) * 100}%` : '0%',
-                        boxShadow: '0 0 12px rgba(255,20,147,0.6), 0 0 20px rgba(255,20,147,0.3)'
+                        background: 'linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1)',
+                        boxShadow: '0 0 10px rgba(255,255,255,0.8)'
                       }}
-                    >
-                      {/* نقطة التقدم المتحركة */}
-                      <div className="absolute right-0 top-0 w-1 h-full bg-white shadow-lg animate-pulse"></div>
-                    </div>
+                    />
                   </div>
                   
-                  {/* مؤشر الوقت - أكثر وضوحاً */}
-                  <div className="absolute -top-8 right-3 text-white text-sm font-bold bg-gradient-to-r from-black/80 to-gray-900/80 px-3 py-1 rounded-full backdrop-blur-md border border-white/30 shadow-lg">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span>{formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}</span>
-                    </div>
+                  {/* Time indicator - Enhanced for mobile */}
+                  <div className="absolute -top-10 right-3 text-white text-xs font-bold bg-black/80 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/40 shadow-lg mobile-time-indicator">
+                    <span className="font-mono text-white">
+                      {formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}
+                    </span>
                   </div>
                 </div>
               )}
