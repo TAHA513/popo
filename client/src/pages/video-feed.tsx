@@ -827,7 +827,7 @@ export default function VideoFeed() {
           
           {/* Right side controls */}
           <div 
-            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 video-controls"
+            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-[100] video-controls"
             style={{ touchAction: 'none' }}
             onTouchStart={(e) => {
               e.stopPropagation();
@@ -849,7 +849,7 @@ export default function VideoFeed() {
             {/* Follow Button - Only show if not following */}
             {currentVideo.author?.id && user?.id !== currentVideo.author.id && !followingUsers.has(currentVideo.author.id) && (
               <button
-                className="bg-red-500 text-white border-white hover:bg-red-600 min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-50 relative transition-all duration-200 backdrop-blur-sm"
+                className="bg-red-500 text-white border-white hover:bg-red-600 min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-[110] relative transition-all duration-200 backdrop-blur-sm"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -863,7 +863,7 @@ export default function VideoFeed() {
             
             {/* Profile */}
             <button 
-              className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white z-50 relative"
+              className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white z-[110] relative"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -892,7 +892,7 @@ export default function VideoFeed() {
 
             {/* Like - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -935,7 +935,7 @@ export default function VideoFeed() {
 
             {/* Comments - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -957,7 +957,7 @@ export default function VideoFeed() {
 
             {/* Share - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -979,7 +979,7 @@ export default function VideoFeed() {
 
             {/* Gift - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1001,7 +1001,7 @@ export default function VideoFeed() {
           </div>
 
           {/* Left side info - TikTok Style */}
-          <div className="absolute left-4 bottom-20 max-w-[65%] pointer-events-auto z-30">
+          <div className="absolute left-4 bottom-20 max-w-[65%] pointer-events-auto z-[100]">
             <div className="text-white space-y-3">
               {/* Username with Follow Button - TikTok Style */}
               <div className="flex items-center gap-3">
