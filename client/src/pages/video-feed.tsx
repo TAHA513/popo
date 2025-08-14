@@ -167,6 +167,12 @@ export default function VideoFeed() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    // Don't handle swipe if touching buttons
+    if (target.closest('button') || target.closest('.pointer-events-auto')) {
+      return;
+    }
+
     const endY = e.changedTouches[0].clientY;
     const diff = startY.current - endY;
     const minSwipeDistance = 50;
@@ -174,12 +180,17 @@ export default function VideoFeed() {
     if (Math.abs(diff) > minSwipeDistance) {
       if (diff > 0 && currentVideoIndex < videoMemories.length - 1) {
         // Swipe up - next video
+        console.log('Touch swipe: next video', currentVideoIndex, '->', currentVideoIndex + 1);
         setCurrentVideoIndex(prev => prev + 1);
       } else if (diff < 0 && currentVideoIndex > 0) {
         // Swipe down - previous video
+        console.log('Touch swipe: previous video', currentVideoIndex, '->', currentVideoIndex - 1);
         setCurrentVideoIndex(prev => prev - 1);
       }
     }
+    
+    // Reset touch position
+    startY.current = 0;
   };
 
 
