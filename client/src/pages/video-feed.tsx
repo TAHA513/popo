@@ -506,10 +506,13 @@ export default function VideoFeed() {
   const handleUserProfileClick = (userId: string, username?: string) => {
     console.log('🔗 handleUserProfileClick called:', { userId, username, userCurrentId: user?.id });
     if (userId && userId !== user?.id) {
-      console.log('🚀 Navigating to:', `/profile/${userId}`);
-      setLocation(`/profile/${userId}`);
+      console.log('🚀 Navigating to:', `/user/${userId}`);
+      setLocation(`/user/${userId}`);
+    } else if (userId === user?.id) {
+      console.log('🚀 Navigating to own profile:', '/profile');
+      setLocation('/profile');
     } else {
-      console.log('❌ Navigation blocked:', { reason: 'Same user or missing userId', userId, userCurrentId: user?.id });
+      console.log('❌ Navigation blocked:', { reason: 'Missing userId', userId, userCurrentId: user?.id });
     }
   };
 
