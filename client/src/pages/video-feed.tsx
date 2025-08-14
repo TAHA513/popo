@@ -836,7 +836,16 @@ export default function VideoFeed() {
               <div className="flex items-center gap-3">
                 <div 
                   className="relative cursor-pointer transform hover:scale-105 active:scale-95 transition-transform"
-                  onClick={() => handleUserProfileClick(currentVideo.authorId, currentVideo.author?.username)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🖱️ Profile image clicked:', { 
+                      authorId: currentVideo.authorId, 
+                      username: currentVideo.author?.username,
+                      event: 'image_click'
+                    });
+                    handleUserProfileClick(currentVideo.authorId, currentVideo.author?.username);
+                  }}
                 >
                   <img
                     src={currentVideo.author?.profileImageUrl || '/default-avatar.png'}
@@ -848,7 +857,18 @@ export default function VideoFeed() {
                   <h3 
                     className="font-bold text-white text-lg tracking-tight cursor-pointer hover:underline active:scale-95 transition-all" 
                     style={{ fontFamily: 'var(--tiktok-font-arabic)' }}
-                    onClick={() => handleUserProfileClick(currentVideo.authorId, currentVideo.author?.username)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('🖱️ Username clicked:', { 
+                        authorId: currentVideo.authorId, 
+                        username: currentVideo.author?.username,
+                        firstName: currentVideo.author?.firstName,
+                        lastName: currentVideo.author?.lastName,
+                        event: 'username_click'
+                      });
+                      handleUserProfileClick(currentVideo.authorId, currentVideo.author?.username);
+                    }}
                   >
                     {currentVideo.author?.firstName || currentVideo.author?.lastName 
                       ? `${currentVideo.author.firstName || ''} ${currentVideo.author.lastName || ''}`.trim()
