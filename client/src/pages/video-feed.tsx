@@ -154,6 +154,7 @@ export default function VideoFeed() {
   // User interaction tracking
   const userInteracting = useRef(false);
   const isAdvancing = useRef(false);
+  const lastNavigationTime = useRef(0);
 
   // Touch/Swipe handlers - Enhanced protection against auto-navigation
   const handleTouchStart = useCallback((e: TouchEvent) => {
@@ -238,21 +239,30 @@ export default function VideoFeed() {
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
-    // Handle swipe navigation
+    // Handle swipe navigation with improved throttling
+    const now = Date.now();
+    if (now - lastNavigationTime.current < 150) {
+      isDragging.current = false;
+      startY.current = 0;
+      return; // Throttle navigation
+    }
+
     if (diffY < -80 && currentVideoIndex > 0) {
       // Upward swipe - go to previous video
       if (isAdvancing.current) return; // Prevent multiple navigations
       isAdvancing.current = true;
-      console.log('Manual swipe to previous video');
+      lastNavigationTime.current = now;
+      console.log(`Manual swipe to previous video: ${currentVideoIndex} -> ${currentVideoIndex - 1}`);
       setCurrentVideoIndex(prev => prev - 1);
-      setTimeout(() => (isAdvancing.current = false), 500);
+      setTimeout(() => (isAdvancing.current = false), 150); // Faster reset
     } else if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
       // Downward swipe - go to next video 
       if (isAdvancing.current) return; // Prevent multiple navigations
       isAdvancing.current = true;
-      console.log('Manual swipe navigation to next video');
+      lastNavigationTime.current = now;
+      console.log(`Manual swipe to next video: ${currentVideoIndex} -> ${currentVideoIndex + 1}`);
       setCurrentVideoIndex(prev => prev + 1);
-      setTimeout(() => (isAdvancing.current = false), 500);
+      setTimeout(() => (isAdvancing.current = false), 150); // Faster reset
     }
 
     // Always reset
@@ -267,15 +277,15 @@ export default function VideoFeed() {
     if (e.key === 'ArrowUp' && currentVideoIndex > 0) {
       e.preventDefault();
       isAdvancing.current = true;
-      console.log('Manual keyboard up - previous video');
+      console.log(`Manual keyboard up - previous video: ${currentVideoIndex} -> ${currentVideoIndex - 1}`);
       setCurrentVideoIndex(prev => prev - 1);
-      setTimeout(() => (isAdvancing.current = false), 500);
+      setTimeout(() => (isAdvancing.current = false), 200); // Reduce timeout
     } else if (e.key === 'ArrowDown' && currentVideoIndex < videoMemories.length - 1) {
       e.preventDefault();
       isAdvancing.current = true;
-      console.log('Manual keyboard down - next video');
+      console.log(`Manual keyboard down - next video: ${currentVideoIndex} -> ${currentVideoIndex + 1}`);
       setCurrentVideoIndex(prev => prev + 1);
-      setTimeout(() => (isAdvancing.current = false), 500);
+      setTimeout(() => (isAdvancing.current = false), 200); // Reduce timeout
     } else if (e.key === ' ') {
       e.preventDefault();
       const currentVideo = videoRefs.current[currentVideoIndex];
