@@ -153,9 +153,34 @@ export default function VideoFeed() {
     loadCurrentUserFollowStatus();
   }, [user, currentVideo?.author?.id]);
 
-  // User interaction tracking
+  // User interaction tracking  
   const userInteracting = useRef(false);
   const isAdvancing = useRef(false);
+
+  // Simple touch handlers for swipe navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Allow normal touch behavior
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const endY = e.changedTouches[0].clientY;
+    const diff = startY.current - endY;
+    const minSwipeDistance = 50;
+
+    if (Math.abs(diff) > minSwipeDistance) {
+      if (diff > 0 && currentVideoIndex < videoMemories.length - 1) {
+        // Swipe up - next video
+        setCurrentVideoIndex(prev => prev + 1);
+      } else if (diff < 0 && currentVideoIndex > 0) {
+        // Swipe down - previous video
+        setCurrentVideoIndex(prev => prev - 1);
+      }
+    }
+  };
 
 
 
@@ -479,6 +504,9 @@ export default function VideoFeed() {
         ref={containerRef}
         className="fixed inset-0 bg-black pb-12 overflow-hidden"
         style={{ userSelect: 'none' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Video Container */}
         <div className="relative w-full h-full bg-black video-container">
