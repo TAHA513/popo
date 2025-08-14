@@ -828,28 +828,22 @@ export default function VideoFeed() {
           {/* Right side controls */}
           <div 
             className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 video-controls"
-            style={{ touchAction: 'none' }}
-            onTouchStart={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              isButtonClicked.current = true;
-              return false;
-            }}
-            onTouchMove={(e) => {
-              e.stopPropagation(); 
-              e.preventDefault();
-              return false;
-            }}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              return false;
-            }}
+            style={{ touchAction: 'manipulation' }}
           >
             {/* Follow Button - Only show if not following */}
             {currentVideo.author?.id && user?.id !== currentVideo.author.id && !followingUsers.has(currentVideo.author.id) && (
               <button
                 className="bg-red-500 text-white border-white hover:bg-red-600 min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-50 relative transition-all duration-200 backdrop-blur-sm"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isButtonClicked.current = true;
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isButtonClicked.current = true;
+                }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -864,6 +858,11 @@ export default function VideoFeed() {
             {/* Profile */}
             <button 
               className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white z-50 relative"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -872,7 +871,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                isButtonClicked.current = true; // Prevent video navigation
+                isButtonClicked.current = true;
                 console.log('Profile clicked for user:', currentVideo.author?.username);
                 if (currentVideo.author?.username) {
                   window.location.href = `/profile/${currentVideo.author.username}`;
@@ -893,6 +892,11 @@ export default function VideoFeed() {
             {/* Like - TikTok Style */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -901,7 +905,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                isButtonClicked.current = true; // Prevent video navigation
+                isButtonClicked.current = true;
                 console.log('Like clicked for video:', currentVideo.id);
                 handleLike(currentVideo.id);
               }}
@@ -936,6 +940,11 @@ export default function VideoFeed() {
             {/* Comments - TikTok Style */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -944,7 +953,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                isButtonClicked.current = true; // Prevent video navigation
+                isButtonClicked.current = true;
                 console.log('Comments clicked for video:', currentVideo.id);
                 setShowCommentsModal(true);
               }}
@@ -958,6 +967,11 @@ export default function VideoFeed() {
             {/* Share - TikTok Style */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -966,7 +980,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                isButtonClicked.current = true; // Prevent video navigation
+                isButtonClicked.current = true;
                 console.log('Share clicked for video:', currentVideo.id);
                 handleShare(currentVideo.id);
               }}
@@ -980,6 +994,11 @@ export default function VideoFeed() {
             {/* Gift - TikTok Style */}
             <button
               className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isButtonClicked.current = true;
+              }}
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -988,7 +1007,7 @@ export default function VideoFeed() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                isButtonClicked.current = true; // Prevent video navigation
+                isButtonClicked.current = true;
                 console.log('Gift clicked for video:', currentVideo.id);
                 handleGiftClick(currentVideo);
               }}
@@ -1018,7 +1037,19 @@ export default function VideoFeed() {
                   </h3>
                   {currentVideo.authorId !== user?.id && !followingUsers.has(currentVideo.authorId) && (
                     <button
-                      onClick={() => handleFollow(currentVideo.authorId)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleFollow(currentVideo.authorId);
+                      }}
                       className="bg-[var(--tiktok-red)] hover:bg-red-600 text-white px-5 py-1.5 rounded-md text-sm font-bold transition-all transform active:scale-95 shadow-lg"
                       style={{ fontFamily: 'var(--tiktok-font-arabic)' }}
                     >
@@ -1046,8 +1077,20 @@ export default function VideoFeed() {
 
           {/* Volume control */}
           <button
-            className="absolute top-6 right-4 text-white pointer-events-auto"
-            onClick={() => setIsMuted(prev => !prev)}
+            className="absolute top-6 right-4 text-white pointer-events-auto z-50"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsMuted(prev => !prev);
+            }}
           >
             {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
           </button>
