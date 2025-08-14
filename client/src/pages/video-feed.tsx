@@ -802,12 +802,7 @@ export default function VideoFeed() {
                     />
                   </div>
                   
-                  {/* Time indicator - Enhanced for mobile */}
-                  <div className="absolute -top-10 right-3 text-white text-xs font-bold bg-black/80 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/40 shadow-lg mobile-time-indicator">
-                    <span className="font-mono text-white">
-                      {formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}
-                    </span>
-                  </div>
+                  
                 </div>
               )}
             </div>
