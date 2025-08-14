@@ -110,11 +110,11 @@ export default function MobileGiftPanel({ isOpen, onClose, onSendGift, userPoint
               </div>
               <Button
                 variant="ghost"
-                size="icon"
                 onClick={onClose}
-                className="rounded-full"
+                className="rounded-full p-3 hover:bg-gray-100 transition-colors"
+                style={{ minWidth: '48px', minHeight: '48px' }}
               >
-                <X className="w-5 h-5" />
+                <X className="w-8 h-8 text-gray-600" />
               </Button>
             </div>
 
