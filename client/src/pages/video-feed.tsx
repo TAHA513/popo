@@ -157,16 +157,17 @@ export default function VideoFeed() {
   const userInteracting = useRef(false);
   const isAdvancing = useRef(false);
 
-  // Simple touch handlers for swipe navigation
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // Native touch event handlers for swipe navigation
+  const handleTouchStartNative = useCallback((e: TouchEvent) => {
     startY.current = e.touches[0].clientY;
-  };
+  }, []);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    // Allow normal touch behavior
-  };
+  const handleTouchMoveNative = useCallback((e: TouchEvent) => {
+    // Allow normal touch behavior but prevent default for better control
+    e.preventDefault();
+  }, []);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEndNative = useCallback((e: TouchEvent) => {
     const target = e.target as HTMLElement;
     // Don't handle swipe if touching buttons
     if (target.closest('button') || target.closest('.pointer-events-auto')) {
@@ -180,18 +181,18 @@ export default function VideoFeed() {
     if (Math.abs(diff) > minSwipeDistance) {
       if (diff > 0 && currentVideoIndex < videoMemories.length - 1) {
         // Swipe up - next video
-        console.log('Touch swipe: next video', currentVideoIndex, '->', currentVideoIndex + 1);
+        console.log('🔼 Touch swipe: next video', currentVideoIndex, '->', currentVideoIndex + 1);
         setCurrentVideoIndex(prev => prev + 1);
       } else if (diff < 0 && currentVideoIndex > 0) {
-        // Swipe down - previous video
-        console.log('Touch swipe: previous video', currentVideoIndex, '->', currentVideoIndex - 1);
+        // Swipe down - previous video  
+        console.log('🔽 Touch swipe: previous video', currentVideoIndex, '->', currentVideoIndex - 1);
         setCurrentVideoIndex(prev => prev - 1);
       }
     }
     
     // Reset touch position
     startY.current = 0;
-  };
+  }, [currentVideoIndex, videoMemories.length]);
 
 
 
@@ -287,18 +288,18 @@ export default function VideoFeed() {
     const container = containerRef.current;
     if (!container) return;
 
-    container.addEventListener('touchstart', handleTouchStart, { passive: false });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: false });
+    container.addEventListener('touchstart', handleTouchStartNative, { passive: false });
+    container.addEventListener('touchmove', handleTouchMoveNative, { passive: false });
+    container.addEventListener('touchend', handleTouchEndNative, { passive: false });
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchstart', handleTouchStartNative);
+      container.removeEventListener('touchmove', handleTouchMoveNative);
+      container.removeEventListener('touchend', handleTouchEndNative);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleKeyDown]);
+  }, [handleTouchStartNative, handleTouchMoveNative, handleTouchEndNative, handleKeyDown]);
 
   // Control video playback - Play current, pause others, NO AUTO ADVANCE
   useEffect(() => {
@@ -515,9 +516,6 @@ export default function VideoFeed() {
         ref={containerRef}
         className="fixed inset-0 bg-black pb-12 overflow-hidden"
         style={{ userSelect: 'none' }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Video Container */}
         <div className="relative w-full h-full bg-black video-container">
