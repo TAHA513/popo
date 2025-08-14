@@ -789,32 +789,25 @@ export default function VideoFeed() {
 
               {/* Video Progress Bar - TikTok style - Always show for current video */}
               {index === currentVideoIndex && (
-                <div className="absolute bottom-0 left-0 right-0 z-20">
-                  <div className="h-1 bg-white/20 overflow-hidden">
+                <div className="absolute bottom-0 left-0 right-0 z-30 progress-bar-mobile">
+                  {/* Progress bar background */}
+                  <div className="h-1 bg-white/30 overflow-hidden">
                     <div 
-                      className="h-full bg-white transition-all duration-300 ease-linear shadow-sm"
+                      className="h-full bg-white transition-all duration-300 ease-linear"
                       style={{
                         width: videoCurrentTime[index] && videoDuration[index] ? `${(videoCurrentTime[index] / videoDuration[index]) * 100}%` : '0%',
-                        boxShadow: '0 0 8px rgba(255,255,255,0.8)'
+                        background: 'linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1)',
+                        boxShadow: '0 0 10px rgba(255,255,255,0.8)'
                       }}
                     />
                   </div>
-                  {/* Time indicator - Always show */}
-                  <div className="absolute -top-6 right-2 text-white/90 text-xs font-medium bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/20">
-                    {formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}
+                  
+                  {/* Time indicator - Enhanced for mobile */}
+                  <div className="absolute -top-10 right-3 text-white text-xs font-bold bg-black/80 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/40 shadow-lg mobile-time-indicator">
+                    <span className="font-mono text-white">
+                      {formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}
+                    </span>
                   </div>
-                </div>
-              )}
-
-              {/* Fallback Progress Bar - Always visible at bottom with bright color */}
-              {index === currentVideoIndex && (
-                <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500">
-                  <div 
-                    className="h-1 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 transition-all duration-100"
-                    style={{
-                      width: `${Math.min((videoCurrentTime[index] || 0) / Math.max((videoDuration[index] || 1), 1) * 100, 100)}%`
-                    }}
-                  />
                 </div>
               )}
             </div>
