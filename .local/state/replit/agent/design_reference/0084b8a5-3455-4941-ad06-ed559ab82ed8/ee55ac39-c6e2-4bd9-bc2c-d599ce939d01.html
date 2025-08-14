@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaaBoBo Live - Live Streaming & Gifts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'laa-pink': '#FF6EB4',
+                        'laa-purple': '#B187F0',
+                        'laa-blue': '#A8E4F5',
+                        'laa-dark': '#333333',
+                        'laa-gray': '#666666'
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                        'inter': ['Inter', 'sans-serif'],
+                        'cairo': ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #FF6EB4 0%, #B187F0 50%, #A8E4F5 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #FF6EB4, #B187F0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .floating-gift {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); }
+            80%, 100% { opacity: 0; }
+        }
+        .rtl { direction: rtl; }
+        .gift-animation {
+            animation: giftPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes giftPop {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-white font-inter">
+    <!-- Navigation Header -->
+    <!-- @COMPONENT: NavigationHeader [showLanguageToggle, showProfile] -->
+    <nav class="bg-white shadow-lg border-b-2 border-gradient sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 gradient-bg rounded-full flex items-center justify-center">
+                        <i class="fas fa-rabbit text-white text-lg"></i>
+                    </div>
+                    <span class="font-poppins font-bold text-2xl gradient-text">LaaBoBo Live</span>
+                </div>
+                
+                <!-- Navigation Items -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#home" class="text-laa-dark hover:text-laa-pink transition-colors">Home</a>
+                    <a href="#live" class="text-laa-dark hover:text-laa-pink transition-colors">Live Streams</a>
+                    <a href="#gifts" class="text-laa-dark hover:text-laa-pink transition-colors">Gifts</a>
+                    <a href="#creators" class="text-laa-dark hover:text-laa-pink transition-colors">Creators</a>
+                </div>
+
+                <!-- User Actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Language Toggle -->
+                    <button class="bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-colors" data-implementation="Toggle between Arabic and English">
+                        <i class="fas fa-globe text-laa-gray"></i>
+                        <span class="ml-1 text-sm">EN</span>
+                    </button>
+                    
+                    <!-- Points Balance -->
+                    <div class="bg-gradient-to-r from-laa-pink to-laa-purple text-white px-4 py-2 rounded-full">
+                        <i class="fas fa-coins"></i>
+                        <span class="ml-1 font-semibold" data-bind="user.points">1,250</span>
+                    </div>
+                    
+                    <!-- Profile -->
+                    <div class="relative">
+                        <!-- Profile user avatar with artistic photographer in natural lighting -->
+                        <img src="https://pixabay.com/get/g62fe3b75ce4c52d01c2a0ce98786d8cbd218b1a44d741bdf8da4d3c25b25a055be30d3d5f8633e8fbf16b971a4801005a9d77a611edb98acccfeec6aaddc21de_1280.jpg" 
+                             alt="User Profile" 
+                             class="w-10 h-10 rounded-full object-cover border-2 border-laa-pink cursor-pointer">
+                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: NavigationHeader -->
+
+    <!-- Main Content Container -->
+    <div class="min-h-screen bg-gray-50">
+        
+        <!-- Hero Section -->
+        <!-- @COMPONENT: HeroSection [featuredStreams, onStartStreaming] -->
+        <section class="gradient-bg py-16">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="font-poppins font-bold text-4xl md:text-6xl text-white mb-6">
+                    Welcome to LaaBoBo Live
+                    <span class="block text-2xl md:text-3xl font-normal mt-2">مرحباً بك في لاا بوبو لايف</span>
+                </h1>
+                <p class="text-white text-lg md:text-xl mb-8 max-w-2xl mx-auto">
+                    Stream, connect, and earn with our amazing gift system and cute characters!
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <button class="bg-white text-laa-pink px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105" 
+                            data-event="click:startStreaming">
+                        <i class="fas fa-video mr-2"></i>
+                        Start Streaming
+                    </button>
+                    <button class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-laa-pink transition-all">
+                        <i class="fas fa-play mr-2"></i>
+                        Watch Live
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: HeroSection -->
+
+        <!-- Live Streams Grid -->
+        <!-- @COMPONENT: LiveStreamsGrid [streams, onJoinStream] -->
+        <section class="py-12">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="font-poppins font-bold text-3xl text-laa-dark">Live Now</h2>
+                    <div class="flex items-center space-x-4">
+                        <select class="border border-gray-300 rounded-lg px-4 py-2">
+                            <option>All Categories</option>
+                            <option>Music</option>
+                            <option>Gaming</option>
+                            <option>Talk Show</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- @MAP: liveStreams.map(stream => ( -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Stream Card 1 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer" data-event="click:joinStream">
+                        <div class="relative">
+                            <!-- Beautiful woman streaming makeup tutorial with professional lighting -->
+                            <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=250" 
+                                 alt="Live Stream" 
+                                 class="w-full h-48 object-cover">
+                            
+                            <!-- Live Badge -->
+                            <div class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                <i class="fas fa-circle text-xs mr-1"></i>LIVE
+                            </div>
+                            
+                            <!-- Viewer Count -->
+                            <div class="absolute top-3 right-3 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                                <i class="fas fa-eye mr-1"></i>
+                                <span data-bind="stream.viewerCount">1.2K</span>
+                            </div>
+                            
+                            <!-- Gift Animation Overlay -->
+                            <div class="absolute bottom-3 right-3 floating-gift">
+                                <div class="w-8 h-8 bg-laa-pink rounded-full flex items-center justify-center">
+                                    <i class="fas fa-heart text-white text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="flex items-center mb-2">
+                                <!-- Beautiful young woman with professional headshot -->
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" 
+                                     alt="Streamer" 
+                                     class="w-8 h-8 rounded-full object-cover mr-3">
+                                <span class="font-semibold text-laa-dark" data-bind="stream.hostName">Sarah Ahmed</span>
+                            </div>
+                            <h3 class="font-semibold text-lg mb-2" data-bind="stream.title">Makeup Tutorial Live</h3>
+                            <div class="flex items-center justify-between">
+                                <span class="text-laa-gray text-sm">Beauty & Fashion</span>
+                                <div class="text-laa-pink font-semibold">
+                                    <i class="fas fa-gift mr-1"></i>
+                                    <span data-bind="stream.giftCount">247</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stream Card 2 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
+                        <div class="relative">
+                            <!-- Professional gamer with RGB lighting setup -->
+                            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=250" 
+                                 alt="Gaming Stream" 
+                                 class="w-full h-48 object-cover">
+                            
+                            <div class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                <i class="fas fa-circle text-xs mr-1"></i>LIVE
+                            </div>
+                            
+                            <div class="absolute top-3 right-3 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                                <i class="fas fa-eye mr-1"></i>892
+                            </div>
+                            
+                            <div class="absolute bottom-3 right-3 floating-gift">
+                                <div class="w-8 h-8 bg-laa-purple rounded-full flex items-center justify-center">
+                                    <i class="fas fa-dragon text-white text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="flex items-center mb-2">
+                                <!-- Young male gamer with headset -->
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" 
+                                     alt="Gamer" 
+                                     class="w-8 h-8 rounded-full object-cover mr-3">
+                                <span class="font-semibold text-laa-dark">Ahmed Gaming</span>
+                            </div>
+                            <h3 class="font-semibold text-lg mb-2">Epic Gaming Session</h3>
+                            <div class="flex items-center justify-between">
+                                <span class="text-laa-gray text-sm">Gaming</span>
+                                <div class="text-laa-purple font-semibold">
+                                    <i class="fas fa-gift mr-1"></i>156
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stream Card 3 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
+                        <div class="relative">
+                            <!-- Music performance with stage lighting -->
+                            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=250" 
+                                 alt="Music Stream" 
+                                 class="w-full h-48 object-cover">
+                            
+                            <div class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                <i class="fas fa-circle text-xs mr-1"></i>LIVE
+                            </div>
+                            
+                            <div class="absolute top-3 right-3 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                                <i class="fas fa-eye mr-1"></i>2.1K
+                            </div>
+                            
+                            <div class="absolute bottom-3 right-3 floating-gift">
+                                <div class="w-8 h-8 bg-laa-blue rounded-full flex items-center justify-center">
+                                    <i class="fas fa-music text-white text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="flex items-center mb-2">
+                                <!-- Young female musician with guitar -->
+                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" 
+                                     alt="Musician" 
+                                     class="w-8 h-8 rounded-full object-cover mr-3">
+                                <span class="font-semibold text-laa-dark">Luna Music</span>
+                            </div>
+                            <h3 class="font-semibold text-lg mb-2">Acoustic Session</h3>
+                            <div class="flex items-center justify-between">
+                                <span class="text-laa-gray text-sm">Music</span>
+                                <div class="text-laa-blue font-semibold">
+                                    <i class="fas fa-gift mr-1"></i>389
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stream Card 4 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
+                        <div class="relative">
+                            <!-- Talk show host in professional studio setup -->
+                            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=250" 
+                                 alt="Talk Show" 
+                                 class="w-full h-48 object-cover">
+                            
+                            <div class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                <i class="fas fa-circle text-xs mr-1"></i>LIVE
+                            </div>
+                            
+                            <div class="absolute top-3 right-3 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                                <i class="fas fa-eye mr-1"></i>567
+                            </div>
+                            
+                            <div class="absolute bottom-3 right-3 floating-gift">
+                                <div class="w-8 h-8 bg-laa-pink rounded-full flex items-center justify-center">
+                                    <i class="fas fa-comments text-white text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="flex items-center mb-2">
+                                <!-- Professional male host in suit -->
+                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" 
+                                     alt="Host" 
+                                     class="w-8 h-8 rounded-full object-cover mr-3">
+                                <span class="font-semibold text-laa-dark">Omar Talk</span>
+                            </div>
+                            <h3 class="font-semibold text-lg mb-2">Life Advice Show</h3>
+                            <div class="flex items-center justify-between">
+                                <span class="text-laa-gray text-sm">Talk Show</span>
+                                <div class="text-laa-pink font-semibold">
+                                    <i class="fas fa-gift mr-1"></i>123
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </section>
+        <!-- @END_COMPONENT: LiveStreamsGrid -->
+
+        <!-- Gift Characters Section -->
+        <!-- @COMPONENT: GiftCharactersSection [characters, onSelectGift] -->
+        <section class="py-12 bg-gradient-to-r from-pink-50 to-purple-50">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="font-poppins font-bold text-4xl gradient-text mb-4">Meet Our Gift Characters</h2>
+                    <p class="text-laa-gray text-lg max-w-2xl mx-auto">
+                        Send magical gifts to your favorite streamers with our adorable characters!
+                        إرسل هدايا سحرية لمذيعيك المفضلين مع شخصياتنا الرائعة!
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <!-- BoBo Love Character -->
+                    <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer" 
+                         data-event="click:selectGift" data-character="bobo-love">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-laa-pink to-red-400 rounded-full flex items-center justify-center text-3xl">
+                                🐰💕
+                            </div>
+                            <h3 class="font-poppins font-bold text-lg text-laa-dark mb-2">BoBo Love</h3>
+                            <p class="text-sm text-laa-gray mb-4">Rabbit with flying hearts</p>
+                            <div class="flex items-center justify-center space-x-2">
+                                <i class="fas fa-coins text-laa-pink"></i>
+                                <span class="font-semibold text-laa-dark">100 Points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BoFire Character -->
+                    <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer" 
+                         data-event="click:selectGift" data-character="bo-fire">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-red-500 to-orange-400 rounded-full flex items-center justify-center text-3xl">
+                                🐲🔥
+                            </div>
+                            <h3 class="font-poppins font-bold text-lg text-laa-dark mb-2">BoFire</h3>
+                            <p class="text-sm text-laa-gray mb-4">Dragon with neon fire</p>
+                            <div class="flex items-center justify-center space-x-2">
+                                <i class="fas fa-coins text-laa-pink"></i>
+                                <span class="font-semibold text-laa-dark">500 Points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nunu Magic Character -->
+                    <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer" 
+                         data-event="click:selectGift" data-character="nunu-magic">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-laa-purple to-indigo-400 rounded-full flex items-center justify-center text-3xl">
+                                🦄🌟
+                            </div>
+                            <h3 class="font-poppins font-bold text-lg text-laa-dark mb-2">Nunu Magic</h3>
+                            <p class="text-sm text-laa-gray mb-4">Flying horse with stars</p>
+                            <div class="flex items-center justify-center space-x-2">
+                                <i class="fas fa-coins text-laa-pink"></i>
+                                <span class="font-semibold text-laa-dark">1,000 Points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dodo Splash Character -->
+                    <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer" 
+                         data-event="click:selectGift" data-character="dodo-splash">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-laa-blue to-blue-400 rounded-full flex items-center justify-center text-3xl">
+                                🦆💦
+                            </div>
+                            <h3 class="font-poppins font-bold text-lg text-laa-dark mb-2">Dodo Splash</h3>
+                            <p class="text-sm text-laa-gray mb-4">Duck with bubbles</p>
+                            <div class="flex items-center justify-center space-x-2">
+                                <i class="fas fa-coins text-laa-pink"></i>
+                                <span class="font-semibold text-laa-dark">250 Points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meemo Wink Character -->
+                    <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer" 
+                         data-event="click:selectGift" data-character="meemo-wink">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-pink-400 rounded-full flex items-center justify-center text-3xl">
+                                🐱🌈
+                            </div>
+                            <h3 class="font-poppins font-bold text-lg text-laa-dark mb-2">Meemo Wink</h3>
+                            <p class="text-sm text-laa-gray mb-4">Cat with rainbow</p>
+                            <div class="flex items-center justify-center space-x-2">
+                                <i class="fas fa-coins text-laa-pink"></i>
+                                <span class="font-semibold text-laa-dark">750 Points</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: GiftCharactersSection -->
+
+        <!-- Live Streaming Interface Modal -->
+        <!-- @COMPONENT: StreamingInterface [isStreaming, viewerCount, chatMessages, giftAlerts] -->
+        <div id="streamingModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 hidden">
+            <div class="flex flex-col h-full">
+                <!-- Stream Header -->
+                <div class="bg-white p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-600 hover:text-gray-800" onclick="closeStreamModal()">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full pulse-ring"></div>
+                            <span class="font-semibold text-red-500">LIVE</span>
+                            <span class="text-gray-600">|</span>
+                            <span class="font-semibold" data-bind="stream.viewerCount">1,247 viewers</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button class="bg-laa-pink text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition-colors">
+                            <i class="fas fa-user-plus mr-2"></i>Follow
+                        </button>
+                        <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-share mr-2"></i>Share
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Stream Area -->
+                <div class="flex-1 flex">
+                    <!-- Video Stream -->
+                    <div class="flex-1 relative bg-black">
+                        <!-- Beautiful woman doing makeup tutorial in professional lighting -->
+                        <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&h=800" 
+                             alt="Live Stream Video" 
+                             class="w-full h-full object-cover">
+                        
+                        <!-- Gift Animations Overlay -->
+                        <div class="absolute inset-0 pointer-events-none">
+                            <!-- Floating gift animations will appear here -->
+                            <div class="absolute top-20 right-20 gift-animation">
+                                <div class="text-4xl">🐰💕</div>
+                            </div>
+                            <div class="absolute top-40 left-32 gift-animation" style="animation-delay: 0.5s;">
+                                <div class="text-3xl">🌟</div>
+                            </div>
+                            <div class="absolute bottom-32 right-40 gift-animation" style="animation-delay: 1s;">
+                                <div class="text-4xl">🔥</div>
+                            </div>
+                        </div>
+
+                        <!-- Stream Controls -->
+                        <div class="absolute bottom-4 left-4 flex space-x-2">
+                            <button class="bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                            <button class="bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat & Gifts Sidebar -->
+                    <div class="w-80 bg-white flex flex-col">
+                        <!-- Stream Info -->
+                        <div class="p-4 border-b">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <!-- Beautiful young woman with professional headshot -->
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=50&h=50" 
+                                     alt="Streamer" 
+                                     class="w-12 h-12 rounded-full object-cover">
+                                <div>
+                                    <h3 class="font-semibold" data-bind="stream.hostName">Sarah Ahmed</h3>
+                                    <p class="text-sm text-gray-600">Beauty & Fashion</p>
+                                </div>
+                            </div>
+                            <h4 class="font-semibold mb-2" data-bind="stream.title">Makeup Tutorial Live Session</h4>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Started 23 minutes ago</span>
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-laa-pink font-semibold">
+                                        <i class="fas fa-gift mr-1"></i>
+                                        <span data-bind="stream.giftCount">247</span>
+                                    </span>
+                                    <span class="text-gray-600">
+                                        <i class="fas fa-heart mr-1"></i>
+                                        <span data-bind="stream.likeCount">1.2K</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Chat -->
+                        <div class="flex-1 flex flex-col">
+                            <div class="p-3 border-b">
+                                <h4 class="font-semibold text-sm">Live Chat</h4>
+                            </div>
+                            
+                            <!-- Chat Messages -->
+                            <div class="flex-1 overflow-y-auto p-3 space-y-3" data-implementation="Real-time chat using WebSocket">
+                                <!-- @MAP: chatMessages.map(message => ( -->
+                                <div class="flex items-start space-x-2" data-mock="true">
+                                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=30&h=30" 
+                                         alt="User" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-semibold text-xs text-laa-pink">Ahmed_123</span>
+                                            <span class="text-xs text-gray-500">2m</span>
+                                        </div>
+                                        <p class="text-sm">Love your makeup tutorial! 💄</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2" data-mock="true">
+                                    <img src="https://pixabay.com/get/gcaf4f70748fd55def4e8589bd5c0b1fcdba48c502d54d6d9c1851a88332ada88b3dade96244c1c39e0e91daa23db3ec61fd1c1dfc08b4b7c792c6b38c1eb60fb_1280.jpg" 
+                                         alt="User" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-semibold text-xs text-laa-purple">Layla_M</span>
+                                            <span class="text-xs text-gray-500">1m</span>
+                                        </div>
+                                        <p class="text-sm">شكراً للنصائح الرائعة! ❤️</p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-laa-pink to-laa-purple text-white p-2 rounded-lg" data-mock="true">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-2xl">🐰💕</span>
+                                        <div>
+                                            <p class="font-semibold text-sm">Omar_95 sent BoBo Love!</p>
+                                            <p class="text-xs opacity-90">100 points</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-2" data-mock="true">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=30&h=30" 
+                                         alt="User" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-semibold text-xs text-laa-blue">Beauty_Fan</span>
+                                            <span class="text-xs text-gray-500">30s</span>
+                                        </div>
+                                        <p class="text-sm">Can you show the eyeshadow technique again?</p>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+
+                            <!-- Chat Input -->
+                            <div class="p-3 border-t">
+                                <div class="flex space-x-2">
+                                    <input type="text" 
+                                           placeholder="Type a message..." 
+                                           class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                           data-implementation="Real-time chat input">
+                                    <button class="bg-laa-pink text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition-colors">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gift Panel -->
+                        <div class="border-t p-3">
+                            <h4 class="font-semibold text-sm mb-3">Send Gift</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button class="p-2 border border-gray-200 rounded-lg hover:border-laa-pink transition-colors text-center" 
+                                        data-event="click:sendGift" data-gift="bobo-love">
+                                    <div class="text-2xl mb-1">🐰💕</div>
+                                    <div class="text-xs text-gray-600">100</div>
+                                </button>
+                                <button class="p-2 border border-gray-200 rounded-lg hover:border-laa-purple transition-colors text-center" 
+                                        data-event="click:sendGift" data-gift="bo-fire">
+                                    <div class="text-2xl mb-1">🐲🔥</div>
+                                    <div class="text-xs text-gray-600">500</div>
+                                </button>
+                                <button class="p-2 border border-gray-200 rounded-lg hover:border-laa-blue transition-colors text-center" 
+                                        data-event="click:sendGift" data-gift="dodo-splash">
+                                    <div class="text-2xl mb-1">🦆💦</div>
+                                    <div class="text-xs text-gray-600">250</div>
+                                </button>
+                                <button class="p-2 border border-gray-200 rounded-lg hover:border-yellow-400 transition-colors text-center" 
+                                        data-event="click:sendGift" data-gift="meemo-wink">
+                                    <div class="text-2xl mb-1">🐱🌈</div>
+                                    <div class="text-xs text-gray-600">750</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: StreamingInterface -->
+
+        <!-- User Profile Section -->
+        <!-- @COMPONENT: UserProfile [user, earnings, followers] -->
+        <section class="py-12 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="max-w-4xl mx-auto">
+                    <div class="bg-gradient-to-r from-laa-pink via-laa-purple to-laa-blue rounded-2xl p-8 text-white mb-8">
+                        <div class="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
+                            <!-- Profile user avatar with artistic photographer in natural lighting -->
+                            <img src="https://pixabay.com/get/g62fe3b75ce4c52d01c2a0ce98786d8cbd218b1a44d741bdf8da4d3c25b25a055be30d3d5f8633e8fbf16b971a4801005a9d77a611edb98acccfeec6aaddc21de_1280.jpg" 
+                                 alt="User Profile" 
+                                 class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                            
+                            <div class="text-center md:text-left flex-1">
+                                <h2 class="font-poppins font-bold text-3xl mb-2" data-bind="user.name">Sarah Ahmed</h2>
+                                <p class="text-lg opacity-90 mb-4" data-bind="user.bio">Beauty & Fashion Creator | Makeup Artist</p>
+                                
+                                <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold" data-bind="user.followers">25.4K</div>
+                                        <div class="text-sm opacity-75">Followers</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold" data-bind="user.totalGifts">12.8K</div>
+                                        <div class="text-sm opacity-75">Gifts Received</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold" data-bind="user.streamingHours">150+</div>
+                                        <div class="text-sm opacity-75">Hours Streamed</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col space-y-3">
+                                <button class="bg-white text-laa-pink px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors" 
+                                        data-event="click:startLiveStream">
+                                    <i class="fas fa-video mr-2"></i>
+                                    Go Live
+                                </button>
+                                <button class="border-2 border-white text-white px-6 py-3 rounded-full font-semibold hover:bg-white hover:text-laa-pink transition-colors">
+                                    <i class="fas fa-edit mr-2"></i>
+                                    Edit Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Earnings Dashboard -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-laa-pink">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">This Month</p>
+                                    <p class="text-2xl font-bold text-laa-dark" data-bind="user.monthlyEarnings">$1,245</p>
+                                </div>
+                                <div class="w-12 h-12 bg-laa-pink bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-laa-pink text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-laa-purple">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Points</p>
+                                    <p class="text-2xl font-bold text-laa-dark" data-bind="user.totalPoints">8,750</p>
+                                </div>
+                                <div class="w-12 h-12 bg-laa-purple bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-coins text-laa-purple text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-laa-blue">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Live Sessions</p>
+                                    <p class="text-2xl font-bold text-laa-dark" data-bind="user.liveSessions">24</p>
+                                </div>
+                                <div class="w-12 h-12 bg-laa-blue bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-broadcast-tower text-laa-blue text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="font-poppins font-bold text-xl mb-6">Recent Activity</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: recentActivities.map(activity => ( -->
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg" data-mock="true">
+                                <div class="w-10 h-10 bg-laa-pink bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-gift text-laa-pink"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Received BoBo Love from Omar_95</p>
+                                    <p class="text-sm text-gray-600">2 hours ago • 100 points</p>
+                                </div>
+                                <span class="text-laa-pink font-semibold">+$0.60</span>
+                            </div>
+
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg" data-mock="true">
+                                <div class="w-10 h-10 bg-laa-purple bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-video text-laa-purple"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Completed live stream: "Makeup Tutorial"</p>
+                                    <p class="text-sm text-gray-600">5 hours ago • 45 minutes • 1.2K viewers</p>
+                                </div>
+                                <span class="text-laa-purple font-semibold">+$24.50</span>
+                            </div>
+
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg" data-mock="true">
+                                <div class="w-10 h-10 bg-laa-blue bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user-plus text-laa-blue"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Gained 15 new followers</p>
+                                    <p class="text-sm text-gray-600">1 day ago</p>
+                                </div>
+                                <span class="text-laa-blue font-semibold">+15</span>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: UserProfile -->
+
+        <!-- Admin Dashboard Preview -->
+        <!-- @COMPONENT: AdminDashboard [stats, users, reports] -->
+        <section class="py-12 bg-gray-100">
+            <div class="container mx-auto px-4">
+                <div class="mb-8">
+                    <h2 class="font-poppins font-bold text-3xl text-laa-dark mb-2">Admin Dashboard</h2>
+                    <p class="text-laa-gray">Monitor and manage the LaaBoBo Live platform</p>
+                </div>
+
+                <!-- Dashboard Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Active Users</p>
+                                <p class="text-3xl font-bold text-laa-dark" data-bind="admin.activeUsers">2,847</p>
+                                <p class="text-green-500 text-sm">+12% from last week</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-users text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Live Streams</p>
+                                <p class="text-3xl font-bold text-laa-dark" data-bind="admin.liveStreams">156</p>
+                                <p class="text-blue-500 text-sm">24/7 monitoring</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-broadcast-tower text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Daily Revenue</p>
+                                <p class="text-3xl font-bold text-laa-dark" data-bind="admin.dailyRevenue">$12,456</p>
+                                <p class="text-laa-pink text-sm">+8% from yesterday</p>
+                            </div>
+                            <div class="w-12 h-12 bg-laa-pink bg-opacity-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-chart-line text-laa-pink text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Gifts Sent</p>
+                                <p class="text-3xl font-bold text-laa-dark" data-bind="admin.giftsSent">8,923</p>
+                                <p class="text-laa-purple text-sm">+15% increase</p>
+                            </div>
+                            <div class="w-12 h-12 bg-laa-purple bg-opacity-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-gift text-laa-purple text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Recent Reports -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="font-poppins font-bold text-xl mb-4">Recent Reports</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: reports.map(report => ( -->
+                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-exclamation text-red-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-sm">Inappropriate content reported</p>
+                                        <p class="text-xs text-gray-600">Stream ID: #12847 • 5 minutes ago</p>
+                                    </div>
+                                </div>
+                                <button class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                                    Review
+                                </button>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-flag text-yellow-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-sm">Spam behavior detected</p>
+                                        <p class="text-xs text-gray-600">User: Ahmed_123 • 12 minutes ago</p>
+                                    </div>
+                                </div>
+                                <button class="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700">
+                                    Review
+                                </button>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Top Performers -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="font-poppins font-bold text-xl mb-4">Top Performers</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: topPerformers.map(performer => ( -->
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" 
+                                         alt="Top Performer" 
+                                         class="w-10 h-10 rounded-full object-cover">
+                                    <div>
+                                        <p class="font-semibold">Sarah Ahmed</p>
+                                        <p class="text-sm text-gray-600">Beauty & Fashion</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-laa-pink">$1,245</p>
+                                    <p class="text-xs text-gray-600">This month</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" 
+                                         alt="Top Performer" 
+                                         class="w-10 h-10 rounded-full object-cover">
+                                    <div>
+                                        <p class="font-semibold">Ahmed Gaming</p>
+                                        <p class="text-sm text-gray-600">Gaming</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-laa-purple">$892</p>
+                                    <p class="text-xs text-gray-600">This month</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center space-x-3">
+                                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=40&h=40" 
+                                         alt="Top Performer" 
+                                         class="w-10 h-10 rounded-full object-cover">
+                                    <div>
+                                        <p class="font-semibold">Luna Music</p>
+                                        <p class="text-sm text-gray-600">Music</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-laa-blue">$756</p>
+                                    <p class="text-xs text-gray-600">This month</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: AdminDashboard -->
+
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <!-- @COMPONENT: MobileNavigation [activeTab] -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+        <div class="flex items-center justify-around py-2">
+            <button class="flex flex-col items-center py-2 px-4 text-laa-pink" data-event="click:navigateHome">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs mt-1">Home</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-4 text-gray-500" data-event="click:navigateLive">
+                <i class="fas fa-video text-xl"></i>
+                <span class="text-xs mt-1">Live</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-4 text-gray-500" data-event="click:navigateGifts">
+                <i class="fas fa-gift text-xl"></i>
+                <span class="text-xs mt-1">Gifts</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-4 text-gray-500" data-event="click:navigateProfile">
+                <i class="fas fa-user text-xl"></i>
+                <span class="text-xs mt-1">Profile</span>
+            </button>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: MobileNavigation -->
+
+    <!-- Floating Start Stream Button -->
+    <button class="fixed bottom-20 md:bottom-8 right-6 w-16 h-16 gradient-bg rounded-full shadow-lg text-white text-xl hover:shadow-xl transition-all transform hover:scale-110 z-30" 
+            onclick="openStreamModal()" 
+            data-event="click:quickStartStream">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        // Modal Controls
+        function openStreamModal() {
+            document.getElementById('streamingModal').classList.remove('hidden');
+        }
+
+        function closeStreamModal() {
+            document.getElementById('streamingModal').classList.add('hidden');
+        }
+
+        // Language Toggle Functionality
+        (function() {
+            let isArabic = false;
+            const languageToggle = document.querySelector('[data-implementation="Toggle between Arabic and English"]');
+            
+            if (languageToggle) {
+                languageToggle.addEventListener('click', function() {
+                    isArabic = !isArabic;
+                    document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+                    document.documentElement.lang = isArabic ? 'ar' : 'en';
+                    this.innerHTML = `<i class="fas fa-globe text-laa-gray"></i><span class="ml-1 text-sm">${isArabic ? 'AR' : 'EN'}</span>`;
+                    
+                    // Toggle font family for Arabic
+                    if (isArabic) {
+                        document.body.classList.add('rtl');
+                        document.body.style.fontFamily = 'Cairo, sans-serif';
+                    } else {
+                        document.body.classList.remove('rtl');
+                        document.body.style.fontFamily = 'Inter, sans-serif';
+                    }
+                });
+            }
+        })();
+
+        // Gift Animation Trigger
+        (function() {
+            const giftButtons = document.querySelectorAll('[data-event*="sendGift"]');
+            
+            giftButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const giftType = this.getAttribute('data-gift');
+                    // TODO: Implement gift sending logic and animation
+                    console.log('Sending gift:', giftType);
+                    
+                    // Simple visual feedback
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
+        })();
+
+        // Stream Card Click Handler
+        (function() {
+            const streamCards = document.querySelectorAll('[data-event="click:joinStream"]');
+            
+            streamCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    openStreamModal();
+                });
+            });
+        })();
+
+        // Real-time Updates Simulation
+        (function() {
+            // Simulate viewer count updates
+            setInterval(() => {
+                const viewerCounts = document.querySelectorAll('[data-bind*="viewerCount"]');
+                viewerCounts.forEach(element => {
+                    const currentCount = parseInt(element.textContent.replace(/[^\d]/g, ''));
+                    const variation = Math.floor(Math.random() * 10) - 5;
+                    const newCount = Math.max(1, currentCount + variation);
+                    
+                    if (element.textContent.includes('K')) {
+                        element.textContent = (newCount / 1000).toFixed(1) + 'K';
+                    } else {
+                        element.textContent = newCount.toString();
+                    }
+                });
+            }, 5000);
+
+            // Simulate gift animations
+            setInterval(() => {
+                const giftOverlays = document.querySelectorAll('.gift-animation');
+                giftOverlays.forEach(overlay => {
+                    overlay.style.animation = 'none';
+                    setTimeout(() => {
+                        overlay.style.animation = 'giftPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    }, 100);
+                });
+            }, 8000);
+        })();
+    </script>
+</body>
+</html>
