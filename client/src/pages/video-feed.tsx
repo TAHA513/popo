@@ -789,7 +789,7 @@ export default function VideoFeed() {
 
               {/* Video Progress Bar - TikTok style - Always show for current video */}
               {index === currentVideoIndex && (
-                <div className="absolute bottom-0 left-0 right-0 z-30 progress-bar-mobile">
+                <div className="absolute bottom-4 left-0 right-0 z-30 progress-bar-mobile">
                   {/* Progress bar background */}
                   <div className="h-1 bg-white/30 overflow-hidden">
                     <div 
