@@ -782,34 +782,83 @@ export default function VideoFeed() {
 
               {/* Removed the circular play icon completely */}
 
-              {/* Video Progress Bar - TikTok style - Always show for current video */}
+              {/* Video Progress Bar - Enhanced for mobile visibility with seek functionality */}
               {index === currentVideoIndex && (
-                <div className="absolute bottom-0 left-0 right-0 z-20">
-                  <div className="h-1 bg-white/20 overflow-hidden">
+                <div className="absolute bottom-0 left-0 right-0 z-30">
+                  {/* Interactive seek bar - thicker for mobile */}
+                  <div 
+                    className="h-3 md:h-2 bg-white/30 overflow-hidden cursor-pointer relative group"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      
+                      const video = videoRefs.current[index];
+                      const duration = videoDuration[index];
+                      
+                      if (video && duration) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const percentage = clickX / rect.width;
+                        const newTime = percentage * duration;
+                        
+                        video.currentTime = Math.max(0, Math.min(newTime, duration));
+                        
+                        // Update state immediately for responsive UI
+                        setVideoCurrentTime(prev => {
+                          const newTimes = [...prev];
+                          newTimes[index] = newTime;
+                          return newTimes;
+                        });
+                      }
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      
+                      const video = videoRefs.current[index];
+                      const duration = videoDuration[index];
+                      
+                      if (video && duration && e.changedTouches[0]) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const touchX = e.changedTouches[0].clientX - rect.left;
+                        const percentage = touchX / rect.width;
+                        const newTime = percentage * duration;
+                        
+                        video.currentTime = Math.max(0, Math.min(newTime, duration));
+                        
+                        // Update state immediately for responsive UI
+                        setVideoCurrentTime(prev => {
+                          const newTimes = [...prev];
+                          newTimes[index] = newTime;
+                          return newTimes;
+                        });
+                      }
+                    }}
+                  >
+                    {/* Progress fill */}
                     <div 
-                      className="h-full bg-white transition-all duration-300 ease-linear shadow-sm"
+                      className="h-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 transition-all duration-100 ease-linear shadow-lg relative"
                       style={{
                         width: videoCurrentTime[index] && videoDuration[index] ? `${(videoCurrentTime[index] / videoDuration[index]) * 100}%` : '0%',
-                        boxShadow: '0 0 8px rgba(255,255,255,0.8)'
+                        boxShadow: '0 0 12px rgba(255,255,255,0.8)'
                       }}
-                    />
+                    >
+                      {/* Seek handle - more visible on mobile */}
+                      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-3 md:h-3 bg-white rounded-full shadow-lg border-2 border-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                    </div>
+                    
+                    {/* Hover/touch feedback */}
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   </div>
-                  {/* Time indicator - Always show */}
-                  <div className="absolute -top-6 right-2 text-white/90 text-xs font-medium bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/20">
+                  
+                  {/* Time indicator - Mobile optimized */}
+                  <div className="absolute -top-8 md:-top-6 right-2 text-white/90 text-sm md:text-xs font-medium bg-black/70 px-3 py-1 md:px-2 md:py-0.5 rounded-full backdrop-blur-sm border border-white/30">
                     {formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}
                   </div>
-                </div>
-              )}
-
-              {/* Fallback Progress Bar - Always visible at bottom with bright color */}
-              {index === currentVideoIndex && (
-                <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500">
-                  <div 
-                    className="h-1 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 transition-all duration-100"
-                    style={{
-                      width: `${Math.min((videoCurrentTime[index] || 0) / Math.max((videoDuration[index] || 1), 1) * 100, 100)}%`
-                    }}
-                  />
                 </div>
               )}
             </div>
