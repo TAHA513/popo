@@ -83,6 +83,8 @@ export default function VideoFeed() {
   const isButtonClicked = useRef(false);
   const playButtonTimeoutRef = useRef<NodeJS.Timeout>();
 
+
+
   // Get URL params to check if starting from specific video
   const urlParams = new URLSearchParams(window.location.search);
   const startVideoId = urlParams.get('start');
@@ -155,110 +157,7 @@ export default function VideoFeed() {
   const userInteracting = useRef(false);
   const isAdvancing = useRef(false);
 
-  // Touch/Swipe handlers - Enhanced protection against auto-navigation
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    userInteracting.current = true; // Track user interaction
-    const target = e.target as Element;
-    
-    // Block all interaction with control areas
-    if (target.closest('.pointer-events-auto') || 
-        target.closest('button') || 
-        target.closest('[role="button"]') ||
-        target.closest('.video-controls') ||
-        target.tagName === 'BUTTON') {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return false;
-    }
-    
-    startY.current = e.touches[0].clientY;
-    isDragging.current = false;
-  }, []);
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    const target = e.target as Element;
-    
-    // Block all interaction with control areas
-    if (target.closest('.pointer-events-auto') || 
-        target.closest('button') || 
-        target.closest('[role="button"]') ||
-        target.closest('.video-controls') ||
-        target.tagName === 'BUTTON' ||
-        isButtonClicked.current) {
-      e.preventDefault();
-      e.stopPropagation(); 
-      e.stopImmediatePropagation();
-      return false;
-    }
-    
-    if (!startY.current) return;
-    
-    const currentY = e.touches[0].clientY;
-    const diffY = startY.current - currentY;
-    
-    // Require larger movement for drag detection
-    if (Math.abs(diffY) > 20) {
-      isDragging.current = true;
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
-    // Reset interaction flag after delay
-    setTimeout(() => (userInteracting.current = false), 300);
-    const target = e.target as Element;
-    
-    // Block all interaction with control areas
-    if (target.closest('.pointer-events-auto') || 
-        target.closest('button') || 
-        target.closest('[role="button"]') ||
-        target.closest('.video-controls') ||
-        target.tagName === 'BUTTON') {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      isDragging.current = false;
-      isButtonClicked.current = false;
-      return false;
-    }
-
-    // Always reset button click flag after any touch
-    if (isButtonClicked.current) {
-      isButtonClicked.current = false;
-      isDragging.current = false;
-      return;
-    }
-
-    // Only navigate if we have a proper drag gesture
-    if (!isDragging.current || !startY.current) {
-      isDragging.current = false;
-      return;
-    }
-
-    const currentY = e.changedTouches[0].clientY;
-    const diffY = startY.current - currentY;
-
-    // Handle swipe navigation
-    if (diffY < -80 && currentVideoIndex > 0) {
-      // Upward swipe - go to previous video
-      if (isAdvancing.current) return; // Prevent multiple navigations
-      isAdvancing.current = true;
-      console.log('Manual swipe to previous video');
-      setCurrentVideoIndex(prev => prev - 1);
-      setTimeout(() => (isAdvancing.current = false), 500);
-    } else if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
-      // Downward swipe - go to next video 
-      if (isAdvancing.current) return; // Prevent multiple navigations
-      isAdvancing.current = true;
-      console.log('Manual swipe navigation to next video');
-      setCurrentVideoIndex(prev => prev + 1);
-      setTimeout(() => (isAdvancing.current = false), 500);
-    }
-
-    // Always reset
-    isDragging.current = false;
-    startY.current = 0;
-  }, [currentVideoIndex, videoMemories.length]);
 
   // Keyboard navigation - ONLY manual control
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -579,42 +478,7 @@ export default function VideoFeed() {
       <div 
         ref={containerRef}
         className="fixed inset-0 bg-black pb-12 overflow-hidden"
-        style={{ userSelect: 'none', touchAction: 'pan-y' }}
-        onTouchStart={(e) => {
-          const target = e.target as HTMLElement;
-          // Only mark as button click for navigation prevention, don't prevent the button event
-          if (target.closest('.pointer-events-auto') || 
-              target.closest('button') || 
-              target.closest('.video-controls') ||
-              target.tagName === 'BUTTON') {
-            isButtonClicked.current = true;
-            // Don't prevent default here - let button handle its own events
-            return;
-          }
-        }}
-        onTouchMove={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || 
-              target.closest('button') || 
-              target.closest('.video-controls') ||
-              target.tagName === 'BUTTON' ||
-              isButtonClicked.current) {
-            e.stopPropagation();
-            e.preventDefault();
-            return false;
-          }
-        }}
-        onTouchEnd={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest('.pointer-events-auto') || 
-              target.closest('button') || 
-              target.closest('.video-controls') ||
-              target.tagName === 'BUTTON') {
-            // Don't prevent default here - let button handle its own events
-            setTimeout(() => { isButtonClicked.current = false; }, 100);
-            return;
-          }
-        }}
+        style={{ userSelect: 'none' }}
       >
         {/* Video Container */}
         <div className="relative w-full h-full bg-black video-container">
@@ -849,18 +713,8 @@ export default function VideoFeed() {
 
             {/* Like - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform touch-manipulation"
-              style={{ touchAction: 'manipulation' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('Like clicked for video:', currentVideo.id);
-                handleLike(currentVideo.id);
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                console.log('Like touched for video:', currentVideo.id);
-                handleLike(currentVideo.id);
-              }}
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform"
+              onClick={() => handleLike(currentVideo.id)}
             >
               <div className={`w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-sm border shadow-lg transition-all duration-200 ${
                 likedVideos.has(currentVideo.id) 
@@ -891,18 +745,8 @@ export default function VideoFeed() {
 
             {/* Comments - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform touch-manipulation"
-              style={{ touchAction: 'manipulation' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('Comments clicked for video:', currentVideo.id);
-                setShowCommentsModal(true);
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                console.log('Comments touched for video:', currentVideo.id);
-                setShowCommentsModal(true);
-              }}
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform"
+              onClick={() => setShowCommentsModal(true)}
             >
               <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-full backdrop-blur-sm border border-white/20 shadow-lg">
                 <MessageCircle className="w-7 h-7" />
@@ -912,18 +756,8 @@ export default function VideoFeed() {
 
             {/* Share - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform touch-manipulation"
-              style={{ touchAction: 'manipulation' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('Share clicked for video:', currentVideo.id);
-                handleShare(currentVideo.id);
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                console.log('Share touched for video:', currentVideo.id);
-                handleShare(currentVideo.id);
-              }}
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform"
+              onClick={() => handleShare(currentVideo.id)}
             >
               <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-full backdrop-blur-sm border border-white/20 shadow-lg">
                 <Share2 className="w-7 h-7" />
@@ -933,18 +767,8 @@ export default function VideoFeed() {
 
             {/* Gift - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform touch-manipulation"
-              style={{ touchAction: 'manipulation' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('Gift clicked for video:', currentVideo.id);
-                handleGiftClick(currentVideo);
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                console.log('Gift touched for video:', currentVideo.id);
-                handleGiftClick(currentVideo);
-              }}
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 active:scale-95 transition-transform"
+              onClick={() => handleGiftClick(currentVideo)}
             >
               <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 rounded-full shadow-lg">
                 <Gift className="w-7 h-7 text-white" />
@@ -971,16 +795,9 @@ export default function VideoFeed() {
                   </h3>
                   {currentVideo.authorId !== user?.id && !followingUsers.has(currentVideo.authorId) && (
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFollow(currentVideo.authorId);
-                      }}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        handleFollow(currentVideo.authorId);
-                      }}
-                      className="bg-[var(--tiktok-red)] hover:bg-red-600 active:bg-red-700 text-white px-5 py-1.5 rounded-md text-sm font-bold transition-all transform active:scale-95 shadow-lg touch-manipulation"
-                      style={{ fontFamily: 'var(--tiktok-font-arabic)', touchAction: 'manipulation' }}
+                      onClick={() => handleFollow(currentVideo.authorId)}
+                      className="bg-[var(--tiktok-red)] hover:bg-red-600 active:bg-red-700 text-white px-5 py-1.5 rounded-md text-sm font-bold transition-all transform active:scale-95 shadow-lg"
+                      style={{ fontFamily: 'var(--tiktok-font-arabic)' }}
                     >
                       متابعة
                     </button>
@@ -1006,16 +823,8 @@ export default function VideoFeed() {
 
           {/* Volume control */}
           <button
-            className="absolute top-6 right-4 text-white pointer-events-auto z-50 hover:scale-110 active:scale-95 transition-transform touch-manipulation"
-            style={{ touchAction: 'manipulation' }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsMuted(prev => !prev);
-            }}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              setIsMuted(prev => !prev);
-            }}
+            className="absolute top-6 right-4 text-white pointer-events-auto z-50 hover:scale-110 active:scale-95 transition-transform"
+            onClick={() => setIsMuted(prev => !prev)}
           >
             {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
           </button>
