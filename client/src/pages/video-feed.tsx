@@ -632,11 +632,11 @@ export default function VideoFeed() {
         }}
       >
         {/* Video Container */}
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full bg-black video-container">
           {videoMemories.map((memory, index) => (
             <div
               key={memory.id}
-              className={`absolute inset-0 transition-transform duration-300 ${
+              className={`absolute inset-0 transition-transform duration-300 video-container ${
                 stickyMode && index === currentVideoIndex ? 
                   'translate-y-0 !fixed !top-0 !left-0 !right-0 !bottom-0 z-40' :
                   index === currentVideoIndex ? 'translate-y-0' : 
@@ -656,6 +656,11 @@ export default function VideoFeed() {
                 ref={(el) => (videoRefs.current[index] = el)}
                 src={memory.mediaUrls[0]}
                 className="w-full h-full object-cover"
+                style={{ 
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  background: 'transparent'
+                }}
                 onEnded={() => {
                   // ABSOLUTELY NO AUTO ADVANCE - but restart the same video
                   if (userInteracting.current || isAdvancing.current) {
@@ -779,85 +784,43 @@ export default function VideoFeed() {
                   </div>
                 </div>
               )}
+              
+              {/* مؤشر الفيديو يعمل - في أعلى اليسار */}
+              {index === currentVideoIndex && isVideoPlaying[index] && !showPlayButton && (
+                <div className="absolute top-4 left-4 z-20 pointer-events-none">
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span>يعمل الآن</span>
+                  </div>
+                </div>
+              )}
 
               {/* Removed the circular play icon completely */}
 
-              {/* Video Progress Bar - Enhanced for mobile visibility with seek functionality */}
+              {/* Video Progress Bar - أكثر وضوحاً وأكبر */}
               {index === currentVideoIndex && (
                 <div className="absolute bottom-0 left-0 right-0 z-30">
-                  {/* Interactive seek bar - thicker for mobile */}
-                  <div 
-                    className="h-3 md:h-2 bg-white/30 overflow-hidden cursor-pointer relative group"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      
-                      const video = videoRefs.current[index];
-                      const duration = videoDuration[index];
-                      
-                      if (video && duration) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const clickX = e.clientX - rect.left;
-                        const percentage = clickX / rect.width;
-                        const newTime = percentage * duration;
-                        
-                        video.currentTime = Math.max(0, Math.min(newTime, duration));
-                        
-                        // Update state immediately for responsive UI
-                        setVideoCurrentTime(prev => {
-                          const newTimes = [...prev];
-                          newTimes[index] = newTime;
-                          return newTimes;
-                        });
-                      }
-                    }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                    }}
-                    onTouchEnd={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      
-                      const video = videoRefs.current[index];
-                      const duration = videoDuration[index];
-                      
-                      if (video && duration && e.changedTouches[0]) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const touchX = e.changedTouches[0].clientX - rect.left;
-                        const percentage = touchX / rect.width;
-                        const newTime = percentage * duration;
-                        
-                        video.currentTime = Math.max(0, Math.min(newTime, duration));
-                        
-                        // Update state immediately for responsive UI
-                        setVideoCurrentTime(prev => {
-                          const newTimes = [...prev];
-                          newTimes[index] = newTime;
-                          return newTimes;
-                        });
-                      }
-                    }}
-                  >
-                    {/* Progress fill */}
+                  {/* شريط الخلفية - أكبر وأكثر وضوحاً */}
+                  <div className="h-2 bg-black/30 backdrop-blur-sm border-t border-white/10">
+                    {/* شريط التقدم الرئيسي - ملون ومتحرك */}
                     <div 
-                      className="h-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 transition-all duration-100 ease-linear shadow-lg relative"
+                      className="h-full bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 transition-all duration-200 ease-out shadow-lg relative"
                       style={{
                         width: videoCurrentTime[index] && videoDuration[index] ? `${(videoCurrentTime[index] / videoDuration[index]) * 100}%` : '0%',
-                        boxShadow: '0 0 12px rgba(255,255,255,0.8)'
+                        boxShadow: '0 0 12px rgba(255,20,147,0.6), 0 0 20px rgba(255,20,147,0.3)'
                       }}
                     >
-                      {/* Seek handle - more visible on mobile */}
-                      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-3 md:h-3 bg-white rounded-full shadow-lg border-2 border-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                      {/* نقطة التقدم المتحركة */}
+                      <div className="absolute right-0 top-0 w-1 h-full bg-white shadow-lg animate-pulse"></div>
                     </div>
-                    
-                    {/* Hover/touch feedback */}
-                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   </div>
                   
-                  {/* Time indicator - Mobile optimized */}
-                  <div className="absolute -top-8 md:-top-6 right-2 text-white/90 text-sm md:text-xs font-medium bg-black/70 px-3 py-1 md:px-2 md:py-0.5 rounded-full backdrop-blur-sm border border-white/30">
-                    {formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}
+                  {/* مؤشر الوقت - أكثر وضوحاً */}
+                  <div className="absolute -top-8 right-3 text-white text-sm font-bold bg-gradient-to-r from-black/80 to-gray-900/80 px-3 py-1 rounded-full backdrop-blur-md border border-white/30 shadow-lg">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <span>{formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}</span>
+                    </div>
                   </div>
                 </div>
               )}

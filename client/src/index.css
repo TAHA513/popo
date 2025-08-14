@@ -33,6 +33,74 @@ body, html {
   overscroll-behavior-x: none;
 }
 
+/* تحسين عرض الفيديوهات - إزالة الخطوط السوداء */
+video {
+  background: transparent !important;
+}
+
+/* إصلاح مشكلة الخط الأسود في الفيديوهات على الكمبيوتر */
+.video-container {
+  background: transparent !important;
+}
+
+/* تحسين نسبة العرض إلى الارتفاع للفيديوهات */
+@media (min-width: 768px) {
+  video {
+    object-fit: cover !important;
+    object-position: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: transparent !important;
+    /* إزالة أي مسافات إضافية */
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+  }
+  
+  /* إصلاح الحاوي للفيديو */
+  .video-container {
+    overflow: hidden !important;
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* إزالة أي خطوط سوداء في أسفل الفيديوهات */
+  .video-container video {
+    display: block !important;
+    min-height: 100vh !important;
+    min-width: 100vw !important;
+    transform: scale(1.001) !important; /* تكبير طفيف لإزالة الخطوط */
+  }
+}
+
+/* للشاشات الصغيرة (الهواتف) - لا نحتاج تعديل */
+@media (max-width: 767px) {
+  video {
+    object-fit: cover !important;
+    object-position: center !important;
+    background: transparent !important;
+  }
+}
+
+/* تحسين شريط التقدم - أكثر وضوحاً */
+.video-progress-bar {
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 0 20px rgba(255,20,147,0.5) !important;
+}
+
+/* تأثيرات متحركة لشريط التقدم */
+@keyframes progress-glow {
+  0% { box-shadow: 0 0 10px rgba(255,20,147,0.4); }
+  50% { box-shadow: 0 0 20px rgba(255,20,147,0.8); }
+  100% { box-shadow: 0 0 10px rgba(255,20,147,0.4); }
+}
+
+.animate-progress-glow {
+  animation: progress-glow 2s ease-in-out infinite;
+}
+
 /* منع سحب العناصر والنصوص */
 * {
   -webkit-user-drag: none;
