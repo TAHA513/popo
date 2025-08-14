@@ -84,23 +84,6 @@ video {
   }
 }
 
-/* تحسين شريط التقدم - أكثر وضوحاً */
-.video-progress-bar {
-  backdrop-filter: blur(10px) !important;
-  box-shadow: 0 0 20px rgba(255,20,147,0.5) !important;
-}
-
-/* تأثيرات متحركة لشريط التقدم */
-@keyframes progress-glow {
-  0% { box-shadow: 0 0 10px rgba(255,20,147,0.4); }
-  50% { box-shadow: 0 0 20px rgba(255,20,147,0.8); }
-  100% { box-shadow: 0 0 10px rgba(255,20,147,0.4); }
-}
-
-.animate-progress-glow {
-  animation: progress-glow 2s ease-in-out infinite;
-}
-
 /* منع سحب العناصر والنصوص */
 * {
   -webkit-user-drag: none;
