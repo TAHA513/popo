@@ -784,25 +784,44 @@ export default function VideoFeed() {
                   </div>
                 </div>
               )}
+              
+              {/* مؤشر الفيديو يعمل - في أعلى اليسار */}
+              {index === currentVideoIndex && isVideoPlaying[index] && !showPlayButton && (
+                <div className="absolute top-4 left-4 z-20 pointer-events-none">
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span>يعمل الآن</span>
+                  </div>
+                </div>
+              )}
 
               {/* Removed the circular play icon completely */}
 
-              {/* Video Progress Bar - TikTok style - Always show for current video */}
+              {/* Video Progress Bar - أكثر وضوحاً وأكبر */}
               {index === currentVideoIndex && (
-                <div className="absolute bottom-4 left-0 right-0 z-30 progress-bar-mobile">
-                  {/* Progress bar background */}
-                  <div className="h-1 bg-white/30 overflow-hidden">
+                <div className="absolute bottom-0 left-0 right-0 z-30">
+                  {/* شريط الخلفية - أكبر وأكثر وضوحاً */}
+                  <div className="h-2 bg-black/30 backdrop-blur-sm border-t border-white/10">
+                    {/* شريط التقدم الرئيسي - ملون ومتحرك */}
                     <div 
-                      className="h-full bg-white transition-all duration-300 ease-linear"
+                      className="h-full bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 transition-all duration-200 ease-out shadow-lg relative"
                       style={{
                         width: videoCurrentTime[index] && videoDuration[index] ? `${(videoCurrentTime[index] / videoDuration[index]) * 100}%` : '0%',
-                        background: 'linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1)',
-                        boxShadow: '0 0 10px rgba(255,255,255,0.8)'
+                        boxShadow: '0 0 12px rgba(255,20,147,0.6), 0 0 20px rgba(255,20,147,0.3)'
                       }}
-                    />
+                    >
+                      {/* نقطة التقدم المتحركة */}
+                      <div className="absolute right-0 top-0 w-1 h-full bg-white shadow-lg animate-pulse"></div>
+                    </div>
                   </div>
                   
-                  
+                  {/* مؤشر الوقت - أكثر وضوحاً */}
+                  <div className="absolute -top-8 right-3 text-white text-sm font-bold bg-gradient-to-r from-black/80 to-gray-900/80 px-3 py-1 rounded-full backdrop-blur-md border border-white/30 shadow-lg">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <span>{formatTime(videoCurrentTime[index] || 0)} / {formatTime(videoDuration[index] || 0)}</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -827,7 +846,7 @@ export default function VideoFeed() {
           
           {/* Right side controls */}
           <div 
-            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-[100] video-controls"
+            className="absolute right-4 bottom-20 flex flex-col items-center space-y-4 pointer-events-auto z-50 video-controls"
             style={{ touchAction: 'none' }}
             onTouchStart={(e) => {
               e.stopPropagation();
@@ -849,7 +868,7 @@ export default function VideoFeed() {
             {/* Follow Button - Only show if not following */}
             {currentVideo.author?.id && user?.id !== currentVideo.author.id && !followingUsers.has(currentVideo.author.id) && (
               <button
-                className="bg-red-500 text-white border-white hover:bg-red-600 min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-[110] relative transition-all duration-200 backdrop-blur-sm"
+                className="bg-red-500 text-white border-white hover:bg-red-600 min-w-[60px] h-8 rounded-full px-3 py-1.5 font-bold text-xs border-2 z-50 relative transition-all duration-200 backdrop-blur-sm"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -863,7 +882,7 @@ export default function VideoFeed() {
             
             {/* Profile */}
             <button 
-              className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white z-[110] relative"
+              className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full overflow-hidden border-2 border-white z-50 relative"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -892,7 +911,7 @@ export default function VideoFeed() {
 
             {/* Like - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -935,7 +954,7 @@ export default function VideoFeed() {
 
             {/* Comments - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -957,7 +976,7 @@ export default function VideoFeed() {
 
             {/* Share - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -979,7 +998,7 @@ export default function VideoFeed() {
 
             {/* Gift - TikTok Style */}
             <button
-              className="flex flex-col items-center space-y-1 text-white z-[110] relative transform hover:scale-110 transition-transform"
+              className="flex flex-col items-center space-y-1 text-white z-50 relative transform hover:scale-110 transition-transform"
               onTouchStart={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1001,7 +1020,7 @@ export default function VideoFeed() {
           </div>
 
           {/* Left side info - TikTok Style */}
-          <div className="absolute left-4 bottom-20 max-w-[65%] pointer-events-auto z-[100]">
+          <div className="absolute left-4 bottom-20 max-w-[65%] pointer-events-auto z-30">
             <div className="text-white space-y-3">
               {/* Username with Follow Button - TikTok Style */}
               <div className="flex items-center gap-3">
