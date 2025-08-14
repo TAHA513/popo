@@ -239,30 +239,28 @@ export default function VideoFeed() {
     const currentY = e.changedTouches[0].clientY;
     const diffY = startY.current - currentY;
 
-    // Handle swipe navigation with improved throttling
+    // Handle swipe navigation - reduced restrictions for smoother navigation
     const now = Date.now();
-    if (now - lastNavigationTime.current < 150) {
+    if (now - lastNavigationTime.current < 100) {
       isDragging.current = false;
       startY.current = 0;
-      return; // Throttle navigation
+      return; // Minimal throttle
     }
 
     if (diffY < -80 && currentVideoIndex > 0) {
       // Upward swipe - go to previous video
-      if (isAdvancing.current) return; // Prevent multiple navigations
-      isAdvancing.current = true;
       lastNavigationTime.current = now;
       console.log(`Manual swipe to previous video: ${currentVideoIndex} -> ${currentVideoIndex - 1}`);
       setCurrentVideoIndex(prev => prev - 1);
-      setTimeout(() => (isAdvancing.current = false), 150); // Faster reset
+      // No isAdvancing block for backward navigation
     } else if (diffY > 80 && currentVideoIndex < videoMemories.length - 1) {
       // Downward swipe - go to next video 
-      if (isAdvancing.current) return; // Prevent multiple navigations
+      if (isAdvancing.current) return; // Keep protection for forward only
       isAdvancing.current = true;
       lastNavigationTime.current = now;
       console.log(`Manual swipe to next video: ${currentVideoIndex} -> ${currentVideoIndex + 1}`);
       setCurrentVideoIndex(prev => prev + 1);
-      setTimeout(() => (isAdvancing.current = false), 150); // Faster reset
+      setTimeout(() => (isAdvancing.current = false), 100); // Much faster reset
     }
 
     // Always reset
@@ -272,20 +270,18 @@ export default function VideoFeed() {
 
   // Keyboard navigation - ONLY manual control
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (isAdvancing.current) return; // Prevent rapid navigation
-    
     if (e.key === 'ArrowUp' && currentVideoIndex > 0) {
       e.preventDefault();
-      isAdvancing.current = true;
       console.log(`Manual keyboard up - previous video: ${currentVideoIndex} -> ${currentVideoIndex - 1}`);
       setCurrentVideoIndex(prev => prev - 1);
-      setTimeout(() => (isAdvancing.current = false), 200); // Reduce timeout
+      // No blocking for backward navigation
     } else if (e.key === 'ArrowDown' && currentVideoIndex < videoMemories.length - 1) {
       e.preventDefault();
+      if (isAdvancing.current) return; // Keep protection for forward only
       isAdvancing.current = true;
       console.log(`Manual keyboard down - next video: ${currentVideoIndex} -> ${currentVideoIndex + 1}`);
       setCurrentVideoIndex(prev => prev + 1);
-      setTimeout(() => (isAdvancing.current = false), 200); // Reduce timeout
+      setTimeout(() => (isAdvancing.current = false), 100); // Much faster reset
     } else if (e.key === ' ') {
       e.preventDefault();
       const currentVideo = videoRefs.current[currentVideoIndex];
