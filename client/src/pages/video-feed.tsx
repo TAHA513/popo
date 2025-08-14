@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Share2, Gift, User, Volume2, VolumeX, Play } from "lucide-react";
 import { EnhancedGiftModal } from "@/components/enhanced-gift-modal";
@@ -65,6 +66,7 @@ export default function VideoFeed() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
@@ -498,6 +500,13 @@ export default function VideoFeed() {
     setShowGiftPanel(true);
   };
 
+  // Navigate to user profile instantly
+  const handleUserProfileClick = (userId: string, username?: string) => {
+    if (userId && userId !== user?.id) {
+      setLocation(`/profile/${userId}`);
+    }
+  };
+
   // Don't show "no videos" message - just show loading instead
   if (videoMemories.length === 0) {
     return (
@@ -819,7 +828,10 @@ export default function VideoFeed() {
             <div className="text-white space-y-3">
               {/* Username with Follow Button - TikTok Style */}
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div 
+                  className="relative cursor-pointer transform hover:scale-105 active:scale-95 transition-transform"
+                  onClick={() => handleUserProfileClick(currentVideo.authorId, currentVideo.author?.username)}
+                >
                   <img
                     src={currentVideo.author?.profileImageUrl || '/default-avatar.png'}
                     alt={currentVideo.author?.username || 'User'}
@@ -827,7 +839,11 @@ export default function VideoFeed() {
                   />
                 </div>
                 <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-white text-lg tracking-tight" style={{ fontFamily: 'var(--tiktok-font-arabic)' }}>
+                  <h3 
+                    className="font-bold text-white text-lg tracking-tight cursor-pointer hover:underline active:scale-95 transition-all" 
+                    style={{ fontFamily: 'var(--tiktok-font-arabic)' }}
+                    onClick={() => handleUserProfileClick(currentVideo.authorId, currentVideo.author?.username)}
+                  >
                     @{currentVideo.author?.username || `user${currentVideo.authorId?.slice(0, 6)}`}
                   </h3>
                   {currentVideo.authorId !== user?.id && !followingUsers.has(currentVideo.authorId) && (
